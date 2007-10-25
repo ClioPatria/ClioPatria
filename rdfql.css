@@ -1,0 +1,27 @@
+/* $Id$
+
+   CSS for SWI-Prolog semantic web query,
+   Author: Jan Wielemaker
+   Copying: Public domain
+
+   For a tutorial on CSS, see
+   <http://www.htmldog.com/guides/cssbeginner/selectors/>
+*/
+
+div.rdfql-login
+{ margin-bottom: 2em;
+}
+
+div.local-login, div.openid-login
+{ margin-top: 3em;
+  padding: 5px;
+  border-style: dashed;
+  border-width: 1px;
+}
+
+div.local-login form
+{ margin-top: 1em;
+  margin-left: 2cm;
+}
+
+

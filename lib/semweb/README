@@ -1,0 +1,6 @@
+---+ Extensions to the Semantic Web library
+
+---++ History management
+
+The library rdf_history.pl will deal with  streamlining and querying the
+modification history, aiming at multiuser Wiki style editing

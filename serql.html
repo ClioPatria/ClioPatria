@@ -1,0 +1,748 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<HTML>
+<HEAD>
+<TITLE>SWI-Prolog Semantic Web Server</TITLE><STYLE type="text/css">
+/* Style sheet for SWI-Prolog latex2html
+*/
+
+dd.defbody
+{ margin-bottom: 1em;
+}
+
+dt.pubdef
+{ background-color: #c5e1ff;
+}
+
+pre.code
+{ margin-left: 1.5em;
+margin-right: 1.5em;
+border: 1px dotted;
+padding-top: 5px;
+padding-left: 5px;
+padding-bottom: 5px;
+background-color: #f8f8f8;
+}
+
+div.navigate
+{ text-align: center;
+background-color: #f0f0f0;
+border: 1px dotted;
+padding: 5px;
+}
+
+div.title
+{ text-align: center;
+padding-bottom: 1em;
+font-size: 200%;
+font-weight: bold;
+}
+
+div.author
+{ text-align: center;
+font-style: italic;
+}
+
+div.abstract
+{ margin-top: 2em;
+background-color: #f0f0f0;
+border: 1px dotted;
+padding: 5px;
+margin-left: 10%; margin-right:10%;
+}
+
+div.abstract-title
+{ text-align: center;
+padding: 5px;
+font-size: 120%;
+font-weight: bold;
+}
+
+div.toc-h1
+{ font-size: 200%;
+font-weight: bold;
+}
+
+div.toc-h2
+{ font-size: 120%;
+font-weight: bold;
+margin-left: 2em;
+}
+
+div.toc-h3
+{ font-size: 100%;
+font-weight: bold;
+margin-left: 4em;
+}
+
+div.toc-h4
+{ font-size: 100%;
+margin-left: 6em;
+}
+
+span.sec-nr
+{ 
+}
+
+span.sec-title
+{ margin-left: 0.5em;
+}
+
+span.pred-ext
+{ font-weight: bold;
+}
+
+/* Footnotes */
+
+sup.fn { color: blue; text-decoration: underline; }
+span.fn-text: { display: none; }
+sup.fn span {display: none;}
+sup:hover span 
+{ display: block !important;
+position: absolute; top: auto; left: auto; width: 80%;
+color: #000; background: white;
+border: 2px solid;
+padding: 5px; margin: 10px; z-index: 100;
+font-size: smaller;
+}
+</STYLE>
+</HEAD>
+<BODY BGCOLOR="white"> 
+
+<P>
+<DIV class="title">SWI-Prolog Semantic Web Server</DIV>
+<DIV class="author">Jan Wielemaker <BR>
+Human Computer Studies (HCS), <BR>
+University of Amsterdam <BR>
+The Netherlands <BR>
+E-mail: <A class="url" href="mailto:wielemak@science.uva.nl">wielemak@science.uva.nl</A></DIV>
+<DIV class="abstract">
+<DIV class="abstract-title">Abstract</DIV> SWI-Prolog offers an 
+extensive library for loading, saving and querying Semantic Web 
+documents. Internally, the query language is `Prolog', building on top 
+of an efficient implementation of a predicate <A NAME="idx:rdf3:1"></A><SPAN class="pred-ext">rdf/3</SPAN> 
+expressing the content of the triple store.
+
+<P>Emerging dedicated Semantic Web query languages change this view. 
+Supporting such languages provides a comfortable infrastructure for 
+distributed Semantic Web processing systems. This document describes the 
+SWI-Prolog Semantic Web Server. The server provides access to the Prolog 
+triple store using either SeRQL or SPARQL. At the same time it is an 
+extensible platform for realising Semantic Web based applications.
+</DIV>
+
+<H1><A NAME="document-contents">Table of Contents</A></H1>
+
+<DIV class="toc">
+<DIV class="toc-h2"><A class="sec" href="#sec:1"><SPAN class="sec-nr">1</SPAN><SPAN class="sec-title">Introduction</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:2"><SPAN class="sec-nr">2</SPAN><SPAN class="sec-title">Query 
+Languages</SPAN></A></DIV>
+<DIV class="toc-h3"><A class="sec" href="#sec:2.1"><SPAN class="sec-nr">2.1</SPAN><SPAN class="sec-title">SPARQL 
+Support</SPAN></A></DIV>
+<DIV class="toc-h3"><A class="sec" href="#sec:2.2"><SPAN class="sec-nr">2.2</SPAN><SPAN class="sec-title">SeRQL 
+Support</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:3"><SPAN class="sec-nr">3</SPAN><SPAN class="sec-title">Installation 
+and Administration</SPAN></A></DIV>
+<DIV class="toc-h3"><A class="sec" href="#sec:3.1"><SPAN class="sec-nr">3.1</SPAN><SPAN class="sec-title">Getting 
+started</SPAN></A></DIV>
+<DIV class="toc-h3"><A class="sec" href="#sec:3.2"><SPAN class="sec-nr">3.2</SPAN><SPAN class="sec-title">Persistent 
+store</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:4"><SPAN class="sec-nr">4</SPAN><SPAN class="sec-title">Roadmap</SPAN></A></DIV>
+<DIV class="toc-h3"><A class="sec" href="#sec:4.1"><SPAN class="sec-nr">4.1</SPAN><SPAN class="sec-title">Query 
+processing and entailment</SPAN></A></DIV>
+<DIV class="toc-h3"><A class="sec" href="#sec:4.2"><SPAN class="sec-nr">4.2</SPAN><SPAN class="sec-title">Query 
+optimisation</SPAN></A></DIV>
+<DIV class="toc-h3"><A class="sec" href="#sec:4.3"><SPAN class="sec-nr">4.3</SPAN><SPAN class="sec-title">Webserver</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:5"><SPAN class="sec-nr">5</SPAN><SPAN class="sec-title">The 
+Sesame client</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:6"><SPAN class="sec-nr">6</SPAN><SPAN class="sec-title">Sesame 
+interoperability</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:7"><SPAN class="sec-nr">7</SPAN><SPAN class="sec-title">The 
+SPARQL client</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:8"><SPAN class="sec-nr">8</SPAN><SPAN class="sec-title">Security 
+issues</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:9"><SPAN class="sec-nr">9</SPAN><SPAN class="sec-title">Downloading</SPAN></A></DIV>
+</DIV>
+
+<P>
+
+<H2><A NAME="sec:1"><SPAN class="sec-nr">1</SPAN><SPAN class="sec-title">Introduction</SPAN></A></H2>
+
+<P>The SWI-Prolog Semantic Web Server unifies the SWI-Prolog general Web 
+support and Semantic Web support, providing both a starting point for 
+dedicated applications and a platform for exchange of RDF-based data 
+using a standardised language and protocol. An overview of the 
+SWI-Prolog Web support libraries can be found in <A class="url" href="http://hcs.science.uva.nl/projects/SWI-Prolog/articles/TPLP-plweb.pdf">SWI-Prolog 
+and the Web</A>,<SUP class="fn">1<SPAN class="fn-text">Submitted to 
+Theory and Practice of Logic Programming</SPAN></SUP>
+
+<H2><A NAME="sec:2"><SPAN class="sec-nr">2</SPAN><SPAN class="sec-title">Query 
+Languages</SPAN></A></H2>
+
+<P>The current server supports two query languages:
+<A class="url" href="http://www.openrdf.org">SeRQL</A> and
+<A class="url" href="http://www.w3.org/TR/rdf-sparql-query/">SPARQL</A>. 
+For both languages we provide an interactive service that presents the 
+results as a human-readable HTML table, a service presenting its result 
+as RDF/XML or XML that follows the HTTP protocol definition for the 
+query language, the possibility to query the local database using a 
+query language in Prolog and a Prolog client that can be used to query 
+remote services supporting the query language and HTTP service.
+
+<P>For both query languages, queries are translated to a complex Prolog 
+goal calling <A NAME="idx:rdf3:2"></A><SPAN class="pred-ext">rdf/3</SPAN> 
+to resolve edges in the graph and calls to predicates from 
+rdfql_runtime.pl that realise constraints imposed by the SeRQL
+<CODE>WHERE</CODE> clause and SPARQL <CODE>FILTER</CODE> clauses.
+
+<H3><A NAME="sec:2.1"><SPAN class="sec-nr">2.1</SPAN><SPAN class="sec-title">SPARQL 
+Support</SPAN></A></H3>
+
+<P>SPARQL support is based on the SPARQL specification, versioned April 
+6, 2006. Status:
+
+<P><UL COMPACT>
+<LI>No query optimization
+<LI>Limited value-testing, notably on xsd:dateTime
+<LI>Incomplete ORDER BY support. Only ascending and all values are 
+compared lexically.
+<LI>No support for named graphs
+<LI>Passes current test-suite, except tests affected by the above or 
+acknowledged as errornous.
+</UL>
+
+<H3><A NAME="sec:2.2"><SPAN class="sec-nr">2.2</SPAN><SPAN class="sec-title">SeRQL 
+Support</SPAN></A></H3>
+
+<P>SeRQL support and compatibility is based on development version 
+20040820, with additional support for the new 1.2 syntax and some of the 
+built-in functions. Both SeRQL and the HTTP API are fully defined in the 
+Sesame documentation.
+
+<H2><A NAME="sec:3"><SPAN class="sec-nr">3</SPAN><SPAN class="sec-title">Installation 
+and Administration</SPAN></A></H2>
+
+<H3><A NAME="sec:3.1"><SPAN class="sec-nr">3.1</SPAN><SPAN class="sec-title">Getting 
+started</SPAN></A></H3>
+
+<P>The file <CODE>parms.pl</CODE> contains a number of settings relevant 
+to the server. Notable the port to connect to, where to store user 
+information, etc. Persistent data kept by the server is a list of users 
+and their access rights (default <CODE>users.db</CODE>) and a file-based 
+backup of the in-memory store (default in the directory <CODE>SeRQL-store</CODE>). 
+Please check the content of <CODE>parms.pl</CODE> and follow directions 
+in the comments. On Unix-like systems, edit <CODE>run.pl</CODE> to 
+adjust the location of SWI-Prolog on the <CODE>!#</CODE> line. Next, 
+start <CODE>run.pl</CODE> and launch the server using the command below.
+
+<PRE class="code">
+?- serql_server.
+</PRE>
+
+<P>Now direct your browser to the server, using the default setup this 
+is <A class="url" href="http://localhost:3020">http://localhost:3020</A>. 
+If no users are defined the browser will prompt to enter the 
+administrative password. After that the admin and anonymous users are 
+created. Accounts can be created and modified by users with 
+administrative rights through the
+<EM>List users ...</EM> link on the sidebar.
+
+<P>To restart from scratch, stop the server, delete the users database 
+file and/or the triple backup file and restart the server as described 
+above.
+
+<H3><A NAME="sec:3.2"><SPAN class="sec-nr">3.2</SPAN><SPAN class="sec-title">Persistent 
+store</SPAN></A></H3>
+
+<A NAME="sec:backup"></A>
+
+<P>The <CODE>parms.pl</CODE> setting <CODE>persistent_store(Directory, 
+Options)</CODE> can be used to specify file-based persistent backup for 
+the in-memory triple store. The store is a combination of quick-load 
+triple databases and journal files that hold the modifications made to 
+the triple store. Details of the persistent store are documented with 
+the SWI-Prolog
+<A class="url" href="http://www.swi-prolog.org/packages/semweb.html">Semantic 
+Web package</A>
+
+<H2><A NAME="sec:4"><SPAN class="sec-nr">4</SPAN><SPAN class="sec-title">Roadmap</SPAN></A></H2>
+
+<H3><A NAME="sec:4.1"><SPAN class="sec-nr">4.1</SPAN><SPAN class="sec-title">Query 
+processing and entailment</SPAN></A></H3>
+
+<A NAME="sec:entailment"></A>
+
+<P>The kernel of the system is formed by <CODE>serql.pl</CODE> and <CODE>sparql</CODE>, 
+that implement the DCG parsers for the respective query languages as 
+well as a compiler that translates this into a Prolog goal executing the 
+query op top of the SWI-Prolog SemWeb package. The file
+<CODE>rdfql_runtime.pl</CODE> contains predicates that implement the 
+constraints (SeRQL WHERE or SPARQL FILTER) and other constructs 
+generated by the query-compiler.
+
+<P>Entailment reasoning is defined by <CODE>rdf_entailment.pl</CODE>. 
+Specific entailments are in seperate files:
+
+<DL>
+<DT><B><CODE>no_entailment.pl</CODE></B></DT>
+<DD>
+Defines entailment <CODE>none</CODE>. Query explicitely stored triples 
+only.</DD>
+<DT><B><CODE>rdf_entailment.pl</CODE></B></DT>
+<DD>
+Defines entailment <CODE>rdf</CODE>. Any resource appearing in a 
+predicate position is of type <CODE>rdf:Property</CODE>. Any subject is 
+an instance of <CODE>rdf:Resource</CODE></DD>
+<DT><B><CODE>rdfs_entailment.pl</CODE></B></DT>
+<DD>
+Defines entailment <CODE>rdfs</CODE>. Adds class- and property-hierarchy 
+reasoning to RDF reasoning, as well as reasoning on the basis of 
+property domain and range.</DD>
+<DT><B><CODE>rdfslite_entailment.pl</CODE></B></DT>
+<DD>
+Defines entailment <CODE>rdfslite</CODE>. Only considers the class- and 
+property-hierarchy. Using a backward chaining solver this is much 
+faster, while normally keeping the intended meaning.
+</DD>
+</DL>
+
+<P>The query compiler and execution system can be called directly from 
+Prolog.
+
+<DL>
+<DT class="pubdef"><A NAME="serql_compile/3"><STRONG>serql_compile</STRONG>(<VAR>+Query, 
+-Compiled, +Options</VAR>)</A></DT>
+<DD class="defbody">
+Compile <VAR>Query</VAR>, which is either an atom or a list of character 
+codes and unify <VAR>Compiled</VAR> with an opaque term representing the 
+query and suitable for passing to <A NAME="idx:serqlrun2:3"></A><A class="pred" href="#serql_run/2">serql_run/2</A>. 
+Defined
+<VAR>Options</VAR> are:
+
+<DL>
+<DT><STRONG>entailment</STRONG>(<VAR>Entailment</VAR>)</DT>
+<DD class="defbody">
+Entailment to use. Default is <CODE>rdfs</CODE>. See <A class="sec" href="#sec:4.1">section 
+4.1</A>.</DD>
+<DT><STRONG>type</STRONG>(<VAR>-Type</VAR>)</DT>
+<DD class="defbody">
+Extract the type of query compiled and generally useful information on 
+it. SeRQL defines the types <CODE>construct</CODE> and
+<CODE>select(VarNames)</CODE>, where <VAR>VarNames</VAR> is a list of 
+variables appearing in the projection.</DD>
+<DT><STRONG>optimise</STRONG>(<VAR>Bool</VAR>)</DT>
+<DD class="defbody">
+Whether or not to optimise the query. Default is defined by the setting
+<CODE>optimise_query</CODE>.
+</DD>
+</DL>
+
+</DD>
+<DT class="pubdef"><A NAME="sparql_compile/3"><STRONG>sparql_compile</STRONG>(<VAR>+Query, 
+-Compiled, +Options</VAR>)</A></DT>
+<DD class="defbody">
+Similar to to <A NAME="idx:serqlcompile3:4"></A><A class="pred" href="#serql_compile/3">serql_compile/3</A>. 
+Defined types are extended with
+<CODE>describe</CODE> and <CODE>ask</CODE>. Addional options are:
+
+<DL>
+<DT><STRONG>base_uri</STRONG>(<VAR>-URI</VAR>)</DT>
+<DD class="defbody">
+Base URI used to compile the query if not specified as part of the 
+query.</DD>
+<DT><STRONG>ordered</STRONG>(<VAR>-Bool</VAR>)</DT>
+<DD class="defbody">
+Unify <VAR>Bool</VAR> with true if query contains an <CODE>ORDER BY</CODE> 
+clause.</DD>
+<DT><STRONG>distinct</STRONG>(<VAR>-Bool</VAR>)</DT>
+<DD class="defbody">
+Unify <VAR>Bool</VAR> with true if query contains a <CODE>DISTINCT</CODE> 
+modifier.
+</DD>
+</DL>
+
+</DD>
+<DT class="pubdef"><A NAME="serql_run/2"><STRONG>serql_run</STRONG>(<VAR>+Compiled, 
+-Answer</VAR>)</A></DT>
+<DD class="defbody">
+Run a query compiled by <A NAME="idx:serqlcompile3:5"></A><A class="pred" href="#serql_compile/3">serql_compile/3</A>, 
+returning terms <CODE>row(Arg ...)</CODE> for select queries and terms <CODE>rdf(Subject, 
+Predicate, Object)</CODE> for construct queries. Subsequent results are 
+returned on backtracking.</DD>
+<DT class="pubdef"><A NAME="sparql_run/2"><STRONG>sparql_run</STRONG>(<VAR>+Compiled, 
+-Answer</VAR>)</A></DT>
+<DD class="defbody">
+Similar to <A NAME="idx:serqlrun2:6"></A><A class="pred" href="#serql_run/2">serql_run/2</A>. 
+Queries of type <CODE>describe</CODE> return rdf-terms like <CODE>construct</CODE>. 
+Queries of type <CODE>ask</CODE> return either <CODE>true</CODE> or <CODE>false</CODE>.</DD>
+<DT class="pubdef"><A NAME="serql_query/3"><STRONG>serql_query</STRONG>(<VAR>+Query, 
+-Answer, +Options</VAR>)</A></DT>
+<DD class="defbody">
+Utility combining of <A NAME="idx:serqlcompile3:7"></A><A class="pred" href="#serql_compile/3">serql_compile/3</A> 
+and <A NAME="idx:serqlrun2:8"></A><A class="pred" href="#serql_run/2">serql_run/2</A>. 
+Note this gives no access to the column-names.</DD>
+<DT class="pubdef"><A NAME="sparql_query/3"><STRONG>sparql_query</STRONG>(<VAR>+Query, 
+-Answer, +Options</VAR>)</A></DT>
+<DD class="defbody">
+Similar to <A NAME="idx:serqlquery3:9"></A><A class="pred" href="#serql_query/3">serql_query/3</A>.
+</DD>
+</DL>
+
+<H3><A NAME="sec:4.2"><SPAN class="sec-nr">4.2</SPAN><SPAN class="sec-title">Query 
+optimisation</SPAN></A></H3>
+
+<P>By default, but under control of the <A NAME="idx:setting1:10"></A><SPAN class="pred-ext">setting/1</SPAN> 
+option
+<CODE>optimise_query(Bool)</CODE>, and the option <CODE>optimise(Bool)</CODE>, 
+the query compiler optimises initial goal obtained from naive 
+translation of the query text. The optimiser is defined in <CODE>rdf_optimise.pl</CODE>. 
+The optimiser is described in detail in <A class="url" href="http://hcs.science.uva.nl/projects/SWI-Prolog/articles/ICLP05-SeRQL.pdf">An 
+optimised Semantic Web query language implementation in Prolog</A>. The 
+optimiser reorders goals in the generated conjunction and prepares for 
+independent execution of independent parts of the generated goal. With 
+the optimiser enabled (default), the provided order of path-expressions 
+on the query text is completely ignored and constraints are inserted at 
+the earliest possible point.
+
+<P>The SeRQL <CODE>LIKE</CODE> operator applies to both resources and 
+literals, while the SWI-Prolog RDF-DB module can only handle <CODE>LIKE</CODE> 
+efficiently on literals. The optimiser can be made aware of this using
+<CODE>WHERE label(X) LIKE "joe*"</CODE>. Taking the label informs the 
+optimiser that it only needs to consider literals. Likewise, equivalence 
+tests where one of the arguments is used as subject or predicate or has 
+the isResource(X) constraint tell the system it can do straight 
+identifier comparison rather then the much more expensive general 
+comparison.
+
+<P>Query optimisation is not yet supported for SPARQL.
+
+<H3><A NAME="sec:4.3"><SPAN class="sec-nr">4.3</SPAN><SPAN class="sec-title">Webserver</SPAN></A></H3>
+
+<P>The webserver is realised by <CODE>server.pl</CODE>, merely loading 
+both components: <CODE>http_data.pl</CODE> providing the Sesame HTTP API 
+using the same paths and parameters and <CODE>http_user.pl</CODE> 
+providing a browser-friendly frontend. Error messages are still very 
+crude and almost all errors return a 500 server error page with a 
+transcription of the Prolog exception.
+
+<P>The Sesame HTTP API deals with a large number of data formats, only 
+part of which are realised by the current system. This realisation is 
+achieved through <CODE>rdf_result</CODE>, providing an extensible API 
+for reading and writing in different formats. <CODE>rdf_html</CODE>,
+<CODE>rdf_write</CODE> and <CODE>xml_result</CODE> provide some 
+implementations thereof.
+
+<H2><A NAME="sec:5"><SPAN class="sec-nr">5</SPAN><SPAN class="sec-title">The 
+Sesame client</SPAN></A></H2>
+
+<P>The file <CODE>sesame_client.pl</CODE>, created by <A class="url" href="mailto:mrmenken@cs.vu.nl">Maarten 
+Menken</A> provides an API to remote Sesame servers. Below is a brief 
+documentation of the available primitives. All predicates take an option 
+list. To simplify applications that communicate with a single server 
+defauls for the server and reposititory locations can be specified using
+<A NAME="idx:setsesamedefault1:11"></A><A class="pred" href="#set_sesame_default/1">set_sesame_default/1</A>.
+
+<DL>
+<DT class="pubdef"><A NAME="set_sesame_default/1"><STRONG>set_sesame_default</STRONG>(<VAR>+DefaultOrList</VAR>)</A></DT>
+<DD class="defbody">
+This predicate can be used to specify defaults for the options available 
+to the other Sesame interface predicates. A default is a term <CODE>Option(Value)</CODE>. 
+If a list of such options is provided all options are set in the order 
+of appearance in the list. This implies options later in the list may 
+overrule already set options. Defined options are:
+
+<DL>
+<DT><STRONG>host</STRONG>(<VAR>Host</VAR>)</DT>
+<DD class="defbody">
+Hostname running the Sesame server.
+</DD>
+<DT><STRONG>port</STRONG>(<VAR>Port</VAR>)</DT>
+<DD class="defbody">
+Por the sesame server listens on.
+</DD>
+<DT><STRONG>path</STRONG>(<VAR>Path</VAR>)</DT>
+<DD class="defbody">
+Path from the root to the Sesame server. For the SWI-Prolog Sesame 
+client, this is normally the empty atom (<CODE>''</CODE>). For thte Java 
+based Sesame this is normally <CODE>'/sesame'</CODE>.
+</DD>
+<DT><STRONG>repository</STRONG>(<VAR>Repository</VAR>)</DT>
+<DD class="defbody">
+Name of the repository to connect to. See also
+<A NAME="idx:sesamecurrentrepository3:12"></A><A class="pred" href="#sesame_current_repository/3">sesame_current_repository/3</A>.
+</DD>
+</DL>
+
+<P>Below is a typical call to connect to a sesame server:
+
+<PRE class="code">
+...,
+set_sesame_default([ host(localhost),
+                     port(8080),
+                     path('/sesame'),
+                     repository('mem-rdfs-db')
+                   ]).
+</PRE>
+
+</DD>
+<DT class="pubdef"><A NAME="sesame_current_repository/3"><STRONG>sesame_current_repository</STRONG>(<VAR>-Id, 
+-Properties, +Options</VAR>)</A></DT>
+<DD class="defbody">
+Enumerate the currently available Sesame repositories. <VAR>Id</VAR> is 
+unified to the name of the repository. <VAR>Properties</VAR> is a list 
+of <CODE>Name(Value)</CODE> terms providing title and access details.
+<VAR>Options</VAR> specifies the host, port and path of the server.</DD>
+<DT class="pubdef"><A NAME="sesame_clear_repository/1"><STRONG>sesame_clear_repository</STRONG>(<VAR>+Options</VAR>)</A></DT>
+<DD class="defbody">
+Remove all content from the repository. <VAR>Options</VAR> specifies the 
+host, port and path of the server as well as the target repository.</DD>
+<DT class="pubdef"><A NAME="sesame_login/3"><STRONG>sesame_login</STRONG>(<VAR>+User, 
++Password, +Options</VAR>)</A></DT>
+<DD class="defbody">
+Login to a Sesame server. On success the returned cookie is stored and 
+transmitted with each query on the same server. <VAR>Options</VAR> 
+specifies the host, port and path of the server.</DD>
+<DT class="pubdef"><A NAME="sesame_logout/1"><STRONG>sesame_logout</STRONG>(<VAR>+Options</VAR>)</A></DT>
+<DD class="defbody">
+<VAR>Options</VAR> specifies the host, port and path of the server.</DD>
+<DT class="pubdef"><A NAME="sesame_graph_query/3"><STRONG>sesame_graph_query</STRONG>(<VAR>+Query, 
+-Triple, +Options</VAR>)</A></DT>
+<DD class="defbody">
+Execute <VAR>Query</VAR> on the given server and return the resulting 
+triples on backtracking. <VAR>Options</VAR> specifies the host, port and 
+path of the server as well as the target repository. The example below 
+extracts all type relations from the default server.
+
+<PRE class="code">
+...,
+sesame_graph_query('construct * from {s} &lt;rdf:type&gt; {o}',
+                   rdf(S,P,O),
+                   []),
+</PRE>
+
+</DD>
+<DT class="pubdef"><A NAME="sesame_table_query/3"><STRONG>sesame_table_query</STRONG>(<VAR>+Query, 
+-Row, +Options</VAR>)</A></DT>
+<DD class="defbody">
+Execute <VAR>Query</VAR> on the given server and return the resulting 
+rows on backtracking. Each <VAR>Row</VAR> is a term of the format
+<CODE>row(Col1, Col2, ... ColN)</CODE>. <VAR>Options</VAR> specifies the 
+host, port and path of the server as well as the target repository.</DD>
+<DT class="pubdef"><A NAME="sesame_extract_rdf/2"><STRONG>sesame_extract_rdf</STRONG>(<VAR>-Triple, 
++Options</VAR>)</A></DT>
+<DD class="defbody">
+Extract all content from an RDF repository. In addition to the server 
+and repository options the following options are defined:
+
+<DL>
+<DT><STRONG>schema</STRONG>(<VAR>OnOff</VAR>)</DT>
+<DD class="defbody">
+Extract the schema information.
+</DD>
+<DT><STRONG>data</STRONG>(<VAR>OnOff</VAR>)</DT>
+<DD class="defbody">
+Extract the plain data
+</DD>
+<DT><STRONG>explicit_only</STRONG>(<VAR>OnOff</VAR>)</DT>
+<DD class="defbody">
+Determine whether or not entailed triples are returned. Default is <CODE>off</CODE>, 
+returning both explicit and inferred triples.
+</DD>
+</DL>
+
+</DD>
+<DT class="pubdef"><A NAME="sesame_upload_file/+File, +Options"><STRONG>sesame_upload_file</STRONG>(<VAR>+File, 
++Options</VAR>)</A></DT>
+<DD class="defbody">
+dd the content of <VAR>File</VAR> to the repository. In addition to the 
+server and repository options the following options are defined:
+
+<DL>
+<DT><STRONG>data_format</STRONG>(<VAR>+Format</VAR>)</DT>
+<DD class="defbody">
+Format of the input file. Default is <CODE>rdfxml</CODE>.
+</DD>
+<DT><STRONG>base_uri</STRONG>(<VAR>+BaseURI</VAR>)</DT>
+<DD class="defbody">
+URI for resolving local names. Default is <CODE>foo:bar</CODE>.
+</DD>
+<DT><STRONG>verify_data</STRONG>(<VAR>OnOff</VAR>)</DT>
+<DD class="defbody">
+Do/do not verify the input. Default is <CODE>off</CODE>.
+</DD>
+</DL>
+
+</DD>
+<DT class="pubdef"><A NAME="sesame_assert/2"><STRONG>sesame_assert</STRONG>(<VAR>+TripleOrList, 
++Options</VAR>)</A></DT>
+<DD class="defbody">
+Assert a single <CODE>rdf(Subject, Predicate, Object)</CODE> or a list 
+of such terms. In addition to the server and repository options the 
+following options are defined:
+
+<DL>
+<DT><STRONG>base_uri</STRONG>(<VAR>+BaseURI</VAR>)</DT>
+<DD class="defbody">
+URI for resolving local names. Default is <CODE>foo:bar</CODE>.
+</DD>
+</DL>
+
+</DD>
+<DT class="pubdef"><A NAME="sesame_retract/2"><STRONG>sesame_retract</STRONG>(<VAR>+Triple, 
++Options</VAR>)</A></DT>
+<DD class="defbody">
+Remove a triple from the repository. Variables in Triple match all 
+values for that field.
+</DD>
+</DL>
+
+<H2><A NAME="sec:6"><SPAN class="sec-nr">6</SPAN><SPAN class="sec-title">Sesame 
+interoperability</SPAN></A></H2>
+
+<P>The SWI-Prolog SeRQL engine provides a (still incomplete) drop-in 
+replacement for the Sesame HTTP access protocol. Sesame's remote server 
+class can be used to access the SWI-Prolog SeRQL engine through the 
+Sesame Java API. Likewise the Prolog client realised by
+<CODE>sesame_client.pl</CODE> provides a Prolog API that can be used to 
+access both Sesame and the SWI-Prolog SeRQL engine.
+
+<H2><A NAME="sec:7"><SPAN class="sec-nr">7</SPAN><SPAN class="sec-title">The 
+SPARQL client</SPAN></A></H2>
+
+<P>The file <CODE>sparql_client.pl</CODE> provides a client to the 
+SPARQL HTTP protocol. The protocol defines how a SPARQL query is asked 
+over HTTP and how the results are presented. It is possible to use the 
+SeRQL protocol on the same server to perform tasks such as modifying the 
+triple store.
+
+<P>The structure of the SPARQL client API is closely based on the SeRQL 
+client.
+
+<DL>
+<DT class="pubdef"><A NAME="sparql_query/3"><STRONG>sparql_query</STRONG>(<VAR>+Query, 
+-Row, +Options</VAR>)</A></DT>
+<DD class="defbody">
+Run a SPARQL query on a remote server, retrieving the results one-by-one 
+on backtracking. <VAR>Options</VAR> provide the host, port and path of 
+the server. <A NAME="idx:sparqlsetserver1:13"></A><A class="pred" href="#sparql_set_server/1">sparql_set_server/1</A> 
+can be used to define default locations.</DD>
+<DT class="pubdef"><A NAME="sparql_set_server/1"><STRONG>sparql_set_server</STRONG>(<VAR>+Options</VAR>)</A></DT>
+<DD class="defbody">
+List of options that act as defaults for <A NAME="idx:sparqlquery3:14"></A><A class="pred" href="#sparql_query/3">sparql_query/3</A>. 
+Commonly set to specify the server location. For example:
+
+<PRE class="code">
+?- sparql_set_server([ host(localhost),
+                       port(3020),
+                       path('/sparql/')
+                     ]).
+</PRE>
+
+<P></DD>
+</DL>
+
+<H2><A NAME="sec:8"><SPAN class="sec-nr">8</SPAN><SPAN class="sec-title">Security 
+issues</SPAN></A></H2>
+
+<P>HTTP Communication with the server, including usernames and 
+passwords, is in cleartext and therefore sensitive to sniffing. The 
+overall security of the server is unknown. It is advised to run the 
+server as user with minimal access rights, only providing write access 
+to the user database file.
+
+<H2><A NAME="sec:9"><SPAN class="sec-nr">9</SPAN><SPAN class="sec-title">Downloading</SPAN></A></H2>
+
+<P>The SWI-Prolog SeRQL engine is available from CVS using the following 
+commands:
+
+<PRE class="code">
+% cvs -d :pserver:pl@gollem.science.uva.nl:/usr/local/cvspl login
+Password: prolog
+% cvs -d :pserver:pl@gollem.science.uva.nl:/usr/local/cvspl co SeRQL
+</PRE>
+
+<P>Infrequently announces and snapshots are provided through the
+<A class="url" href="http://gollem.science.uva.nl/twiki/pl/bin/view/Library/SeRQL">Prolog 
+Wiki</A>
+
+<H3>Acknowledgements</H3>
+
+<P>The SeRQL server has been realised as part of the <A class="url" href="http://www.hops-fp6.org">HOPS 
+project</A> and could not have been done without Sesame and feedback 
+from Jeen Broekstra and Maarten Menken from the Free University of 
+Amsterdam (VU). Adding SPARQL support has been realised as part of the 
+E-culture sub-project of Dutch MultiMedia project.
+
+<H1><A NAME="document-index">Index</A></H1>
+
+<DL>
+<DT><STRONG>R</STRONG></DT>
+<DD>
+</DD>
+<DT>rdf/3</DT>
+<DD>
+<A class="idx" href="#idx:rdf3:1"></A> <A class="idx" href="#idx:rdf3:2">2</A></DD>
+<DT><STRONG>S</STRONG></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#serql_compile/3">serql_compile/3</A></DT>
+<DD>
+<A class="idx" href="#idx:serqlcompile3:4">4.1</A> <A class="idx" href="#idx:serqlcompile3:5">4.1</A> <A class="idx" href="#idx:serqlcompile3:7">4.1</A></DD>
+<DT><A class="idx" href="#serql_query/3">serql_query/3</A></DT>
+<DD>
+<A class="idx" href="#idx:serqlquery3:9">4.1</A></DD>
+<DT><A class="idx" href="#serql_run/2">serql_run/2</A></DT>
+<DD>
+<A class="idx" href="#idx:serqlrun2:3">4.1</A> <A class="idx" href="#idx:serqlrun2:6">4.1</A> <A class="idx" href="#idx:serqlrun2:8">4.1</A></DD>
+<DT><A class="idx" href="#sesame_assert/2">sesame_assert/2</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#sesame_clear_repository/1">sesame_clear_repository/1</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#sesame_current_repository/3">sesame_current_repository/3</A></DT>
+<DD>
+<A class="idx" href="#idx:sesamecurrentrepository3:12">5</A></DD>
+<DT><A class="idx" href="#sesame_extract_rdf/2">sesame_extract_rdf/2</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#sesame_graph_query/3">sesame_graph_query/3</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#sesame_login/3">sesame_login/3</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#sesame_logout/1">sesame_logout/1</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#sesame_retract/2">sesame_retract/2</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#sesame_table_query/3">sesame_table_query/3</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#sesame_upload_file/+File, +Options">sesame_upload_file/+File, 
++Options</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#set_sesame_default/1">set_sesame_default/1</A></DT>
+<DD>
+<A class="idx" href="#idx:setsesamedefault1:11">5</A></DD>
+<DT>setting/1</DT>
+<DD>
+<A class="idx" href="#idx:setting1:10">4.2</A></DD>
+<DT><A class="idx" href="#sparql_compile/3">sparql_compile/3</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#sparql_query/3">sparql_query/3</A></DT>
+<DD>
+<A class="idx" href="#idx:sparqlquery3:14">7</A></DD>
+<DT><A class="idx" href="#sparql_run/2">sparql_run/2</A></DT>
+<DD>
+</DD>
+<DT><A class="idx" href="#sparql_set_server/1">sparql_set_server/1</A></DT>
+<DD>
+<A class="idx" href="#idx:sparqlsetserver1:13">7</A></DD>
+</DL>
+
+</BODY></HTML>

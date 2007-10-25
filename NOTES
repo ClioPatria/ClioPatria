@@ -1,0 +1,74 @@
+
+Sesame forum: http://www.openrdf.org/forum
+
+================================================================
+Bugjes:
+
+	* Sesame java client does not perform logout?
+
+	* Cookie id "sesame-sid" is actually "sesame_sid"
+
+	* Chain of optional values!?
+
+
+================================================================
+Timing (Dual AMD 2600+, SuSE 9.0)
+
+SWI-Prolog server and client
+============================
+
+Aug 4, 2004
+
+	* DB: rdfs
+	  Query: construct * from {S} P {O}
+	  Returned: 158 triples
+
+	  Server:  19ms
+	  Client:   8ms
+	  Elapsed: 28ms
+
+	* DB: rdfs
+	  Query: construct * from {<rdfs:Resource>} <rdfs:label> {L}
+	  Returned: 1 triple
+
+	  Server:   2.1ms
+	  Client:   1.3ms
+	  Elapsed:  3.5ms
+
+Sesame server, Prolog client (Dual AMD 1600+, SuSE 9.0)
+============================
+
+Aug 5, 2004
+
+	* DB: rdfs
+	  Query: construct * from {<rdfs:Resource>} <rdfs:label> {L}
+	  Returned: 1 triple
+
+	  Elapsed: 5.25ms
+
+Aug 14, 2004
+
+	* Wine.owl: 1854 triples
+
+================================================================
+Timing measurements using test_client:
+
+Sesame: -Xmx512M
+
+Sesame 20040714 (swiprolog branch)
+				     Sesame 		SWI-Prolog
+				 (mem)    (MySQL)
+wns				219.34			57.15
+count(table(right_noun, Row))	  0.57			 2.17
+count(table(right_noun_r, Row))	  			 0.73
+count(table(multi_lex, Row))  43183.25			58.01	          
+
+Sesame 20040820
+
+				     Sesame 		
+				 (mem)    (MySQL)
+wns				196.65		
+count(table(right_noun, Row))	  0.64		
+count(table(right_noun_r, Row))   0.49	  		
+count(table(multi_lex, Row))  31303.31
+	

@@ -1,0 +1,40 @@
+#!/bin/sh
+
+exclude="grep -v /Triple20/"
+quick=false
+version=`cat VERSION`
+cwd=`pwd`
+pkg=`basename $cwd`
+out=${pkg}-$version.tar.gz
+compress=gzip
+
+rm -f ${pkg}-$version
+if [ "$quick" = false ]; then
+  cp /dev/null cvsfiles
+  echo -n "Collecting distribution files "
+  for d in `find . -name CVS -type d -print`; do
+      echo -n "."
+      dir=`dirname $d`
+      grep '^/' $dir/CVS/Entries | \
+          awk -F/ '{printf("%s/%s\n", "'$dir'", $2)}' >> cvsfiles
+  done
+  echo "done"
+
+cat >> cvsfiles << _EOM_
+_EOM_
+fi
+
+( cat cvsfiles | $exclude
+  echo ./Triple20/src/rdf_base.pl
+  echo ./Triple20/src/rdf_file.pl
+) | sed "s@^\./@${pkg}-$version/@" > tapefiles
+
+
+
+cd ..
+rm -f ${pkg}-$version
+ln -s ${pkg} ${pkg}-$version
+tar cvfT - ${pkg}/tapefiles | $compress > $out
+rm -f ${pkg}-$version
+
+

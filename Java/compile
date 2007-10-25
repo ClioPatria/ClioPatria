@@ -1,0 +1,4 @@
+
+test=$1
+
+javac -classpath /swi40/jan/src/openrdf/build/lib/sesame.jar:. Sesame$test.java

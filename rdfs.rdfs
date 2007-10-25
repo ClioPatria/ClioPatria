@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+]>
+
+<!--
+  This file was created by creating an empty RDFS repository using
+  Sesame 1.04, run "CONSTRUCT * from {x} y {z}" using sesame_client.pl
+  and write the result using rdf_write.pl
+
+  It is used to test the consistency of Sesame and the SWI-Prolog
+  SeRQL engine.
+-->
+
+<rdf:RDF
+    xmlns:rdf="&rdf;"
+    xmlns:rdfs="&rdfs;"
+>
+<rdfs:Class rdf:about="&rdf;Alt">
+  <rdfs:subClassOf rdf:resource="&rdfs;Container"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdf;Bag">
+  <rdfs:subClassOf rdf:resource="&rdfs;Container"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdf;List">
+  <rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdf;Property">
+  <rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdf;Seq">
+  <rdfs:subClassOf rdf:resource="&rdfs;Container"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdf;Statement">
+  <rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdf;XMLLiteral">
+  <rdfs:subClassOf rdf:resource="&rdfs;Literal"/>
+  <rdf:type rdf:resource="&rdfs;Datatype"/>
+</rdfs:Class>
+
+<rdf:Property rdf:about="&rdf;first">
+  <rdfs:domain rdf:resource="&rdf;List"/>
+</rdf:Property>
+
+<rdf:List rdf:about="&rdf;nil">
+  <rdf:type rdf:resource="&rdfs;Resource"/>
+</rdf:List>
+
+<rdf:Property rdf:about="&rdf;object">
+  <rdfs:domain rdf:resource="&rdf;Statement"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdf;predicate">
+  <rdfs:domain rdf:resource="&rdf;Statement"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdf;rest">
+  <rdfs:domain rdf:resource="&rdf;List"/>
+  <rdfs:range rdf:resource="&rdf;List"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdf;subject">
+  <rdfs:domain rdf:resource="&rdf;Statement"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdf;type">
+  <rdfs:range rdf:resource="&rdfs;Class"/>
+</rdf:Property>
+
+<rdfs:Class rdf:about="&rdfs;Class">
+  <rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdfs;Container">
+  <rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdfs;ContainerMembershipProperty">
+  <rdfs:subClassOf rdf:resource="&rdf;Property"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdfs;Datatype">
+  <rdfs:subClassOf rdf:resource="&rdfs;Class"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdfs;Literal">
+  <rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&rdfs;Resource">
+  <rdf:type rdf:resource="&rdfs;Resource"/>
+</rdfs:Class>
+
+<rdf:Property rdf:about="&rdfs;comment">
+  <rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdfs;domain">
+  <rdfs:domain rdf:resource="&rdf;Property"/>
+  <rdfs:range rdf:resource="&rdfs;Class"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdfs;isDefinedBy">
+  <rdfs:subPropertyOf rdf:resource="&rdfs;seeAlso"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdfs;label">
+  <rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdfs;range">
+  <rdfs:domain rdf:resource="&rdf;Property"/>
+  <rdfs:range rdf:resource="&rdfs;Class"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdfs;seeAlso">
+  <rdf:type rdf:resource="&rdfs;Resource"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdfs;subClassOf">
+  <rdfs:domain rdf:resource="&rdfs;Class"/>
+  <rdfs:range rdf:resource="&rdfs;Class"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&rdfs;subPropertyOf">
+  <rdfs:domain rdf:resource="&rdf;Property"/>
+  <rdfs:range rdf:resource="&rdf;Property"/>
+</rdf:Property>
+
+</rdf:RDF>

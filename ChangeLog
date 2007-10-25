@@ -1,0 +1,206 @@
+			SWI-Prolog SeRQL ChangeLog
+
+Oct 2, 2007
+
+ * CLEANUP: Reorganise some of the settings and allow changing settings
+   while the system keeps running.
+
+Jun 11, 2007
+
+ * FIXED: UTF-8 Encoding.  Yves Raimond.
+
+Dec 13, 2006
+
+ * FIXED: edit user when running under a prefix behind a reverse proxy.
+   Borys.
+
+Oct 25, 2006
+
+ * ADDED: setting(base_ontologies(List) to define the `empty' database.
+
+Sep 27, 2006
+
+ * Fixed creating new admin password (path issues).  Wouter Jansweijer.
+
+Aug 21, 2006
+
+ * Fixed query optimization for rdf(_,_,literal(String)).  Michiel
+   Hildebrand.
+
+Jul 28, 2006
+
+ * Fixed query optimization for queries having a call +(b),-,-.  Michiel
+   Hildebrand.
+
+ * Make all internal URL references relative, so the system can sit behind
+   a reverse proxy.  Jacco van Ossenbruggen.
+
+Jun 14, 2006
+
+ * Allow settings as server options.  Michiel Hildebrand.
+
+Jun 2, 2006
+
+ * FIXED: Do type inferencing on that basis of rdfs:range in addition to
+   rdfs:domain.   Daniel Mahler.
+
+Apr 19, 2006
+
+ * FIXED: Optimiser issue, causing very long optimization times.  Joost
+   Geurts.
+
+Apr 13, 2006
+
+ * Moved rdf_write.pl to SWI-Prolog rdf2pl package and http_parameters.pl
+   to SWI-Prolog HTTP package.
+
+Mar 14, 2006
+
+ * Moved rdf_persistency to the SWI-Prolog semweb library.
+
+Jan 17, 2006
+
+ * ADDED: UTF-8 support and various other patches to rdf_write.pl
+ * ADDED: jrn_export.pl to export journal files on behalf of other servers.
+
+Jan 9, 2006
+
+ * ADDED: allow rewriting queries using serql:query_expansion/2.
+
+ * ADDED: parameter max_cpu_per_query(Seconds) to limit the CPU time per
+   query (default 1 minute).
+
+Dec 17, 2005
+
+ * FIXED: handling of LIMIT.  Ronny Siebes and Jacco van Ossenbruggen.
+
+Dec 10, 2005
+
+ * ADDED: Add user and time info to modifying queries.
+
+Dec 9, 2005
+
+ * FIXED: Avoid caching the /welcome.html page.  Wouter Jansweijer.
+
+ * ADDED: setting rdf_db_namespaces.
+
+ * FIXED: newline handling in stored queries.  Wouter Jansweijer.
+
+ * FIXED: Where A = B if A and B are resources.  Wouter Jansweijer.
+
+Nov 23, 2005
+
+ * FIXED: Where R1 \= R2.  Jacco van Ossenbruggen.
+
+Nov 14, 2005
+
+ * ENHANCED: error handling of removeStatements.  Ronny Siebes.
+
+Sep 30, 2005
+
+ * FIXED: typos in optimiser introduced when adding time/space as seperate
+   metrics as well as handling the serql: special relations.
+
+Sep 20, 2005
+
+ * ADDED: Start of sensible error reporting on SeRQL queries
+
+ * ADDED: allow for different representation of resources in HTML result
+   page.
+
+ * FIXED: resultFormat menu for SELECT ... page (hidden field with same
+   name).
+
+ * FIXED: NULL bindings for nested conditional paths.  Ronny Siebes.
+
+Sep 19, 2005
+
+ * ADDED optimiser for WHERE <Var> LIKE <Pattern> as well as 
+   WHERE (Var=x; Var=y; ...)
+
+Sep 8, 2005
+
+ * FIXED: function lang(X) returns a literal, same for label(X).
+   Piercarlo Slavazza.
+
+ * FIXED: Added serql:directType, etc. to rdf_entailment module.
+
+Sep 5, 2005
+
+ * FIXED: optimization of serql:directType and serql:directSubPropertyOf.
+   Piercarlo Slavazza.
+
+Sep 1, 2005
+
+ * FIXED: Allow for functions in projection (select label(X) from ...).
+   Piercarlo Slavazza.
+
+ * FIXED: allow for OFFSET = 0.  Piercarlo Slavazza.
+
+ * FIXED: functions label, datatype and lang for variable arguments.
+   Piercarlo Slavazza.
+
+Jul 14, 2005
+  
+ * ADDED: Allow hooking the sidebar menu using serq_http:sidebar_menu/2.
+ 
+Jan 26, 2005
+
+ * FIXED: undefined predicate handling entailment `none'. 
+   Jacco van Ossenbruggen
+
+Oct 17, 2004
+
+ * ADDED: Plugin and hooks for loading turtle files as well as use them
+   from removeStatements.
+
+ * ADDED: rdf_turtle.pl, a parser for the Turtle language.
+
+Oct 15, 2004
+
+ * FIXED: Added serql:directSubPropertyOf
+
+ * FIXED: removed closure triples from rdfs.rdfs
+
+ * FIXED: extractRDF to work with Sesame Java client.
+
+ * FIXED: Handling null in where clauses.
+
+Sep 28, 2004
+
+ * MODIFIED: Allow for new-style SeRQL-Sesame 1.1 URI syntax.
+
+ * ADDED: Integrated the optimiser.  Requires SWI-Prolog 5.4.1 (to appear)
+   due to bug in standard order on attributed variables.
+
+Sep 15, 2004
+
+ * FIXED: instantiation in rdfs entailment rules for (much) faster
+   rdf(-, rdf:type, +) execution.
+
+Aug 19, 2004
+
+ * FIXED: parsing of USING NAMESPACE
+
+Aug 12, 2004
+
+ * ADDED: sesame_client: sesame_repository/3.
+
+ * ADDED: Started Java client library
+
+ * ADDED: /servlets/login and /servlets/logout
+
+ * ADDED: /servlets/listRepositories
+
+ * ADDED: Allow changing passwords
+
+Aug 11, 2004
+
+ * FIXED: handling DISTINCT
+
+ * FIXED: Allow like operator on resources
+
+ * ADDED: file backup for repository to allow restart
+
+ * ADDED: Allow multiple logins on the same username
+

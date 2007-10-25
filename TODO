@@ -1,0 +1,23 @@
+---+ SeRQL server TODO list
+
+---++ SPARQL
+
+* Complete SORT BY:
+	* Compare in test-cases
+	* Realise decending and multi-column sorting
+	* Value-specific comparison
+
+* Implement named graphs. etc.
+
+* Implement value based semantics in xsd:dateTime
+
+* { ?x ?y 1 } cannot be mapped to rdf(X, Y, literal(type(xsd:integer, '1')))
+  because it must match :a :b "01"^^xsd:integer.
+
+	* Add rdf(X, Y, literal(number(1), X))
+
+* HTTP Server protocol
+
+	* Implement Accept header info
+	* Properly report errors.
+	

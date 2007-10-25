@@ -1,0 +1,26 @@
+/* $Id$
+
+   CSS for Settings module,
+   Author: Jan Wielemaker
+   Copying: Public domain
+
+   For a tutorial on CSS, see
+   <http://www.htmldog.com/guides/cssbeginner/selectors/>
+*/
+
+th.settings-module
+{ color: white;
+  background-color: navy
+}
+
+table.settings td
+{ vertical-align: top;
+}
+
+table.settings tr.settings-entry-odd
+{ background-color: #f0f0f0;
+}
+
+div.list
+{ border-width: 1;
+}

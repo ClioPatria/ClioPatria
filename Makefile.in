@@ -1,0 +1,101 @@
+################################################################
+# SWI-Prolog `SeRQL' package
+# Author:    Jan Wielemaker. jan@swi.psy.uva.nl
+# Copyright: GPL (see COPYING or www.gnu.org
+################################################################
+
+.SUFFIXES: .tex .dvi .doc .pl
+
+SHELL=@SHELL@
+PLBASE=@PLBASE@
+PLARCH=@PLARCH@
+PL=@PL@
+XPCEBASE=$(PLBASE)/xpce
+PKGDOC=$(PLBASE)/doc/packages
+PCEHOME=../pl/packages/xpce
+LIBDIR=$(PLBASE)/library/semweb/serql
+EXDIR=$(PKGDOC)/examples/http
+RUNTEX=../pl/man/runtex
+
+DOCTOTEX=$(PCEHOME)/bin/doc2tex
+PLTOTEX=$(PCEHOME)/bin/pl2tex
+LATEX=latex
+DOC=serql
+TEX=$(DOC).tex
+DVI=$(DOC).dvi
+PDF=$(DOC).pdf
+HTML=$(DOC).html
+
+INSTALL=@INSTALL@
+INSTALL_PROGRAM=@INSTALL_PROGRAM@
+INSTALL_DATA=@INSTALL_DATA@
+
+SERQL=		serql.pl rdfs_entailment.pl
+HTTP=		server.pl http_data.pl http_parameters.pl http_user.pl
+ADMIN=		user_db.pl
+OUT=		rdf_html.pl rdf_result.pl rdf_write.pl xml_result.pl
+MISC=		run.pl parms.pl
+CLIENT=		sesame_client.pl
+
+LIBPL=		$(SERQL) $(HTTP) $(ADMIN) $(OUT) $(MISC) $(CLIENT)
+
+all:		
+		@echo "Nothing to do for this package"
+
+install:	$(LIBPL)
+		mkdir -p $(LIBDIR)
+		$(INSTALL_DATA) $(LIBPL) $(LIBDIR)
+		$(INSTALL_DATA) README $(LIBDIR)
+		$(PL) -f none -g make -t halt
+
+rpm-install:	install
+
+pdf-install:	
+		$(INSTALL_DATA) $(DOC).pdf $(PKGDOC)
+
+html-install:	
+		$(INSTALL_DATA) $(DOC).html $(PKGDOC)
+
+uninstall::
+		(cd $(LIBDIR) && rm -f $(LIBPL))
+		$(PL) -f none -g make -t halt
+
+check::
+		true
+
+################################################################
+# Documentation
+################################################################
+
+doc:		$(PDF) $(HTML)
+pdf:		$(PDF)
+html:		$(HTML)
+
+$(HTML):	$(TEX)
+		latex2html $(DOC)
+		mv html/index.html $@
+		rmdir html
+
+$(PDF):		$(TEX)
+		$(RUNTEX) --pdf $(DOC)
+
+$(TEX):		$(DOCTOTEX)
+
+.doc.tex:
+		$(DOCTOTEX) $*.doc > $*.tex
+.pl.tex:
+		$(PLTOTEX) $*.pl > $*.tex
+
+################################################################
+# Clean
+################################################################
+
+clean:
+		rm -f *~ *% config.log
+		rm -f $(TEX)
+		runtex --clean $(DOC)
+		rm -rf html
+
+distclean:	clean
+		rm -f $(TARGETS) config.cache config.status Makefile
+		
