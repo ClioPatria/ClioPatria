@@ -59,6 +59,7 @@
 :- use_module(library('http/thread_httpd')).
 :- use_module(library('http/http_dispatch')).
 :- use_module(library('http/http_session')).
+:- use_module(library('http/http_host')).
 :- use_module(library(utf8)).
 :- use_module(library(error)).
 :- use_module(library(sgml)).
@@ -71,6 +72,7 @@
 :- use_module(library(sha)).
 :- use_module(library(socket)).
 :- use_module(library(lists)).
+
 
 /** <module> OpenID consumer library
 
@@ -351,52 +353,12 @@ current_url(Request, URL) :-
 			 path(Path), search(Search)
 		       ]).
 
-%%	openid_current_host(+Request, -Hostname, -Port)
+%%	openid_current_host(Request, Host, Port)
 %
-%	Current location of the server.
-%	
-%	@tbd	Proxy handling is probably incomplete.  What about
-%		port or multiple proxies?
-%	@tbd	What if host from request is localhost or lacks a domain?
+%	Find current location of the server.
 
 openid_current_host(Request, Host, Port) :-
-	(   memberchk(x_forwarded_host(Forwarded), Request)
-	->  Port = 80,
-	    primary_forwarded_host(Forwarded, Host)
-	;   memberchk(host(Host0), Request),
-	    global_host(Host0, Host),
-	    option(port(Port), Request, 80)
-	->  true
-	;   gethostname(Host),
-	    http_current_server(_Pred, Port)		% TBD: May be more
-	).
-
-
-%%	primary_forwarded_host(+Spec, -Host) is det.
-%
-%	x_forwarded host contains multiple hosts seperated   by  ', ' if
-%	there are multiple proxy servers in   between.  The first one is
-%	the one the user's browser knows about.
-
-primary_forwarded_host(Spec, Host) :-
-	sub_atom(Spec, B, _, _, ','), !,
-	sub_atom(Spec, 0, B, _, Host).
-primary_forwarded_host(Host, Host).
-
-
-%%	global_host(+Host0, -Host)
-%
-%	Translate a local host name into one   that can be accessed from
-%	the outside world.
-
-global_host(localhost, Host) :- !,
-	gethostname(Host).
-global_host(Local, Host) :-
-	sub_atom(Local, _, _, _, '.'), !,
-	Host = Local.
-global_host(Local, Host) :-
-	tcp_host_to_address(Local, IP),
-	tcp_host_to_address(Host, IP).
+	http_current_host(Request, Host, Port).
 
 
 %%	redirect_browser(+URL, +FormExtra)
