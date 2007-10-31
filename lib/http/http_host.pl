@@ -22,7 +22,7 @@
 */
 
 :- module(http_host,
-	  [ http_current_host/3		% +Request, -Host, -Port
+	  [ http_current_host/4		% +Request, -Host, -Port, +Options
 	  ]).
 :- use_module(library('http/thread_httpd')).
 :- use_module(library(socket)).
@@ -32,18 +32,25 @@
 :- setting(http:public_host, atom, '',
 	   'Name the outside world can use to contact me').
 
-%%	http_current_host(+Request, -Hostname, -Port)
+%%	http_current_host(+Request, -Hostname, -Port, Options) is det.
 %
 %	Current global host and port of the HTTP server.  This is the
 %	basis to form absolute address, which we need for redirection
-%	based interaction such as the OpenID protocol.
+%	based interaction such as the OpenID protocol.  Options are:
+%	
+%	    * global(+Bool)
+%	    If =true= (default =false=), try to replace a local hostname
+%	    by a world-wide accessible name.
 
-http_current_host(Request, Host, Port) :-
+http_current_host(Request, Host, Port, Options) :-
 	(   memberchk(x_forwarded_host(Forwarded), Request)
 	->  Port = 80,
 	    primary_forwarded_host(Forwarded, Host)
 	;   memberchk(host(Host0), Request),
-	    global_host(Host0, Host),
+	    (	option(global(true), Options, false)
+	    ->	global_host(Host0, Host)
+	    ;	Host = Host0
+	    ),
 	    option(port(Port), Request, 80)
 	->  true
 	;   gethostname(Host),

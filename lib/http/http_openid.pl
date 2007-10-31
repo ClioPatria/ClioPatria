@@ -358,7 +358,9 @@ current_url(Request, URL) :-
 %	Find current location of the server.
 
 openid_current_host(Request, Host, Port) :-
-	http_current_host(Request, Host, Port).
+	http_current_host(Request, Host, Port,
+			  [ global(true)
+			  ]).
 
 
 %%	redirect_browser(+URL, +FormExtra)
