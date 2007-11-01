@@ -22,11 +22,14 @@
 */
 
 :- module(http_prefix,
-	  [ http_setup_prefix_redirect/0
+	  [ http_setup_prefix_redirect/0,
+	    http_current_path/2			% +Request, -Path
 	  ]).
 :- use_module(library('http/http_dispatch')).
 :- use_module(library(settings)).
 :- use_module(library(lists)).
+:- use_module(library(debug)).
+:- use_module(library(broadcast)).
 
 /** <module> Set common prefix for all URLs
 
@@ -82,3 +85,16 @@ redirect_prefix(Prefix, Request) :-
 
 :- listen(settings(changed(http:prefix, _, _)),
 	  http_setup_prefix_redirect).
+
+%%	http_current_path(+Request, -Path) is det.
+%
+%	Get  the  current  location  (path),  even  if  the  prefix  was
+%	redirected,
+%	
+%	@see redirect_prefix/2.
+
+http_current_path(Request, Path) :-
+	(   memberchk(x_redirected_path(Path0), Request)
+	->  Path = Path0
+	;   memberchk(path(Path), Request)
+	).
