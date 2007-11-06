@@ -5,7 +5,7 @@
     Author:        Jan Wielemaker
     E-mail:        wielemak@science.uva.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2006, University of Amsterdam
+    Copyright (C): 2007, University of Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -362,13 +362,29 @@ resolve_var(Name, Var, state(Base, Prefixes, Vars0, VL),
 	put_assoc(Name, Vars0, Var, Vars), !.
 resolve_var(_, '$null$', State, State).
 
+%%	resolve_iri(+Spec, -IRI:atom, +State) is det.
+%
+%	Translate Spec into a fully expanded IRI as used in RDF-DB. Note
+%	that we must expand %xx sequences here.
+
 resolve_iri(P:N, IRI, State) :- !,
-	resolve_prefix(P, IRI0, State),
-	atom_concat(IRI0, N, IRI).
-resolve_iri(IRI0, IRI, State) :-
-	atom(IRI0),
+	resolve_prefix(P, Prefix, State),
+	url_iri(N, LocalIRI),
+	atom_concat(Prefix, LocalIRI, IRI).
+resolve_iri(URL0, IRI, State) :-
+	atom(URL0),
 	arg(1, State, Base),		% TBD: What if there is no base?
-	global_url(IRI0, Base, IRI).
+	global_url(URL0, Base, URL1),
+	url_iri(URL1, IRI).
+
+% compatibility with SWI-Prolog < 5.6.46
+:- if(\+ source_exports(library(url), url_iri/2)).
+:- use_module(library(rdf_parser), []).
+
+url_iri(URL, IRI) :-
+	rdf_parser:decode_uri(URL, IRI).
+
+:- endif.
 
 resolve_prefix(P, IRI, State) :-
 	arg(2, State, Prefixes),
