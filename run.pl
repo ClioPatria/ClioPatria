@@ -1,3 +1,4 @@
+#!/home/jan/bin/pl -g serql_welcome -L128m -G128m -T128m -s
 /*  This file is part of ClioPatria.
 
     Author:
@@ -20,8 +21,6 @@
     You should have received a copy of the GNU General Public License
     along with ClioPatria.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#!/home/jan/bin/pl -g serql_welcome -L128m -G128m -T128m -s
 
 :- load_files([ load
 	      ],
