@@ -32,11 +32,13 @@
 :- module(serql_log,
 	  [ serql_log_stream/1,		% -Stream
 	    serql_log/2,		% +Format, +Args
+	    log_started/3,		% +Request, -Id, +Stream
 	    log_completed/4		% +Reason, +Id, +CPU0, +Stream
 	  ]).
 :- use_module(library(settings)).
 :- use_module(library(broadcast)).
-
+:- use_module(library(debug)).
+:- use_module(user_db).
 
 :- setting(http:log_requests_in, atom, 'requests.log',
 	   'File in which to log HTTP requests').
@@ -103,6 +105,55 @@ serql_log(Format, Args) :-
 	).
 
 
+%%	log_started(+Request, -Id, +Stream) is det.
+%
+%	Write log message that Request was started to Stream.
+%	
+%	@param	Filled with sequence identifier for the request
+
+log_started(Request, Id, Stream) :-
+	get_time(Now),
+	flag(serql_request_id, Id, Id+1),
+	log_request(Request, LogRequest),
+	catch(logged_on(User), _, User = anonymous),
+	format_time(string(HDate), '%+', Now),
+	format(Stream,
+	       '/*~s*/ request(~q, ~0f, ~q, ~q).~n',
+	       [HDate, Id, Now, User, LogRequest]),
+	flush_output(Stream),
+	memberchk(path(Path), LogRequest),
+	debug(http(request), '[~D] ~q ...', [Id, Path]).
+
+%%	log_request(+Request, -Log)
+%	
+%	Remove passwords from the request to avoid sending them to the
+%	logfiles.
+
+log_request([], []).
+log_request([search(Search0)|T0], [search(Search)|T]) :- !,
+	mask_passwords(Search0, Search),
+	log_request(T0, T).
+log_request([H|T0], T) :-
+	nolog(H), !,
+	log_request(T0, T).
+log_request([H|T0], [H|T]) :-
+	log_request(T0, T).
+
+mask_passwords([], []).
+mask_passwords([Name=_|T0], [Name=xxx|T]) :-
+	pwd_entry(Name), !,
+	mask_passwords(T0, T).
+mask_passwords([H|T0], [H|T]) :-
+	mask_passwords(T0, T).
+
+pwd_entry(password).
+pwd_entry(pwd0).
+pwd_entry(pwd1).
+pwd_entry(pwd2).
+
+nolog(input(_)).
+
+
 %%	log_completed(+Status, +Id, +CPU0, +Stream) is det.
 %
 %	Write log message to Stream from a call_cleanup/3 call.
@@ -113,9 +164,14 @@ serql_log(Format, Args) :-
 %	@param Stream	Stream to write to (normally from serql_log_stream/1).
 
 log_completed(Status, Id, CPU0, Stream) :-
-	is_stream(Stream), !,
-	statistics(cputime, CPU1),
+	thread_self(Me),
+	thread_statistics(Me, cputime, CPU1),
 	CPU is CPU1 - CPU0,
+	(   debugging(http(request))
+	->  debug_request(Status, Id, CPU)
+	;   true
+	),
+	is_stream(Stream), !,
 	log(Status, Id, CPU, Stream),
 	flush_output(Stream).
 log_completed(Status, Id, CPU0, _) :-
@@ -142,4 +198,20 @@ log(exception(Except), Id, CPU, Stream) :-
 	       [ Id, CPU, Term ]).
 
 map_exception(http_reply(Reply), Reply).
+map_exception(error(existence_error(http_location, Location), _Stack),
+	      error(404, Location)).
 
+%%	debug_request(+Status, +Id, +CPU0)
+%
+%	Emit debugging info after a request completed with Status.
+
+debug_request(exception(Except), Id, _) :-
+	map_exception(Except, Reply), !,
+	debug(http(request), '[~D] ~w', [Id, Reply]).
+debug_request(exception(Except), Id, _) :- !,
+	message_to_string(Except, Message),
+	debug(http(request), '[~D] ERROR: ~w', [Id, Message]).
+debug_request(exit, Id, CPU) :- !,
+	debug(http(request), '[~D] exit (~3f seconds)', [Id, CPU]).
+debug_request(Status, Id, _) :-
+	debug(http(request), '[~D] ~w', [Id, Status]).

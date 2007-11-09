@@ -82,16 +82,9 @@ serql_server_property(started(Time)) :-
 serql_reply(Request0) :-
 	prune_request(Request0, Request),
 	(   serql_log_stream(Stream)
-	->  get_time(Now),
-	    flag(serql_request_id, Id, Id+1),
-	    statistics(cputime, CPU0),
-	    log_request(Request, LogRequest),
-	    catch(logged_on(User), _, User = anonymous),
-	    format_time(string(HDate), '%+', Now),
-	    format(Stream,
-		   '/*~s*/ request(~q, ~0f, ~q, ~q).~n',
-		   [HDate, Id, Now, User, LogRequest]),
-	    flush_output(Stream),
+	->  log_started(Request, Id, Stream),
+	    thread_self(Me),
+	    thread_statistics(Me, cputime, CPU0),
 	    call_cleanup(http_dispatch(Request), Reason,
 			 log_completed(Reason, Id, CPU0, Stream))
 	;   http_dispatch(Request)
@@ -116,35 +109,6 @@ hidden(accept_encoding(_)).
 hidden(accept_charset(_)).
 hidden(referer(R)) :-			% do not want these in log
 	sub_atom(R, _, _, _, password), !.
-
-%%	log_request(+Request, -Log)
-%	
-%	Remove passwords from the request to avoid sending them to the
-%	logfiles.
-
-log_request([], []).
-log_request([search(Search0)|T0], [search(Search)|T]) :- !,
-	mask_passwords(Search0, Search),
-	log_request(T0, T).
-log_request([H|T0], T) :-
-	nolog(H), !,
-	log_request(T0, T).
-log_request([H|T0], [H|T]) :-
-	log_request(T0, T).
-
-mask_passwords([], []).
-mask_passwords([Name=_|T0], [Name=xxx|T]) :-
-	pwd_entry(Name), !,
-	mask_passwords(T0, T).
-mask_passwords([H|T0], [H|T]) :-
-	mask_passwords(T0, T).
-
-pwd_entry(password).
-pwd_entry(pwd0).
-pwd_entry(pwd1).
-pwd_entry(pwd2).
-
-nolog(input(_)).
 
 
 
