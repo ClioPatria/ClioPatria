@@ -534,31 +534,37 @@ owl_individual_of(Resource, Class) :-
 	->  owl_individual_of(Resource, EQ)
 	;   rdfs_individual_of(Class, owl:'Restriction')
 	->  owl_satisfies_restriction(Resource, Class)
-	;   owl_individual_of_description(Resource, Class),
+	;   owl_individual_of_description(Resource, Class, HasDescription),
 	    findall(SC, rdf_has(Class, rdfs:subClassOf, SC), SuperClasses),
+	    (	HasDescription == false
+	    ->	SuperClasses \== []
+	    ;	true
+	    ),
 	    owl_individual_of_all(SuperClasses, Resource)
 	).
 owl_individual_of(Resource, Description) :-			% RDFS
 	owl_individual_from_range(Resource, Description).
 
 
-%%	owl_individual_of_description(?Resource, +Description) is nondet.
+%%	owl_individual_of_description(?Resource, +Description, -HasDescription) is nondet.
 % 
 % 	@tbd	Can a description have multiple of these facets?
 
-owl_individual_of_description(Resource, Description) :-
-	(   rdf_has(Description, owl:unionOf, Set)
-	->  rdfs_member(Sub, Set),
-	    owl_individual_of(Resource, Sub)
-	;   rdf_has(Description, owl:intersectionOf, Set)
-	->  intersection_of(Set, Resource)
-	;   rdf_has(Description, owl:complementOf, Arg)
-	->  rdf_subject(Resource),
-	    \+ owl_individual_of(Resource, Arg)
-	;   rdf_has(Description, owl:oneOf, Arg)
-	->  rdfs_member(Resource, Arg)
-	;   true			% not an OWL description
-	).
+owl_individual_of_description(Resource, Description, true) :-
+	rdf_has(Description, owl:unionOf, Set), !,
+	rdfs_member(Sub, Set),
+	owl_individual_of(Resource, Sub).
+owl_individual_of_description(Resource, Description, true) :-
+	rdf_has(Description, owl:intersectionOf, Set), !,
+	intersection_of(Set, Resource).
+owl_individual_of_description(Resource, Description, true) :-
+	rdf_has(Description, owl:complementOf, Arg), !,
+	rdf_subject(Resource),
+	\+ owl_individual_of(Resource, Arg).
+owl_individual_of_description(Resource, Description, true) :-
+	rdf_has(Description, owl:oneOf, Arg), !,
+	rdfs_member(Resource, Arg).
+owl_individual_of_description(_, _, false).
 
 
 owl_individual_of_all([], _).
