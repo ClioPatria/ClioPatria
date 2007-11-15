@@ -160,6 +160,8 @@ set_options([H|T0], [H|T]) :-
 	set_options(T0, T).
 
 
+:- if(\+source_exports(library(option), merge_options/3)).
+
 %%	merge_options(+Opts, +DefOpts, -MergedOpts) is det.
 %
 %	Merge  Opts  with  DefOpts,  where   options  in  Opts  overrule
@@ -173,6 +175,7 @@ merge_options([H|T0], Settings, [H|T]) :-
 	->  merge_options(T0, Settings1, T)
 	;   merge_options(T0, Settings, T)
 	).
+:- endif.
 
 attach_account_info :-
 	setting(serql_parms:user_data, File),
