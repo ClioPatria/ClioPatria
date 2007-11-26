@@ -76,7 +76,7 @@ The typical usage scenario is
 
 :- dynamic
 	manifest/2,			% Path, Time
-	library/3.			% Name, URL, Facets
+	library_db/3.			% Name, URL, Facets
 
 %	Force compile-time namespace expansion
 
@@ -331,8 +331,8 @@ import(Path, Level, Options) :-
 	    assert(command(Level, rdf_load(Path, RdfOptions)))
 	).
 
-manifest_for_path(Path, Manifest) :-
-	file_directory_name(Path, Parent),
+manifest_for_path(URL, Manifest) :-
+	file_directory_name(URL, Parent),
 	manifest_file(Base),
 	rdf_extension(Ext),
 	concat_atom([Parent, /, Base, '.', Ext], Manifest).
@@ -558,8 +558,8 @@ hidden_base('cvs').			% Windows
 %	@param	Location is either a path name or a URL.
 
 process_manifest(Source) :-
-	(   file_name_to_url(Manifest, Source)
-	->  true
+	(   file_name_to_url(Manifest0, Source)
+	->  absolute_file_name(Manifest0, Manifest)
 	;   Manifest = Source
 	),
 	source_time(Manifest, MT),
@@ -567,9 +567,9 @@ process_manifest(Source) :-
 	    (	MT =< Time
 	    ->  !
 	    ;	retractall(manifest(Manifest, Time)),
-	        library(Id, URL, Facets),
+	        library_db(Id, URL, Facets),
 		memberchk(manifest(Manifest), Facets),
-		retractall(library(Id, URL, Facets)),
+		retractall(library_db(Id, URL, Facets)),
 		fail
 	    )
 	;   read_triples(Manifest, Triples),
@@ -712,16 +712,43 @@ rdf_extension(rdf).
 %	@tbd	Proper behaviour of re-definition?
 
 assert_ontology(Manifest, Term) :-
-	Term = library(Name, File, Facets),
-	(   library(Name, _File2, Facets2)
+	Term = library(Name, URL, Facets),
+	(   library(Name, _URL2, Facets2)
 	->  memberchk(manifest(Manifest2), Facets2),
 	    print_message(warning, rdf(redefined(Manifest, Name, Manifest2)))
 	;   true
 	),
-	assert(library(Name, File,
+	assert(library_db(Name, URL,
 		       [ manifest(Manifest)
 		       | Facets
 		       ])).
+
+
+%%	library(?Id, ?URL, ?Facets)
+%
+%	Access DB for library information.
+
+library(Id, URL, Facets) :-
+	nonvar(URL),
+	canonical_url(URL, CanonicalURL),
+	library_db(Id, CanonicalURL, Facets).
+library(Id, URL, Facets) :-
+	library_db(Id, URL, Facets).
+
+%%	canonical_url(+URL, -CanonicalURL) is det.
+%
+%	Translate a URL into a  canonical   form.  Currently  deals with
+%	file:// urls to take care of  filesystem properies such as being
+%	case insensitive.
+%	
+%	@tbd	Generic URL handling should also strip ../, etc.
+
+canonical_url(FileURL, URL) :-
+	current_prolog_flag(windows, true),
+	file_name_to_url(File, FileURL), !,
+	absolute_file_name(File, Abs),
+	file_name_to_url(Abs, URL).
+canonical_url(URL, URL).
 
 %%	define_namespace(NS:ns(Mnemonic, Namespace)) is det.
 %
