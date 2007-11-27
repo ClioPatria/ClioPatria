@@ -37,11 +37,36 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(error)).
 
+/** <module> Portray RDF resources
+
+*/
+
 :- dynamic
 	style/1.
 
+%%	rdf_portray_as(+Style) is det.
+%
+%	Set the style used to portray resources.  Style is one of:
+%	
+%		* ns:id
+%		Write as NS:ID, compatible with what can be handed to
+%		the rdf predicates.  This is the default.
+%
+%		* writeq
+%		Use quoted write of the full resource.
+%		
+%		* ns:label
+%		Write namespace followed by the label.  This format
+%		cannot be handed to rdf/3 and friends, but can be
+%		useful if resource-names are meaningless identifiers.
+%		
+%		* ns:id=label
+%		This combines ns:id with ns:label, providing both human
+%		readable output and output that can be pasted into the
+%		commandline.
+
 rdf_portray_as(Style) :-
-	must_be(oneof([write, ns:id, ns:label]), Style),
+	must_be(oneof([writeq, ns:id, ns:label, ns:id=label]), Style),
 	retractall(style(_)),
 	assert(style(Style)).
 
@@ -50,17 +75,12 @@ rdf_portray_as(Style) :-
 
 user:portray(URL) :-
 	atom(URL),
-	sub_atom(URL, 0, _, _, 'http://'),
-	(   style(write)
-	->  write(URL)
-	;   style(ns:id)
-	->  (   rdf_global_id(NS:Id, URL)
-	    ->	writeq(NS:Id)
-	    ;	writeq(URL)
-	    )
-	;   rdfs_ns_label(URL, Label),
-	    write(Label)
-	).
+	sub_atom(URL, 0, _, _, 'http://'), !,
+	(   style(Style)
+	->  true
+	;   Style = ns:id
+	),
+	portray_url(Style, URL).
 user:portray(URL) :-
 	atom(URL),
 	atom_concat('__file://', URL2, URL),
@@ -69,3 +89,23 @@ user:portray(URL) :-
 	sub_atom(URL2, 0, S, _, Path),
 	file_base_name(Path, Base),
 	format('__~w#~w', [Base, Local]).
+
+portray_url(writeq, URL) :-
+	writeq(URL).
+portray_url(ns:id, URL) :-
+	(   rdf_global_id(NS:Id, URL)
+	->  writeq(NS:Id)
+	;   writeq(URL)
+	).
+portray_url(ns:id=label, URL) :-
+	(   rdfs_label(URL, Label)
+	->  (   rdf_global_id(NS:Id, URL)
+	    ->	format('~q:~q="~w"', [NS, Id, Label])
+	    ;	format('~q="~w"', [URL, Label])
+	    )
+	;   portray_url(ns:id, URL)
+	).
+portray_url(ns:label, URL) :-
+	rdfs_ns_label(URL, Label),
+	write(Label).
+	    
