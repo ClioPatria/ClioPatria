@@ -31,7 +31,8 @@
 
 
 :- module(rdf_portray,
-	  [ rdf_portray_as/1		% +Style
+	  [ rdf_portray_as/1,		% +Style
+	    rdf_portray_lang/1		% +Lang
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -39,10 +40,24 @@
 
 /** <module> Portray RDF resources
 
+This module defines  rules  for  user:portray/1   to  help  tracing  and
+debugging  RDF  resources  by  printing   them    in   a   more  concise
+representation and optionally adding comment from the label field to het
+the user interpreting the URL.  The main predicates are:
+
+	* rdf_portray_as/1 defines the overall style
+	* rdf_portray_lang/1 selects languages for extracting label comments
+	
+@tbd	Define alternate predicate to use for providing a comment
+@tbd	Use type if there is no meaningful label?
+@tbd	Smarter guess whether or not the local identifier might be
+	meaningful to the user without a comment.  I.e. does it look
+	`word-like'?
 */
 
 :- dynamic
-	style/1.
+	style/1,
+	lang/1.
 
 %%	rdf_portray_as(+Style) is det.
 %
@@ -69,6 +84,25 @@ rdf_portray_as(Style) :-
 	must_be(oneof([writeq, ns:id, ns:label, ns:id=label]), Style),
 	retractall(style(_)),
 	assert(style(Style)).
+
+%%	rdf_portray_lang(+Lang) is det.
+%
+%	If Lang is a list, set the list or preferred languages. If it is
+%	a  single  atom,  push  this  language  as  the  most  preferred
+%	language.
+
+rdf_portray_lang(Lang) :-
+	(   is_list(Lang)
+	->  must_be(list(atom), Lang),
+	    retractall(lang(_)),
+	    forall(member(L,Lang), assert(lang(L)))
+	;   must_be(atom, Lang),
+	    asserta(lang(Lang))
+	).
+
+try_lang(L) :- lang(L).
+try_lang(_).
+	
 
 :- multifile
 	user:portray/1.
@@ -98,14 +132,41 @@ portray_url(ns:id, URL) :-
 	;   writeq(URL)
 	).
 portray_url(ns:id=label, URL) :-
-	(   rdfs_label(URL, Label)
-	->  (   rdf_global_id(NS:Id, URL)
-	    ->	format('~q:~q="~w"', [NS, Id, Label])
-	    ;	format('~q="~w"', [URL, Label])
+	(   rdf_global_id(NS:Id, URL)
+	->  Value = NS:Id
+	;   Value = URL
+	),
+	(   Id \== '',
+	    (   (   try_lang(Lang),
+		    rdf_has(URL, rdfs:label, literal(lang(Lang, Label)))
+		->  nonvar(Lang),
+		    \+ label_is_id(Label, Id)
+		)
+	    ->  format('~q/*"~w"@~w*/', [Value, Label, Lang])
+	    ;   rdf_has(URL, rdfs:label, literal(type(Type, Label))),
+		nonvar(Type),
+		\+ label_is_id(Label, Id)
+	    ->  (   rdf_global_id(TNS:TId, Type)
+		->	TVal = TNS:TId
+		;	TVal = Type
+		),
+		format('~q/*"~w"^^~w*/', [Value, Label, TVal])
+	    ;   rdf_has(URL, rdfs:label, literal(Label)),
+		atom(Label),
+		Label \== Id
+	    ->  format('~q/*"~w"*/', [Value, Label])
 	    )
-	;   portray_url(ns:id, URL)
+	->  true
+	;   writeq(Value)
 	).
 portray_url(ns:label, URL) :-
 	rdfs_ns_label(URL, Label),
 	write(Label).
-	    
+
+label_is_id(_, Var) :-
+	var(Var), !, fail.
+label_is_id(Label, Label) :- !.
+label_is_id(L0, L1) :-
+	downcase_atom(L0, Lwr),
+	downcase_atom(L1, Lwr).
+	

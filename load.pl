@@ -78,6 +78,7 @@ user:file_search_path(ontology_root, serql('Ontologies')).
 		server,
 		library('semweb/rdf_db'),
 		library('semweb/rdf_persistency'),
+		library('semweb/rdf_portray'),
 		library('http/http_session'),
 		library(http/thread_httpd),
 		user_db,
