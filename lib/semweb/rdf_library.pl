@@ -739,12 +739,11 @@ library(Id, URL, Facets) :-
 %
 %	Translate a URL into a  canonical   form.  Currently  deals with
 %	file:// urls to take care of  filesystem properies such as being
-%	case insensitive.
+%	case insensitive and symbolic names.
 %	
 %	@tbd	Generic URL handling should also strip ../, etc.
 
 canonical_url(FileURL, URL) :-
-	current_prolog_flag(windows, true),
 	file_name_to_url(File, FileURL), !,
 	absolute_file_name(File, Abs),
 	file_name_to_url(Abs, URL).
