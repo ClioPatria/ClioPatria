@@ -186,10 +186,12 @@ statistics(_Request) :-
 		rdf_statistics(lookup(Index, Count)),
 		Lookup),
 	rdf_statistics(triples(Total)),
+	rdf_statistics(core(Core)),
 	sort(UnsortedPairs, Pairs),
 	reply_page('RDF statistics',
 		   [ h1('RDF statistics'),
 		     h4('Triples in database'),
+		     p('The RDF store contains ~D triples in ~D bytes memory'-[Total, Core]),
 		     table([ border(1),
 			     cellpadding(2)
 			   ],
