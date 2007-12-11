@@ -257,6 +257,9 @@ current_user(User) :-
 %		Refers to the OpenID server that validated the login
 
 user_property(User, Property) :-
+	nonvar(User), nonvar(Property), !,
+	uprop(Property, User), !.
+user_property(User, Property) :-
 	uprop(Property, User).
 
 uprop(session(SessionID), User) :-
