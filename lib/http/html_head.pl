@@ -33,6 +33,7 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
+:- use_module(library(broadcast)).
 
 /** <module> Deal with CSS and scripts
 
@@ -254,14 +255,22 @@ http_location_path(prefix, Path) :-
 %	very much like absolute_file_name/2. Path-alias   are defined by
 %	the dynamic multifile predicate  http:location_path/2, using the
 %	same syntax as user:file_search_path/2.
-%	
-%	@tbd	Use caching, resetting the cache on reload and change of
-%		the prefix setting.
+
+:- dynamic
+	location_cache/3.
+:- volatile
+	location_cache/3.
 
 absolute_http_location(Spec, Path) :-
 	absolute_http_location(Spec, /, Path).
 
 absolute_http_location(Spec, Base, Path) :-
+	location_cache(Spec, Base, Path), !.
+absolute_http_location(Spec, Base, Path) :-
+	uncached_absolute_http_location(Spec, Base, Path),
+	assert(location_cache(Spec, Base, Path)).
+
+uncached_absolute_http_location(Spec, Base, Path) :-
 	(   atomic(Spec)
 	->  relative_to(Base, Spec, Path)
 	;   Spec =.. [Alias, Sub],
@@ -294,3 +303,24 @@ sub_list(A/B) --> !,
 	sub_list(B).
 sub_list(A) -->
 	[A].
+
+
+		 /*******************************
+		 *	  CACHE CLEANUP		*
+		 *******************************/
+
+clean_location_cache :-
+	retractall(location_cache(_,_,_)).
+
+:- listen(settings(changed(http:prefix, _, _)),
+	  clean_location_cache).
+
+:- multifile
+	user:message_hook/3.
+:- dynamic
+	user:message_hook/3.
+
+user:message_hook(make(done(Reload)), _Level, _Lines) :-
+	Reload \== [],
+	clean_location_cache,
+	fail.
