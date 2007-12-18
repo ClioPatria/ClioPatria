@@ -32,13 +32,13 @@
 :- use_module(library(settings)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(ordsets)).
 
 /** <module> Deal with CSS and scripts
 
 This module is to clean up the   mess related to managing Javascript and
 CSS files. It defines relations between scripts and style files.
 
-@tbd	Process aggregate declarations
 @tbd	Cache some of the computations
 */
 
@@ -81,18 +81,35 @@ html_resource(About, Properties) :-
 %	and add them to the HTML =head= using html_post/2.
 
 html_requires(Required) -->
-	{ is_list(Required), !,
-	  requirements(Required, Paths)
-	},
-	html_include(Paths).
-html_requires(Required) -->
-	{ requirements([Required], Paths)
-	},
+	{ requirements(Required, Paths) },
 	html_include(Paths).
 	
 requirements(Required, Paths) :-
 	phrase(requires(Required), List),
-	sort(List, Paths).		% Can order matter?
+	sort(List, Paths0),		% Can order matter?
+	use_agregates(Paths0, Paths).
+
+use_agregates(Paths, Aggregated) :-
+	html_resource(Aggregate, _, Properties),
+	memberchk(aggregate(Parts), Properties),
+	absolute_http_location(Aggregate, APath),
+	absolute_paths(Parts, APath, AParts),
+	sort(AParts, APartsS),
+	length(APartsS, Size),
+	ord_subtract(Paths, APartsS, NotCovered),
+	length(Paths, Len0),
+	length(NotCovered, Len1),
+	Covered is Len0-Len1,
+	Covered >= Size/2, !,
+	ord_add_element(NotCovered, APath, NewPaths),
+	use_agregates(NewPaths, Aggregated).
+use_agregates(Paths, Paths).
+
+absolute_paths([], _, []).
+absolute_paths([H0|T0], Base, [H|T]) :-
+	absolute_http_location(H0, Base, H),
+	absolute_paths(T0, Base, T).
+
 
 %%	requires(+Spec)// is det.
 %%	requires(+Spec, +Base)// is det.
@@ -105,7 +122,7 @@ requirements(Required, Paths) :-
 requires(Spec) -->
 	requires(Spec, /).
 
-requires([], _) -->
+requires([], _) --> !,
 	[].
 requires([H|T], Base) --> !,
 	requires(H, Base),
@@ -213,7 +230,7 @@ html_include(Mime, Path) -->
 http_location_path(Alias, Path) :-
 	findall(Path, http:location_path(Alias, Path), Paths0),
 	sort(Paths0, Paths),
-	(   Paths == [One]
+	(   Paths = [One]
 	->  Path = One
 	;   Paths = [Path|_]
 	->  print_message(warning, ambiguous_http_location(Alias, Paths))
@@ -221,8 +238,14 @@ http_location_path(Alias, Path) :-
 	->  existence_error(http_alias, Alias)
 	).
 http_location_path(prefix, Path) :-
-	setting(http:prefix, Path).
-
+	(   setting(http:prefix, Prefix),
+	    Prefix \== ''
+	->  (	sub_atom(Prefix, 0, _, _, /)
+	    ->  Path = Prefix
+	    ;	atom_concat(/, Prefix, Path)
+	    )
+	;   Path = /
+	).
 
 %%	absolute_http_location(+Spec, -Path) is det.
 %%	absolute_http_location(+Spec, +Base, -Path) is det.
@@ -254,7 +277,7 @@ absolute_http_location(Spec, Base, Path) :-
 	    )
 	).
 
-relative_to(/, Path, Path).
+relative_to(/, Path, Path) :- !.
 relative_to(_Base, Path, Path) :-
 	sub_atom(Path, 0, _, _, /).
 relative_to(Base, Local, Path) :-
