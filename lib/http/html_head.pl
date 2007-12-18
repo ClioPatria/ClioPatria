@@ -1,0 +1,240 @@
+/*  This file is part of ClioPatria.
+
+    Author:	Jan Wielemaker <wielemak@science.uva.nl>
+    HTTP:	http://e-culture.multimedian.nl/
+    GITWEB:	http://gollem.science.uva.nl/git/ClioPatria.git
+    GIT:	git://gollem.science.uva.nl/home/git/ClioPatria.git
+    GIT:	http://gollem.science.uva.nl/home/git/ClioPatria.git
+    Copyright:  2007, E-Culture/MultimediaN
+
+    ClioPatria is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 2 of the License, or
+    (at your option) any later version.
+
+    ClioPatria is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with ClioPatria.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+:- module(html_head,
+	  [ html_resource/2,		% +Resource, +Attributes
+	    html_requires//1		% +Resource
+	  ]).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/mimetype)).
+:- use_module(library(error)).
+:- use_module(library(settings)).
+:- use_module(library(lists)).
+
+/** <module> Deal with CSS and scripts
+
+This module is to clean up the   mess related to managing Javascript and
+CSS files. It defines relations between scripts and style files.
+
+@tbd	Specify aggregates
+*/
+
+:- dynamic
+	html_resource/3.		% Resource, Source, Properties
+
+%%	html_resource(+About, +Properties) is det.
+%
+%	Register an HTML head resource.  About   is  either an atom that
+%	specifies an HTTP location or  a   term  Alias(Sub).  This works
+%	simlar to absolute_file_name/2.  See   http:location_path/2  for
+%	details.
+
+html_resource(About, Properties) :-
+	source_location(File, Line), !,
+	retractall(html_resource(About, File:Line, _)),
+	assert(html_resource(About, File:Line, Properties)).
+html_resource(About, Properties) :-
+	assert(html_resource(About, -, Properties)).
+
+
+%%	html_requires(+ResourceOrList)// is det.
+%
+%	Include ResourceOrList and all dependencies derived from it
+%	and add them to the HTML =head= using html_post/2.
+
+html_requires(Required) -->
+	{ is_list(Required), !,
+	  requirements(Required, Paths)
+	},
+	html_include(Paths).
+html_requires(Required) -->
+	{ requirements([Required], Paths)
+	},
+	html_include(Paths).
+	
+requirements(Required, Paths) :-
+	phrase(requires(Required), List),
+	sort(List, Paths).		% Can order matter?
+
+%%	requires(+Spec)// is det.
+%%	requires(+Spec, +Base)// is det.
+%
+%	True if Files is the set of  files   that  need to be loaded for
+%	Spec. Note that Spec normally appears in  Files, but this is not
+%	necessary (i.e. virtual resources  or   the  usage  of aggregate
+%	resources).
+
+requires(Spec) -->
+	requires(Spec, /).
+
+requires([], _) -->
+	[].
+requires([H|T], Base) --> !,
+	requires(H, Base),
+	requires(T, Base).
+requires(Spec, Base) -->
+	{ res_properties(Spec, Properties),
+	  location(Spec, Base, File)
+	},
+	(   { option(virtual(true), Properties) }
+	->  []
+	;   [File]
+	),
+	requires_from_properties(Properties, File).
+
+requires_from_properties([], _) --> 
+	[].
+requires_from_properties([H|T], Base) -->
+	requires_from_property(H, Base),
+	requires_from_properties(T, Base).
+
+requires_from_property(requires(What), Base) --> !,
+	requires(What, Base).
+requires_from_property(_, _) -->
+	[].
+
+
+%%	res_properties(+Spec, -Properties) is det.
+%
+%	True if Properties is the set of defined properties on Spec.
+
+res_properties(Spec, Properties) :-
+	findall(P, res_property(Spec, P), Properties0),
+	list_to_set(Properties0, Properties).
+
+res_property(Spec, Property) :-
+	html_resource(About, _, Properties),
+	same_resource(Spec, About),
+	member(Property, Properties).
+
+%%	same_resource(+R1, +R2) is semidet.
+%
+%	True if R1 an R2 represent the same resource.  R1 and R2 are
+%	resource specifications are defined by location/2.
+
+same_resource(R, R) :- !.
+same_resource(R1, R2) :- 
+	resource_base_name(R1, B),
+	resource_base_name(R2, B),
+	location(R1, Path),
+	location(R2, Path).
+
+resource_base_name(Atom, Base) :-
+	atomic(Atom), !,
+	file_base_name(Atom, Base).
+resource_base_name(Compound, Base) :-
+	arg(1, Compound, Base0),
+	file_base_name(Base0, Base).
+
+%%	html_include(+PathOrList)// is det.
+%
+%	Post =link= and =script=  elements  to   =head=  to  include the
+%	desired CSS and Javascript heads.
+	
+html_include([]) --> !.
+html_include([H|T]) --> !,
+	html_include(H),
+	html_include(T).
+html_include(Path) -->
+	{ file_mime_type(Path, Mime) }, !,
+	html_include(Mime, Path).
+
+html_include(text/css, Path) --> !,
+	html_post(head, link([ rel(stylesheet),
+			       type('text/css'),
+			       href(Path)
+			     ], [])).
+html_include(text/javascript, Path) --> !,
+	html_post(head, script([ type('text/javascript'),
+				 src(Path)
+			       ], [])).
+html_include(Mime, Path) -->
+	{ print_message(warning, html_include(dont_know, Mime, Path))
+	}.
+
+
+
+		 /*******************************
+		 *	      PATHS		*
+		 *******************************/
+
+:- multifile
+	http:location_path/2.
+:- dynamic
+	http:location_path/2.
+
+%%	http_location_path(+Alias, -Expansion) is semidet.
+%
+%	Expansion is the expanded HTTP location for Alias.
+
+http_location_path(Alias, Path) :-
+	findall(Path, http:location_path(Alias, Path), Paths0),
+	sort(Paths0, Paths),
+	(   Paths == [One]
+	->  Path = One
+	;   Paths = [Path|_],
+	    print_message(warning, ambiguous_http_location(Alias, Paths))
+	).
+http_location_path(prefix, Path) :-
+	setting(http:prefix, Path).
+
+%%	location(+Spec, +Base, -Path)
+%
+%	True if Path is the full HTTP location for Spec.
+
+location(Spec, Path) :-
+	location(Spec, /, Path).
+
+location(Spec, Base, Path) :-
+	(   atomic(Spec)
+	->  relative_to(Base, Spec, Path)
+	;   Spec =.. [Alias, Sub],
+	    http_location_path(Alias, Parent),
+	    location(Parent, ParentLocation),
+	    phrase(sub_list(Sub), List),
+	    concat_atom(List, /, SubAtom),
+	    (	ParentLocation == ''
+	    ->	Path = SubAtom
+	    ;	sub_atom(ParentLocation, _, _, 0, /)
+	    ->	atom_concat(ParentLocation, SubAtom, Path)
+	    ;	concat_atom([ParentLocation, SubAtom], /, Path)
+	    )
+	).
+
+relative_to(/, Path, Path).
+relative_to(_Base, Path, Path) :-
+	sub_atom(Path, 0, _, _, /).
+relative_to(Base, Local, Path) :-
+	absolute_file_name(Local, Path,
+			   [ relative_to(Base)
+			   ]).
+
+sub_list(Var) -->
+	{ var(Var), !,
+	  instantiation_error(Var)
+	}.
+sub_list(A/B) --> !,
+	sub_list(A),
+	sub_list(B).
+sub_list(A) -->
+	[A].
