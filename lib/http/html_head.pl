@@ -31,13 +31,15 @@
 :- use_module(library(error)).
 :- use_module(library(settings)).
 :- use_module(library(lists)).
+:- use_module(library(option)).
 
 /** <module> Deal with CSS and scripts
 
 This module is to clean up the   mess related to managing Javascript and
 CSS files. It defines relations between scripts and style files.
 
-@tbd	Specify aggregates
+@tbd	Process aggregate declarations
+@tbd	Cache some of the computations
 */
 
 :- dynamic
@@ -47,8 +49,23 @@ CSS files. It defines relations between scripts and style files.
 %
 %	Register an HTML head resource.  About   is  either an atom that
 %	specifies an HTTP location or  a   term  Alias(Sub).  This works
-%	simlar to absolute_file_name/2.  See   http:location_path/2  for
-%	details.
+%	similar to absolute_file_name/2.  See   http:location_path/2  for
+%	details.  Recognised properties are:
+%	
+%		* requires(+Requirements)
+%		Other required script and css files.  If this is a plain
+%		file name, it is interpreted relative to the declared
+%		resource.  Requirements can be a list, which is equivalent
+%		to multiple requires properties.
+%		
+%		* virtual(+Bool)
+%		If =true= (default =false=), do not include About itself,
+%		but only its dependencies.  This allows for defining an
+%		alias for one or more resources.
+%		
+%		* aggregate(+List)
+%		States that About is an aggregate of the resources in
+%		List.
 
 html_resource(About, Properties) :-
 	source_location(File, Line), !,
