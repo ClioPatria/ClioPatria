@@ -40,7 +40,23 @@
 This module is to clean up the   mess related to managing Javascript and
 CSS files. It defines relations between scripts and style files.
 
-@tbd	Cache some of the computations
+Declarations  come  in  two   forms.   First    of   all,   clauses  for
+http:location_path/2  define  HTTP  locations    globally,   similar  to
+file_search_path/2. Second, html_resource/2 specifies  HTML resources to
+be used in the =head= and   their  dependencies. Resources are currently
+limited to Javascript files (.js) and style sheets (.css). It is trivial
+to add support for other material in the head.
+
+For usage in HTML generation, there is the DCG rule html_requires/1 that
+demands named resources in the HTML head. For general purpose reasoning,
+absolute_http_location/2  translates  a  path    specification  into  an
+absolute HTTP location on the server.
+
+@see	For ClioPatria, the resources are defined in server/html_resource.pl
+@tbd	Possibly we should add img//2 to include images from symbolic
+	path notation.
+@tbd	It would be nice if the HTTP file server could use our location
+	declarations.
 */
 
 :- dynamic
@@ -71,9 +87,17 @@ CSS files. It defines relations between scripts and style files.
 html_resource(About, Properties) :-
 	source_location(File, Line), !,
 	retractall(html_resource(About, File:Line, _)),
-	assert(html_resource(About, File:Line, Properties)).
+	assert_resource(About, File:Line, Properties).
 html_resource(About, Properties) :-
-	assert(html_resource(About, -, Properties)).
+	assert_resource(About, -, Properties).
+
+assert_resource(About, Location, Properties) :-
+	assert(html_resource(About, Location, Properties)),
+	clean_same_about_cache,
+	(   memberchk(aggregate(_), Properties)
+	->  clean_aggregate_cache
+	;   true
+	).
 
 
 %%	html_requires(+ResourceOrList)// is det.
@@ -91,20 +115,49 @@ requirements(Required, Paths) :-
 	use_agregates(Paths0, Paths).
 
 use_agregates(Paths, Aggregated) :-
-	html_resource(Aggregate, _, Properties),
-	memberchk(aggregate(Parts), Properties),
-	absolute_http_location(Aggregate, APath),
-	absolute_paths(Parts, APath, AParts),
-	sort(AParts, APartsS),
-	length(APartsS, Size),
-	ord_subtract(Paths, APartsS, NotCovered),
+	aggregate(Aggregate, Parts, Size),
+	ord_subtract(Paths, Parts, NotCovered),
 	length(Paths, Len0),
 	length(NotCovered, Len1),
 	Covered is Len0-Len1,
 	Covered >= Size/2, !,
-	ord_add_element(NotCovered, APath, NewPaths),
+	ord_add_element(NotCovered, Aggregate, NewPaths),
 	use_agregates(NewPaths, Aggregated).
 use_agregates(Paths, Paths).
+
+:- dynamic
+	aggregate_cache_filled/0,
+	aggregate_cache/3.
+:- volatile
+	aggregate_cache_filled/0,
+	aggregate_cache/3.
+
+clean_aggregate_cache :-
+	retractall(aggregate_cache_filled).
+
+%%	aggregate(-Aggregate, -Parts, -Size) is nondet.
+%
+%	True if Aggregate is a defined   aggregate  with Size Parts. All
+%	parts are canonical absolute HTTP locations  and Parts is sorted
+%	to allow for processing using ordered set predicates.
+
+aggregate(Path, Parts, Size) :-
+	aggregate_cache_filled, !,
+	aggregate_cache(Path, Parts, Size).
+aggregate(Path, Parts, Size) :-
+	retractall(aggregate_cache(_,_, _)),
+	forall(uncached_aggregate(Path, Parts, Size),
+	       assert(aggregate_cache(Path, Parts, Size))),
+	assert(aggregate_cache_filled),
+	aggregate_cache(Path, Parts, Size).
+
+uncached_aggregate(Path, APartsS, Size) :-
+	html_resource(Aggregate, _, Properties),
+	memberchk(aggregate(Parts), Properties),
+	absolute_http_location(Aggregate, Path),
+	absolute_paths(Parts, Path, AParts),
+	sort(AParts, APartsS),
+	length(APartsS, Size).
 
 absolute_paths([], _, []).
 absolute_paths([H0|T0], Base, [H|T]) :-
@@ -159,9 +212,30 @@ res_properties(Spec, Properties) :-
 	list_to_set(Properties0, Properties).
 
 res_property(Spec, Property) :-
+	same_about(Spec, About),
 	html_resource(About, _, Properties),
-	same_resource(Spec, About),
 	member(Property, Properties).
+
+:- dynamic
+	same_about_cache/2.
+:- volatile
+	same_about_cache/2.
+
+clean_same_about_cache :-
+	retractall(same_about_cache(_,_)).
+
+same_about(Spec, About) :-
+	same_about_cache(Spec, Same), !,
+	member(About, Same).
+same_about(Spec, About) :-
+	findall(A, uncached_same_about(Spec, A), List),
+	assert(same_about_cache(Spec, List)),
+	member(About, List).
+
+uncached_same_about(Spec, About) :-
+	html_resource(About, _, _),
+	same_resource(Spec, About).
+
 
 %%	same_resource(+R1, +R2) is semidet.
 %
@@ -175,10 +249,23 @@ same_resource(R1, R2) :-
 	absolute_http_location(R1, Path),
 	absolute_http_location(R2, Path).
 
-resource_base_name(Atom, Base) :-
+:- dynamic
+	base_cache/2.
+:- volatile
+	base_cache/2.
+
+resource_base_name(Spec, Base) :-
+	(   base_cache(Spec, Base0)
+	->  Base = Base0
+	;   uncached_resource_base_name(Spec, Base0),
+	    assert(base_cache(Spec, Base0)),
+	    Base = Base0
+	).
+
+uncached_resource_base_name(Atom, Base) :-
 	atomic(Atom), !,
 	file_base_name(Atom, Base).
-resource_base_name(Compound, Base) :-
+uncached_resource_base_name(Compound, Base) :-
 	arg(1, Compound, Base0),
 	file_base_name(Base0, Base).
 
@@ -323,4 +410,6 @@ clean_location_cache :-
 user:message_hook(make(done(Reload)), _Level, _Lines) :-
 	Reload \== [],
 	clean_location_cache,
+	clean_same_about_cache,
+	clean_aggregate_cache,
 	fail.
