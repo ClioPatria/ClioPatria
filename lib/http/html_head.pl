@@ -23,7 +23,8 @@
 
 :- module(html_head,
 	  [ html_resource/2,		% +Resource, +Attributes
-	    html_requires//1		% +Resource
+	    html_requires//1,		% +Resource
+	    absolute_http_location/2	% +Spec, -Path
 	  ]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/mimetype)).
@@ -94,7 +95,7 @@ requires([H|T], Base) --> !,
 	requires(T, Base).
 requires(Spec, Base) -->
 	{ res_properties(Spec, Properties),
-	  location(Spec, Base, File)
+	  absolute_http_location(Spec, Base, File)
 	},
 	(   { option(virtual(true), Properties) }
 	->  []
@@ -130,14 +131,14 @@ res_property(Spec, Property) :-
 %%	same_resource(+R1, +R2) is semidet.
 %
 %	True if R1 an R2 represent the same resource.  R1 and R2 are
-%	resource specifications are defined by location/2.
+%	resource specifications are defined by absolute_http_location/2.
 
 same_resource(R, R) :- !.
 same_resource(R1, R2) :- 
 	resource_base_name(R1, B),
 	resource_base_name(R2, B),
-	location(R1, Path),
-	location(R2, Path).
+	absolute_http_location(R1, Path),
+	absolute_http_location(R2, Path).
 
 resource_base_name(Atom, Base) :-
 	atomic(Atom), !,
@@ -183,34 +184,49 @@ html_include(Mime, Path) -->
 :- dynamic
 	http:location_path/2.
 
-%%	http_location_path(+Alias, -Expansion) is semidet.
+%%	http_location_path(+Alias, -Expansion) is det.
 %
-%	Expansion is the expanded HTTP location for Alias.
+%	Expansion is the expanded HTTP location for Alias. As we have no
+%	condition search, we demand a single  expansion for an alias. An
+%	ambiguous alias results in a printed   warning.  A lacking alias
+%	results in an exception.
+%	
+%	@error	existence_error(http_alias, Alias)
 
 http_location_path(Alias, Path) :-
 	findall(Path, http:location_path(Alias, Path), Paths0),
 	sort(Paths0, Paths),
 	(   Paths == [One]
 	->  Path = One
-	;   Paths = [Path|_],
-	    print_message(warning, ambiguous_http_location(Alias, Paths))
+	;   Paths = [Path|_]
+	->  print_message(warning, ambiguous_http_location(Alias, Paths))
+	;   Alias \== prefix
+	->  existence_error(http_alias, Alias)
 	).
 http_location_path(prefix, Path) :-
 	setting(http:prefix, Path).
 
-%%	location(+Spec, +Base, -Path)
+
+%%	absolute_http_location(+Spec, -Path) is det.
+%%	absolute_http_location(+Spec, +Base, -Path) is det.
 %
-%	True if Path is the full HTTP location for Spec.
+%	True if Path is the full HTTP   location  for Spec. This behaves
+%	very much like absolute_file_name/2. Path-alias   are defined by
+%	the dynamic multifile predicate  http:location_path/2, using the
+%	same syntax as user:file_search_path/2.
+%	
+%	@tbd	Use caching, resetting the cache on reload and change of
+%		the prefix setting.
 
-location(Spec, Path) :-
-	location(Spec, /, Path).
+absolute_http_location(Spec, Path) :-
+	absolute_http_location(Spec, /, Path).
 
-location(Spec, Base, Path) :-
+absolute_http_location(Spec, Base, Path) :-
 	(   atomic(Spec)
 	->  relative_to(Base, Spec, Path)
 	;   Spec =.. [Alias, Sub],
 	    http_location_path(Alias, Parent),
-	    location(Parent, ParentLocation),
+	    absolute_http_location(Parent, /, ParentLocation),
 	    phrase(sub_list(Sub), List),
 	    concat_atom(List, /, SubAtom),
 	    (	ParentLocation == ''
