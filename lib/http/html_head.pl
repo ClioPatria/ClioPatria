@@ -102,10 +102,20 @@ assert_resource(About, Location, Properties) :-
 
 %%	html_requires(+ResourceOrList)// is det.
 %
-%	Include ResourceOrList and all dependencies derived from it
-%	and add them to the HTML =head= using html_post/2.
+%	Include ResourceOrList and all dependencies  derived from it and
+%	add them to the  HTML  =head=   using  html_post/2.  The  actual
+%	dependencies are computed  during  the   HTML  output  phase  by
+%	html_insert_resource//1.
 
 html_requires(Required) -->
+	html_post(head, \html_insert_resource(Required)).
+
+%%	html_insert_resource(+ResourceOrList)// is det.
+%
+%	Actually include HTML head resources.  Called through html_post//2
+%	from html_requires//1.
+
+html_insert_resource(Required) -->
 	{ requirements(Required, Paths) },
 	html_include(Paths).
 	
@@ -283,14 +293,14 @@ html_include(Path) -->
 	html_include(Mime, Path).
 
 html_include(text/css, Path) --> !,
-	html_post(head, link([ rel(stylesheet),
-			       type('text/css'),
-			       href(Path)
-			     ], [])).
+	html(link([ rel(stylesheet),
+		    type('text/css'),
+		    href(Path)
+		  ], [])).
 html_include(text/javascript, Path) --> !,
-	html_post(head, script([ type('text/javascript'),
-				 src(Path)
-			       ], [])).
+	html(script([ type('text/javascript'),
+		      src(Path)
+		    ], [])).
 html_include(Mime, Path) -->
 	{ print_message(warning, html_include(dont_know, Mime, Path))
 	}.
