@@ -108,7 +108,25 @@ assert_resource(About, Location, Properties) :-
 %	html_insert_resource//1.
 
 html_requires(Required) -->
-	html_post(head, \html_insert_resource(Required)).
+	html_post(head, \html_required(Required)).
+
+:- multifile
+	html_write:html_head_expansion/2.
+
+html_write:html_head_expansion(In, Out) :-
+	require_commands(In, Required, Rest),
+	Required \== [], !,
+	flatten(Required, Plain),
+	Out = [ html_head:(\html_insert_resource(Plain))
+	      | Rest
+	      ].
+
+require_commands([], [], []).
+require_commands([_:(\html_required(Required))|T0], [Required|TR], R) :- !,
+	require_commands(T0, TR, R).
+require_commands([R|T0], TR, [R|T]) :- !,
+	require_commands(T0, TR, T).
+
 
 %%	html_insert_resource(+ResourceOrList)// is det.
 %
