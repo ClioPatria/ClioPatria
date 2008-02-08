@@ -143,7 +143,9 @@ require_commands([R|T0], TR, [R|T]) :- !,
 %	    3. Put required resources before their requiree.
 
 html_insert_resource(Required) -->
-	{ requirements(Required, Paths) },
+	{ requirements(Required, Paths),
+	  debug(html(script), 'Requirements: ~q~nFinal: ~q', [Required, Paths])
+	},
 	html_include(Paths).
 	
 requirements(Required, Paths) :-
@@ -268,18 +270,22 @@ order_html_resources(Requirements, Ordered) :-
 %	required to requirer.
 
 requirements_graph(Requirements, Graph) :-
-	phrase(prerequisites(Requirements), Edges),
-	vertices_edges_to_ugraph([], Edges, Graph).
+	phrase(prerequisites(Requirements, Vertices, []), Edges),
+	vertices_edges_to_ugraph(Vertices, Edges, Graph).
 
-prerequisites([]) -->
+prerequisites([], Vs, Vs) -->
 	[].
-prerequisites([R|T]) -->
-	prerequisites_for(R),
-	prerequisites(T).
+prerequisites([R|T], Vs, Vt) -->
+	prerequisites_for(R, Vs, Vt0),
+	prerequisites(T, Vt0, Vt).
 
-prerequisites_for(R) -->
+prerequisites_for(R, Vs, Vt) -->
 	{ phrase(requires(R, /, false), Req) },
-	req_edges(Req, R).
+	(   {Req == []}
+	->  {Vs = [R|Vt]}
+	;   req_edges(Req, R),
+	    {Vs = Vt}
+	).
 
 req_edges([], _) -->
 	[].
