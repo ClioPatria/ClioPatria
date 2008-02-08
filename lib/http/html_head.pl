@@ -33,7 +33,9 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
+:- use_module(library(ugraphs)).
 :- use_module(library(broadcast)).
+
 
 /** <module> Deal with CSS and scripts
 
@@ -130,8 +132,15 @@ require_commands([R|T0], TR, [R|T]) :- !,
 
 %%	html_insert_resource(+ResourceOrList)// is det.
 %
-%	Actually include HTML head resources.  Called through html_post//2
-%	from html_requires//1.
+%	Actually   include   HTML   head   resources.   Called   through
+%	html_post//2   from   html_requires//1   after     rewrite    by
+%	html_head_expansion/2. We are guaranteed we   will  only get one
+%	call that is passed a flat   list  of requested requirements. We
+%	have three jobs:
+%	
+%	    1. Figure out all indirect requirements
+%	    2. See whether we can use any `aggregate' resources
+%	    3. Put required resources before their requiree.
 
 html_insert_resource(Required) -->
 	{ requirements(Required, Paths) },
@@ -139,8 +148,9 @@ html_insert_resource(Required) -->
 	
 requirements(Required, Paths) :-
 	phrase(requires(Required), List),
-	sort(List, Paths0),		% Can order matter?
-	use_agregates(Paths0, Paths).
+	sort(List, Paths0),		% remove duplicates
+	use_agregates(Paths0, Paths1),	% replace by aggregates
+	order_html_resources(Paths1, Paths).
 
 use_agregates(Paths, Aggregated) :-
 	aggregate(Aggregate, Parts, Size),
@@ -210,14 +220,20 @@ requires([H|T], Base) --> !,
 	requires(H, Base),
 	requires(T, Base).
 requires(Spec, Base) -->
+	requires(Spec, Base, true).
+
+requires(Spec, Base, Virtual) -->
 	{ res_properties(Spec, Properties),
 	  absolute_http_location(Spec, Base, File)
 	},
-	(   { option(virtual(true), Properties) }
+	(   { option(virtual(true), Properties)
+	    ; Virtual == false
+	    }
 	->  []
 	;   [File]
 	),
 	requires_from_properties(Properties, File).
+
 
 requires_from_properties([], _) --> 
 	[].
@@ -229,6 +245,74 @@ requires_from_property(requires(What), Base) --> !,
 	requires(What, Base).
 requires_from_property(_, _) -->
 	[].
+
+
+%%	order_html_resources(+Requirements, -Ordered) is det.
+%
+%	Establish a proper order for the   collected (sorted and unique)
+%	list of Requirements. 
+
+order_html_resources(Requirements, Ordered) :-
+	requirements_graph(Requirements, Graph),
+	(   top_sort(Graph, Ordered)
+	->  true
+	;   connect_graph(Graph, Start, Connected),
+	    top_sort(Connected, Ordered0),
+	    Ordered0 = [Start|Ordered]
+	).
+
+%%	requirements_graph(+Requirements, -Graph) is det.
+%
+%	Produce an S-graph (see library(ugraphs))   that  represents the
+%	dependencies  in  the  list  of  Requirements.  Edges  run  from
+%	required to requirer.
+
+requirements_graph(Requirements, Graph) :-
+	phrase(prerequisites(Requirements), Edges),
+	vertices_edges_to_ugraph([], Edges, Graph).
+
+prerequisites([]) -->
+	[].
+prerequisites([R|T]) -->
+	prerequisites_for(R),
+	prerequisites(T).
+
+prerequisites_for(R) -->
+	{ phrase(requires(R, /, false), Req) },
+	req_edges(Req, R).
+
+req_edges([], _) -->
+	[].
+req_edges([H|T], R) -->
+	[H-R],
+	req_edges(T, R).
+	
+
+%%	connect_graph(+Graph, -Connected) is det.
+%	
+%	Turn Graph into a connected graph   by putting a shared starting
+%	point before all vertices.
+
+connect_graph([], 0, []) :- !.
+connect_graph(Graph, Start, [Start-Vertices|Graph]) :-
+	vertices(Graph, Vertices),
+	Vertices = [First|_],
+	before(First, Start).
+	
+%%	before(+Term, -Before) is det.
+%
+%	Unify Before to a term that comes   before  Term in the standard
+%	order of terms.
+%	
+%	@error instantiation_error if Term is unbound.
+
+before(X, _) :-
+	var(X), !,
+	instantiation_error(X).
+before(Number, Start) :-
+	number(Number), !,
+	Start is Number - 1.
+before(_, 0).
 
 
 %%	res_properties(+Spec, -Properties) is det.
