@@ -33,6 +33,7 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
+:- use_module(library(assoc)).
 :- use_module(library(ugraphs)).
 :- use_module(library(broadcast)).
 
@@ -47,12 +48,32 @@ http:location_path/2  define  HTTP  locations    globally,   similar  to
 file_search_path/2. Second, html_resource/2 specifies  HTML resources to
 be used in the =head= and   their  dependencies. Resources are currently
 limited to Javascript files (.js) and style sheets (.css). It is trivial
-to add support for other material in the head.
+to add support for other material in the head.  See html_include//1.
 
 For usage in HTML generation, there is the DCG rule html_requires/1 that
 demands named resources in the HTML head. For general purpose reasoning,
 absolute_http_location/2  translates  a  path    specification  into  an
 absolute HTTP location on the server.
+
+---++ About resource ordering
+
+All calls to html_requires//1 for the page are collected and duplicates
+are removed.  Next, the following steps are taken:
+
+    1. Add all dependencies to the set
+    2. Replace multiple members by `aggregate' scripts or css files.
+       see use_agregates/4.
+    3. Order all resources by demanding that their dependencies
+       preceede the resource itself.  Note that the ordering of
+       resources in the dependency list is *ignored*.  This implies
+       that if the order matters the dependency list must be split
+       and only the primary dependency must be added.
+
+---++ Debugging dependencies
+
+Use ?- debug(html(script)). to  see  the   requested  and  final  set of
+resources. All declared resources  are   in  html_resource/3. The edit/1
+command recognises the names of HTML resources.
 
 @see	For ClioPatria, the resources are defined in server/html_resource.pl
 @tbd	Possibly we should add img//2 to include images from symbolic
@@ -151,10 +172,22 @@ html_insert_resource(Required) -->
 requirements(Required, Paths) :-
 	phrase(requires(Required), List),
 	sort(List, Paths0),		% remove duplicates
-	use_agregates(Paths0, Paths1),	% replace by aggregates
-	order_html_resources(Paths1, Paths).
+	use_agregates(Paths0, Paths1, AggregatedBy),
+	order_html_resources(Paths1, AggregatedBy, Paths).
 
-use_agregates(Paths, Aggregated) :-
+%%	use_agregates(+Paths, -Aggregated, -AggregatedBy) is det.
+%
+%	Try to replace sets of  resources   by  an  `aggregate', a large
+%	javascript or css file that  combines   the  content of multiple
+%	small  ones  to  reduce  the  number   of  files  that  must  be
+%	transferred to the server. The current rule says that aggregates
+%	are used if at least half of the members are used.
+
+use_agregates(Paths, Aggregated, AggregatedBy) :-
+	empty_assoc(AggregatedBy0),
+	use_agregates(Paths, Aggregated, AggregatedBy0, AggregatedBy).
+
+use_agregates(Paths, Aggregated, AggregatedBy0, AggregatedBy) :-
 	aggregate(Aggregate, Parts, Size),
 	ord_subtract(Paths, Parts, NotCovered),
 	length(Paths, Len0),
@@ -162,8 +195,15 @@ use_agregates(Paths, Aggregated) :-
 	Covered is Len0-Len1,
 	Covered >= Size/2, !,
 	ord_add_element(NotCovered, Aggregate, NewPaths),
-	use_agregates(NewPaths, Aggregated).
-use_agregates(Paths, Paths).
+	add_aggregated_by(Parts, AggregatedBy0, Aggregate, AggregatedBy1),
+	use_agregates(NewPaths, Aggregated, AggregatedBy1, AggregatedBy).
+use_agregates(Paths, Paths, AggregatedBy, AggregatedBy).
+
+add_aggregated_by([], Assoc, _, Assoc).
+add_aggregated_by([H|T], Assoc0, V, Assoc) :-
+	put_assoc(H, Assoc0, V, Assoc1),
+	add_aggregated_by(T, Assoc1, V, Assoc).
+
 
 :- dynamic
 	aggregate_cache_filled/0,
@@ -249,13 +289,13 @@ requires_from_property(_, _) -->
 	[].
 
 
-%%	order_html_resources(+Requirements, -Ordered) is det.
+% %	order_html_resources(+Requirements, +AggregatedBy, -Ordered) is det.
 %
 %	Establish a proper order for the   collected (sorted and unique)
 %	list of Requirements. 
 
-order_html_resources(Requirements, Ordered) :-
-	requirements_graph(Requirements, Graph),
+order_html_resources(Requirements, AggregatedBy, Ordered) :-
+	requirements_graph(Requirements, AggregatedBy, Graph),
 	(   top_sort(Graph, Ordered)
 	->  true
 	;   connect_graph(Graph, Start, Connected),
@@ -263,35 +303,38 @@ order_html_resources(Requirements, Ordered) :-
 	    Ordered0 = [Start|Ordered]
 	).
 
-%%	requirements_graph(+Requirements, -Graph) is det.
+%%	requirements_graph(+Requirements, +AggregatedBy, -Graph) is det.
 %
 %	Produce an S-graph (see library(ugraphs))   that  represents the
 %	dependencies  in  the  list  of  Requirements.  Edges  run  from
 %	required to requirer.
 
-requirements_graph(Requirements, Graph) :-
-	phrase(prerequisites(Requirements, Vertices, []), Edges),
+requirements_graph(Requirements, AggregatedBy, Graph) :-
+	phrase(prerequisites(Requirements, AggregatedBy, Vertices, []), Edges),
 	vertices_edges_to_ugraph(Vertices, Edges, Graph).
 
-prerequisites([], Vs, Vs) -->
+prerequisites([], _, Vs, Vs) -->
 	[].
-prerequisites([R|T], Vs, Vt) -->
-	prerequisites_for(R, Vs, Vt0),
-	prerequisites(T, Vt0, Vt).
+prerequisites([R|T], AggregatedBy, Vs, Vt) -->
+	prerequisites_for(R, AggregatedBy, Vs, Vt0),
+	prerequisites(T, AggregatedBy, Vt0, Vt).
 
-prerequisites_for(R, Vs, Vt) -->
+prerequisites_for(R, AggregatedBy, Vs, Vt) -->
 	{ phrase(requires(R, /, false), Req) },
 	(   {Req == []}
 	->  {Vs = [R|Vt]}
-	;   req_edges(Req, R),
+	;   req_edges(Req, AggregatedBy, R),
 	    {Vs = Vt}
 	).
 
-req_edges([], _) -->
+req_edges([], _, _) -->
 	[].
-req_edges([H|T], R) -->
-	[H-R],
-	req_edges(T, R).
+req_edges([H|T], AggregatedBy, R) -->
+	(   { get_assoc(H, AggregatedBy, Aggregate) }
+	->  [Aggregate-R]
+	;   [H-R]
+	),
+	req_edges(T, AggregatedBy, R).
 	
 
 %%	connect_graph(+Graph, -Connected) is det.
@@ -389,9 +432,14 @@ uncached_resource_base_name(Compound, Base) :-
 
 %%	html_include(+PathOrList)// is det.
 %
-%	Post =link= and =script=  elements  to   =head=  to  include the
-%	desired CSS and Javascript heads.
-	
+%	Include to HTML resources  that  must   be  in  the  HTML <head>
+%	element. Currently onlu supports  =|.js|=   and  =|.css|= files.
+%	Extend this to support more  header   material.  Do not use this
+%	predicate directly. html_requires//1 is the  public interface to
+%	include HTML resources.
+%	
+%	@param	HTTP location or list of these.
+
 html_include([]) --> !.
 html_include([H|T]) --> !,
 	html_include(H),
@@ -531,3 +579,16 @@ user:message_hook(make(done(Reload)), _Level, _Lines) :-
 	clean_same_about_cache,
 	clean_aggregate_cache,
 	fail.
+
+
+		 /*******************************
+		 *	       EDIT		*
+		 *******************************/
+
+% Allow edit(Location) to edit the :- html_resource declaration.
+	prolog_edit:locate/3.
+
+prolog_edit:locate(Path, html_resource(Spec), [file(File), line(Line)]) :-
+	atom(Path),
+	html_resource(Spec, File:Line, _Properties),
+	sub_term(Path, Spec).
