@@ -586,6 +586,7 @@ user:message_hook(make(done(Reload)), _Level, _Lines) :-
 		 *******************************/
 
 % Allow edit(Location) to edit the :- html_resource declaration.
+:- multifile
 	prolog_edit:locate/3.
 
 prolog_edit:locate(Path, html_resource(Spec), [file(File), line(Line)]) :-
