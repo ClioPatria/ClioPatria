@@ -36,6 +36,7 @@
 :- use_module(library(assoc)).
 :- use_module(library(ugraphs)).
 :- use_module(library(broadcast)).
+:- use_module(library(apply)).
 
 
 /** <module> Deal with CSS and scripts
@@ -539,13 +540,50 @@ uncached_absolute_http_location(Spec, Base, Path) :-
 	    )
 	).
 
+%%	relative_to(+Base, +Path, -AbsPath) is det.
+%
+%	AbsPath is an absolute URL location created from Base and Path.
+%	The result is cleaned
+
 relative_to(/, Path, Path) :- !.
 relative_to(_Base, Path, Path) :-
-	sub_atom(Path, 0, _, _, /).
+	sub_atom(Path, 0, _, _, /), !.
 relative_to(Base, Local, Path) :-
-	absolute_file_name(Local, Path,
-			   [ relative_to(Base)
-			   ]).
+	path_segments(Base, BaseSegments),
+	append(BaseDir, [_], BaseSegments) ->
+	path_segments(Local, LocalSegments),
+	append(BaseDir, LocalSegments, Segments0),
+	clean_segments(Segments0, Segments),
+	path_segments(Path, Segments).
+	
+path_segments(Path, Segments) :-
+	concat_atom(Segments, /, Path).
+
+%%	clean_segments(+SegmentsIn, -SegmentsOut) is det.
+%
+%	Clean a path represented  as  a   segment  list,  removing empty
+%	segments and resolving .. based on syntax.
+
+clean_segments([''|T0], [''|T]) :- !,
+	exclude(empty_segment, T0, T1),
+	clean_parent_segments(T1, T).
+clean_segments(T0, T) :-
+	exclude(empty_segment, T0, T1),
+	clean_parent_segments(T1, T).
+
+clean_parent_segments([], []).
+clean_parent_segments([..|T0], T) :- !,
+	clean_parent_segments(T0, T).
+clean_parent_segments([_,..|T0], T) :- !,
+	clean_parent_segments(T0, T).
+clean_parent_segments([H|T0], [H|T]) :-
+	clean_parent_segments(T0, T).
+
+empty_segment('').
+empty_segment('.').
+
+
+%%	sub_list(+Spec, -List) is det.
 
 sub_list(Var) -->
 	{ var(Var), !,
