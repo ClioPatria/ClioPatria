@@ -107,7 +107,7 @@ serql_setting(Name, Old, New) :-
 
 :- setting(http:port, nonneg, env('PORT', 3020),
 	   'Port the http server listens to').
-:- setting(http:workers, between(1, 20), 2,
+:- setting(http:workers, between(1, 20), env('SERQL_WORKERS', 2),
 	   'Number of server threads').
 :- setting(http:worker_options, list(any), [ local(50000),
 					     global(50000),
