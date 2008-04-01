@@ -189,16 +189,17 @@ statistics(_Request) :-
 	rdf_statistics(core(Core)),
 	sort(UnsortedPairs, Pairs),
 	reply_page('RDF statistics',
-		   [ h1('RDF statistics'),
-		     h4('Triples in database'),
+		   [ h1([id(stattitle)], 'RDF statistics'),
+		     h4([id(ntriples)], 'Triples in database'),
 		     p('The RDF store contains ~D triples in ~D bytes memory'-[Total, Core]),
-		     table([ border(1),
+		     table([ id(filesourcetable),
+			     border(1),
 			     cellpadding(2)
 			   ],
 			   [ tr([ th('Source'), th(colspan(2), 'Triples') ])
 			   | \triples_by_file(Pairs, Total)
 			   ]),
-		     h4('Call statistics'),
+		     h4([id(callstats)],'Call statistics'),
 		     table([ border(1),
 			     cellpadding(2)
 			   ],
@@ -247,8 +248,9 @@ current_sessions -->
 	  sort(Sessions0, Sessions),
 	  Sessions \== [], !
 	},
-	html([ h4('Active sessions'),
-	       table([ border(1),
+	html([ h4([id(sessions)], 'Active sessions'),
+	       table([ id(sessiontable),
+		       border(1),
 		       cellpadding(2)
 		     ],
 		     [ %caption('Active sessions'),
@@ -314,7 +316,7 @@ server_statistics -->
 	  findall(ID, http_current_worker(Port, ID), Workers),
 	  statistics(heapused, Heap)
 	},
-	html([ h4('Server statistics'),
+	html([ h4([id(serverstats)], 'Server statistics'),
 	       table([ border(1),
 		       cellpadding(2)
 		     ],
