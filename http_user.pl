@@ -311,7 +311,7 @@ ip(IP) -->
 server_statistics -->
 	{ serql_server_property(port(Port)),
 	  serql_server_property(started(StartTime)),
-	  convert_time(StartTime, ST),
+	  format_time(string(ST), '%+', StartTime),
 	  http_workers(Port, NWorkers),
 	  findall(ID, http_current_worker(Port, ID), Workers),
 	  statistics(heapused, Heap)
