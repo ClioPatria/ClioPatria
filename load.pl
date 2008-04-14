@@ -122,7 +122,7 @@ serql_server(Options) :-
 	setting(http:port, Port),
 	attach_account_info,
 	set_session_options,
-	rdf_setup_store,
+	rdf_setup_store(Options2),
 	user:AfterLoad,
 	setting(http:workers, Workers),
 	setting(http:worker_options, Settings),
@@ -160,23 +160,6 @@ set_options([Opt|T0], T) :-
 set_options([H|T0], [H|T]) :-
 	set_options(T0, T).
 
-
-:- if(\+source_exports(library(option), merge_options/3)).
-
-%%	merge_options(+Opts, +DefOpts, -MergedOpts) is det.
-%
-%	Merge  Opts  with  DefOpts,  where   options  in  Opts  overrule
-%	equivalent options in DefOpts.
-
-merge_options([], Settings, Settings).
-merge_options([H|T0], Settings, [H|T]) :-
-	functor(H, Name, Arity),
-	functor(F, Name, Arity),
-	(   select(F, Settings, Settings1)
-	->  merge_options(T0, Settings1, T)
-	;   merge_options(T0, Settings, T)
-	).
-:- endif.
 
 attach_account_info :-
 	setting(serql_parms:user_data, File),
