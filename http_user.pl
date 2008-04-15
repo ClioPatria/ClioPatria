@@ -190,6 +190,13 @@ statistics(_Request) :-
 	sort(UnsortedPairs, Pairs),
 	reply_page('RDF statistics',
 		   [ h1([id(stattitle)], 'RDF statistics'),
+		     ol([id(toc)],
+			[
+			 li(a([href('#ntriples')],'Triples in database')),
+			 li(a([href('#callstats')],'Call statistics')),
+			 li(a([href('#sessions')],'Active sessions')),
+			 li(a([href('#serverstats')],'Server statistics'))
+			]),
 		     h4([id(ntriples)], 'Triples in database'),
 		     p('The RDF store contains ~D triples in ~D bytes memory'-[Total, Core]),
 		     table([ id(filesourcetable),
