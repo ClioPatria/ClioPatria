@@ -39,11 +39,14 @@
 :- use_module(http_user).
 :- use_module(http_admin).
 :- use_module(user_db).
-:- use_module(serql_log).
 :- use_module(library('http/thread_httpd')).
 :- use_module(library('http/http_dispatch')).
 :- use_module(library('http/http_prefix')).
 :- use_module(library(time)).
+
+:- if(exists_source(library(http/http_log))).
+:- use_module(library(http/http_log)).
+:- endif.
 
 :- dynamic
 	start_time/1.
@@ -63,6 +66,9 @@ serql_server(Port, Options) :-
 	get_time(Time),
 	assert(start_time(Time)).
 
+serql_reply(Request) :-
+	http_dispatch(Request).
+
 %%	serql_server_property(?Property)
 %	
 %	Query status and attributes of the server. Defined properties
@@ -79,36 +85,6 @@ serql_server_property(port(Port)) :-
 serql_server_property(started(Time)) :-
 	start_time(Time).
 
-serql_reply(Request0) :-
-	prune_request(Request0, Request),
-	(   serql_log_stream(Stream)
-	->  log_started(Request, Id, Stream),
-	    thread_self(Me),
-	    thread_statistics(Me, cputime, CPU0),
-	    call_cleanup(http_dispatch(Request), Reason,
-			 log_completed(Reason, Id, CPU0, Stream))
-	;   http_dispatch(Request)
-	).
-
-%%	prune_request(+Request, -Pruned)
-%	
-%	Prune some junk from the request we are not interested in anyway
-%	to reduce processing time, simplify debugging and reduce the
-%	logfiles.
-
-prune_request([], []).
-prune_request([H|T0], T) :-
-	hidden(H), !,
-	prune_request(T0, T).
-prune_request([H|T0], [H|T]) :-
-	prune_request(T0, T).
-
-hidden(accept(_)).
-hidden(accept_language(_)).
-hidden(accept_encoding(_)).
-hidden(accept_charset(_)).
-hidden(referer(R)) :-			% do not want these in log
-	sub_atom(R, _, _, _, password), !.
 
 
 
