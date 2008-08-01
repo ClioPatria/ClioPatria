@@ -63,9 +63,18 @@ xml_write_result_table(Out, Rows, Options) :-
 	tuples(Out, Rows),
 	format(Out, '</tableQueryResult>~n', []).
 
+%%	header(+Out, +Options) is det.
+%
+%	Write  the  column-names  obtained   from  the  variables(+Vars)
+%	option. Vars is either a list  of   atoms  or a term holding the
+%	comlumn names as arguments (as in v('Name', 'Age')).
+
 header(Out, Options) :-
 	memberchk(variables(Vars), Options), !,
-	Vars =.. [_|Names],
+	(   is_list(Vars)
+	->  Names = Vars
+	;   Vars =.. [_|Names]
+	),
 	format(Out, '  <header>~n', []),
 	column_names(Names, Out),
 	format(Out, '  </header>~n', []).
