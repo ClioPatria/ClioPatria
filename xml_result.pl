@@ -53,11 +53,12 @@
 %	@param Format Must be =xml=
 
 rdf_io:write_table(xml, _, Rows, Options) :-
-	format('Content-type: text/xml~n~n'),
+	format('Transfer-encoding: chunked~n'),
+	format('Content-type: text/xml; charset=UTF-8~n~n'),
 	xml_write_result_table(current_output, Rows, Options).
 
 xml_write_result_table(Out, Rows, Options) :-
-	format(Out, '<?xml version="1.0" encoding="ISO-8859-1"?>~n~n', []),
+	format(Out, '<?xml version="1.0" encoding="UTF-8"?>~n~n', []),
 	format(Out, '<tableQueryResult>~n', []),
 	header(Out, Options),
 	tuples(Out, Rows),
@@ -119,18 +120,18 @@ column(Anon, Out, BN0, BN, Map0, Map) :-
 	format(Out, '    <bNode>~w</bNode>~n', [BNode]),
 	put_assoc(Anon, Map0, BNode, Map).
 column(URI, Out, BN, BN, Map, Map) :-
-	xml_quote_cdata(URI, QURI),
+	xml_quote_cdata(URI, QURI, utf8),
 	format(Out, '    <uri>~w</uri>~n', [QURI]).
 
 literal(type(Type, String), Out) :- !,
-	xml_quote_cdata(String, QString),
+	xml_quote_cdata(String, QString, utf8),
 	format(Out, '    <literal dataType="~w">~w</literal>~n',
 	       [Type, QString]).
 literal(lang(Lang, String), Out) :- !,
-	xml_quote_cdata(String, QString),
+	xml_quote_cdata(String, QString, utf8),
 	format(Out, '    <literal xml:lang="~w">~w</literal>~n', [Lang, QString]).
 literal(String, Out) :- !,
-	xml_quote_cdata(String, QString),
+	xml_quote_cdata(String, QString, utf8),
 	format(Out, '    <literal>~w</literal>~n', [QString]).
 
 
