@@ -73,10 +73,12 @@ sparql_reply(Request) :-
 		     ]).
 			
 write_result(ask, [True], Options) :- !,
-	format('Content-type: application/sparql-result+xml~n~n'),
+	format('Transfer-encoding: chunked~n'),
+	format('Content-type: application/sparql-result+xml; charset=UTF-8~n~n'),
 	sparql_write_xml_result(current_output, ask(True), Options).
 write_result(select(VarNames), Rows, Options) :- !,
-	format('Content-type: application/sparql-result+xml~n~n'),
+	format('Transfer-encoding: chunked~n'),
+	format('Content-type: application/sparql-result+xml; charset=UTF-8~n~n'),
 	sparql_write_xml_result(current_output, select(VarNames, Rows), Options).
 write_result(_, RDF, _Options) :-
 	format('Content-type: application/rdf+xml; charset=UTF-8~n~n'),
