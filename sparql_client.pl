@@ -39,6 +39,13 @@
 :- use_module(library(rdf)).
 
 
+%%	sparql_query(+Query, -Result, +Options) is nondet.
+%
+%	Execute a SPARQL query on an HTTP   SPARQL endpoint. Query is an
+%	atom that denotes  the  query.  Result   is  unified  to  a term
+%	rdf(S,P,O) for =construct= queries  and   row(...)  for =select=
+%	queries.
+
 sparql_query(Query, Row, Options) :-
 	sparql_param(host(Host), Options),
 	sparql_param(port(Port), Options),
@@ -52,7 +59,8 @@ sparql_query(Query, Row, Options) :-
 		  ], In,
 		  [ header(content_type, ContentType)
 		  ]),
-	read_reply(ContentType, In, Row).
+	plain_content_type(ContentType, CleanType),
+	read_reply(CleanType, In, Row).
 
 read_reply('application/rdf+xml', In, Row) :- !,
 	call_cleanup(load_rdf(stream(In), RDF), close(In)),
@@ -64,6 +72,12 @@ read_reply('application/sparql-result+xml', In, Row) :- !,
 read_reply(Type, In, _) :-
 	close(In),
 	throw(error(domain_error(sparql_result_document, Type), _)).
+
+plain_content_type(Type, Plain) :-
+	sub_atom(Type, B, _, _, (;)), !,
+	sub_string(Type, 0, B, _, Main),
+	normalize_space(atom(Plain), Main).
+plain_content_type(Type, Type).
 
 xml_result(ask(Bool), Result) :- !,
 	Result = Bool.
