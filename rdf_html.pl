@@ -132,6 +132,8 @@ resource(R, Options) -->
 	},
 	resource(Fmt, R, Options).
 
+resource(_, R, _) -->
+	{ var(R) }, !.
 resource(plain, R, _) --> !,
 	html(R).
 resource(_, R, _) -->
@@ -151,7 +153,8 @@ resource(nslabel, R, _) --> !,
 	},
 	html(Label).
 
-
+object(V,_Options) -->
+	{ var(V) }, !.
 object(literal(type(T, V)), Options) --> !,
 	html(['"', V, '"^^', \resource(T, Options)]).
 object(literal(lang(L, V)), _) --> !,
