@@ -188,8 +188,9 @@ statistics(_Request) :-
 	rdf_statistics(triples(Total)),
 	rdf_statistics(core(Core)),
 	sort(UnsortedPairs, Pairs),
+	gethostname(Host),
 	reply_page('RDF statistics',
-		   [ h1([id(stattitle)], 'RDF statistics'),
+		   [ h1([id(stattitle)], ['RDF statistics for ', Host]),
 		     ol([id(toc)],
 			[
 			 li(a([href('#ntriples')],'Triples in database')),
