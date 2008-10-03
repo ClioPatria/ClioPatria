@@ -156,7 +156,7 @@ cond_action(login) -->
 cond_action(logout) -->
 	(   { catch(logged_on(_User), _, fail)
 	    }
-	->  action_by_id(user_login, 'Logout')
+	->  action_by_id(user_logout, 'Logout')
 	;   []
 	).
 cond_action(change_password) -->

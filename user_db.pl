@@ -57,10 +57,11 @@
 
 	    deny_all_users/1		% +What
 	  ]).
-:- use_module(library('semweb/rdf_db')).
-:- use_module(library('http/http_session')).
-:- use_module(library('http/http_wrapper')).
-:- use_module(library('http/http_openid')).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(http/http_session)).
+:- use_module(library(http/http_wrapper)).
+:- use_module(library(http/http_openid)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(lists)).
 :- use_module(library(settings)).
 :- use_module(library(error)).
@@ -359,11 +360,8 @@ logged_on(_) :-
 
 ensure_logged_on(User) :-
 	http_current_request(Request),
-	(   catch(setting(http:prefix, Prefix), _, fail)
-	->  atom_concat(Prefix, '/openid/login', LoginURL),
-	    openid_user(Request, User, [login_url(LoginURL)])
-	;   openid_user(Request, User, [])
-	).
+	http_location_by_id(openid_login_page, LoginURL),
+	openid_user(Request, User, [login_url(LoginURL)]).
 
 
 %%	authorized(+Action) is det.

@@ -91,7 +91,7 @@ list_users(_Request) :-
 	reply_page('Users',
 		   [ h1('Users'),
 		     \user_table,
-		     p([ \action(location_by_id(add_user), 'Add user')
+		     p([ \action(location_by_id(add_user_form), 'Add user')
 		       ]),
 		     h1('OpenID servers'),
 		     \openid_server_table,
