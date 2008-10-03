@@ -243,27 +243,6 @@ openid_for_local_user(User, URL) :-
 
 
 		 /*******************************
-		 *	       UTIL		*
-		 *******************************/
-
-%%	http_global_url(+Relative, -URL) is det.
-%
-%	URL is a fully qualified URL relative to the current request.
-
-http_global_url(Local, URL) :-
-	http_current_request(Request),
-	openid_current_host(Request, Host, Port),
-	option(path(Path), Request, '/'),
-	option(protocol(Protocol), Request, http),
-	Base = [ protocol(Protocol),
-		 host(Host),
-		 port(Port),
-		 path(Path)
-	       ],
-	global_url(Local, Base, URL).
-
-
-		 /*******************************
 		 *	       TEST		*
 		 *******************************/
 
