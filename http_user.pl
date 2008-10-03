@@ -398,7 +398,7 @@ construct_form(_Request) :-
 			' generates an RDF graph']),
 
 		     form([ name(query),
-			    action('../evaluateGraphQuery'),
+			    action(location_by_id(evaluate_graph_query)),
 			    method('GET')
 			  ],
 			  [ \hidden(repository, default),
@@ -542,7 +542,7 @@ query_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
 	reply_page('Specify a query',
 		   [ form([ name(query),
-			    action('../evaluateQuery'),
+			    action(location_by_id(evaluate_query)),
 			    method('GET')
 			  ],
 			  [ \hidden(repository, default),
@@ -598,7 +598,7 @@ select_form(_Request) :-
 			' generates a table']),
 
 		     form([ name(query),
-			    action('../servlets/evaluateTableQuery'),
+			    action(location_by_id(evaluate_table_query)),
 			    method('GET')
 			  ],
 			  [ \hidden(repository, default),
@@ -705,7 +705,7 @@ load_file_form(_Request) :-
 			 web server.'
 		       ]),
 
-		     form([ action('../servlets/uploadData'),
+		     form([ action(location_by_id(upload_data)),
 			    method('POST'),
 			    enctype('multipart/form-data')
 			  ],
@@ -738,7 +738,7 @@ load_file_form(_Request) :-
 load_url_form(_Request) :-
 	reply_page('Load RDF from HTTP server',
 		   [ h3(align(center), 'Load RDF from HTTP server'),
-		     form([ action('../servlets/uploadURL'),
+		     form([ action(location_by_id(upload_url)),
 			    method('GET')
 			  ],
 			  [ \hidden(resultFormat, html),
@@ -775,7 +775,7 @@ load_base_ontology_form(_Request) :- !,
 		     p('This page allows loading one of the ontologies \
 		        provided with the toolkit.'),
 
-		     form([ action('../servlets/loadBaseOntology'),
+		     form([ action(location_by_id(load_base_ontology)),
 			    method('GET')
 			  ],
 			  [ \hidden(resultFormat, html),
@@ -825,7 +825,7 @@ clear_repository_form(_Request) :-
 		     p(['This operation removes ', b(all), ' triples from \
 		         the RDF store.']),
 
-		     form([ action('../servlets/clearRepository'),
+		     form([ action(location_by_id(clear_repository)),
 			    method('GET')
 			  ],
 			  [ \hidden(repository, default),
@@ -849,7 +849,7 @@ remove_statements_form(_Request) :-
 		        fields are in ntriples notation.  Omitted fields \
 			match any value.'),
 
-		     form([ action('../servlets/removeStatements'),
+		     form([ action(location_by_id(remove_statements)),
 			    method('GET')
 			  ],
 			  [ \hidden(repository, default),
