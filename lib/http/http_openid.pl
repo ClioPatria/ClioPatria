@@ -198,7 +198,8 @@ openid_user(Request, User, _Options) :-
 	openid_server(User, OpenID, _),
 	openid_login(User).
 openid_user(Request, _OpenID, Options) :-
-	option(login_url(Login), Options, '/openid/login'),
+	http_location_by_id(openid_login_page, LoginURL),
+	option(login_url(Login), Options, LoginURL),
 	current_url(Request, Here),
 	redirect_browser(Login,
 			 [ 'openid.return_to' = Here 

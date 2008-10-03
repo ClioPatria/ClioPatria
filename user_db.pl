@@ -66,6 +66,7 @@
 :- use_module(library(settings)).
 :- use_module(library(error)).
 :- use_module(library(url)).
+:- use_module(library(debug)).
 :- use_module(openid).
 :- use_module(db).
 
@@ -360,8 +361,7 @@ logged_on(_) :-
 
 ensure_logged_on(User) :-
 	http_current_request(Request),
-	http_location_by_id(openid_login_page, LoginURL),
-	openid_user(Request, User, [login_url(LoginURL)]).
+	openid_user(Request, User, []).
 
 
 %%	authorized(+Action) is det.
@@ -416,7 +416,7 @@ deny_all_users(Term) :-
 	).
 
 
-%%	login(+User:atom)
+%%	login(+User:atom) is det.
 %	
 %	Accept user as a user that has logged on into the current
 %	session.
@@ -426,12 +426,15 @@ login(User) :-
 	get_time(Time),
 	http_session_id(Session),
 	retractall(logged_in(_, Session, _)),
-	assert(logged_in(Session, User, Time)).
+	assert(logged_in(Session, User, Time)),
+	debug(login, 'Login user ~w on session ~w', [User, Session]).
 
-%%	logout(+User)
+
+%%	logout(+User) is det.
 %	
 %	Logout the specified user
 
 logout(User) :-
 	must_be(atom, User),
-	retractall(logged_in(_Session, User, _Time)).
+	retractall(logged_in(_Session, User, _Time)),
+	debug(login, 'Logout user ~w', [User]).
