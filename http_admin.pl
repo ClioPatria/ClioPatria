@@ -65,7 +65,9 @@
 :- http_handler('/user/logout',			user_logout,		 []).
 :- http_handler('/admin/settings',		settings,		 []).
 :- http_handler('/admin/save_settings',		save_settings,		 []).
-:- http_handler('/css/settings.css', http_reply_file(library('settings.css'), []), []).
+:- http_handler('/css/settings.css',
+		http_reply_file(library('settings.css'), []),
+		[id(settings_css)]).
 
 %%	tasks(+Request)
 %
@@ -73,12 +75,12 @@
 
 tasks(_Request) :-
 	reply_page('Administrative tasks',
-		   [ \action('listUsers', 'List users')
+		   [ \action(location_by_id(list_users), 'List users')
 		   ]).
 
 
 action(URL, Label) -->
-	html([a([target=main, href=URL], Label), br([])]).
+	html([a([target(main), href(URL)], Label), br([])]).
 
 %%	list_users(+Request)
 %
@@ -89,11 +91,11 @@ list_users(_Request) :-
 	reply_page('Users',
 		   [ h1('Users'),
 		     \user_table,
-		     p([ \action('form/addUser', 'Add user')
+		     p([ \action(location_by_id(add_user), 'Add user')
 		       ]),
 		     h1('OpenID servers'),
 		     \openid_server_table,
-		     p([ \action('form/addOpenIDServer', 'Add OpenID server')
+		     p([ \action(location_by_id(add_openid_server_form), 'Add OpenID server')
 		       ])
 		   ]).
 
@@ -119,8 +121,6 @@ list_users([]) -->
 	[].
 list_users([User|T]) -->
 	{ user_property(User, realname(Name)),
-	  www_form_encode(User, Encoded),
-	  format(string(Edit), 'form/editUser?user=~w', [Encoded]),
 	  findall(Idle-Login,
 		  user_property(User, connection(Login, Idle)),
 		  Pairs0),
@@ -136,7 +136,7 @@ list_users([User|T]) -->
 		  td(Name),
 		  td(\on_since(OnLine)),
 		  td(\idle(OnLine)),
-		  td(a(href(Edit), 'Edit'))
+		  td(a(href(location_by_id(edit_user_form)+'?user='+encode(User)), 'Edit'))
 		])),
 	list_users(T).
 
@@ -186,7 +186,7 @@ create_admin(_Request) :-
 			account that can subsequently be used to create \
 			new users.'),
 
-		     form([ action('../addUser'),
+		     form([ action(location_by_id(add_user)),
 			    method('GET')
 			  ],
 			  [ \hidden(read, on),
@@ -227,7 +227,7 @@ add_user_form(_Request) :-
 
 new_user_form -->
 	html([ h1('Add new user'),
-	       form([ action('../addUser'),
+	       form([ action(location_by_id(add_user)),
 		      method('GET')
 		    ],
 		    table([ border(1)
@@ -311,15 +311,12 @@ edit_user_form(Request) :-
 			[ user(User, [])
 			]),
 	
-	www_form_encode(User, Encoded),
-	format(string(Delete), '../delUser?user=~w', [Encoded]),
-	
 	user_property(User, realname(RealName)),
 	
 	reply_page('Edit user',
 		   [ h4(['Edit user ', User, ' (', RealName, ')']),
 		     
-		     form([ action('../editUser'),
+		     form([ action(location_by_id(edit_user)),
 			    method('GET')
 			  ],
 			  [ \hidden(user, User),
@@ -340,10 +337,11 @@ edit_user_form(Request) :-
 				  ])
 			  ]),
 		     
-		     p([ \action(Delete, [ 'Delete ',
-					   b(User),
-					   ' (', b(RealName), ')'
-					 ])
+		     p([ \action(location_by_id(del_user)+'?user='+encode(User),
+				 [ 'Delete ',
+				   b(User),
+				   ' (', b(RealName), ')'
+				 ])
 		       ])
 		   ]).
 	
@@ -465,7 +463,7 @@ change_password_form(_Request) :-
 	reply_page('Change password',
 		   [ h4(['Change password for ', User, ' (', RealName, ')']),
 		     
-		     form([ action('../changePassword'),
+		     form([ action(location_by_id(change_password)),
 			    method('GET')
 			  ],
 			  [ table([ border(1),
@@ -535,7 +533,7 @@ change_password(Request) :-
 login_form(_Request) :-
 	reply_page('Login',
 		   [ h1(align(center), 'Login'),
-		     form([ action('../login'),
+		     form([ action(location_by_id(user_login)),
 			    method('GET')
 			  ],
 			  table([ tr([ th(align(right), 'User:'),
@@ -652,7 +650,7 @@ add_openid_server_form(_Request) :-
 
 new_openid_form -->
 	html([ h1('Add new OpenID server'),
-	       form([ action('../addOpenIDServer'),
+	       form([ action(location_by_id(add_openid_server)),
 		      method('GET')
 		    ],
 		    table([ border(1)
@@ -729,14 +727,10 @@ edit_openid_server_form(Request) :-
 			[ openid_server(Server, [])
 			]),
 	
-	www_form_encode(Server, Encoded),
-	format(string(Delete),
-	       '../delOpenIDServer?openid_server=~w', [Encoded]),
-	
 	reply_page('Edit OpenID server',
 		   [ h4(['Edit OpenID server ', Server]),
 		     
-		     form([ action('../editOpenIDServer'),
+		     form([ action(location_by_id(edit_openid_server)),
 			    method('GET')
 			  ],
 			  [ \hidden(openid_server, Server),
@@ -753,7 +747,9 @@ edit_openid_server_form(Request) :-
 				  ])
 			  ]),
 		     
-		     p([ \action(Delete, [ 'Delete ', b(Server) ]) ])
+		     p([ \action(location_by_id(del_openid_server) +
+				 '?openid_server=' + encode(Server),
+				 [ 'Delete ', b(Server) ]) ])
 		   ]).
 
 
@@ -793,12 +789,11 @@ openid_list_servers([H|T]) -->
 	openid_list_servers(T).
 
 openid_list_server(Server) -->
-	{ www_form_encode(Server, Encoded),
-	  format(string(Edit), 'form/editOpenIDServer?openid_server=~w', [Encoded])
-	},
 	html(tr([td(\openid_server(Server)),
 		 td(\openid_field(Server, description)),
-		 td(a(href(Edit), 'Edit'))
+		 td(a(href(location_by_id(edit_openid_server_form) +
+			   '?openid_server='+encode(Server)
+			  ), 'Edit'))
 		])).
 
 openid_server(*) --> !,
@@ -884,7 +879,7 @@ settings(_Request) :-
 	phrase(page([ title('Settings'),
 		      link([ rel(stylesheet),
 			     type('text/css'),
-			     href('../css/settings.css')
+			     href(location_by_id(settings_css))
 			   ])
 		    ],
 		    [ \http_show_settings([ edit(Edit),
@@ -904,7 +899,7 @@ save_settings(Request) :-
 	phrase(page([ title('Save settings'),
 		      link([ rel(stylesheet),
 			     type('text/css'),
-			     href('../css/settings.css')
+			     href(location_by_id(settings_css))
 			   ])
 		    ],
 		    [ \http_apply_settings(Request, [save(true)])

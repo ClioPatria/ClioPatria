@@ -61,9 +61,9 @@
 :- http_handler('/user/removeStatements', remove_statements_form,  []).
 
 :- http_handler('/documentation.html',
-		http_reply_file(serql('serql.html'), []), []).
+		http_reply_file(serql('serql.html'), []), [id(serql_doc)]).
 :- http_handler('/rdfql.css',
-		http_reply_file(serql('rdfql.css'), []), []).
+		http_reply_file(serql('rdfql.css'), []), [id(rdfql_css)]).
 
 
 %%	home(+Request)
@@ -79,10 +79,10 @@ home(_Request) :-
 	),
 	phrase(html([ head(title(Title)),
 		      frameset([cols('200,*')],
-			       [ frame([ src('sidebar.html'),
+			       [ frame([ src(location_by_id(sidebar)),
 					 name(sidebar)
 				       ]),
-				 frame([ src('welcome.html'),
+				 frame([ src(location_by_id(welcome)),
 					 name(main)
 				       ])
 			       ])
@@ -99,7 +99,7 @@ sidebar(_Request) :-
 	reply_page('Sidebar',
 		   [ \current_user,
 		     hr([]),
-		     \action('welcome.html', 'Home'),
+		     \action_by_id(welcome, 'Home'),
 		     \cond_action(login),
 		     \cond_action(logout),
 		     \cond_action(change_password),
@@ -110,19 +110,27 @@ sidebar(_Request) :-
 :- multifile
 	serql_http:sidebar_menu/2.
 
-action('user/query',		'Query database').
+%%	action(?Id, ?Label) is nondet.
+%
+%	True if Id/Label must appear in the side-menu.  Id is one of
+%	
+%	    * handler-id
+%	    * -
+%	    * HTML code
+
+action(query_form,		'Query database').
 action(-,-).
-action('user/loadFile',	 	'Upload a file').
-action('user/loadURL',		'Load from HTTP').
-action('user/loadBaseOntology', 'Load base ontology').
+action(load_file_form,	 	'Upload a file').
+action(load_url_form,		'Load from HTTP').
+action(load_base_ontology_form, 'Load base ontology').
 action(-,-).
-action('user/removeStatements', 'Remove statements').
-action('user/clearRepository',	'Clear the repository').
+action(remove_statements_form,  'Remove statements').
+action(clear_repository_form,	'Clear the repository').
 action(-,-).
-action('user/statistics',	'Statistics').
-action('admin/listUsers',	'Users ...').
-action('admin/settings',	'Settings ...').
-action('documentation.html',	'Documentation').
+action(statistics,		'Statistics').
+action(list_users,		'Users ...').
+action(settings,		'Settings ...').
+action(serql_doc,		'Documentation').
 action(Path, Label) :-
 	serql_http:sidebar_menu(Path, Label).
 
@@ -143,18 +151,18 @@ cond_action(login) -->
 	(   { catch(logged_on(_User), _, fail)
 	    }
 	->  []
-	;   action('user/form/login', 'Login')
+	;   action_by_id(login_form, 'Login')
 	).
 cond_action(logout) -->
 	(   { catch(logged_on(_User), _, fail)
 	    }
-	->  action('user/logout', 'Logout')
+	->  action_by_id(user_login, 'Logout')
 	;   []
 	).
 cond_action(change_password) -->
 	(   { catch(logged_on(_User), _, fail)
 	    }
-	->  action('admin/form/changePassword', 'Change password')
+	->  action_by_id(change_password_form, 'Change password')
 	;   []
 	).
 
@@ -166,7 +174,8 @@ cond_action(change_password) -->
 welcome(Request) :-
 	(   current_user(_)
 	->  http_reply_file(serql('welcome.html'), [cache(false)], Request)
-	;   throw(http_reply(moved_temporary('admin/form/createAdmin')))
+	;   http_location_by_id(create_admin, Location),
+	    throw(http_reply(moved_temporary(Location)))
 	).
 
 
@@ -233,13 +242,10 @@ triples_by_file([File-Triples|T], Total) -->
 
 
 unload_button(File) -->
-	{ www_form_encode(File, Encoded),
-	  atom_concat('../servlets/unloadSource?\
-		       	resultFormat=html&\
-			source=', Encoded, URL)
-	},
-	html(a(href(URL), 'Unload')).
-
+	html(a(href(location_by_id(unload_source) +
+		    '?resultFormat=html&source=' +
+		    encode(File)),
+	       'Unload')).
 
 lookup_statistics([]) -->
 	[].
@@ -885,15 +891,16 @@ actions([Path-Label|T]) -->
 	action(Path, Label),
 	actions(T).
 
-%%	action(+URL, +Label)// is det
+%%	action(+Action, +Label)// is det
 %	
-%	Add an action to the sidebar.  URL is one of
+%	Add an action to the sidebar.  Action is one of
 %	
 %		$ =-= :
 %		Add a horizontal rule (<hr>)
 %		$ Atom :
-%		Create a link to the given URL, targetting the main
-%		window.
+%		ID of an HTTP handler. For backward compatibility we
+%		also accept an HTTP url with a warning.  The location
+%		is opened in the window named =main=.
 %		$ HTML DOM :
 %		Insert given HTML
 
@@ -904,12 +911,24 @@ action(-, Label) --> !,
 	       center(b(Label)),
 	       hr([])
 	     ]).
-action(URL, Label) -->
-	{ atom(URL) }, !,
-	html([a([target=main, href=URL], Label), br([])]).
+action(Spec, Label) -->
+	{ atom(Spec) }, !,
+	{ (   \+ sub_atom(Spec, 0, _, _, 'http://'),
+	      catch(http_location_by_id(Spec, Location), E,
+		    (   print_message(informational, E),
+			fail))
+	  ->  true
+	  ;   Location = Spec
+	  )
+	},
+	html([a([target(main), href(Location)], Label), br([])]).
 action(Action, _) -->
 	html(Action),
 	html(br([])).
+
+action_by_id(ID, Label) -->
+	{ http_location_by_id(ID, Location) },
+	html([a([target(main), href(Location)], Label), br([])]).
 
 %%	nc(+Format, +Value)// is det.
 %	
@@ -920,7 +939,7 @@ nc(Fmt, Value) -->
 	nc(Fmt, Value, []).
 
 nc(Fmt, Value, Options) -->
-	{ sformat(Txt, Fmt, [Value]),
+	{ format(string(Txt), Fmt, [Value]),
 	  (   memberchk(align(_), Options)
 	  ->  Opts = Options
 	  ;   Opts = [align(right)|Options]

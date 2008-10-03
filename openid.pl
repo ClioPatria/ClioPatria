@@ -90,7 +90,7 @@ login_page(Request) :-
 			  \openid_css,
 			  link([ rel(stylesheet),
 				 type('text/css'),
-				 href('../rdfql.css')
+				 href(location_by_id(rdfql_css))
 			       ])
 			],
 			[ \explain_login(ReturnTo),
@@ -119,7 +119,7 @@ local_login(ReturnTo) -->
 	html(div(class('local-login'),
 		 [ div(class('local-message'),
 		       'Login with your local username and password'),
-		   form([ action('../user/login'),
+		   form([ action(location_by_id(user_login)),
 			  method('GET')
 			],
 			[ \hidden('openid.return_to', ReturnTo),
@@ -191,10 +191,9 @@ openid_userpage(Request) :-
 	append(_, [user, User], Parts), !,
 	file_base_name(Path, User),
 	(   current_user(User)
-	->  http_global_url('../openid/server', Me),
-	    findall(P, user_property(User, P), Props),
+	->  findall(P, user_property(User, P), Props),
 	    reply_html_page([ link([ rel('openid.server'),
-				     href(Me)
+				     href(location_by_id(openid_server))
 				   ]),
 			      title('OpenID page for user ~w'-[User])
 			    ],
@@ -233,15 +232,12 @@ user_property(_) -->
 openid_for_local_user(User, URL) :-
 	http_current_request(Request),
 	openid_current_host(Request, Host, Port),
-	(   catch(setting(http:prefix, Prefix), _, fail)
-	->  true
-	;   Prefix = '/'
-	),
+	http_location_by_id(openid_userpage, UserPages),
 	(   Port == 80
-	->  format(atom(URL), 'http://~w~w/user/~w',
-		   [ Host, Prefix, User ])
-	;   format(atom(URL), 'http://~w:~w/~w/user/~w',
-		   [ Host, Port, Prefix, User ])
+	->  format(atom(URL), 'http://~w~w~w',
+		   [ Host, UserPages, User ])
+	;   format(atom(URL), 'http://~w:~w~w~w',
+		   [ Host, Port, UserPages, User ])
 	).
 
 
