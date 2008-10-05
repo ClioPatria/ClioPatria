@@ -178,13 +178,20 @@ set_session_options :-
 		 *	 UPDATE SETTINGS	*
 		 *******************************/
 
+update_workers(New) :-
+	setting(http:port, Port),
+	http_current_worker(Port, _),
+	http_workers(Port, New).
+
 :- listen(settings(changed(http:max_idle_time, _, New)),
 	  http_set_session_options([timeout(New)])).
 :- listen(settings(changed(http:workers, _, New)),
-	  (   must_be(between(1, 50), New),
-	      setting(http:port, Port),
-	      http_workers(Port, New))).
+	  update_workers(New)).
 
+
+		 /*******************************
+		 *	      BANNER		*
+		 *******************************/
 
 %%	serql_welcome
 %
@@ -193,8 +200,6 @@ set_session_options :-
 serql_welcome :-
 	setting(http:port, Port),
 	print_message(informational, serql(welcome(Port))).
-
-
 
 
 		 /*******************************
