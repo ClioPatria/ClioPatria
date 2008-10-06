@@ -66,7 +66,7 @@ user:file_search_path(library,	     serql(lib)).
 user:file_search_path(ontology_root, serql('Ontologies')).
 
 :- load_files([version], [silent(true), if(not_loaded)]).
-:- check_prolog_version(50625).		% Demand >= 5.6.25
+:- check_prolog_version(50661).		% Demand >= 5.6.61
 
 :- load_files([ parms,
 		library(option),
@@ -76,10 +76,10 @@ user:file_search_path(ontology_root, serql('Ontologies')).
 		library(error),
 		library(broadcast),
 		server,
-		library('semweb/rdf_db'),
-		library('semweb/rdf_persistency'),
-		library('semweb/rdf_portray'),
-		library('http/http_session'),
+		library(semweb/rdf_db),
+		library(semweb/rdf_persistency),
+		library(semweb/rdf_portray),
+		library(http/http_session),
 		library(http/thread_httpd),
 		user_db,
 		openid,

@@ -26,9 +26,17 @@
 	  ]).
 :- use_module(library(settings)).
 :- use_module(library(error)).
-:- use_module(library('semweb/rdf_db')).
-:- use_module(library('http/html_write')).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/http_hook)).
 
+		 /*******************************
+		 *	     HTTP PATHS		*
+		 *******************************/
+
+http:location(serql,  root(.),	    []).
+http:location(sesame, root(.),	    []).
+http:location(sparql, root(sparql), []).
 
 		 /*******************************
 		 *	       TYPES		*

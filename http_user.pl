@@ -47,22 +47,22 @@
 :- use_module(library('semweb/rdf_db')).
 :- use_module(library(url)).
 
-:- http_handler('/',			  home,			   []).
-:- http_handler('/sidebar.html',	  sidebar,		   []).
-:- http_handler('/welcome.html',	  welcome,		   []).
-:- http_handler('/user/statistics',	  statistics,		   []).
-:- http_handler('/user/construct',	  construct_form,	   []).
-:- http_handler('/user/query',		  query_form,		   []).
-:- http_handler('/user/select',		  select_form,		   []).
-:- http_handler('/user/loadFile',	  load_file_form,	   []).
-:- http_handler('/user/loadURL',	  load_url_form,	   []).
-:- http_handler('/user/loadBaseOntology', load_base_ontology_form, []).
-:- http_handler('/user/clearRepository',  clear_repository_form,   []).
-:- http_handler('/user/removeStatements', remove_statements_form,  []).
+:- http_handler(root(.),			home,			 []).
+:- http_handler(root('sidebar.html'),		sidebar,		 []).
+:- http_handler(root('welcome.html'),		welcome,		 []).
+:- http_handler(serql('user/statistics'),	statistics,		 []).
+:- http_handler(serql('user/construct'),	construct_form,		 []).
+:- http_handler(serql('user/query'),		query_form,		 []).
+:- http_handler(serql('user/select'),		select_form,		 []).
+:- http_handler(serql('user/loadFile'),		load_file_form,		 []).
+:- http_handler(serql('user/loadURL'),		load_url_form,		 []).
+:- http_handler(serql('user/loadBaseOntology'),	load_base_ontology_form, []).
+:- http_handler(serql('user/clearRepository'),	clear_repository_form,	 []).
+:- http_handler(serql('user/removeStatements'),	remove_statements_form,	 []).
 
-:- http_handler('/documentation.html',
+:- http_handler(serql('documentation.html'),
 		http_reply_file(serql('serql.html'), []), [id(serql_doc)]).
-:- http_handler('/rdfql.css',
+:- http_handler(serql('css/rdfql.css'),
 		http_reply_file(serql('rdfql.css'), []), [id(rdfql_css)]).
 
 

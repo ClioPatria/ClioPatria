@@ -40,7 +40,7 @@
 :- use_module(sparql).
 :- use_module(sparql_xml_result).
 
-:- http_handler('/sparql/', sparql_reply, []).
+:- http_handler(sparql(.), sparql_reply, []).
 
 %%	sparql_reply(+Request)
 %

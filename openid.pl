@@ -32,12 +32,13 @@
 :- module(rdfql_openid,
 	  [ openid_for_local_user/2
 	  ]).
-:- use_module(library('http/http_dispatch')).
-:- use_module(library('http/http_wrapper')).
-:- use_module(library('http/http_openid')).
-:- use_module(library('http/http_parameters')).
-:- use_module(library('http/http_session')).
-:- use_module(library('http/html_write')).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_wrapper)).
+:- use_module(library(http/http_openid)).
+:- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_session)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/http_hook)).
 :- use_module(library(lists)).
 :- use_module(library(error)).
 :- use_module(library(option)).
@@ -54,12 +55,14 @@
 @author	Jan Wielemaker
 */
 
+http:location(openid, root(openid), []).
+
 		 /*******************************
 		 *	CUSTOMISE OPENID	*
 		 *******************************/
 
-:- http_handler(prefix('/openid/grant'),  openid_grant, []).
-:- http_handler(prefix('/openid/file'),   openid_file, []).
+:- http_handler(openid(grant),  openid_grant, [prefix]).
+:- http_handler(openid(file),   openid_file, [prefix]).
 
 :- multifile
 	http_openid:openid_hook/2.
@@ -80,7 +83,7 @@ http_openid:openid_hook(trusted(OpenID, Server)) :-
 	).
 
 
-:- http_handler('/openid/login', login_page, [priority(10)]).
+:- http_handler(openid(login), login_page, [priority(10)]).
 
 login_page(Request) :-
 	http_parameters(Request,
@@ -134,7 +137,7 @@ hidden(Name, Value) -->
 	html(input([type(hidden), name(Name), value(Value)])).
 
 
-:- http_handler('/openid/list_trusted_servers', trusted_openid_servers, []).
+:- http_handler(openid(list_trusted_servers), trusted_openid_servers, []).
 
 %%	trusted_openid_servers(+Request)
 %
@@ -165,8 +168,8 @@ trusted_openid_server(URL) -->
 		 *	   OPENID SERVER	*
 		 *******************************/
 
-:- http_handler(prefix('/user/'), openid_userpage, []).
-:- http_handler(prefix('/openid/server'), openid_server([]), []).
+:- http_handler(root(user), openid_userpage, [prefix]).
+:- http_handler(openid(server), openid_server([]), [prefix]).
 
 http_openid:openid_hook(grant(Request, Options)) :-
 	(   option(identity(Identity), Options),
@@ -246,7 +249,7 @@ openid_for_local_user(User, URL) :-
 		 *	       TEST		*
 		 *******************************/
 
-:- http_handler('/user/form/login', login_handler, [priority(10)]).
+:- http_handler(serql('user/form/login'), login_handler, [priority(10)]).
 
 login_handler(_Request) :-
 	ensure_logged_on(User),

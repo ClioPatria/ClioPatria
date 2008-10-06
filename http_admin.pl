@@ -45,27 +45,27 @@
 :- use_module(library(http_settings)).
 
 
-:- http_handler('/admin/tasks',			tasks,			 []).
-:- http_handler('/admin/listUsers',		list_users,		 []).
-:- http_handler('/admin/form/createAdmin',	create_admin,		 []).
-:- http_handler('/admin/form/addUser',		add_user_form,		 []).
-:- http_handler('/admin/form/addOpenIDServer',	add_openid_server_form,	 []).
-:- http_handler('/admin/addUser',		add_user,		 []).
-:- http_handler('/admin/addOpenIDServer',	add_openid_server,	 []).
-:- http_handler('/admin/form/editUser',		edit_user_form,		 []).
-:- http_handler('/admin/editUser',		edit_user,		 []).
-:- http_handler('/admin/delUser',		del_user,		 []).
-:- http_handler('/admin/form/editOpenIDServer',	edit_openid_server_form, []).
-:- http_handler('/admin/editOpenIDServer',	edit_openid_server,      []).
-:- http_handler('/admin/delOpenIDServer',	del_openid_server,       []).
-:- http_handler('/admin/form/changePassword',	change_password_form,	 []).
-:- http_handler('/admin/changePassword',	change_password,	 []).
-:- http_handler('/user/form/login',		login_form,		 []).
-:- http_handler('/user/login',			user_login,		 []).
-:- http_handler('/user/logout',			user_logout,		 []).
-:- http_handler('/admin/settings',		settings,		 []).
-:- http_handler('/admin/save_settings',		save_settings,		 []).
-:- http_handler('/css/settings.css',
+:- http_handler(serql('admin/tasks'),		      tasks,		       []).
+:- http_handler(serql('admin/listUsers'),	      list_users,	       []).
+:- http_handler(serql('admin/form/createAdmin'),      create_admin,	       []).
+:- http_handler(serql('admin/form/addUser'),	      add_user_form,	       []).
+:- http_handler(serql('admin/form/addOpenIDServer'),  add_openid_server_form,  []).
+:- http_handler(serql('admin/addUser'),		      add_user,		       []).
+:- http_handler(serql('admin/addOpenIDServer'),	      add_openid_server,       []).
+:- http_handler(serql('admin/form/editUser'),	      edit_user_form,	       []).
+:- http_handler(serql('admin/editUser'),	      edit_user,	       []).
+:- http_handler(serql('admin/delUser'),		      del_user,		       []).
+:- http_handler(serql('admin/form/editOpenIDServer'), edit_openid_server_form, []).
+:- http_handler(serql('admin/editOpenIDServer'),      edit_openid_server,      []).
+:- http_handler(serql('admin/delOpenIDServer'),	      del_openid_server,       []).
+:- http_handler(serql('admin/form/changePassword'),   change_password_form,    []).
+:- http_handler(serql('admin/changePassword'),	      change_password,	       []).
+:- http_handler(serql('user/form/login'),	      login_form,	       []).
+:- http_handler(serql('user/login'),		      user_login,	       []).
+:- http_handler(serql('user/logout'),		      user_logout,	       []).
+:- http_handler(serql('admin/settings'),	      settings,		       []).
+:- http_handler(serql('admin/save_settings'),	      save_settings,	       []).
+:- http_handler(serql('css/settings.css'),
 		http_reply_file(library('settings.css'), []),
 		[id(settings_css)]).
 

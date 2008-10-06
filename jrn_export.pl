@@ -43,8 +43,8 @@ This module exports the journal files   defined in rdf_persistency. This
 is will be used to synchronise servers.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-:- http_handler('/SeRQL/list_journals', list_journals, []).
-:- http_handler('/SeRQL/journal', journal, []).
+:- http_handler(serql(list_journals), list_journals, []).
+:- http_handler(serql(journal),	      journal,	     []).
 
 %%	list_journals
 %	
@@ -71,4 +71,4 @@ journal(Request) :- !,
 			]),
 	authorized(read(DB, read_journal)),
 	rdf_journal_file(DB, Path),
-	throw(http_reply(file(text/'x-prolog', Path))).
+	http_reply_file(Path, [mime_type(text/'x-prolog')], Request).

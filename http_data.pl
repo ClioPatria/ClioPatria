@@ -62,21 +62,21 @@
 :- use_module(rdfs_entailment, []).
 :- use_module(rdfslite_entailment, []).
 
-:- http_handler('/servlets/login',		http_login,	      []).
-:- http_handler('/servlets/logout',		http_logout,	      []).
-:- http_handler('/evaluateQuery',		evaluate_query,	      []).
-:- http_handler('/servlets/evaluateGraphQuery',	evaluate_graph_query, []).
-:- http_handler('/servlets/evaluateTableQuery',	evaluate_table_query, []).
-:- http_handler('/servlets/extractRDF',		extract_rdf,	      []).
-:- http_handler('/servlets/listRepositories',	list_repositories,    []).
-:- http_handler('/servlets/clearRepository',	clear_repository,     []).
-:- http_handler('/servlets/loadBaseOntology',	load_base_ontology,   []).
-:- http_handler('/servlets/listBaseOntologies',	list_base_ontologies, []).
-:- http_handler('/servlets/unloadSource',	unload_source,	      []).
-:- http_handler('/servlets/uploadData',		upload_data,	      []).
-:- http_handler('/servlets/uploadFile',		upload_file,	      []).
-:- http_handler('/servlets/uploadURL',		upload_url,	      []).
-:- http_handler('/servlets/removeStatements',	remove_statements,    []).
+:- http_handler(sesame('servlets/login'),	       http_login,	     []).
+:- http_handler(sesame('servlets/logout'),	       http_logout,	     []).
+:- http_handler(sesame('servlets/evaluateQuery'),      evaluate_query,	     []).
+:- http_handler(sesame('servlets/evaluateGraphQuery'), evaluate_graph_query, []).
+:- http_handler(sesame('servlets/evaluateTableQuery'), evaluate_table_query, []).
+:- http_handler(sesame('servlets/extractRDF'),	       extract_rdf,	     []).
+:- http_handler(sesame('servlets/listRepositories'),   list_repositories,    []).
+:- http_handler(sesame('servlets/clearRepository'),    clear_repository,     []).
+:- http_handler(sesame('servlets/loadBaseOntology'),   load_base_ontology,   []).
+:- http_handler(sesame('servlets/listBaseOntologies'), list_base_ontologies, []).
+:- http_handler(sesame('servlets/unloadSource'),       unload_source,	     []).
+:- http_handler(sesame('servlets/uploadData'),	       upload_data,	     []).
+:- http_handler(sesame('servlets/uploadFile'),	       upload_file,	     []).
+:- http_handler(sesame('servlets/uploadURL'),	       upload_url,	     []).
+:- http_handler(sesame('servlets/removeStatements'),   remove_statements,    []).
 
 %%	http_login(+Request)
 %
