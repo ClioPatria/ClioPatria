@@ -39,6 +39,7 @@
 :- use_module(library('http/mimetype')).
 :- use_module(library('http/http_dispatch')).
 :- use_module(library('http/http_session')).
+:- use_module(library('http/http_host')).
 :- use_module(http_data).
 :- use_module(library(settings)).
 :- use_module(user_db).
@@ -767,7 +768,7 @@ load_url_form(_Request) :-
 %	
 %	Provide a form for loading an ontology from the archive.
 
-load_base_ontology_form(_Request) :- !,
+load_base_ontology_form(Request) :- !,
 	authorized(read(status, listBaseOntologies)),
 	reply_page('Load base ontology',
 		   [ h3(align(center), 'Load ontology from repository'),
@@ -782,7 +783,7 @@ load_base_ontology_form(_Request) :- !,
 			    b('Ontology'),
 			    select(name(ontology),
 				   [ option([], '')
-				   | \base_ontologies
+				   | \base_ontologies(Request)
 				   ]),
 			    input([ type(submit),
 				    value('Load')
@@ -791,27 +792,34 @@ load_base_ontology_form(_Request) :- !,
 		   ]).
 
 
-base_ontologies -->
-	{ get_base_ontologies(Rows)
-	},
-	base_ontologies(Rows).
+base_ontologies(Request) -->
+	{ get_base_ontologies(Request, Rows) },
+	emit_base_ontologies(Rows).
 
-get_base_ontologies(List) :-
+get_base_ontologies(_Request, List) :-
 	catch(findall(row(O), serql_base_ontology(O), List), _, fail), !.
-get_base_ontologies(Rows) :-
-	server_url('/servlets/listBaseOntologies?resultFormat=xml', URL),
-	debug(base_ontologies, 'Opening ~w', [URL]),
-	http_open(URL, In,
+get_base_ontologies(Request, Rows) :-
+	http_current_host(Request, Host, Port, []),
+	http_location_by_id(list_base_ontologies, ListBaseOntos),
+	debug(base_ontologies, 'Opening http://~w:~w~w',
+	      [Host, Port, ListBaseOntos]),
+	http_open([ protocol(http),
+		    host(Host),
+		    port(Port),
+		    path(ListBaseOntos),
+		    search([resultFormat(xml)])
+		  ],
+		  In,
 		  [ % request_header('Cookie', Cookie)
 		  ]),
 	debug(base_ontologies, '--> Reading from ~w', [In]),
 	xml_read_result_table(In, Rows, _VarNames).
 
-base_ontologies([]) -->
+emit_base_ontologies([]) -->
 	[].
-base_ontologies([row(H)|T]) -->
+emit_base_ontologies([row(H)|T]) -->
 	html(option([], H)),
-	base_ontologies(T).
+	emit_base_ontologies(T).
 
 
 %%	clear_repository_form(+Request)

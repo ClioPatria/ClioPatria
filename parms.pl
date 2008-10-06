@@ -34,9 +34,9 @@
 		 *	     HTTP PATHS		*
 		 *******************************/
 
-http:location(serql,  root(.),	    []).
-http:location(sesame, root(.),	    []).
-http:location(sparql, root(sparql), []).
+http:location(serql,  root(.),	      []).
+http:location(sesame, root(servlets), []).
+http:location(sparql, root(sparql),   []).
 
 		 /*******************************
 		 *	       TYPES		*

@@ -62,21 +62,21 @@
 :- use_module(rdfs_entailment, []).
 :- use_module(rdfslite_entailment, []).
 
-:- http_handler(sesame('servlets/login'),	       http_login,	     []).
-:- http_handler(sesame('servlets/logout'),	       http_logout,	     []).
-:- http_handler(sesame('servlets/evaluateQuery'),      evaluate_query,	     []).
-:- http_handler(sesame('servlets/evaluateGraphQuery'), evaluate_graph_query, []).
-:- http_handler(sesame('servlets/evaluateTableQuery'), evaluate_table_query, []).
-:- http_handler(sesame('servlets/extractRDF'),	       extract_rdf,	     []).
-:- http_handler(sesame('servlets/listRepositories'),   list_repositories,    []).
-:- http_handler(sesame('servlets/clearRepository'),    clear_repository,     []).
-:- http_handler(sesame('servlets/loadBaseOntology'),   load_base_ontology,   []).
-:- http_handler(sesame('servlets/listBaseOntologies'), list_base_ontologies, []).
-:- http_handler(sesame('servlets/unloadSource'),       unload_source,	     []).
-:- http_handler(sesame('servlets/uploadData'),	       upload_data,	     []).
-:- http_handler(sesame('servlets/uploadFile'),	       upload_file,	     []).
-:- http_handler(sesame('servlets/uploadURL'),	       upload_url,	     []).
-:- http_handler(sesame('servlets/removeStatements'),   remove_statements,    []).
+:- http_handler(sesame('login'),	      http_login,	    []).
+:- http_handler(sesame('logout'),	      http_logout,	    []).
+:- http_handler(sesame('evaluateQuery'),      evaluate_query,	    []).
+:- http_handler(sesame('evaluateGraphQuery'), evaluate_graph_query, []).
+:- http_handler(sesame('evaluateTableQuery'), evaluate_table_query, []).
+:- http_handler(sesame('extractRDF'),	      extract_rdf,	    []).
+:- http_handler(sesame('listRepositories'),   list_repositories,    []).
+:- http_handler(sesame('clearRepository'),    clear_repository,	    []).
+:- http_handler(sesame('loadBaseOntology'),   load_base_ontology,   []).
+:- http_handler(sesame('listBaseOntologies'), list_base_ontologies, []).
+:- http_handler(sesame('unloadSource'),	      unload_source,	    []).
+:- http_handler(sesame('uploadData'),	      upload_data,	    []).
+:- http_handler(sesame('uploadFile'),	      upload_file,	    []).
+:- http_handler(sesame('uploadURL'),	      upload_url,	    []).
+:- http_handler(sesame('removeStatements'),   remove_statements,    []).
 
 %%	http_login(+Request)
 %
@@ -374,7 +374,8 @@ list_base_ontologies(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	findall(row(O), serql_base_ontology(O), Rows),
+	catch(findall(row(O), serql_base_ontology(O), Rows), _,
+	      Rows = []),
 	write_table(Rows,
 		    [ result_format(Format),
 		      serialization(Serialization),
