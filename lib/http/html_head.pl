@@ -23,14 +23,15 @@
 
 :- module(html_head,
 	  [ html_resource/2,		% +Resource, +Attributes
-	    html_requires//1,		% +Resource
-	    absolute_http_location/2	% +Spec, -Path
+	    html_requires//1		% +Resource
 	  ]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/mimetype)).
+:- use_module(library(http/http_path)).
 :- use_module(library(error)).
 :- use_module(library(settings)).
 :- use_module(library(lists)).
+:- use_module(library(occurs)).
 :- use_module(library(option)).
 :- use_module(library(ordsets)).
 :- use_module(library(assoc)).
@@ -54,8 +55,8 @@ to add support for other material in the head.  See html_include//1.
 
 For usage in HTML generation, there is the DCG rule html_requires/1 that
 demands named resources in the HTML head. For general purpose reasoning,
-absolute_http_location/2  translates  a  path    specification  into  an
-absolute HTTP location on the server.
+http_absolute_location/3   from   http_path.pl   translates     a   path
+specification into an absolute HTTP location on the server.
 
 ---++ About resource ordering
 
@@ -236,14 +237,14 @@ aggregate(Path, Parts, Size) :-
 uncached_aggregate(Path, APartsS, Size) :-
 	html_resource(Aggregate, _, Properties),
 	memberchk(aggregate(Parts), Properties),
-	absolute_http_location(Aggregate, Path),
+	http_absolute_location(Aggregate, Path, []),
 	absolute_paths(Parts, Path, AParts),
 	sort(AParts, APartsS),
 	length(APartsS, Size).
 
 absolute_paths([], _, []).
 absolute_paths([H0|T0], Base, [H|T]) :-
-	absolute_http_location(H0, Base, H),
+	http_absolute_location(H0, H, [relative_to(Base)]),
 	absolute_paths(T0, Base, T).
 
 
@@ -268,7 +269,7 @@ requires(Spec, Base) -->
 
 requires(Spec, Base, Virtual) -->
 	{ res_properties(Spec, Properties),
-	  absolute_http_location(Spec, Base, File)
+	  http_absolute_location(Spec, File, [relative_to(Base)])
 	},
 	(   { option(virtual(true), Properties)
 	    ; Virtual == false
@@ -402,15 +403,15 @@ uncached_same_about(Spec, About) :-
 
 %%	same_resource(+R1, +R2) is semidet.
 %
-%	True if R1 an R2 represent the same resource.  R1 and R2 are
-%	resource specifications are defined by absolute_http_location/2.
+%	True if R1 an R2 represent  the   same  resource.  R1 and R2 are
+%	resource specifications are defined by http_absolute_location/3.
 
 same_resource(R, R) :- !.
 same_resource(R1, R2) :- 
 	resource_base_name(R1, B),
 	resource_base_name(R2, B),
-	absolute_http_location(R1, Path),
-	absolute_http_location(R2, Path).
+	http_absolute_location(R1, Path, []),
+	http_absolute_location(R2, Path, []).
 
 :- dynamic
 	base_cache/2.
@@ -464,148 +465,9 @@ html_include(Mime, Path) -->
 	}.
 
 
-
-		 /*******************************
-		 *	      PATHS		*
-		 *******************************/
-
-:- multifile
-	http:location_path/2.
-:- dynamic
-	http:location_path/2.
-
-%%	http_location_path(+Alias, -Expansion) is det.
-%
-%	Expansion is the expanded HTTP location for Alias. As we have no
-%	condition search, we demand a single  expansion for an alias. An
-%	ambiguous alias results in a printed   warning.  A lacking alias
-%	results in an exception.
-%	
-%	@error	existence_error(http_alias, Alias)
-
-http_location_path(Alias, Path) :-
-	findall(Path, http:location_path(Alias, Path), Paths0),
-	sort(Paths0, Paths),
-	(   Paths = [One]
-	->  Path = One
-	;   Paths = [Path|_]
-	->  print_message(warning, ambiguous_http_location(Alias, Paths))
-	;   Alias \== prefix
-	->  existence_error(http_alias, Alias)
-	).
-http_location_path(prefix, Path) :-
-	(   setting(http:prefix, Prefix),
-	    Prefix \== ''
-	->  (	sub_atom(Prefix, 0, _, _, /)
-	    ->  Path = Prefix
-	    ;	atom_concat(/, Prefix, Path)
-	    )
-	;   Path = /
-	).
-
-%%	absolute_http_location(+Spec, -Path) is det.
-%%	absolute_http_location(+Spec, +Base, -Path) is det.
-%
-%	True if Path is the full HTTP   location  for Spec. This behaves
-%	very much like absolute_file_name/2. Path-alias   are defined by
-%	the dynamic multifile predicate  http:location_path/2, using the
-%	same syntax as user:file_search_path/2.
-
-:- dynamic
-	location_cache/3.
-:- volatile
-	location_cache/3.
-
-absolute_http_location(Spec, Path) :-
-	absolute_http_location(Spec, /, Path).
-
-absolute_http_location(Spec, Base, Path) :-
-	location_cache(Spec, Base, Path), !.
-absolute_http_location(Spec, Base, Path) :-
-	uncached_absolute_http_location(Spec, Base, Path),
-	assert(location_cache(Spec, Base, Path)).
-
-uncached_absolute_http_location(Spec, Base, Path) :-
-	(   atomic(Spec)
-	->  relative_to(Base, Spec, Path)
-	;   Spec =.. [Alias, Sub],
-	    http_location_path(Alias, Parent),
-	    absolute_http_location(Parent, /, ParentLocation),
-	    phrase(sub_list(Sub), List),
-	    concat_atom(List, /, SubAtom),
-	    (	ParentLocation == ''
-	    ->	Path = SubAtom
-	    ;	sub_atom(ParentLocation, _, _, 0, /)
-	    ->	atom_concat(ParentLocation, SubAtom, Path)
-	    ;	concat_atom([ParentLocation, SubAtom], /, Path)
-	    )
-	).
-
-%%	relative_to(+Base, +Path, -AbsPath) is det.
-%
-%	AbsPath is an absolute URL location created from Base and Path.
-%	The result is cleaned
-
-relative_to(/, Path, Path) :- !.
-relative_to(_Base, Path, Path) :-
-	sub_atom(Path, 0, _, _, /), !.
-relative_to(Base, Local, Path) :-
-	path_segments(Base, BaseSegments),
-	append(BaseDir, [_], BaseSegments) ->
-	path_segments(Local, LocalSegments),
-	append(BaseDir, LocalSegments, Segments0),
-	clean_segments(Segments0, Segments),
-	path_segments(Path, Segments).
-	
-path_segments(Path, Segments) :-
-	concat_atom(Segments, /, Path).
-
-%%	clean_segments(+SegmentsIn, -SegmentsOut) is det.
-%
-%	Clean a path represented  as  a   segment  list,  removing empty
-%	segments and resolving .. based on syntax.
-
-clean_segments([''|T0], [''|T]) :- !,
-	exclude(empty_segment, T0, T1),
-	clean_parent_segments(T1, T).
-clean_segments(T0, T) :-
-	exclude(empty_segment, T0, T1),
-	clean_parent_segments(T1, T).
-
-clean_parent_segments([], []).
-clean_parent_segments([..|T0], T) :- !,
-	clean_parent_segments(T0, T).
-clean_parent_segments([_,..|T0], T) :- !,
-	clean_parent_segments(T0, T).
-clean_parent_segments([H|T0], [H|T]) :-
-	clean_parent_segments(T0, T).
-
-empty_segment('').
-empty_segment('.').
-
-
-%%	sub_list(+Spec, -List) is det.
-
-sub_list(Var) -->
-	{ var(Var), !,
-	  instantiation_error(Var)
-	}.
-sub_list(A/B) --> !,
-	sub_list(A),
-	sub_list(B).
-sub_list(A) -->
-	[A].
-
-
 		 /*******************************
 		 *	  CACHE CLEANUP		*
 		 *******************************/
-
-clean_location_cache :-
-	retractall(location_cache(_,_,_)).
-
-:- listen(settings(changed(http:prefix, _, _)),
-	  clean_location_cache).
 
 :- multifile
 	user:message_hook/3.
@@ -614,7 +476,6 @@ clean_location_cache :-
 
 user:message_hook(make(done(Reload)), _Level, _Lines) :-
 	Reload \== [],
-	clean_location_cache,
 	clean_same_about_cache,
 	clean_aggregate_cache,
 	fail.
