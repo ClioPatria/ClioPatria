@@ -41,7 +41,6 @@
 :- use_module(user_db).
 :- use_module(library('http/thread_httpd')).
 :- use_module(library('http/http_dispatch')).
-:- use_module(library('http/http_prefix')).
 :- use_module(library(time)).
 
 :- if(exists_source(library(http/http_log))).

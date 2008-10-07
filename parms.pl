@@ -126,6 +126,8 @@ serql_setting(Name, Old, New) :-
 	   'Session timeout.  If 0, session never times out').
 :- setting(http:server_url, atom, 'http://localhost:'+setting(http:port),
 	   'Url of the server itself').
+:- setting(http:prefix, atom, '',
+	   'Set this to rebase the server').
 
 
 		 /*******************************
