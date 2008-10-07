@@ -57,7 +57,7 @@ http_setup_prefix_redirect :-
 	->  ThePrefix = Prefix
 	;   atom_concat(Prefix, /, ThePrefix)
 	),
-	http_handler(prefix(ThePrefix), redirect_prefix(ThePrefix), []).
+	http_handler(ThePrefix, redirect_prefix(ThePrefix), [prefix]).
 http_setup_prefix_redirect.
 
 remove_prefix_handler :-
