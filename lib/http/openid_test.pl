@@ -50,12 +50,12 @@ assoc :-
 %	there to the OpenID server and back here. All this is completely
 %	transparent to us.
 
-:- http_handler('/secret', secret, []).
+:- http_handler(root('secret'), secret, []).
 
 secret(Request) :-
 	openid_user(Request, User, []),
 	reply_html_page(title('Secret'),
-			[ 'You\'ve reached the secret page as user ',
+			[ 'You\'ve reached the secret page as user ', %'
 			  a(href(User), User)
 			]).
 	
@@ -64,9 +64,9 @@ secret(Request) :-
 %
 %	Shows an indirect login.
 
-:- http_handler(/, root, []).
-:- http_handler('/test/verify', openid_verify([return_to(allow)]), []).
-:- http_handler('/test/allow', allow, []).
+:- http_handler(root(.),	     root,				[]).
+:- http_handler(root('test/verify'), openid_verify([return_to(allow)]),	[]).
+:- http_handler(root('test/allow'),  allow,				[]).
 
 root(_Request) :-
 	reply_html_page(title('Demo OpenID consumer'),
@@ -104,8 +104,8 @@ allow(Request) :-
 		 *	   OpenID SERVER	*
 		 *******************************/
 
-:- http_handler(prefix('/user/'), user_page, []).
-:- http_handler('/openid/server', openid_server([]), []).
+:- http_handler(root('user/'),	user_page,	   [prefix]).
+:- http_handler(openid(server),	openid_server([]), []).
 
 %%	user_page(+Request) is det.
 %
@@ -128,7 +128,7 @@ user_page(Request) :-
 		 *		DEBUG		*
 		 *******************************/
 
-:- http_handler(prefix(/), print_request, []).
+:- http_handler(root(.), print_request, [prefix]).
 
 print_request(Request) :-
 	format('Content-type: text/plain~n~n'),
