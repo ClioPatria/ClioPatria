@@ -80,6 +80,7 @@ user:file_search_path(ontology_root, serql('Ontologies')).
 		library(semweb/rdf_persistency),
 		library(semweb/rdf_portray),
 		library(http/http_session),
+		library(http/http_dispatch),
 		library(http/thread_httpd),
 		user_db,
 		openid,
@@ -210,8 +211,11 @@ serql_welcome :-
 	prolog:message/3.
 
 prolog:message(serql(server_started(Port))) -->
+	{ gethostname(Host),
+	  http_location_by_id(serql_home, Home)
+	},
 	[ 'Started SeRQL server at port ~w'-[Port], nl,
-	  'You may access the server at http://localhost:~w/'-[Port]
+	  'You may access the server at http://~w:~w~w'-[Host, Port, Home]
 	].
 prolog:message(serql(welcome(DefaultPort))) -->
 	[ nl,

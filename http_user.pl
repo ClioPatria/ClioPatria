@@ -48,7 +48,7 @@
 :- use_module(library('semweb/rdf_db')).
 :- use_module(library(url)).
 
-:- http_handler(root(.),			home,			 []).
+:- http_handler(root(.),			serql_home,		 []).
 :- http_handler(root('sidebar.html'),		sidebar,		 []).
 :- http_handler(root('welcome.html'),		welcome,		 []).
 :- http_handler(serql('user/statistics'),	statistics,		 []).
@@ -67,13 +67,13 @@
 		http_reply_file(serql('rdfql.css'), []), [id(rdfql_css)]).
 
 
-%%	home(+Request)
+%%	serql_home(+Request)
 %
 %	Print the home page.
 %	
 %	NOTE: a frameset must _not_ have a body!
 
-home(_Request) :-
+serql_home(_Request) :-
 	(   setting(serql_parms:title, Title)
 	->  true
 	;   Title = 'SWI-Prolog Semantic Web Server'
