@@ -1,11 +1,9 @@
 /*  $Id$
 
-    Part of SWI-Prolog
-
     Author:        Jan Wielemaker
-    E-mail:        jan@swi.psy.uva.nl
+    E-mail:        J.Wielemaker@uva.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2004, University of Amsterdam
+    Copyright (C): 2004-2008, University of Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -31,7 +29,8 @@
 
 :- module(serql_http,
 	  [ serql_server/2,		% +Port, +Options
-	    serql_server_property/1	% -Property
+	    serql_server_property/1,	% -Property
+	    serql_server_set_property/1	% +Property
 	  ]).
 :- use_module(library(settings)).
 :- use_module(http_data).
@@ -42,13 +41,16 @@
 :- use_module(library('http/thread_httpd')).
 :- use_module(library('http/http_dispatch')).
 :- use_module(library(time)).
+:- use_module(library(error)).
 
 :- if(exists_source(library(http/http_log))).
 :- use_module(library(http/http_log)).
 :- endif.
 
 :- dynamic
-	start_time/1.
+	start_time/1,			% Stamp
+	loading/0,
+	loading_done/2.			% Graphs, Total
 
 %%	serql_server(?Port, +Options)
 %
@@ -65,6 +67,19 @@ serql_server(Port, Options) :-
 	get_time(Time),
 	assert(start_time(Time)).
 
+serql_reply(_Request) :-
+	loading, !,
+	rdf_statistics(triples(Triples)),
+	(   loading_done(Nth, Total)
+	->  Extra = [ '; ~D of ~D graphs.'-[Nth, Total] ]
+	;   Extra = [ '.' ]
+	),
+	HTML = p([ 'This service is currently restoring its ',
+		   'persistent database.', br([]),
+		   'Loaded ~D triples'-[Triples]
+		 | Extra
+		 ]),
+	throw(http_reply(unavailable(HTML))).
 serql_reply(Request) :-
 	http_dispatch(Request).
 
@@ -84,6 +99,23 @@ serql_server_property(port(Port)) :-
 serql_server_property(started(Time)) :-
 	start_time(Time).
 
+%%	serql_server_set_property(+Term) is det.
+%
+%	Set server properties.  Currently only supports loading(Bool).
 
+serql_server_set_property(loading(Bool)) :- !,
+	must_be(boolean, Bool),
+	(   Bool == true
+	->  assert(loading)
+	;   retractall(loading)
+	).
+serql_server_set_property(P) :-
+	domain_error(serql_server_property, P).
 
+:- multifile
+	user:message_hook/3.
 
+user:message_hook(rdf(restore(_, done(_DB, _T, _Count, Nth, Total))),
+		  _Kind, _Lines) :-
+	retractall(loading_done(_,_)),
+	assert(loading_done(Nth, Total)).

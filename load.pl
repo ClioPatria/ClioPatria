@@ -35,11 +35,13 @@
 	    serql_welcome/0
 	  ]).
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** <module> SeRQL main module
+
 This module loads the SWI-Prolog SeRQL   server  as a library, providing
 the public predicates defined in the   header. Before loading this file,
 the user should set up a the search path `serql'.  For example:
 
+==
 :- dynamic
 	user:file_search_path/2.
 :- multifile
@@ -48,7 +50,9 @@ the user should set up a the search path `serql'.  For example:
 user:file_search_path(serql, '/usr/local/serql').
 
 :- use_module(serql(load)).
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+==
+
+*/
 
 :- dynamic
 	user:file_search_path/2.
@@ -123,13 +127,16 @@ serql_server(Options) :-
 	setting(http:port, Port),
 	attach_account_info,
 	set_session_options,
-	rdf_setup_store(Options2),
-	user:AfterLoad,
 	setting(http:workers, Workers),
 	setting(http:worker_options, Settings),
 	merge_options([workers(Workers)|Options2], Settings, HTTPOptions),
 	serql_server(Port, HTTPOptions),
-	print_message(informational, serql(server_started(Port))).
+	print_message(informational, serql(server_started(Port))),
+	serql_server_set_property(loading(true)),
+	rdf_setup_store(Options2),
+	user:AfterLoad,
+	serql_server_set_property(loading(false)).
+
 
 after_load_option(Options0, AfterLoad, Options) :-
 	select(after_load(AfterLoad), Options0, Options), !.
