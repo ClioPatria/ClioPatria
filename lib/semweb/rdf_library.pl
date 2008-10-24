@@ -205,7 +205,7 @@ check_existence(CommandsIn, Commands, Options) :-
 missing_urls([], [], []).
 missing_urls([H|T0], Cmds, Missing) :-
 	H = rdf_load(URL, _),
-	(   exists_url(URL)
+	(   catch(exists_url(URL), error(existence_error(_,_), _), fail)
 	->  Cmds = [H|T],
 	    missing_urls(T0, T, Missing)
 	;   Missing = [URL|T],
@@ -395,11 +395,11 @@ print_command(rdf_load(URL, RDFOptions), Options) :-
 
 exists_url(URL) :-
 	rdf_db:rdf_input(URL, Source, _BaseURI), 
-	exists_source(Source).
+	existing_url_source(Source).
 
-exists_source(file(Path)) :- !,
+existing_url_source(file(Path)) :- !,
 	access_file(Path, read).
-exists_source(url(http, URL)) :- !,
+existing_url_source(url(http, URL)) :- !,
 	catch(http_open(URL, Stream, [ method(head) ]), _, fail),
 	close(Stream).
 	
