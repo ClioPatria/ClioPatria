@@ -152,21 +152,26 @@ after_load_option(Options, true, Options).
 set_options([], []).
 set_options([+Opt|T0], T) :- !,
 	Opt =.. [Name, Value],
-	current_setting(serql_parms:Name), !,
-	setting(serql_parms:Name, Old),
+	option_module(OptM),
+	current_setting(OptM:Name), !,
+	setting(OptM:Name, Old),
 	must_be(list(any), Old),
 	(   memberchk(Value, Old)
 	->  true
-	;   set_setting(serql_parms:Name, [Value|Old])
+	;   set_setting(OptM:Name, [Value|Old])
 	),
 	set_options(T0, T).
 set_options([Opt|T0], T) :-
 	Opt =.. [Name, Value],
-	current_setting(serql_parms:Name), !,
-	set_setting(serql_parms:Name, Value),
+	option_module(OptM),
+	current_setting(OptM:Name), !,
+	set_setting(OptM:Name, Value),
 	set_options(T0, T).
 set_options([H|T0], [H|T]) :-
 	set_options(T0, T).
+
+option_module(serql_parms).
+option_module(http).
 
 
 attach_account_info :-

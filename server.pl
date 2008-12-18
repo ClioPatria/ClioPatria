@@ -38,6 +38,7 @@
 :- use_module(http_user).
 :- use_module(http_admin).
 :- use_module(user_db).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library('http/thread_httpd')).
 :- use_module(library('http/http_dispatch')).
 :- use_module(library(time)).
