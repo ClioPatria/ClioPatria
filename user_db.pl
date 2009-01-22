@@ -52,6 +52,7 @@
 	    logout/1,			% +User
 	    current_user/1,		% ?User
 	    logged_on/1,		% -User
+	    logged_on/2,		% -User, +Default
 	    ensure_logged_on/1,		% -User
 	    authorized/1,		% +Action
 
@@ -353,6 +354,18 @@ logged_on(User) :-
 	user_property(User, session(SessionID)), !.
 logged_on(_) :-
 	throw(error(context_error(not_logged_in), _)).
+
+%%	logged_on(-User, +Default) is det.
+%
+%	Get the current user or return Default.
+
+logged_on(User, Default) :-
+	(   http_session_id(SessionID),
+	    user_property(User0, session(SessionID))
+	->  User = User0
+	;   User = Default
+	).
+
 
 %%	ensure_logged_on(-User)
 %

@@ -149,23 +149,24 @@ current_user -->
 	html(center(font(color(red), i('<not logged in>')))).
 	
 cond_action(login) -->
-	(   { catch(logged_on(_User), _, fail)
-	    }
+	(   { someone_logged_on }
 	->  []
 	;   action_by_id(login_form, 'Login')
 	).
 cond_action(logout) -->
-	(   { catch(logged_on(_User), _, fail)
-	    }
+	(   { someone_logged_on }
 	->  action_by_id(user_logout, 'Logout')
 	;   []
 	).
 cond_action(change_password) -->
-	(   { catch(logged_on(_User), _, fail)
-	    }
+	(   { someone_logged_on }
 	->  action_by_id(change_password_form, 'Change password')
 	;   []
 	).
+
+someone_logged_on :-
+	logged_on(User, X),
+	X \== User.
 
 %%	welcome(+Request)
 %

@@ -301,7 +301,7 @@ schema_triple(rdf(S,_P,_O)) :-
 
 list_repositories(_Request) :-
 	Repository = default,
-	catch(logged_on(User), _, User = anonymous),
+	logged_on(User, anonymous),
 	(   catch(check_permission(User, write(Repository, _)), _, fail)
 	->  Write = true
 	;   Write = false
@@ -656,7 +656,7 @@ bool(Def,
 %	subject statistics.
 
 action(_Request, G, Format, Message) :-
-	catch(logged_on(User), _, User=anonymous),
+	logged_on(User, anonymous),
 	get_time(T0), T is integer(T0),
 	statistics(cputime, CPU0),
 	rdf_statistics(triples(Triples0)),
