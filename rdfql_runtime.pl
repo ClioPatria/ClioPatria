@@ -52,8 +52,7 @@
 :- use_module(sparql_runtime).
 
 :- meta_predicate
-	rdfql_carthesian(:),
-	solve_bags(:,+,-).
+	rdfql_carthesian(:).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 This module provides runtime support for  running compiled queries. I.e.
@@ -66,8 +65,9 @@ runtime support is in serql_runtime.pl and sparql_runtime.pl
 		 *      CARTHESIAN PRODUCT	*
 		 *******************************/
 
-rdfql_carthesian(Bags) :-
-	solve_bags(Bags, 1, Sets),
+rdfql_carthesian(Carthesian) :-
+	strip_module(Carthesian, M, Bags),
+	solve_bags(Bags, M, 1, Sets),
 	(   debugging(carthesian_size)
 	->  solution_set_size(Sets, Size),
 	    debug(carthesian_size, 'Total size = ~D; NO select', [Size])
@@ -78,11 +78,11 @@ rdfql_carthesian(Bags) :-
 	;   carthesian_select(Sets)
 	).
 
-solve_bags([], _, []).
-solve_bags([bag(Vars, Goal)|T0], N, [set(Templ,Set,Size)|T]) :-
+solve_bags([], _, _, []).
+solve_bags([bag(Vars, Goal)|T0], M, N, [set(Templ,Set,Size)|T]) :-
 	Templ =.. [v|Vars],
 	empty_nb_set(Set),
-	(   Goal,
+	(   M:Goal,
 	    add_nb_set(Templ, Set),
 	    fail
 	;   true
@@ -91,7 +91,7 @@ solve_bags([bag(Vars, Goal)|T0], N, [set(Templ,Set,Size)|T]) :-
 	debug(carthesian_bags, 'Bag ~d: solution size = ~D', [N, Size]),
 	Size > 0,
 	N2 is N + 1,
-	solve_bags(T0, N2, T).
+	solve_bags(T0, M, N2, T).
 
 carthesian_select([]).
 carthesian_select([set(Templ,Set,_)|T]) :-
