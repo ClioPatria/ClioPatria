@@ -360,7 +360,7 @@ logged_on(_) :-
 %	Get the current user or return Default.
 
 logged_on(User, Default) :-
-	(   http_session_id(SessionID),
+	(   http_in_session(SessionID),
 	    user_property(User0, session(SessionID))
 	->  User = User0
 	;   User = Default
