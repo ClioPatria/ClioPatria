@@ -7,7 +7,7 @@
 	* Realise decending and multi-column sorting
 	* Value-specific comparison
 
-* Implement named graphs. etc.
+* Implement named graphs
 
 * Implement value based semantics in xsd:dateTime
 
@@ -20,4 +20,4 @@
 
 	* Implement Accept header info
 	* Properly report errors.
-	
+	* Added JSON replies
