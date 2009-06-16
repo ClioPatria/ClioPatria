@@ -1,3 +1,0 @@
-#!/bin/sh
-
-cvs rtag -F STABLE `cat CVS/Repository`
