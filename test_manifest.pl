@@ -238,7 +238,7 @@ load_manifests(dawg) :- !,
 	file_url(File, URL),
 	load_manifests(URL).
 load_manifests(arq) :- !,
-	file_url('../ARQ/testing/ARQ/manifest-arq.ttl', URL),
+	file_url('ARQ/testing/ARQ/manifest-arq.ttl', URL),
 	load_manifests(URL).
 load_manifests(Root) :-
 	retractall(mf_rdf(_,_,_)),
