@@ -51,15 +51,15 @@
 	    load_manifests/1,		% +RootManifest
 
 					% UTIL
-	    load_triples_to_db/1,	% +FileOrURL
 	    load_triples/2,		% +FileOrURL, -Triples
 	    file_url/2			% ?File, ?URL
 	  ]).
 :- use_module(library(rdf)).
 :- use_module(library(url)).
+:- use_module(library(apply)).
 :- use_module(library('semweb/rdf_db')).
 :- use_module(library('semweb/rdfs')).
-:- use_module(rdf_turtle).
+:- use_module(library('semweb/rdf_turtle')).
 
 :- dynamic
 	mf_rdf/3.
@@ -103,14 +103,14 @@ data_dir('Tests/sparql/data-xml').
 		 *******************************/
 
 %%	current_manifest(?Manifest)
-%	
+%
 %	True if Manifest is a test-manifest
 
 current_manifest(Manifest) :-
 	mf_rdf(Manifest, rdf:type, mf:'Manifest').
 
 %%	current_test(?Manifest, ?Test)
-%	
+%
 %	True if Test is a test in Manifest.
 
 current_test(Manifest, Test) :-
@@ -120,7 +120,7 @@ current_test(Manifest, Test) :-
 
 
 %%	test_name(?Test, ?Name)
-%	
+%
 %	True if Name is the name associated with Test.
 
 test_name(Test, Name) :-
@@ -131,7 +131,7 @@ test_name(Test, Name) :-
 
 
 %%	test_query_file(+Test, -File)
-%	
+%
 %	Get the file containing the query of Test
 
 test_query_file(Test, File) :-		% Normal cases
@@ -146,7 +146,7 @@ test_query_file(Test, File) :-		% SyntaxDev cases
 
 
 %%	test_data_file(+Test, -File)
-%	
+%
 %	Get the file containing the data for Test
 
 test_data_file(Test, File) :-
@@ -157,7 +157,7 @@ test_data_file(Test, File) :-
 
 
 %%	test_result_file(+Test, -File)
-%	
+%
 %	Test containg the result
 
 test_result_file(Test, File) :-
@@ -228,7 +228,7 @@ the core using a plugin extension mechanism.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 %%	load_manifests(+RootOrAlias)
-%	
+%
 %	Load the manifest files
 
 load_manifests(dawg) :- !,
@@ -261,11 +261,11 @@ load_schemas :-
 	atom_concat(Dir, '/test-manifest.rdf', S1),
 	atom_concat(Dir, '/test-dawg.rdf', S2),
 	atom_concat(Dir, '/test-query.rdf', S3),
-	maplist(load_triples_to_db, [S1,S2,S3]).
+	maplist(rdf_load, [S1,S2,S3]).
 
 load_manifest(URL) :-
 	format('Loading ~w ...~n', [URL]),
-	load_triples_to_db(URL),
+	rdf_load(URL),
 	sub_manifests(URL, SubManifests),
 	forall(member(S, SubManifests),
 	       load_manifest(S)).
@@ -281,36 +281,8 @@ sub_manifests(_, []).
 		 *	     LOAD FILES		*
 		 *******************************/
 
-%%	load_triples_to_db(+File)
-%	
-%	Load triples from a file into a the RDF database
-
-load_triples_to_db(URL) :-
-	file_url(File, URL), !,
-	load_triples_to_db(File).
-load_triples_to_db(File) :-
-	file_name_extension(_, Ext, File),
-	(   load_triples_to_db(Ext, File)
-	->  true
-	;   assert(user:load_failed(File))
-	).
-
-load_triples_to_db(rdf, File) :- !,	% RDF/XML
-	rdf_load(File, [silent(true)]).
-load_triples_to_db(ttl, File) :- !,	% Turtle
-	absolute_file_name(File, Path),
-	rdf_load_turtle_file(File, Triples, []),
-	maplist(assert_triple(Path), Triples).
-load_triples_to_db(n3, File) :- !,	% Turtle
-	absolute_file_name(File, Path),
-	rdf_load_turtle_file(File, Triples, []),
-	maplist(assert_triple(Path), Triples).
-
-assert_triple(DB, rdf(S,P,O)) :-
-	rdf_assert(S,P,O, DB).
-
 %%	load_triples(+File, -RDFList)
-%	
+%
 %	Load file into a list of rdf(S,P,O) terms
 
 load_triples(File, Triples) :-
@@ -320,7 +292,7 @@ load_triples(File, Triples) :-
 load_triples(rdf, File, Triples) :- !,
 	load_rdf(File, Triples).
 load_triples(ttl, File, Triples) :- !,
-	rdf_load_turtle_file(File, Triples, []).
+	rdf_load_turtle(File, Triples, []).
 
 
 		 /*******************************

@@ -29,7 +29,7 @@
     the GNU General Public License.
 */
 
-:- use_module(rdf_turtle).
+:- use_module(library(semweb/rdf_turtle)).
 :- use_module(library(rdf_ntriples)).
 :- use_module(library('semweb/rdf_db')).
 
@@ -64,16 +64,16 @@ test_file(File) :-
 	sort(OkTriples, OK),
 	report_diff(OK, Turtle),
 	format(' done~n').
-	
+
 load_turtle(File, Triples) :-
 	file_base_name(File, Base),
 	atom_concat('http://www.redland.opensource.ac.uk/raptor/tests/turtle/',
 		    Base,
 		    BaseURI),
-	rdf_load_turtle_file(File, Triples,
-			     [ base_uri(BaseURI),
-			       anon_prefix(node(_))
-			     ]).
+	rdf_load_turtle(File, Triples,
+			[ base_uri(BaseURI),
+			  anon_prefix(node(_))
+			]).
 
 canonical_triple(rdf(S0, P0, O0),
 		 rdf(S,  P,  O)) :-

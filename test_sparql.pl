@@ -47,7 +47,7 @@
 	    run_syntax_tests/0,
 	    test_query_listing/0,
 	    test_query_listing/1,	% +NameOrIRI
-	    
+
 					% QUERY TESTS
 	    run_query_tests/0,
 	    query_test/1		% +NameOrIRI
@@ -56,7 +56,8 @@
 :- use_module(sparql).
 :- use_module(library('semweb/rdf_db')).
 :- use_module(library('semweb/rdfs')).
-:- use_module(library('url')).
+:- use_module(library(url)).
+:- use_module(library(apply)).
 :- use_module(test_manifest).
 :- use_module(sparql_xml_result).
 :- use_module(rdf_entailment, []).
@@ -69,7 +70,7 @@
 	skipped/1.
 
 %%	blocked(?Name)
-%	
+%
 %	Blocked tests
 
 :- multifile
@@ -108,7 +109,7 @@ blocked('strlen - 2').
 %	to set the current database (thread-local!)
 
 %	run_query_tests
-%	
+%
 %	Load all manifests and execute the tests.
 
 run_query_tests :-
@@ -160,7 +161,7 @@ query_test(Test) :-
 					% load the data
 	rdf_reset_db,
 	(   test_data_file(Test, DataFile)
-	->  load_triples_to_db(DataFile)
+	->  rdf_load(DataFile)
 	;   true
 	),
 
@@ -178,7 +179,7 @@ query_test(Test) :-
 
 
 %%	compare_results(+Test, +Type, +Correct, +Results)
-%	
+%
 %	NOTE: Some tests (notably syntax tests)  do not have results. In
 %	that case Results is bound to no_result and we do not compare.
 
@@ -218,7 +219,7 @@ compare_results(Test, Type, Correct, Result) :-
 	assert(failed(Test)).
 
 %%	same_colnames(+Names1, +Names2, -Map)
-%	
+%
 %	Is true if Names1 and Names2 contain  the same names in possibly
 %	different order. If the order is diffent,   Map  is unified to a
 %	term map(RowLeft, RowRight), where variable bindings between the
@@ -232,7 +233,7 @@ same_colnames(Names1, Names2, map(R1,R2)) :-
 	functor(R1, row, Len),
 	functor(R2, row, Len),
 	fill_vars(Names1, 1, Names2, R1, R2).
-	
+
 fill_vars([], _, _, _, _).
 fill_vars([H|T], I, Names, R1, R2) :-
 	arg(I, R1, V),
@@ -248,7 +249,7 @@ map_rows([H0|T0], Map, [H|T]) :-
 
 
 %%	var_blank_nodes_in_rows(+Rows0, -Rows)
-%	
+%
 %	Substitute blank nodes in rows by variables.  Note that blank
 %	nodes of multiple rows are not related.
 
@@ -259,7 +260,7 @@ var_blank_nodes_in_rows([H0|T0], [H|T]) :-
 
 
 %%	var_blank_nodes(+Term, -VarBlanks)
-%	
+%
 %	Process Term, replacing blank nodes with variables.
 
 var_blank_nodes(Term0, Term) :-
@@ -289,7 +290,7 @@ var_blank_nodes_args(I0, Arity, Term0, Vars0, Vars, Term) :-
 
 
 %%	match_rows(+Rows0, +Rows1, -Extra1, -Extra2)
-%	
+%
 %	Succeed if both sets of rows are   the same. Note that there may
 %	be blank nodes in the  rows.   These  are already substituted by
 %	Prolog variables. This is basically a permutation problem. First
@@ -309,7 +310,7 @@ candidate_matches([H0|T0], Rows, E0, E, [L-Rs|T]) :-
 	candidate_matches(T0, Rows, E0, E, T).
 candidate_matches([H0|T0], Rows, [H0|E0], E, T) :-
 	candidate_matches(T0, Rows, E0, E, T).
-	
+
 same_rows(E, [], E, []) :- !.
 same_rows([], E, [], E) :- !.
 same_rows([_-Rs|T], Rows, E1, E2) :-
@@ -350,14 +351,14 @@ to_number(A, N) :-
 		 *******************************/
 
 %%	result_to_prolog(+Type, +Test, -Result)
-%	
+%
 %	Turn the RDF result into a   more  manageble form. For CONSTRUCT
 %	and DESCRIBE queries the result is  a   set  of triples. For the
 %	others the format is described below:
-%	
+%
 %		# ASK
 %%		ask(Bool)
-%		
+%
 %		# SELECT
 %		select([Name1, ...],
 %		       [ row(V1, ...),
@@ -374,7 +375,7 @@ result_to_prolog(Type, Test, Result) :-
 		    )
 		->  load_triples(ResultFile, Result)
 		;   rdf_reset_db,
-		    load_triples_to_db(ResultFile),
+		    rdf_load(ResultFile),
 		    prolog_result(Result),
 		    rdf_reset_db
 		)
@@ -424,7 +425,7 @@ result_values([Name|Names], S, [Value|Values]) :-
 data_dir('Tests/sparql/data-xml').
 
 %	run_syntax_tests/0
-%	
+%
 %	Load both the SyntaxDev  and  all   normal  tests  and runs them
 %	through the parser. Does not involve any semantic checking.
 
@@ -432,11 +433,11 @@ run_syntax_tests :-
 	clean_tests,
 	load_syntax_manifests,
 	run_all_syntax_tests.
-	    
+
 load_syntax_manifests :-
-	load_manifests(arq),	
+	load_manifests(arq),
 	dev_manifest_files(Files),
-	maplist(load_triples_to_db, Files).
+	maplist(rdf_load, Files).
 
 dev_manifest_files(Files) :-
 	data_dir(Dir),
@@ -456,7 +457,7 @@ run_all_syntax_tests :-
 	findall(T, skipped(T), Skipped), length(Skipped, NSkipped),
 	format('Passed: ~D; failed: ~D; skipped ~D~n',
 	       [NPassed, NFailed, NSkipped]).
-	    
+
 syntax_test(Name) :-
 	syntax_test(Name, _Query).
 
@@ -554,7 +555,7 @@ list_query(describe(Vars, _, Query, _)) :-
 		 *	GENERIC TEST STUFF	*
 		 *******************************/
 
-clean_tests :- 
+clean_tests :-
 	retractall(failed_result(_, _)),
 	retractall(passed(_)),
 	retractall(failed(_)),
