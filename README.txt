@@ -1,37 +1,35 @@
----+ SWI-Prolog SeRQL Engine
+---+ SWI-Prolog SPARQL/SeRQL Engine
 
 ---++ About
 
-This directory contains an implementation of the SeRQL (Sesame RDF Query
-Language) in SWI-Prolog based on the  SWI-Prolog Semweb package. It also
-contains a partial implementation of the Sesame HTTP access protocol.
+This directory provides an implementation  of   RDF  query languages. It
+started as an implementation of SeRQL   (www.openrdf.org)  and has later
+been extended to include SPARQL.
+
+Query languages are compiled into  a   Prolog  query, then optimised and
+executed in the context of the SWI-Prolog   RDF store and runtime module
+for the query language.  The engine is packaged as an HTTP service based
+on standard HTTP access methods.
 
 ---++ Installation
 
 The  configure  and  make  are   only    required   to  build  the  HTML
 documentation. Further documentation is in serql.html
 
----++ CVS Access
+---++ Downloading
 
-The SWI-Prolog SeRQL engine can be  extracted through the SWI-Prolog CVS
-server using the following commands:
+The server is distributed as  part   of  the  ClioPatria semantic search
+web-server.     See     the      ClioPatria       home      page      at
+http://e-culture.multimedian.nl/software/ClioPatria.shtml            for
+downloading instructions.
 
-==
-	% cvs -d :pserver:pl@gollem.swi.psy.uva.nl:/usr/local/cvspl login
-	Password: prolog
-	% cvs -d :pserver:pl@gollem.swi.psy.uva.nl:/usr/local/cvspl co SeRQL
-==
+---++ Further reading
 
-Due to a problem in CVS update   command concerning the module structure
-used to share some parts of Triple20   in  this server, running a normal
-"cvs update" will pull in all Triple20 files.   If  you are an expert in
-CVS modules and you think  this  can   be  avoided,  please  contact me.
-Otherwise use the command below  to   avoid  recursion into the Triple20
-subdirectory.
+Many of the design issues around handling the Semantic Web in Prolog are
+described and motivated in Jan  Wielemaker's   PhD  thesis, which can be
+downloaded from
 
-==
-	% cvs update -l
-==
+	http://www.swi-prolog.org/download/publications/jan-phd.pdf
 
-@author	Jan Wielemaker, wielemak@science.uva.nl
+@author	Jan Wielemaker, J.Wielemaker@cs.vu.nl
 
