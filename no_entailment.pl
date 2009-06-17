@@ -30,18 +30,14 @@
 */
 
 :- module(no_entailment,
-	  [ rdf/3
+	  [ rdf/3,
+	    rdf/4
 	  ]).
 :- use_module(rdfql_runtime).			% runtime tests
-:- use_module(library('semweb/rdf_db'), []).
-
-rdf(S, P, O) :-
-	ok(S), ok(P),
-	rdf_db:rdf(S,P,O).
-
-ok(R) :- var(R), !.
-ok(literal(_)) :- !, fail.
-ok(_).
+:- use_module(library('semweb/rdf_db'),
+	      [ rdf/3,
+		rdf/4
+	      ]).
 
 
 		 /*******************************
