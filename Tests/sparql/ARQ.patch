@@ -1,0 +1,13 @@
+diff --git a/SeRQL/Tests/sparql/ARQ/manifest-arq.ttl b/SeRQL/Tests/sparql/ARQ/manifest-arq.ttl
+index d5b1f60..1e3b5d8 100644
+--- a/SeRQL/Tests/sparql/ARQ/manifest-arq.ttl
++++ b/SeRQL/Tests/sparql/ARQ/manifest-arq.ttl
+@@ -50,7 +50,7 @@
+         <Planning/manifest.ttl>
+ 
+         <General/manifest.ttl>
+-        <Extensions/manifest.ttl>
++#       <Extensions/manifest.ttl>	# JW: Disabled Jena extensions
+ 
+         <Sort/manifest.ttl>
+     ) .
