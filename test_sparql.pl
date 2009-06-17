@@ -202,8 +202,8 @@ compare_results(Test, Type, select(ColNames, Rows), Result) :-
 	    format('~`=t ~q ~`=t~72|~n', [Name]),
 	    format('TYPE: ~q~n', [Type]),
 	    format('RESULTS: ~D; ~D missed, ~D incorrect~n', [MyCount, OkExtraCount, MyExtraCount]),
-	    format('MISSED: ~p~n', [OkExtra]),
-	    format('EXTRA: ~p~n', [MyExtra]),
+	    write_list('MISSED:', OkExtra, 8),
+	    write_list('EXTRA:', MyExtra, 8),
 	    format('~`=t~72|~n~n', []),
 	    assert(failed(Test))
 	).
@@ -211,8 +211,8 @@ compare_results(Test, Type, Correct, Result) :-
 	test_name(Test, Name),
 	format('~`=t ~q ~`=t~72|~n', [Name]),
 	format('TYPE: ~q~n', [Type]),
-	format('CORRECT: ~p~n', [Correct]),
-	format('WE: ~p~n', [Result]),
+	write_list('CORRECT:', [Correct], 8),
+	write_list('WE:', [Result], 8),
 	format('~`=t~72|~n~n', []),
 	assert(failed(Test)).
 
@@ -342,6 +342,54 @@ to_number(N, N) :-
 	number(N), !.
 to_number(A, N) :-
 	catch(atom_number(A, N), _, fail).
+
+
+%%	write_list(+Prompt, +List, +Indent)
+%
+%	Write list of rows or rdf terms.
+
+write_list(_, [], _) :- !.
+write_list(Prompt, List, Indent) :- !,
+	format('~w', [Prompt]),
+	write_list2(List, Indent).
+
+write_list2([], _).
+write_list2([H|T], Indent) :-
+	format('~t~*|', [Indent]),
+	(   H =.. [row|Cols]
+	->  write_cols(Cols),
+	    format(' .~n')
+	;   H = rdf(S,P,O)
+	->  write_cell(S), put(' '),
+	    write_cell(P), put(' '),
+	    write_cell(O), write(' .\n')
+	;   format('~p~n', [H])
+	),
+	write_list2(T, Indent).
+
+
+write_cols([]).
+write_cols([H|T]) :-
+	write_cell(H),
+	(   T == []
+	->  true
+	;   put(' '),
+	    write_cols(T)
+	).
+
+write_cell(literal(X)) :- !,
+	format('"~w"', [X]).
+write_cell(R) :-
+	atom(R),
+	rdf_global_id(NS:Id, R), !,
+	format('<~w:~w>', [NS, Id]).
+write_cell('$null$') :- !,
+	write('NULL').
+write_cell(R) :-
+	atom(R), !,
+	format('<!~w>', [R]).
+write_cell(X) :-
+	format('~p', [X]).
 
 
 		 /*******************************
