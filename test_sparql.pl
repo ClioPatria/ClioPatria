@@ -424,7 +424,7 @@ result_values([Name|Names], S, [Value|Values]) :-
 
 data_dir('Tests/sparql/data-xml').
 
-%	run_syntax_tests/0
+%%	run_syntax_tests
 %
 %	Load both the SyntaxDev  and  all   normal  tests  and runs them
 %	through the parser. Does not involve any semantic checking.
@@ -560,6 +560,7 @@ clean_tests :-
 	retractall(passed(_)),
 	retractall(failed(_)),
 	retractall(skipped(_)),
+	reset_manifests,
 	rdf_reset_db.
 
 list_tests(passed) :-

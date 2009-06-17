@@ -49,6 +49,7 @@
 
 					% LOAD
 	    load_manifests/1,		% +RootManifest
+	    reset_manifests/0,
 
 					% UTIL
 	    load_triples/2,		% +FileOrURL, -Triples
@@ -241,13 +242,16 @@ load_manifests(arq) :- !,
 	file_url('ARQ/testing/ARQ/manifest-arq.ttl', URL),
 	load_manifests(URL).
 load_manifests(Root) :-
-	retractall(mf_rdf(_,_,_)),
-	rdf_reset_db,
+	reset_manifests,
 	load_schemas,
 	load_manifest(Root),
 	forall(rdf(S,P,O), assert(mf_rdf(S,P,O))),
 	rdf_reset_db,
 	test_statistics.
+
+reset_manifests :-
+	retractall(mf_rdf(_,_,_)),
+	rdf_reset_db.
 
 test_statistics :-
 	findall(M, current_manifest(M), Ms),
