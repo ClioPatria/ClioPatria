@@ -50,7 +50,7 @@
         <Planning/manifest.ttl>
 
         <General/manifest.ttl>
-        <Extensions/manifest.ttl>
+#       <Extensions/manifest.ttl>	# JW: Disabled Jena extensions
 
         <Sort/manifest.ttl>
     ) .
