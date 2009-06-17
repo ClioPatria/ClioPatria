@@ -3,9 +3,9 @@
 
 :x1 :p "xyz" .
 :x2 :p "xyz"@en .
-:x3 :p "xyz"@FR .
+:x3 :p "xyz"@fr .
 :x4 :p "xyz"@fr .
-:x5 :p "xyz"@EN .
+:x5 :p "xyz"@en .
 :x6 :p "xyz"^^xsd:string .
 :x7 :p "xyz"^^xsd:integer .
 :x8 :p "xyz"^^:unknown .
@@ -14,7 +14,7 @@
 
 :y1 :q "abc" .
 :y2 :q "abc"@en .
-:y3 :q "abc"@EN .
+:y3 :q "abc"@en .
 :y4 :q "abc"^^xsd:string .
 :y5 :q "abc"^^xsd:integer .
 :y6 :q "abc"^^:unknown .
