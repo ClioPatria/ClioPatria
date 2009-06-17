@@ -97,6 +97,14 @@ blocked('sparql-query-example-Testing-Values-1').
 					% ARQ tests with .srj result file
 blocked('strlen - 1').
 blocked('strlen - 2').
+					% ARQ tests with UNSAID
+blocked('One optional clause (alt)').
+blocked('Two optional clauses (alt)').
+blocked('UNSAID - triple/present').
+blocked('UNSAID - triple/absent').
+blocked('UNSAID of pattern in basic block => false').
+blocked('UNSAID of pattern not matching').
+blocked('UNSAID of pattern partially matching').
 
 
 		 /*******************************
