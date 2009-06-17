@@ -816,12 +816,16 @@ function_call(function(F, Args)) -->
 
 arg_list(List) -->
 	"(", skip_ws,
-	(   must_see_expression(A0)
+	(   expression(A0)
 	->  arg_list_cont(As),
 	    {List = [A0|As]}
 	;   {List = []}
 	),
-	")", skip_ws.
+	(   ")"
+	->  []
+	;   syntax_error(expression_expected)
+	),
+	skip_ws.
 
 arg_list_cont([H|T]) -->
 	",", !, skip_ws,
