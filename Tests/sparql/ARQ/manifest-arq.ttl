@@ -8,15 +8,15 @@
     rdfs:label "ARQ - Scripts" ;
     mfx:include (
     	## Syntax tests are in <Syntax/manifest-syntax.ttl>
-    	## but called by a differebnt test suite for separate
+    	## but called by a different test suite for separate
     	## testing runs
 
         <Basic/manifest.ttl>
         <BasicPatterns/manifest.n3>
 
-        <Graph/manifest.n3>
         <Optional/manifest.ttl>
-        <Union/manifest.n3>
+        <Optional/manifest-ext.ttl>
+        <Union/manifest.ttl>
         <Unsaid/manifest.ttl>
 
         <Select/manifest.ttl>
@@ -29,7 +29,6 @@
         <Bound/manifest.n3>
         <Expr/manifest.ttl>
 
-
         <Expr/manifest.ttl>
         <Expr1/manifest.n3>
         <Expr2/manifest.n3>
@@ -37,7 +36,7 @@
         <ExprDatatypes/manifest.ttl>
         <ExprEquals/manifest.n3>
         <ExprRegex/manifest.ttl>
-	<OpenWorld/manifest.ttl>
+    	<OpenWorld/manifest.ttl>
 
         <Function/manifest.ttl>
         <PropertyFunctions/manifest.ttl>
@@ -52,6 +51,8 @@
         <General/manifest.ttl>
 #       <Extensions/manifest.ttl>	# JW: Disabled Jena extensions
 
+        <Distinct/manifest.ttl>
         <Sort/manifest.ttl>
+        <Examples/manifest.ttl>
     ) .
 

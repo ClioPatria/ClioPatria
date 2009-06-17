@@ -334,6 +334,24 @@ SELECT *
 { :p :q :r ; . OPTIONAL { :a :b :c } }
 EOF
 
+N=$((N+1)) ; testGood $(fname "syntax-struct-" $N) <<EOF
+# Two elements in the group
+PREFIX :  <http://example.org/ns#>
+SELECT *
+{ :p :q :r . OPTIONAL { :a :b :c } 
+  :p :q :r . OPTIONAL { :a :b :c } 
+}
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-struct-" $N) <<EOF
+# Two elements in the group
+PREFIX :  <http://example.org/ns#>
+SELECT *
+{ :p :q :r  OPTIONAL { :a :b :c } 
+  :p :q :r  OPTIONAL { :a :b :c } 
+}
+EOF
+
 ## Syntactic sugar
 N=0
 
@@ -375,16 +393,6 @@ EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-bnodes-" $N) <<EOF
 PREFIX : <http://example.org/ns#>
-SELECT * WHERE { :x [] :q }
-EOF
-
-N=$((N+1)) ; testGood $(fname "syntax-bnodes-" $N) <<EOF
-PREFIX : <http://example.org/ns#>
-SELECT * WHERE { :x _:a :q }
-EOF
-
-N=$((N+1)) ; testGood $(fname "syntax-bnodes-" $N) <<EOF
-PREFIX : <http://example.org/ns#>
 SELECT * WHERE { [ ?x ?y ] :p [ ?pa ?b ] }
 EOF
 
@@ -414,8 +422,6 @@ N=$((N+1)) ; testGood $(fname "syntax-forms-" $N) <<EOF
 PREFIX : <http://example.org/ns#>
 SELECT * WHERE { ( [] [] ) }
 EOF
-
-
 
 
 ## Optional
@@ -526,6 +532,16 @@ ORDER BY
   DESC(?o+57) :func2(?o) ASC(?s)
 EOF
 
+N=$((N+1)) ; testGood $(fname "syntax-order-" $N) <<EOF
+PREFIX :      <http://example.org/ns#> 
+SELECT *
+{ ?s ?p ?o }
+ORDER BY str(?o)
+EOF
+
+## Limit and offset
+N=0
+
 N=$((N+1)) ; testGood $(fname "syntax-limit-offset-" $N) <<EOF
 PREFIX :      <http://example.org/ns#> 
 SELECT *
@@ -535,6 +551,7 @@ LIMIT 5
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-limit-offset-" $N) <<EOF
+# LIMIT and OFFSET can be in either order
 PREFIX :      <http://example.org/ns#> 
 SELECT *
 { ?s ?p ?o }
@@ -544,14 +561,22 @@ OFFSET 3
 EOF
 
 N=$((N+1)) ; testGood $(fname "syntax-limit-offset-" $N) <<EOF
+# LIMIT and OFFSET can be in either order
+PREFIX :      <http://example.org/ns#> 
+SELECT *
+{ ?s ?p ?o }
+ORDER BY ?o
+OFFSET 3
+LIMIT 5
+EOF
+
+N=$((N+1)) ; testGood $(fname "syntax-limit-offset-" $N) <<EOF
 PREFIX :      <http://example.org/ns#> 
 SELECT *
 { ?s ?p ?o }
 ORDER BY ?o
 OFFSET 3
 EOF
-
-
 
 ## Pattern syntax : DOTs
 N=0

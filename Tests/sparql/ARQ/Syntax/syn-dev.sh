@@ -92,16 +92,75 @@ SELECT * WHERE
 EOF
 
 N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# DOT, no triples
+SELECT * WHERE
+{ . . }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
 # DOT, then triples
 SELECT * WHERE
 { . ?s ?p ?o }
 EOF
+
+
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# Multiple DOTs
+SELECT * WHERE
+{ ?s ?p ?o . . }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# Multiple DOTs
+SELECT * WHERE
+{ ?s ?p ?o .. }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# Multiple DOTs
+SELECT * WHERE
+{ ?s ?p ?o . . ?s1 ?p1 ?o1 }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# Multiple DOTs
+SELECT * WHERE
+{ ?s ?p ?o .. ?s1 ?p1 ?o1 }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# Multiple DOTs
+SELECT * WHERE
+{ ?s ?p ?o . ?s1 ?p1 ?o1 .. }
+EOF
+
+## ---- CONSTRUCT
 
 N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
 # DOT, no triples
 SELECT * WHERE
 { . FILTER(?x) }
 EOF
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# CONSTRUCT and DOTs
+CONSTRUCT { ?s ?p ?o . . }
+WHERE { }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# CONSTRUCT and DOTs
+CONSTRUCT { ?s ?p ?o . . ?s ?p ?o }
+WHERE { }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# CONSTRUCT and DOTs
+CONSTRUCT { ?s ?p ?o ?s ?p ?o }
+WHERE { }
+EOF
+
+## ----
 
 N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
 # Broken ;
@@ -172,10 +231,47 @@ SELECT * WHERE
 { :s :p1 :o1 , :p2 :o2}
 EOF
 
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+CONSTRUCT 
+EOF
+
 
 
 N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
-CONSTRUCT 
+# Tokenizing matters.
+# "longest token rule" means this isn't a "<" and "&&"
+PREFIX :   <http://example/ns#>
+SELECT * WHERE
+{ FILTER (?x<?a&&?b>?y)
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+PREFIX : <http://example.org/ns#>
+SELECT * WHERE { :x [] :q }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+PREFIX : <http://example.org/ns#>
+SELECT * WHERE { :x _:a :q }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# Syntactic blank node in a filter.
+SELECT * WHERE { <a><b>_:x FILTER(_:x) }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+# Syntactic blank node in a filter.
+SELECT * WHERE { <a><b>_:x FILTER(_:x < 3) }
+EOF
+
+N=$((N+1)) ; testBad $(fname "syn-bad-" $N) <<EOF
+PREFIX : <http://example.org/>
+SELECT *
+WHERE
+{
+  GRAPH [] { } 
+}
 EOF
 
 

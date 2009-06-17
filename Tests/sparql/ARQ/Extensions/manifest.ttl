@@ -51,7 +51,10 @@
              qt:data   <data-1.ttl> ] ;
          mf:result  <result-container-1.srx>
       ]
+<<<<<<< manifest.ttl
 
 
 
+=======
+>>>>>>> 1.6
     ).
