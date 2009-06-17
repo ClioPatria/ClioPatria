@@ -78,24 +78,8 @@
 blocked('extendedType-literal-ne').
 blocked('typePromotion-decimal-decimal-pass').
 blocked('extendedType-ne-fail').
-					% Requires named graphs
-blocked('untrusted-graphs-002').
-blocked('untrusted-graphs-004').
-blocked('untrusted-graphs-005').
-blocked('source-query-001').
-blocked('source-query-002').
-blocked('source-query-003').
-blocked('source-query-005').
-blocked('dawg-source-simple-001').
-blocked('dawg-source-simple-002').
-blocked('dawg-source-simple-003').
-blocked('dawg-source-simple-004').
-blocked('dawg-source-simple-005').
-					% Requires xsd:dateTime semantics
-blocked('sparql-query-example-Testing-Values-RDFterm-equal-2').
-blocked('sparql-query-example-Testing-Values-1').
 					% ARQ tests with .srj result file
-blocked('strlen - 1').
+blocked('strlen - 1').			% is this JSON?
 blocked('strlen - 2').
 					% ARQ tests with UNSAID
 blocked('One optional clause (alt)').
@@ -138,7 +122,7 @@ run_all_query_tests :-
 	findall(T, passed(T), Passed), length(Passed, NPassed),
 	findall(T, failed(T), Failed), length(Failed, NFailed),
 	findall(T, skipped(T), Skipped), length(Skipped, NSkipped),
-	format('Passed: ~D; failed: ~D; skipped ~D~n',
+	format('Passed: ~D; failed: ~D; skipped: ~D~n',
 	       [NPassed, NFailed, NSkipped]).
 
 query_test(Name) :-
@@ -455,7 +439,7 @@ run_all_syntax_tests :-
 	findall(T, passed(T), Passed), length(Passed, NPassed),
 	findall(T, failed(T), Failed), length(Failed, NFailed),
 	findall(T, skipped(T), Skipped), length(Skipped, NSkipped),
-	format('Passed: ~D; failed: ~D; skipped ~D~n',
+	format('Passed: ~D; failed: ~D; skipped: ~D~n',
 	       [NPassed, NFailed, NSkipped]).
 
 syntax_test(Name) :-
