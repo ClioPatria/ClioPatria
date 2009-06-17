@@ -55,7 +55,6 @@
 :- use_module(sparql_grammar).
 :- use_module(sparql).
 :- use_module(library('semweb/rdf_db')).
-:- use_module(library('semweb/rdfs')).
 :- use_module(library(url)).
 :- use_module(library(apply)).
 :- use_module(test_manifest).
@@ -422,8 +421,6 @@ result_values([Name|Names], S, [Value|Values]) :-
 		 *	    SYNTAX TESTS	*
 		 *******************************/
 
-data_dir('Tests/sparql/data-xml').
-
 %%	run_syntax_tests
 %
 %	Load both the SyntaxDev  and  all   normal  tests  and runs them
@@ -435,14 +432,9 @@ run_syntax_tests :-
 	run_all_syntax_tests.
 
 load_syntax_manifests :-
-	load_manifests(arq),
-	dev_manifest_files(Files),
-	maplist(rdf_load, Files).
-
-dev_manifest_files(Files) :-
-	data_dir(Dir),
-	atom_concat(Dir, '/SyntaxDev/*/manifest.{ttl,rdf}', Pattern),
-	expand_file_name(Pattern, Files).
+	load_manifests([ arq,
+			 'Tests/sparql/data-xml/SyntaxDev/manifest-syntax.ttl'
+		       ]).
 
 
 		 /*******************************
@@ -473,7 +465,7 @@ blocked_test(Test) :-
 	blocked(Name).
 
 syntax_test(Test, Codes, Query) :-
-	pos_syntax_test(Test), !,
+	test_syntax(Test, positive), !,
 	(   catch(sparql_parse(Codes, Query, []), E, true)
 	->  (   var(E)
 	    ->  assert(passed(Test))
@@ -487,29 +479,20 @@ syntax_test(Test, Codes, Query) :-
 	    format('PARSE TEST FAILED: ~q~n', [Name])
 	).
 syntax_test(Test, Codes, Query) :-
-	neg_syntax_test(Test), !,
+	test_syntax(Test, negative), !,
 	(   catch(sparql_parse(Codes, Query, []), E, true)
 	->  (   nonvar(E)
 	    ->  assert(passed(Test))
-	    ;   rdf_has(Test, mf:name, literal(Name)),
+	    ;   test_name(Test, literal(Name)),
 		format('NEG TEST SUCCEEDED: ~w: ', [Name]),
 		assert(failed(Test))
 	    )
 	;   assert(failed(Test)),
-	    rdf_has(Test, mf:name, Name),
+	    test_name(Test, Name),
 	    format('NEG TEST FAILED WITHOUT ERROR: ~w: ', [Name])
 	).
 syntax_test(Test, _, _) :-
 	assert(skipped(Test)).
-
-pos_syntax_test(Test) :-		% SyntaxDev
-	rdfs_individual_of(Test, mfx:'TestSyntax'), !.
-pos_syntax_test(Test) :-		% Semantic tests
-	rdf_has(Test, mf:action, Action),
-	rdf_has(Action, qt:query, _), !.
-
-neg_syntax_test(Test) :-
-	rdfs_individual_of(Test, mfx:'TestBadSyntax'), !.
 
 
 		 /*******************************
@@ -518,7 +501,7 @@ neg_syntax_test(Test) :-
 
 test_query_listing :-
 	(   current_test(_, Test),
-	    pos_syntax_test(Test),
+	    test_syntax(Test, positive),
 	    test_query_listing(Test),
 	    fail ; true
 	).

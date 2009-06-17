@@ -35,6 +35,7 @@
 
 	    test_name/2,		% ?Test, ?Name
 	    test_query/2,		% +Test, -QueryCodes
+	    test_syntax/2,		% +Test, ?PosNeg
 
 	    test_query_file/2,		% +Test, -QueryFile
 	    test_data_file/2,		% +Test, -DataFile
@@ -129,6 +130,19 @@ test_name(Test, Name) :-
 	mf_rdf(Test, mf:name, literal(Name)).
 test_name(Test, Name) :-
 	mf_rdf(Test, mf:name, literal(Name)), !.
+
+
+%%	test_syntax(+Test, ?PosNeg) is semidet.
+%
+%	True if Test is a syntax-test.
+
+test_syntax(Test, positive) :-
+	mf_rdf(Test, rdf:type, mfx:'TestSyntax'), !.
+test_syntax(Test, positive) :-
+	mf_rdf(Test, mf:action, Action),
+        mf_rdf(Action, qt:query, _), !.
+test_syntax(Test, negative) :-
+	mf_rdf(Test, rdf:type, mfx:'TestBadSyntax'), !.
 
 
 %%	test_query_file(+Test, -File)
@@ -232,22 +246,35 @@ the core using a plugin extension mechanism.
 %
 %	Load the manifest files
 
-load_manifests(dawg) :- !,
+load_manifests(Spec) :-
+	reset_manifests,
+	load_schemas,
+	do_load_manifests(Spec),
+	forall(rdf(S,P,O), assert(mf_rdf(S,P,O))),
+	rdf_reset_db,
+	test_statistics.
+
+do_load_manifests([]) :- !.
+do_load_manifests([H|T]) :- !,
+	do_load_manifests(H),
+	do_load_manifests(T).
+do_load_manifests(dawg) :- !,
 	data_dir(Dir),
 	atom_concat(Dir, '/manifest.{ttl,rdf}', Pattern),
 	expand_file_name(Pattern, [File]),
 	file_url(File, URL),
-	load_manifests(URL).
-load_manifests(arq) :- !,
+	do_load_manifests(URL).
+do_load_manifests(arq) :- !,
 	file_url('ARQ/testing/ARQ/manifest-arq.ttl', URL),
-	load_manifests(URL).
-load_manifests(Root) :-
-	reset_manifests,
-	load_schemas,
-	load_manifest(Root),
-	forall(rdf(S,P,O), assert(mf_rdf(S,P,O))),
-	rdf_reset_db,
-	test_statistics.
+	do_load_manifests(URL).
+do_load_manifests(Root) :-
+	to_url(Root, URL),
+	load_manifest(URL).
+
+to_url(URL, URL) :-
+	sub_atom(URL, 0, _, _, 'file://'), !.
+to_url(File, URL) :-
+	file_url(File, URL).
 
 reset_manifests :-
 	retractall(mf_rdf(_,_,_)),
