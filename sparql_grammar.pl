@@ -39,11 +39,11 @@
 :- use_module(library(option)).
 
 %%	sparql_parse(+SPARQL, -Query, +Options)
-%	
+%
 %	Parse the SPARQL statement Input   into a Prolog representation.
 %	Based on "SPARQL Query Language for RDF", April 6, 2006. Options
 %	supported:
-%	
+%
 %		* base_uri(+Base)
 %		Base used if there is no BASE clause in the query
 
@@ -105,7 +105,7 @@ add_error_location(error(syntax_error(What),
 		 *******************************/
 
 %%	resolve_names(+Prolog, +Query0, -Query, +Options)
-%	
+%
 %	Turn var(Name) into Prolog variables and resolve all IRIs to
 %	absolute IRIs.
 
@@ -140,9 +140,9 @@ resolve(describe(Proj0, DataSets0, Q0, Solutions0),
 	resolve_projection(Proj0, Proj, State1, State2),
 	resolve_solutions(Solutions0, Solutions, Q2, State2),
 	mkconj(Q1, Q2, Q).
-	
+
 %%	resolve_datasets(+Raw, -IRIs, +State)
-%	
+%
 %	TBD: what is the difference between named and non-named?
 
 resolve_datasets([], [], _).
@@ -193,7 +193,7 @@ list_to_conj([H|T], (QH,QT), S0, S) :-
 	list_to_conj(T, QT, S1, S).
 
 %%	resolve_projection(+Proj0, -VarList, +State0, State)
-%	
+%
 %	Return actual projection as a list of Name=Var
 
 resolve_projection(*, Vars, State, State) :- !,
@@ -215,7 +215,7 @@ proj_vars([IRI0|T0], [IRI|T], State) :-		% for DESCRIBE queries
 	proj_vars(T0, T, State).
 
 %%	resolve_construct_template(+Templ0, -Templ, +State)
-%	
+%
 %	Deal with ORDER BY clause.
 
 resolve_construct_template([], [], S, S).
@@ -229,7 +229,7 @@ resolve_construct_triple(rdf(S0,P0,O0), rdf(S,P,O), St0, St) :-
 	resolve_graph_term(O0, O, St2, St).
 
 %%	resolve_solutions(+Solutions0, -Solutions, -Goal, +State)
-%	
+%
 resolve_solutions(distinct(S0), distinct(S), Goal, State) :- !,
 	resolve_solutions(S0, S, Goal, State).
 resolve_solutions(solutions(unsorted, Limit, Offset),
@@ -251,9 +251,9 @@ resolve_order_by_col(decending(O0), decending(O), Goal, State) :- !,
 	compile_expression(O0, O, Goal, State).
 
 %%	resolve_state(+Prolog, -State)
-%	
+%
 %	Create initial state.  State is a term
-%	
+%
 %%		state(Base, PrefixAssoc, VarAssoc, VarList)
 
 resolve_state(prolog(PrefixesList), State, Options) :-
@@ -327,7 +327,7 @@ resolve_expressions([], [], S, S).
 resolve_expressions([H0|T0], [H|T], S0, S) :-
 	resolve_expression(H0, H, S0, S1),
 	resolve_expressions(T0, T, S1, S).
-		   
+
 resolve_function(function(F0, Args0), function(Term), S0, S) :- !,
 	resolve_iri(F0, F, S0),
 	resolve_expressions(Args0, Args, S0, S),
@@ -350,7 +350,7 @@ built_in_function(isliteral(_)).
 
 
 %%	resolve_var(+Name, -Var, +State0, ?State)
-%	
+%
 %	Resolve a variable. If State0 ==  State   and  it concenrs a new
 %	variable the variable is bound to '$null$'.
 
@@ -397,7 +397,7 @@ resolve_prefix(P, IRI, State) :-
 
 
 %%	resolve_bnodes(+Pattern0, -Pattern)
-%	
+%
 %	Blank nodes are scoped into a   basic graph pattern (i.e. within
 %	{...}). The code below  does  a   substitution  of  bnode(X)  to
 %	variables in an arbitrary term.
@@ -434,7 +434,7 @@ resolve_bnodes_args(I0, A, T0, T, BN0, BN) :-
 		 *******************************/
 
 %%	compile_expression(+Expression, -Var, -Var, -Goal, +State)
-%	
+%
 %	Compile an expression into a (compound)   goal that evaluates to
 %	the variable var. This version is  not realy compiling. Its just
 %	the entry point for a future compiler.
@@ -513,7 +513,7 @@ prefix_decl(Id-IRI) -->
 %%	select_query(-Select)// is semidet.
 %
 %	Process "select ..." into a term
-%	
+%
 % 	select(Projection, DataSets, Query, Solutions)
 
 select_query(select(Projection, DataSets, Query, Solutions)) -->
@@ -544,7 +544,7 @@ vars([]) -->
 %%	construct_query(-Construct)// is semidet.
 %
 %	Processes "construct ..." into a term
-%	
+%
 %	construct(Template, DataSets, Query, Solutions)
 
 construct_query(construct(Template, DataSets, Query, Solutions)) -->
@@ -557,7 +557,7 @@ construct_query(construct(Template, DataSets, Query, Solutions)) -->
 %%	describe_query(-Describe)// is semidet.
 %
 %	Processes "describe ..." into a term
-%	
+%
 %	describe(Projection, DataSets, Query, Solutions)
 
 describe_query(describe(Projection, DataSets, Query, Solutions)) -->
@@ -635,7 +635,7 @@ must_see_group_graph_pattern(_) -->
 %%	solution_modifier(-Solutions)// is det.
 %
 %	Processes order by, limit and offet clauses into a term
-%	
+%
 %	solutions(Order, Limit, Offset)
 
 solution_modifier(solutions(Order, Limit, Offset)) -->
@@ -646,7 +646,7 @@ solution_modifier(solutions(Order, Limit, Offset)) -->
 %%	order_clause(-Order)//
 
 order_clause(order_by([H|T])) -->
-	keyword("order"), 
+	keyword("order"),
 	(   keyword("by"),
 	    order_condition(H),
 	    order_conditions(T)
@@ -733,10 +733,10 @@ optional_dot --> ".", skip_ws.
 optional_dot --> "".
 
 %%	block_of_triples(P)//
-%	
+%
 %	Looks the same to me??
 
-block_of_triples(P) --> 
+block_of_triples(P) -->
 	block_of_triples(P, []).
 
 block_of_triples(List, T) -->
@@ -769,7 +769,7 @@ optional_graph_pattern(Pattern) -->
 %%	graph_graph_pattern(-Graph)// is semidet
 %
 %	Processes a "graph ..." clause into
-%	
+%
 %	graph(Graph, Pattern)
 
 graph_graph_pattern(graph(Graph, Pattern)) -->
@@ -855,7 +855,7 @@ construct_triples(T, T) -->
 	"".
 
 %%	triples_same_subject(-List, ?Tail)//
-%	
+%
 %	Return list of rdf(S,P,O) from triple spec.
 
 triples_same_subject(List, Tail) -->
@@ -1133,7 +1133,7 @@ built_in_function(isiri,       [expression]).
 built_in_function(isuri,       [expression]).
 built_in_function(isblank,     [expression]).
 built_in_function(isliteral,   [expression]).
-	
+
 arg_list([HT|TT], [HA|TA]) -->
 	arg(HT, HA),
 	arg_list_cont(TT, TA).
@@ -1184,7 +1184,7 @@ rdf_literal(literal(Value)) -->
 
 %%	numeric_literal(-Number)//
 
-numeric_literal(numeric(Type, Number)) --> 
+numeric_literal(numeric(Type, Number)) -->
 	(   double(Number)
 	->  { rdf_equal(xsd:double, Type) }
 	;   decimal(Number)
@@ -1218,7 +1218,7 @@ iri_ref(IRI) -->
 	qname(IRI).			% TBD: qname_ns also returns atom!?
 
 %%	qname(-Term)//
-%	
+%
 %	TBD: Looks like this is ambiguous!?
 
 qname(Term) -->
@@ -1227,7 +1227,7 @@ qname(Q:'') -->
 	qname_ns(Q).
 
 %%	blank_node(-Id)//
-%	
+%
 %	Blank node.  Anonymous blank nodes are returned with unbound Id
 
 blank_node(Id) -->
@@ -1282,7 +1282,7 @@ qname_ns('') -->
 	":", skip_ws.
 
 %	'QNAME'(-Term)//
-%	
+%
 %	Qualified name.  Term is one of Q:N or '':N
 
 'QNAME'(Q:N) -->
@@ -1307,7 +1307,7 @@ var2(Name) --> "$", varname(Name).
 
 
 %%	langtag(-Tag)//
-%	
+%
 %	Return language tag (without leading @)
 
 langtag(Atom) -->
@@ -1326,7 +1326,7 @@ sub_lang_ids(T, T) -->
 
 
 %%	integer(-Integer)//
-%	
+%
 %	Extract integer value.
 
 integer(Int) -->
@@ -1336,7 +1336,7 @@ integer(Int) -->
 
 
 %%	decimal(-Float)//
-%	
+%
 %	Extract float without exponent and return numeric value.
 %	TBD: merge with double?
 
@@ -1352,7 +1352,7 @@ decimal(Float) -->
 
 
 %%	double(-Float)//
-%	
+%
 %	Extract a float number with  exponent   and  return  the numeric
 %	value.
 
@@ -1377,14 +1377,14 @@ dot([0'.|T], T) --> ".".
 
 
 %%	exponent(-Codes, ?Tail)//
-%	
+%
 %	Float exponent.  Returned as difference-list
 
 exponent(Codes, T) -->
 	optional_e(Codes, T0),
 	optional_pm(T0, T1),
 	one_or_more_digits(T1, T).
-	
+
 optional_e([0'e|T], T) -->
 	(   "e"
 	;   "E"
@@ -1420,7 +1420,7 @@ string_literal_codes([H|T]) -->
 	(   echar(H)
 	;   uchar(H)
 	;   [H], { \+ not_in_string_literal(H) }
-	), 
+	),
 	string_literal_codes(T).
 
 not_in_string_literal(0x5C).
@@ -1449,12 +1449,12 @@ string_literal_codes_long([H|T]) -->
 	(   echar(H)
 	;   uchar(H)
 	;   [H], { H \== 0'\\ }
-	), 
+	),
 	string_literal_codes_long(T).
 
 
 %%	echar(-Code)//
-%	
+%
 %	Escaped character
 
 echar(Code) -->
@@ -1470,26 +1470,26 @@ echar2(0'")  --> "\"".
 echar2(0'')  --> "'".
 
 %%	uchar(-Code)//
-%	
+%
 %	\uXXXX or \UXXXXXXXX, returning character value
 
 uchar(Code) -->
 	"\\u", !,
 	(   hex(D1), hex(D2), hex(D3), hex(D4)
-	->  { Code is D1<<24 + D2<<16 + D3<<8 + D4 }
+	->  { Code is D1<<12 + D2<<8 + D3<<4 + D4 }
 	;   syntax_error(illegal_uchar)
 	).
 uchar(Code) -->
 	"\\U", !,
 	(   hex(D1), hex(D2), hex(D3), hex(D4),
 	    hex(D5), hex(D6), hex(D7), hex(D8)
-	->  { Code is D1<<56 + D2<<48 + D3<<40 + D4<<32 +
-	              D5<<24 + D6<<16 + D7<<8 + D8 }
+	->  { Code is D1<<28 + D2<<24 + D3<<20 + D4<<16 +
+	              D5<<12 + D6<<8 + D7<<4 + D8 }
 	;   syntax_error(illegal_Uchar)
 	).
 
 %%	hex(-Weigth)//
-%	
+%
 %	HEX digit (returning numeric value)
 
 hex(Weigth) -->
@@ -1498,13 +1498,13 @@ hex(Weigth) -->
 
 
 %%	nil(-NIL)//
-%	
+%
 %	End-of-collection (rdf:nil)
 
 nil(NIL) --> "(", ws_star, ")", skip_ws, { rdf_equal(NIL, rdf:nil) }.
 
 %	ws//
-%	
+%
 %	white space characters.
 
 ws --> [0x20].
@@ -1518,14 +1518,14 @@ ws_star --> ws, !, ws_star.
 ws_star --> "".
 
 %	anon//
-%	
+%
 %	Anonymous resource
 
 anon(bnode(_)) --> "[", ws_star, "]", skip_ws.
 
 
 %%	ncchar1p(-Code)//
-%	
+%
 %	Basic identifier characters
 
 ncchar1p(Code) -->
@@ -1553,7 +1553,7 @@ esc_code(Code) -->
 	[ Code ].
 
 %%	ncchar1(-Code)//
-%	
+%
 %	Allows for _
 
 ncchar1(Code) -->
@@ -1566,7 +1566,7 @@ ncchar1(0'_).
 
 
 %%	varname(-Atom)//
-%	
+%
 %	Name of a variable (after the ? or $)
 
 varname(Atom) -->
@@ -1625,7 +1625,7 @@ ncchar_or_dots([H|T0], T) -->
 	ncchar_or_dots(T0, T).
 ncchar_or_dots(T, T) -->
 	[].
-	
+
 ncchar_or_dot(Code) -->
 	esc_code(Code),
 	{ ncchar_or_dot(Code) }.
@@ -1695,7 +1695,7 @@ one_or_more_ascii_letter_or_digits([C0|CT], Tail) -->
 	ascii_letter_or_digits(CT, Tail).
 
 %%	keyword(+Codes)
-%	
+%
 %	Case-insensitive match for a keyword.
 
 keyword([]) -->
@@ -1709,7 +1709,7 @@ keyword([H|T]) -->
 	keyword(T).
 
 %%	get_keyword(-Atom)
-%	
+%
 %	Get next identifier as lowercase
 
 get_keyword(Atom) -->
