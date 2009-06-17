@@ -176,18 +176,28 @@ resolve_query((A0;B0), (A;B), S0, S) :- !,
 resolve_query(optional(true), true, S, S) :- !.
 resolve_query(optional(Q0), (Q *-> true ; true), S0, S) :- !,
 	resolve_query(Q0, Q, S0, S).
-resolve_query(rdf(Subj0,P0,O0), rdf(Subj,P,O), S0, S) :- !,
+resolve_query(rdf(Subj0,P0,O0), RDF, S0, S) :- !,
 	resolve_graph_term(Subj0, Subj, S0, S1),
 	resolve_graph_term(P0, P, S1, S2),
-	resolve_graph_term(O0, O, S2, S).
-resolve_query(graph(G0, Q0), sparql_in_graph(G, Q), S0, S) :- !,
+	resolve_graph_term(O0, O, S2, S),
+	rdf_goal(Subj, P, O, RDF, S).
+resolve_query(graph(G0, Q0), Q, S0, S) :- !,
 	resolve_graph_term(G0, G, S0, S1),
-	resolve_query(Q0, Q, S1, S).
+	state_graph(S1, GL),
+	set_graph_of_state([G|GL], S1, S2),
+	resolve_query(Q0, Q, S2, S3),
+	set_graph_of_state(GL, S3, S).
 resolve_query(Function, Call, S0, S) :-
 	resolve_function(Function, Call, S0, S), !.
 resolve_query(ebv(E0), sparql_true(E), S0, S) :- !,
 	resolve_expression(E0, E, S0, S).
 resolve_query(Q, Q, S, S).		% TBD
+
+rdf_goal(S, P, O, RDF, State) :-
+	(   state_graph(State, [Graph|_])
+	->  RDF = rdf(S, P, O, Graph:_)
+	;   RDF = rdf(S, P, O)
+	).
 
 mkconj(true, Q, Q) :- !.
 mkconj(Q, true, Q) :- !.
