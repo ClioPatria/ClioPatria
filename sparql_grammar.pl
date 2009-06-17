@@ -37,6 +37,7 @@
 :- use_module(library(assoc)).
 :- use_module(library(url)).
 :- use_module(library(option)).
+:- use_module(library(record)).
 
 %%	sparql_parse(+SPARQL, -Query, +Options)
 %
@@ -103,6 +104,13 @@ add_error_location(error(syntax_error(What),
 		 /*******************************
 		 *	      RESOLVE		*
 		 *******************************/
+
+:- record
+	state(base_uri,
+	      prefix_assoc,
+	      var_assoc,
+	      var_list=[],
+	      graph=[]).
 
 %%	resolve_names(+Prolog, +Query0, -Query, +Options)
 %
@@ -197,14 +205,14 @@ list_to_conj([H|T], (QH,QT), S0, S) :-
 %	Return actual projection as a list of Name=Var
 
 resolve_projection(*, Vars, State, State) :- !,
-	arg(4, State, Vars0),
+	state_var_list(State, Vars0),
 	reverse(Vars0, Vars).
 resolve_projection(VarNames, Vars, State, State) :-
 	proj_vars(VarNames, Vars, State).
 
 proj_vars([], [], _).
 proj_vars([var(Name)|T0], [Name=Var|T], State) :- !,
-	arg(3, State, Assoc),
+	state_var_assoc(State, Assoc),
 	(   get_assoc(Name, Assoc, Var)
 	->  true
 	;   Var = '$null$'			% or error?
@@ -252,17 +260,19 @@ resolve_order_by_col(decending(O0), decending(O), Goal, State) :- !,
 
 %%	resolve_state(+Prolog, -State)
 %
-%	Create initial state.  State is a term
-%
-%%		state(Base, PrefixAssoc, VarAssoc, VarList)
+%	Create initial state.
 
 resolve_state(prolog(PrefixesList), State, Options) :-
 	option(base_uri(Base), Options, 'http://default.base.org'),
 	resolve_state(prolog(Base, PrefixesList), State, Options).
 resolve_state(prolog(Base, PrefixesList),
-	      state(Base, Prefixes, Vars, []), _Options) :-
+	      State, _Options) :-
 	list_to_assoc(PrefixesList, Prefixes),
-	empty_assoc(Vars).
+	empty_assoc(Vars),
+	make_state([ base_uri(Base),
+		     prefix_assoc(Prefixes),
+		     var_assoc(Vars)
+		   ], State).
 
 %%	resolve_graph_term(+T0, -T, +State0, -State)
 
@@ -351,15 +361,18 @@ built_in_function(isliteral(_)).
 
 %%	resolve_var(+Name, -Var, +State0, ?State)
 %
-%	Resolve a variable. If State0 ==  State   and  it concenrs a new
+%	Resolve a variable. If State0 ==  State   and  it concerns a new
 %	variable the variable is bound to '$null$'.
 
 resolve_var(Name, Var, State, State) :-
-	arg(3, State, Vars),
+	state_var_assoc(State, Vars),
 	get_assoc(Name, Vars, Var), !.
-resolve_var(Name, Var, state(Base, Prefixes, Vars0, VL),
-		       state(Base, Prefixes, Vars, [Name=Var|VL])) :- !,
-	put_assoc(Name, Vars0, Var, Vars), !.
+resolve_var(Name, Var, State0, State) :- !,
+	state_var_assoc(State0, Vars0),
+	state_var_list(State0, VL),
+	put_assoc(Name, Vars0, Var, Vars),
+	set_var_assoc_of_state(Vars, State0, State1),
+	set_var_list_of_state([Name=Var|VL], State1, State).
 resolve_var(_, '$null$', State, State).
 
 %%	resolve_iri(+Spec, -IRI:atom, +State) is det.
@@ -373,21 +386,12 @@ resolve_iri(P:N, IRI, State) :- !,
 	atom_concat(Prefix, LocalIRI, IRI).
 resolve_iri(URL0, IRI, State) :-
 	atom(URL0),
-	arg(1, State, Base),		% TBD: What if there is no base?
+	state_base_uri(State, Base),	% TBD: What if there is no base?
 	global_url(URL0, Base, URL1),
 	url_iri(URL1, IRI).
 
-% compatibility with SWI-Prolog < 5.6.46
-:- if(\+ source_exports(library(url), url_iri/2)).
-:- use_module(library(rdf_parser), []).
-
-url_iri(URL, IRI) :-
-	rdf_parser:decode_uri(URL, IRI).
-
-:- endif.
-
 resolve_prefix(P, IRI, State) :-
-	arg(2, State, Prefixes),
+	state_prefix_assoc(State, Prefixes),
 	(   get_assoc(P, Prefixes, IRI)
 	->  true
 	;   rdf_db:ns(P, IRI)		% Extension: database known
