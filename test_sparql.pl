@@ -157,12 +157,9 @@ query_test(Test) :-
 	result_to_prolog(Type, Test, PrologResult),
 					% load the data
 	rdf_reset_db,
-	(   test_data_file(Test, DataFile)
-	->  rdf_load(DataFile)
-	;   true
-	),
+	test_data_files(Test, DataFiles),
+	maplist(rdf_load, DataFiles),
 
-	flag(c, C, C+1),
 					% run the query
 	catch(findall(Result, sparql_run(Compiled, Result), Results),
 	      E, true),

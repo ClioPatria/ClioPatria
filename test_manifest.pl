@@ -38,7 +38,7 @@
 	    test_syntax/2,		% +Test, ?PosNeg
 
 	    test_query_file/2,		% +Test, -QueryFile
-	    test_data_file/2,		% +Test, -DataFile
+	    test_data_files/2,		% +Test, -DataFiles
 	    test_result_file/2,		% +Test, -ResultFile
 
 					% EDIT
@@ -156,19 +156,20 @@ test_query_file(Test, File) :-		% Normal cases
 	memberchk(path(File), Parts).
 test_query_file(Test, File) :-		% SyntaxDev cases
 	mf_rdf(Test, mf:action, FileURI),
-	parse_url(FileURI, Parts), !,
-	memberchk(path(File), Parts).
+	file_name_to_url(File, FileURI).
 
 
-%%	test_data_file(+Test, -File)
+%%	test_data_files(+Test, -Files)
 %
-%	Get the file containing the data for Test
+%	Get the files containing the data for Test
+
+test_data_files(Test, Files) :-
+	setof(File, test_data_file(Test, File), Files).
 
 test_data_file(Test, File) :-
 	mf_rdf(Test, mf:action, Action),
 	mf_rdf(Action, qt:data, FileURI),
-	parse_url(FileURI, Parts), !,
-	memberchk(path(File), Parts).
+	file_name_to_url(File, FileURI).
 
 
 %%	test_result_file(+Test, -File)
@@ -177,8 +178,7 @@ test_data_file(Test, File) :-
 
 test_result_file(Test, File) :-
 	mf_rdf(Test, mf:result, FileURI),
-	parse_url(FileURI, Parts), !,
-	memberchk(path(File), Parts).
+	file_name_to_url(File, FileURI).
 
 
 %%	test_query(+Test, -QueryCodes)
@@ -222,8 +222,9 @@ edit_test_data(Name) :-
 	test_name(Test, Name), !,
 	edit_test_data(Test).
 edit_test_data(Test) :-
-	test_data_file(Test, File),
-	edit(file(File)).
+	test_data_files(Test, Files),
+	forall(member(File, Files),
+	       edit(file(File))).
 
 edit_test_result(Name) :-
 	test_name(Test, Name), !,
