@@ -105,7 +105,13 @@ blocked('UNSAID of pattern partially matching').
 
 run_query_tests :-
 	clean_tests,
+	load_query_manifests,
 	run_all_query_tests.
+
+load_query_manifests :-
+	load_manifests([ arq,
+			 dawg
+		       ]).
 
 run_all_query_tests :-
 	(   current_test(_, Test),
