@@ -265,7 +265,7 @@ do_load_manifests(dawg) :- !,
 	file_url(File, URL),
 	do_load_manifests(URL).
 do_load_manifests(arq) :- !,
-	file_url('ARQ/testing/ARQ/manifest-arq.ttl', URL),
+	file_url('Tests/sparql/ARQ/manifest-arq.ttl', URL),
 	do_load_manifests(URL).
 do_load_manifests(Root) :-
 	to_url(Root, URL),
