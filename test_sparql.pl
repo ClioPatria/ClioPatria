@@ -199,8 +199,12 @@ compare_results(Test, Type, select(ColNames, Rows), Result) :-
 	    OkExtra == []
 	->  assert(passed(Test))
 	;   test_name(Test, Name),
+	    length(MyRows, MyCount),
+	    length(MyExtra, MyExtraCount),
+	    length(OkExtra, OkExtraCount),
 	    format('~`=t ~q ~`=t~72|~n', [Name]),
 	    format('TYPE: ~q~n', [Type]),
+	    format('RESULTS: ~D; ~D missed, ~D incorrect~n', [MyCount, OkExtraCount, MyExtraCount]),
 	    format('MISSED: ~p~n', [OkExtra]),
 	    format('EXTRA: ~p~n', [MyExtra]),
 	    format('~`=t~72|~n~n', []),
