@@ -470,7 +470,7 @@ syntax_test(Test, Codes, Query) :-
 	->  (   var(E)
 	    ->  assert(passed(Test))
 	    ;   test_name(Test, Name),
-		format('PARSE TEST ERROR: ~w: ', [Name]),
+		format('PARSE TEST ERROR: ~q: ', [Name]),
 		print_message(error, E),
 		assert(failed(Test))
 	    )
@@ -484,12 +484,12 @@ syntax_test(Test, Codes, Query) :-
 	->  (   nonvar(E)
 	    ->  assert(passed(Test))
 	    ;   test_name(Test, literal(Name)),
-		format('NEG TEST SUCCEEDED: ~w: ', [Name]),
+		format('NEG TEST SUCCEEDED: ~q: ', [Name]),
 		assert(failed(Test))
 	    )
 	;   assert(failed(Test)),
 	    test_name(Test, Name),
-	    format('NEG TEST FAILED WITHOUT ERROR: ~w: ', [Name])
+	    format('NEG TEST FAILED WITHOUT ERROR: ~q: ', [Name])
 	).
 syntax_test(Test, _, _) :-
 	assert(skipped(Test)).
