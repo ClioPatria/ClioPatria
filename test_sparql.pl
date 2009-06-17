@@ -451,7 +451,7 @@ load_syntax_manifests :-
 
 run_all_syntax_tests :-
 	forall(current_test(_, Test),
-	       (blocked_test(Test) -> true ; syntax_test(Test))),
+	       (blocked_test(Test) -> assertz(skipped(Test)) ; syntax_test(Test))),
 	findall(T, passed(T), Passed), length(Passed, NPassed),
 	findall(T, failed(T), Failed), length(Failed, NFailed),
 	findall(T, skipped(T), Skipped), length(Skipped, NSkipped),
