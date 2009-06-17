@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:nodeID="genid1">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="regex-query-001.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid1">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="regex-data-01.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">regex-query-001</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Simple unanchored match test</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid1"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="regex-result-001.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid3">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="regex-query-002.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid3">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="regex-data-01.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid4">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">regex-query-002</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid4">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Case insensitive unanchored match test</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid4">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid3"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid4">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="regex-result-002.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid5">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="regex-query-003.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid5">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="regex-data-01.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid6">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">regex-query-003</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid6">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Use/mention test</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid6">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid5"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid6">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="regex-result-003.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid7">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="regex-query-004.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid7">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="regex-data-01.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid8">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">regex-query-004</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid8">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">str()+URI test</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid8">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid7"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid8">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="regex-result-004.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid9">
+    <rdf:first rdf:nodeID="genid8"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid9">
+    <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid10">
+    <rdf:first rdf:nodeID="genid6"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid10">
+    <rdf:rest rdf:nodeID="genid9"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid11">
+    <rdf:first rdf:nodeID="genid4"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid11">
+    <rdf:rest rdf:nodeID="genid10"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid12">
+    <rdf:first rdf:nodeID="genid2"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid12">
+    <rdf:rest rdf:nodeID="genid11"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="">
+    <rdf:type rdf:resource="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#Manifest"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">SPARQL regex tests</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="">
+    <ns0:entries xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid12"/>
+  </rdf:Description>
+</rdf:RDF>

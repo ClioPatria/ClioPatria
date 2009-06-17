@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY dc 'http://purl.org/dc/elements/1.1/'>
+    <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY ns1 'http://www.w3.org/2000/10/annotation-ns#'>
+    <!ENTITY xsd 'http://www.w3.org/2001/XMLSchema#'>
+]>
+
+<rdf:RDF
+    xmlns:dc="&dc;"
+    xmlns:rdf="&rdf;"
+    xmlns:ns1="&ns1;"
+    xmlns:xsd="&xsd;"
+>
+<rdf:Description
+    dc:created="2004-12-31T18:00:00-05:00">
+  <ns1:annotates rdf:resource="http://www.w3.org/TR/rdf-sparql-query/"/>
+</rdf:Description>
+
+<rdf:Description>
+  <dc:created rdf:datatype="&xsd;dateTime">2004-12-31T18:01:00-05:00</dc:created>
+  <ns1:annotates rdf:resource="http://www.w3.org/TR/rdf-sparql-query/"/>
+</rdf:Description>
+
+</rdf:RDF>

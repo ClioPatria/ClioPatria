@@ -1,0 +1,3 @@
+SELECT *
+FROM <uri1>, <uri2>
+WHERE ( ?x ?y ?z )

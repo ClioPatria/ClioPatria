@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:nodeID="genid1">
+    <rdf:type rdf:resource="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#geodetic"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid1">
+    <ns0:rotational xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#" rdf:datatype="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#latitude">30.300000</ns0:rotational>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid1">
+    <ns0:orthogonal xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#" rdf:datatype="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#longitude">-97.700000</ns0:orthogonal>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#a">
+    <ns0:name xmlns:ns0="http://www.daml.org/2001/10/html/airport-ont#">Austin Bergstrom International</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#a">
+    <ns0:location xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#" rdf:nodeID="genid1"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <rdf:type rdf:resource="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#EarthCenteredEarthFixed"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:rotational xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#" rdf:datatype="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#ECEF_X">-7420507.1</ns0:rotational>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:orthogonal xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#" rdf:datatype="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#ECEF_Y">-5462738.5</ns0:orthogonal>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#b">
+    <ns0:name xmlns:ns0="http://www.daml.org/2001/10/html/airport-ont#">Austin Bergstrom International</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#b">
+    <ns0:location xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/extendedType-0#" rdf:nodeID="genid2"/>
+  </rdf:Description>
+</rdf:RDF>

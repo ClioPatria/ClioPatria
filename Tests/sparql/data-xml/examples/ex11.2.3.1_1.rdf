@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:nodeID="b">
+    <ns0:annotates xmlns:ns0="http://www.w3.org/2000/10/annotation-ns#" rdf:resource="http://www.w3.org/TR/rdf-sparql-query/"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="b">
+    <ns0:created xmlns:ns0="http://purl.org/dc/elements/1.1/" rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2004-12-31T19:00:00-05:00</ns0:created>
+  </rdf:Description>
+</rdf:RDF>

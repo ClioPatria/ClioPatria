@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:nodeID="a">
+    <ns0:name xmlns:ns0="http://xmlns.com/foaf/0.1/">alice</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="a">
+    <ns0:shoeSize xmlns:ns0="http://biometrics.example/ns#" rdf:datatype="http://www.w3.org/2001/XMLSchema#float">9.5</ns0:shoeSize>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="b">
+    <ns0:name xmlns:ns0="http://xmlns.com/foaf/0.1/">bob</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="b">
+    <ns0:shoeSize xmlns:ns0="http://biometrics.example/ns#" rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">42</ns0:shoeSize>
+  </rdf:Description>
+</rdf:RDF>

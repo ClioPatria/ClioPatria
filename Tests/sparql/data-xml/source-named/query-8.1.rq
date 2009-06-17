@@ -1,0 +1,3 @@
+SELECT *
+FROM <http://www.w3.org/2000/08/w3c-synd/home.rss>
+WHERE ( ?x ?y ?z )

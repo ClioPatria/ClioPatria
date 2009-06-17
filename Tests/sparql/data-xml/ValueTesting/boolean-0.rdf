@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY xsd 'http://www.w3.org/2001/XMLSchema#'>
+]>
+
+<rdf:RDF
+    xmlns:rdf="&rdf;"
+    xmlns:xsd="&xsd;"
+>
+<rdf:Description rdf:about="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/boolean-0#fdigit">
+  <rdf:value rdf:datatype="&xsd;boolean">0</rdf:value>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/boolean-0#ftext">
+  <rdf:value rdf:datatype="&xsd;boolean">false</rdf:value>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/boolean-0#tdigit">
+  <rdf:value rdf:datatype="&xsd;boolean">1</rdf:value>
+</rdf:Description>
+
+<rdf:Description rdf:about="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/boolean-0#ttext">
+  <rdf:value rdf:datatype="&xsd;boolean">true</rdf:value>
+</rdf:Description>
+
+</rdf:RDF>

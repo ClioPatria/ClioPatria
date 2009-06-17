@@ -1,0 +1,48 @@
+#!/usr/bin/perl
+
+# Convert Lat Long Alt to Earth-Centered Earth-Fixed
+# Lat/Long in dd.dd or dd:mm[:ss.ff]
+# Alt in meters
+# 
+# Constants from <http://mathforum.org/library/drmath/view/51832.html>
+# Geodetic Datums Overview 
+#    <http://www.colorado.edu/geography/gcraft/notes/datum/datum_f.html>
+# 
+# $Id: LLA2ECEF,v 1.3 2005/05/04 13:21:19 eric Exp $
+
+use strict;
+
+my $PI = 3.141592648;
+my $a = 6378137; # meters
+my $f = 1/298.257224;
+
+my $lat = &radians($ARGV[0]);
+my $lon = &radians($ARGV[1]);
+my $h = $ARGV[2];
+my $C = 1 / (sqrt( cos($lat)**2 + (1-$f)**2 * sin($lat)**2 ));
+my $X = ($a*$C + $h) * cos($lat) * cos($lon);
+my $Y = ($a*$C + $h) * cos($lat) * sin($lon);
+my $Z = ($a*$C + $h) * sin($lat);
+print "X:$X, Y:$Y, Z:$Z\n";
+
+sub radians {
+    my ($degrees) = @_;
+    if ($degrees =~ m/^
+	\-?
+	(?:
+	 (?:\d+ (?: \. \d*)?) || 
+	 (?:\. \d+)
+	 )$/x) {
+    } elsif ($degrees =~ m/^
+	     (\-)?
+	     (\d*):	# degrees
+	     (\d*)	# minutes
+	     (?: :([\d\.]*) )?	# optional seconds
+	     $/x) {
+	$degrees = (defined $1 ? -1 : 1) * ($2 + $3/60 + $4/3600);
+    } else {
+	die "Can't parse \"$degrees\" as degrees\n"
+    }
+    return $degrees * $PI / 180;
+}
+

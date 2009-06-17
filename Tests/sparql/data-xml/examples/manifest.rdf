@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:nodeID="genid1">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex2-1a.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid1">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex2-1a.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-a</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 2.1</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid1"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex2-1a-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:approvedBy xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#" rdf:resource="http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid2">
+    <ns0:approval xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#" rdf:resource="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#Approved"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid3">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex2-2a.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid3">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex2-2a.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid4">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-b</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid4">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 2.3</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid4">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid3"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid4">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex2-2a-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid4">
+    <ns0:approvedBy xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#" rdf:resource="http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid4">
+    <ns0:approval xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#" rdf:resource="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#Approved"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid5">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex2-3a.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid5">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex2-3a.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid6">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-c</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid6">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 2.4</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid6">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid5"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid6">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex2-3a-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid6">
+    <ns0:approvedBy xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#" rdf:resource="http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid6">
+    <ns0:approval xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#" rdf:resource="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#Approved"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid7">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex2-4a.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid7">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex2-4a.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid8">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-d</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid8">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 2.5</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid8">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid7"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid8">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex2-4a-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid8">
+    <ns0:approvedBy xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#" rdf:resource="http://lists.w3.org/Archives/Public/public-rdf-dawg/2005JanMar/0358"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid8">
+    <ns0:approval xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#" rdf:resource="http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#Approved"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid9">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex3.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid9">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex3.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid10">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-e</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid10">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 3</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid10">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid9"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid10">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex3-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid11">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11_0.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid11">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11_0.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid12">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-0</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid12">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 11</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid12">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid11"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid12">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11_0-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid13">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11_1.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid13">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11_0.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid14">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-1</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid14">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">2nd Example from section 11</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid14">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid13"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid14">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11_1-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid15">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.1_0.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid15">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.1_0.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid16">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-RDFterm-equal</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid16">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 11.2.3.1</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid16">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid15"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid16">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11.2.3.1_0-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid17">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.1_1.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid17">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.1_1.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid18">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-RDFterm-equal-2</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid18">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">2nd Example from section 11.2.3.1</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid18">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid17"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid18">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11.2.3.1_1-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid19">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.2_0.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid19">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.2_0.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid20">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-bound</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid20">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 11.2.3.2</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid20">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid19"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid20">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11.2.3.2_0-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid21">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.2_1.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid21">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.2_0.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid22">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-bound-2</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid22">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">2nd Example from section 11.2.3.2</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid22">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid21"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid22">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11.2.3.2_1-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid23">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.3_0.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid23">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.3_0.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid24">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-isURI</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid24">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 11.2.3.3</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid24">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid23"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid24">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11.2.3.3_0-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid25">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.4_0.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid25">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.4_0.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid26">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-isBlank</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid26">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 11.2.3.4</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid26">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid25"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid26">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11.2.3.4_0-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid27">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.5_0.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid27">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.5_0.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid28">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-isLiteral</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid28">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 11.2.3.5</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid28">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid27"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid28">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11.2.3.5_0-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid29">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.6_0.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid29">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.6_0.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid30">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-str</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid30">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 11.2.3.6</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid30">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid29"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid30">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11.2.3.6_0-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid31">
+    <ns0:query xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.7_0.rq"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid31">
+    <ns0:data xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-query#" rdf:resource="ex11.2.3.7_0.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid32">
+    <ns0:name xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#">sparql-query-example-Testing-Values-lang</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid32">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">Example from section 11.2.3.7</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid32">
+    <ns0:action xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid31"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid32">
+    <ns0:result xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:resource="ex11.2.3.7_0-result.rdf"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid33">
+    <rdf:first rdf:nodeID="genid32"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid33">
+    <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid34">
+    <rdf:first rdf:nodeID="genid30"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid34">
+    <rdf:rest rdf:nodeID="genid33"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid35">
+    <rdf:first rdf:nodeID="genid28"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid35">
+    <rdf:rest rdf:nodeID="genid34"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid36">
+    <rdf:first rdf:nodeID="genid26"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid36">
+    <rdf:rest rdf:nodeID="genid35"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid37">
+    <rdf:first rdf:nodeID="genid24"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid37">
+    <rdf:rest rdf:nodeID="genid36"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid38">
+    <rdf:first rdf:nodeID="genid22"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid38">
+    <rdf:rest rdf:nodeID="genid37"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid39">
+    <rdf:first rdf:nodeID="genid20"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid39">
+    <rdf:rest rdf:nodeID="genid38"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid40">
+    <rdf:first rdf:nodeID="genid18"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid40">
+    <rdf:rest rdf:nodeID="genid39"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid41">
+    <rdf:first rdf:nodeID="genid16"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid41">
+    <rdf:rest rdf:nodeID="genid40"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid42">
+    <rdf:first rdf:nodeID="genid14"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid42">
+    <rdf:rest rdf:nodeID="genid41"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid43">
+    <rdf:first rdf:nodeID="genid12"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid43">
+    <rdf:rest rdf:nodeID="genid42"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid44">
+    <rdf:first rdf:nodeID="genid10"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid44">
+    <rdf:rest rdf:nodeID="genid43"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid45">
+    <rdf:first rdf:nodeID="genid8"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid45">
+    <rdf:rest rdf:nodeID="genid44"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid46">
+    <rdf:first rdf:nodeID="genid6"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid46">
+    <rdf:rest rdf:nodeID="genid45"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid47">
+    <rdf:first rdf:nodeID="genid4"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid47">
+    <rdf:rest rdf:nodeID="genid46"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid48">
+    <rdf:first rdf:nodeID="genid2"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="genid48">
+    <rdf:rest rdf:nodeID="genid47"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="">
+    <rdf:type rdf:resource="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#Manifest"/>
+  </rdf:Description>
+  <rdf:Description rdf:about="">
+    <ns0:comment xmlns:ns0="http://www.w3.org/2000/01/rdf-schema#">SPARQL examples from query WD</ns0:comment>
+  </rdf:Description>
+  <rdf:Description rdf:about="">
+    <ns0:entries xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#" rdf:nodeID="genid48"/>
+  </rdf:Description>
+</rdf:RDF>

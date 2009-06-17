@@ -1,0 +1,69 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY dc 'http://purl.org/dc/elements/1.1/'>
+    <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+    <!ENTITY mf 'http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#'>
+]>
+
+<rdf:RDF
+    xmlns:dc="&dc;"
+    xmlns:rdf="&rdf;"
+    xmlns:rdfs="&rdfs;"
+    xmlns:mf="&mf;"
+>
+<rdf:Description rdf:about="&mf;"
+    dc:creator="Andy Seaborne"
+    dc:date="2004-07"
+    dc:description="Test case manifest vocabulary"
+    dc:format="RDF"
+    dc:publisher="W3C RDF Data Access Working Group"
+    dc:subject=""
+    dc:title="Test case manifest vocabulary"
+    rdfs:comment="Manifest vocabulary for test cases">
+  <dc:identifier rdf:resource="&mf;"/>
+</rdf:Description>
+
+<rdfs:Class rdf:about="&mf;Manifest"
+    rdfs:comment="The class of manifests"/>
+
+<rdfs:Class rdf:about="&mf;ManifestEntry"
+    rdfs:comment="One entry in rdf:type list of entries"/>
+
+<rdf:Property rdf:about="&mf;entries"
+    rdfs:comment="Connects the manifest resource to rdf:type list of entries">
+  <rdfs:domain rdf:resource="&mf;Manifest"/>
+  <rdfs:range rdf:resource="&rdf;List"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&mf;name"
+    rdfs:comment="Optional name of this entry">
+  <rdfs:domain rdf:resource="&mf;ManifestEntry"/>
+  <rdfs:range rdf:resource="&rdfs;Literal"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&mf;action"
+    rdfs:comment="Action to perform">
+  <rdfs:domain rdf:resource="&mf;ManifestEntry"/>
+</rdf:Property>
+
+<rdf:Property rdf:about="&mf;result">
+  <rdfs:comment>The expected outcome</rdfs:comment>
+  <rdfs:comment>The test status</rdfs:comment>
+  <rdfs:domain rdf:resource="&mf;ManifestEntry"/>
+  <rdfs:range rdf:resource="&mf;TestStatus"/>
+</rdf:Property>
+
+<rdf:Class rdf:about="&mf;TestStatus"
+    rdfs:comment="Statuses a test can have"/>
+
+<mf:TestStatus rdf:about="&mf;proposed"
+    rdfs:label="proposed"/>
+
+<mf:TestStatus rdf:about="&mf;accepted"
+    rdfs:label="accepted"/>
+
+<mf:TestStatus rdf:about="&mf;rejected"
+    rdfs:label="rejected"/>
+
+</rdf:RDF>

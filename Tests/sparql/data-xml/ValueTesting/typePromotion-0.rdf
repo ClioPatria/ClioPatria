@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:about="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/typePromotion-0#one">
+    <rdf:value rdf:datatype="http://www.w3.org/2001/XMLSchema#unsignedByte">1</rdf:value>
+  </rdf:Description>
+  <rdf:Description rdf:about="http://www.w3.org/2001/sw/DataAccess/tests/data/ValueTesting/typePromotion-0#two">
+    <rdf:value rdf:datatype="http://www.w3.org/2001/XMLSchema#unsignedShort">2</rdf:value>
+  </rdf:Description>
+</rdf:RDF>

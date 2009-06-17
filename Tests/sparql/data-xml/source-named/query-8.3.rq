@@ -1,0 +1,3 @@
+SELECT *
+FROM NAMED <http://example.org/>
+WHERE ( ?x ?y ?z )

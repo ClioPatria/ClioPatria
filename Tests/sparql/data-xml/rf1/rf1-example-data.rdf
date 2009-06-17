@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <rdf:Description rdf:nodeID="a">
+    <ns0:name xmlns:ns0="http://xmlns.com/foaf/0.1/">Alice</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="a">
+    <ns0:homepage xmlns:ns0="http://xmlns.com/foaf/0.1/" rdf:resource="http://work.example.org/alice/"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="a">
+    <ns0:mbox xmlns:ns0="http://xmlns.com/foaf/0.1/"></ns0:mbox>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="a">
+    <ns0:blurb xmlns:ns0="http://ns.example.org/#" rdf:parseType="Literal"><p xmlns="http://www.w3.org/1999/xhtml">My name is <em>Alice</em></p></ns0:blurb>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="a">
+    <ns0:knows xmlns:ns0="http://xmlns.com/foaf/0.1/" rdf:nodeID="b"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="b">
+    <ns0:name xmlns:ns0="http://xmlns.com/foaf/0.1/" xml:lang="en">Bob</ns0:name>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="b">
+    <ns0:mbox xmlns:ns0="http://xmlns.com/foaf/0.1/" rdf:resource="mailto:bob@work.example.org"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="b">
+    <ns0:homepage xmlns:ns0="http://xmlns.com/foaf/0.1/" rdf:resource="http://work.example.org/bob/"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="b">
+    <ns0:ageInYears xmlns:ns0="http://ns.example.org/#" rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">30</ns0:ageInYears>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="b">
+    <ns0:knows xmlns:ns0="http://xmlns.com/foaf/0.1/" rdf:nodeID="a"/>
+  </rdf:Description>
+</rdf:RDF>

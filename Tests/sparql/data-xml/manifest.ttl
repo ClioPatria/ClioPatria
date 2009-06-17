@@ -1,0 +1,39 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#> .
+@prefix mf:     <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .
+@prefix mfx:    <http://jena.hpl.hp.com/2005/05/test-manifest-extra#> .
+@prefix qt:     <http://www.w3.org/2001/sw/DataAccess/tests/test-query#> .
+
+# Added bij Jan Wielemaker to allow for uniform processing of the
+# test-cases with ARQ 
+
+<>  rdf:type mf:Manifest ;
+    rdfs:label "SPARQL - Scripts" ;
+    mfx:include (
+	<bound/manifest.rdf>
+	<examples/manifest.rdf>
+	<Expr1/manifest.rdf>
+	<Expr2/manifest.rdf>
+	<ExprBuiltins/manifest.ttl>
+	<ExprEquals/manifest.rdf>
+	<i18n/manifest.ttl>
+	<local-constr/manifest.rdf>
+	<Optional/manifest.ttl>
+	<part1/manifest.rdf>
+	<regex/manifest.rdf>
+	<rf1/manifest.ttl>
+	<Select/manifest.ttl>
+	<simple2/manifest.rdf>
+	<simple/manifest.rdf>
+	<Sorting/manifest.rdf>
+	<sort/manifest.ttl>
+	<source-named/manifest.rdf>
+	<source-simple2/manifest.rdf>
+	<SourceSimple/manifest.rdf>
+	<survey/manifest.ttl>
+	<SyntaxFull/manifest.ttl>
+	<Syntax/manifest.rdf>
+	<TypePromotion/manifest.ttl>
+	<ValueTesting/manifest.rdf>
+    ) .
+

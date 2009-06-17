@@ -1,0 +1,9 @@
+# Get dc:sources of the SOURCE of this file, check users can't make assertions
+# about it
+
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+SELECT DISTINCT ?source
+WHERE { GRAPH ?snode {?person foaf:name ?name}
+        {?snode dc:source ?source}
+      }

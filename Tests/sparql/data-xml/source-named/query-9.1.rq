@@ -1,0 +1,7 @@
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+SELECT ?mbox ?age ?ppd
+WHERE       ( ?alice foaf:mbox <mailto:alice@work.example> )
+            ( ?alice foaf:knows ?whom )
+            ( ?whom foaf:mbox ?mbox )
+            ( ?whom foaf:PersonalProfileDocument ?ppd )
+SOURCE ?ppd ( ?whom foaf:age ?age )
