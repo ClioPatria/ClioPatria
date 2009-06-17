@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <rdf:Description rdf:about="http://example.org/book/book1">
-    <ns0:title xmlns:ns0="http://purl.org/dc/elements/1.1/">SPARQL Tutorial</ns0:title>
-  </rdf:Description>
-</rdf:RDF>

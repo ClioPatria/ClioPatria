@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <rdf:Description rdf:nodeID="genid1">
-    <rdf:type rdf:resource="http://www.w3.org/2001/sw/DataAccess/tests/result-set#ResultSet"/>
-  </rdf:Description>
-  <rdf:Description rdf:nodeID="genid1">
-    <ns0:resultVariable xmlns:ns0="http://www.w3.org/2001/sw/DataAccess/tests/result-set#">name</ns0:resultVariable>
-  </rdf:Description>
-</rdf:RDF>

@@ -1,5 +1,0 @@
-PREFIX srt: <http://www.w3.org/2001/sw/DataAccess/tests/data/Sorting/sort-0#>
-
-SELECT ?str1
- WHERE {?s srt:str1 ?str1}
-	ORDER BY ASC (?str1)

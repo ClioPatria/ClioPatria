@@ -1,3 +1,0 @@
-SELECT *
-FROM <file:simple-data-1.n3>
-WHERE { GRAPH ?src {?x ?y ?z} }

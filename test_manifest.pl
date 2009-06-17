@@ -97,9 +97,6 @@ Prolog database as mf_rdf(S,P,O).
 :- rdf_register_ns(ex, 'http://example.org/#').
 
 
-data_dir('Tests/sparql/data-xml').
-
-
 		 /*******************************
 		 *	      QUERY		*
 		 *******************************/
@@ -249,7 +246,7 @@ the core using a plugin extension mechanism.
 
 load_manifests(Spec) :-
 	reset_manifests,
-	load_schemas,
+	load_schemas('Tests/sparql/test-suite-archive'),
 	do_load_manifests(Spec),
 	forall(rdf(S,P,O), assert(mf_rdf(S,P,O))),
 	rdf_reset_db,
@@ -260,11 +257,7 @@ do_load_manifests([H|T]) :- !,
 	do_load_manifests(H),
 	do_load_manifests(T).
 do_load_manifests(dawg) :- !,
-	data_dir(Dir),
-	atom_concat(Dir, '/manifest.{ttl,rdf}', Pattern),
-	expand_file_name(Pattern, [File]),
-	file_url(File, URL),
-	do_load_manifests(URL).
+	do_load_manifests('Tests/sparql/test-suite-archive/data-r2/manifest-evaluation').
 do_load_manifests(arq) :- !,
 	file_url('Tests/sparql/ARQ/manifest-arq.ttl', URL),
 	do_load_manifests(URL).
@@ -288,11 +281,10 @@ test_statistics :-
 	length(Ts, TN),
 	format('Loaded ~D manifests with ~D tests~n', [MN, TN]).
 
-load_schemas :-
-	data_dir(Dir),
-	atom_concat(Dir, '/test-manifest.rdf', S1),
-	atom_concat(Dir, '/test-dawg.rdf', S2),
-	atom_concat(Dir, '/test-query.rdf', S3),
+load_schemas(Dir) :-
+	atom_concat(Dir, '/test-manifest', S1),
+	atom_concat(Dir, '/test-dawg', S2),
+	atom_concat(Dir, '/test-query', S3),
 	maplist(rdf_load, [S1,S2,S3]).
 
 load_manifest(URL) :-

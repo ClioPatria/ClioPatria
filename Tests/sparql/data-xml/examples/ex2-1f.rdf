@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <rdf:Description rdf:about="http://example.org/book/book1">
-    <ns0:numPages xmlns:ns0="http://example.org/ns#" rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">200</ns0:numPages>
-  </rdf:Description>
-  <rdf:Description rdf:about="http://example.org/book/book2">
-    <ns0:numPages xmlns:ns0="http://example.org/ns#" rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">100</ns0:numPages>
-  </rdf:Description>
-</rdf:RDF>

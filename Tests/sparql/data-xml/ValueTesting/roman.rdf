@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <rdf:Description rdf:about="http://rome.example.org/TwentyFirstLegion">
-    <ns0:legionNumber xmlns:ns0="http://rome.example.org/" rdf:datatype="http://rome.example.org/Numeral">XXI</ns0:legionNumber>
-  </rdf:Description>
-</rdf:RDF>

@@ -1,3 +1,0 @@
-SELECT *
-FROM NAMED _:a, NAMED _:b
-WHERE ( ?x ?y ?z )

@@ -3,3 +3,7 @@ CVS from
 
     :pserver:anonymous@jena.cvs.sourceforge.net:/cvsroot/jena
 
+The test-suite-archive comes from the SPARQL   site,  downloaded on June
+17, 2009.
+
+    http://www.w3.org/2001/sw/DataAccess/tests/r2
