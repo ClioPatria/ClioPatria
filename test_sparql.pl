@@ -211,8 +211,8 @@ compare_results(Test, Type, Correct, Result) :-
 	test_name(Test, Name),
 	format('~`=t ~q ~`=t~72|~n', [Name]),
 	format('TYPE: ~q~n', [Type]),
-	write_list('CORRECT:', [Correct], 8),
-	write_list('WE:', [Result], 8),
+	write_list('CORRECT:', Correct, 8),
+	write_list('WE:', Result, 8),
 	format('~`=t~72|~n~n', []),
 	assert(failed(Test)).
 
