@@ -480,7 +480,7 @@ run_syntax_tests :-
 
 load_syntax_manifests :-
 	load_manifests([ arq,
-			 'Tests/sparql/data-xml/SyntaxDev/manifest-syntax.ttl'
+			 'Tests/sparql/test-suite-archive/data-r2/manifest-syntax.ttl'
 		       ]).
 
 

@@ -134,12 +134,16 @@ test_name(Test, Name) :-
 %	True if Test is a syntax-test.
 
 test_syntax(Test, positive) :-
-	mf_rdf(Test, rdf:type, mfx:'TestSyntax'), !.
+	(   mf_rdf(Test, rdf:type, mfx:'TestSyntax')
+	;   mf_rdf(Test, rdf:type, mf:'PositiveSyntaxTest')
+	), !.
 test_syntax(Test, positive) :-
 	mf_rdf(Test, mf:action, Action),
         mf_rdf(Action, qt:query, _), !.
 test_syntax(Test, negative) :-
-	mf_rdf(Test, rdf:type, mfx:'TestBadSyntax'), !.
+	(   mf_rdf(Test, rdf:type, mfx:'TestBadSyntax')
+	;   mf_rdf(Test, rdf:type, mf:'NegativeSyntaxTest')
+	), !.
 
 
 %%	test_query_file(+Test, -File)
@@ -148,9 +152,8 @@ test_syntax(Test, negative) :-
 
 test_query_file(Test, File) :-		% Normal cases
 	mf_rdf(Test, mf:action, Action),
-	mf_rdf(Action, qt:query, FileURI),
-	parse_url(FileURI, Parts), !,
-	memberchk(path(File), Parts).
+	mf_rdf(Action, qt:query, FileURI), !,
+	file_name_to_url(File, FileURI).
 test_query_file(Test, File) :-		% SyntaxDev cases
 	mf_rdf(Test, mf:action, FileURI),
 	file_name_to_url(File, FileURI).
@@ -295,10 +298,14 @@ load_manifest(URL) :-
 	       load_manifest(S)).
 
 sub_manifests(URL, List) :-
-	rdf(URL, mfx:include, Collection), !,
-	findall(S, rdfs_member(S, Collection), List).
-sub_manifests(_, []).
+	findall(X, includes(URL, X), List0),
+	sort(List0, List).
 
+includes(URL, Sub) :-
+	(   rdf(URL, mfx:include, Collection) % old
+	;   rdf(URL, mf:include, Collection)  % new
+	),
+	rdfs_member(Sub, Collection).
 
 
 		 /*******************************
