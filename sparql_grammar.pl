@@ -683,9 +683,8 @@ order_condition(decending(Expr)) -->
 	keyword("desc"), !,
 	bracketted_expression(Expr).
 order_condition(ascending(Value)) -->
-	(   function_call(Value)
+	(   constraint(Value)
 	;   var(Value)
-	;   bracketted_expression(Value)
 	), !.
 
 
@@ -736,7 +735,7 @@ filtered_basic_graph_pattern(P) -->
 	->  ""
 	;   {P1=true}
 	),
-	(   constraint(C)
+	(   filter(C)
 	->  optional_dot,
 	    filtered_basic_graph_pattern(P2),
 	    { P = (P1,C,P2) }
@@ -805,17 +804,23 @@ add_union(P, P) -->
 	[].
 
 
+%%	filter(-Filter)//
+
+filter(ebv(Exp)) -->
+	keyword("filter"),
+	(   constraint(Exp)
+	->  ""
+	;   syntax_error(filter_expected)
+	).
+
 %%	constraint(-Filter)//
 
-constraint(ebv(Exp)) -->
-	keyword("filter"),
+constraint(Exp) -->
 	(   bracketted_expression(Exp)
 	->  []
 	;   built_in_call(Exp)
 	->  ""
 	;   function_call(Exp)
-	->  ""
-	;   syntax_error(filter_expected)
 	).
 
 %%	function_call(-Function)// is semidet.
