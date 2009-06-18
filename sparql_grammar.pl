@@ -650,12 +650,21 @@ must_see_group_graph_pattern(_) -->
 %
 %	Processes order by, limit and offet clauses into a term
 %
-%	solutions(Order, Limit, Offset)
+%		solutions(Order, Limit, Offset)
 
-solution_modifier(solutions(Order, Limit, Offset)) -->
+solution_modifier(Modifier) -->
+	{ Modifier = solutions(Order, Limit, Offset) },
 	( order_clause(Order)   -> [] ; { Order  = unsorted } ),
-	( limit_clause(Limit)   -> [] ; { Limit  = inf } ),
+	limit_offset_clauses(Limit, Offset).
+
+limit_offset_clauses(Limit, Offset) -->
+	limit_clause(Limit), !,
 	( offset_clause(Offset) -> [] ; { Offset = 0 } ).
+limit_offset_clauses(Limit, Offset) -->
+	offset_clause(Offset), !,
+	( limit_clause(Limit)   -> [] ; { Limit  = inf } ).
+limit_offset_clauses(inf, 0) --> [].
+
 
 %%	order_clause(-Order)//
 
