@@ -1318,9 +1318,9 @@ qname_ns('') -->
 %	Qualified name.  Term is one of Q:N or '':N
 
 'QNAME'(Q:N) -->
-	ncname_prefix(Q), ":", !, ncname(N).
+	ncname_prefix(Q), ":", !, pn_local(N).
 'QNAME'('':N) -->
-	":", ncname(N).
+	":", pn_local(N).
 
 
 %%	blank_node_label(-Bnode)// is semidet.
@@ -1328,7 +1328,7 @@ qname_ns('') -->
 %	Processes "_:..." into a bnode(Name) term.
 
 blank_node_label(bnode(Name)) -->
-	"_:", ncname(Name), skip_ws.
+	"_:", pn_local(Name), skip_ws.
 
 
 %%	var1(-Atom)// is semidet.
@@ -1556,45 +1556,45 @@ ws_star --> "".
 anon(bnode(_)) --> "[", ws_star, "]", skip_ws.
 
 
-%%	ncchar1p(-Code)//
+%%	pn_chars_base(-Code)//
 %
 %	Basic identifier characters
 
-ncchar1p(Code) -->
+pn_chars_base(Code) -->
 	esc_code(Code),
-	{ ncchar1p(Code) }, !.
+	{ pn_chars_base(Code) }, !.
 
-ncchar1p(Code) :- between(0'A, 0'Z, Code).
-ncchar1p(Code) :- between(0'a, 0'z, Code).
-ncchar1p(Code) :- between(0x00C0, 0x00D6, Code).
-ncchar1p(Code) :- between(0x00D8, 0x00F6, Code).
-ncchar1p(Code) :- between(0x00F8, 0x02FF, Code).
-ncchar1p(Code) :- between(0x0370, 0x037D, Code).
-ncchar1p(Code) :- between(0x037F, 0x1FFF, Code).
-ncchar1p(Code) :- between(0x200C, 0x200D, Code).
-ncchar1p(Code) :- between(0x2070, 0x218F, Code).
-ncchar1p(Code) :- between(0x2C00, 0x2FEF, Code).
-ncchar1p(Code) :- between(0x3001, 0xD7FF, Code).
-ncchar1p(Code) :- between(0xF900, 0xFDCF, Code).
-ncchar1p(Code) :- between(0xFDF0, 0xFFFD, Code).
-ncchar1p(Code) :- between(0x10000, 0xEFFFF, Code).
+pn_chars_base(Code) :- between(0'A, 0'Z, Code).
+pn_chars_base(Code) :- between(0'a, 0'z, Code).
+pn_chars_base(Code) :- between(0x00C0, 0x00D6, Code).
+pn_chars_base(Code) :- between(0x00D8, 0x00F6, Code).
+pn_chars_base(Code) :- between(0x00F8, 0x02FF, Code).
+pn_chars_base(Code) :- between(0x0370, 0x037D, Code).
+pn_chars_base(Code) :- between(0x037F, 0x1FFF, Code).
+pn_chars_base(Code) :- between(0x200C, 0x200D, Code).
+pn_chars_base(Code) :- between(0x2070, 0x218F, Code).
+pn_chars_base(Code) :- between(0x2C00, 0x2FEF, Code).
+pn_chars_base(Code) :- between(0x3001, 0xD7FF, Code).
+pn_chars_base(Code) :- between(0xF900, 0xFDCF, Code).
+pn_chars_base(Code) :- between(0xFDF0, 0xFFFD, Code).
+pn_chars_base(Code) :- between(0x10000, 0xEFFFF, Code).
 
 esc_code(Code) -->
 	uchar(Code), !.
 esc_code(Code) -->
 	[ Code ].
 
-%%	ncchar1(-Code)//
+%%	pn_chars_u(-Code)//
 %
 %	Allows for _
 
-ncchar1(Code) -->
+pn_chars_u(Code) -->
 	esc_code(Code),
-	{ ncchar1(Code) }.
+	{ pn_chars_u(Code) }.
 
-ncchar1(Code) :-
-	ncchar1p(Code).
-ncchar1(0'_).
+pn_chars_u(Code) :-
+	pn_chars_base(Code).
+pn_chars_u(0'_).
 
 
 %%	varname(-Atom)//
@@ -1612,7 +1612,7 @@ varchar1(Code) -->
 	{ varchar1(Code) }.
 
 varchar1(Code) :-
-	ncchar1(Code), !.
+	pn_chars_u(Code), !.
 varchar1(Code) :-
 	between(0'0, 0'9, Code).
 
@@ -1642,7 +1642,7 @@ ncchar(0'-).
 %%	ncname_prefix(-Atom)//
 
 ncname_prefix(Atom) -->
-	ncchar1p(C0),
+	pn_chars_base(C0),
 	(   ncname_prefix_suffix(Cs)
 	->  { atom_codes(Atom, [C0|Cs]) }
         ;   { char_code(Atom, C0) }
@@ -1666,10 +1666,10 @@ ncchar_or_dot(Code) :-
 	ncchar(Code), !.
 ncchar_or_dot(0'.).
 
-%%	ncname(-Atom)//
+%%	pn_local(-Atom)//
 
-ncname(Atom) -->
-	ncchar1(C0),
+pn_local(Atom) -->
+	varchar1(C0),
 	(   ncname_prefix_suffix(Cs)
 	->  { atom_codes(Atom, [C0|Cs]) }
         ;   { char_code(Atom, C0) }
