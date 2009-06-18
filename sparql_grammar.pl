@@ -940,10 +940,10 @@ mk_proplist([O|OT], P, [property(P,O)|T0], T) :-
 %%	object_list(-L, -Triples, ?TriplesTail)//
 
 object_list(List, Triples, Tail) -->
-	graph_node(H, Triples, T0),
+	object(H, Triples, T0),
 	(   ",", skip_ws
-	->  objects(T, T0, Tail),
-	    { List = [H|T] }
+	->  { List = [H|T] },
+	    object_list(T, T0, Tail)
 	;   { List = [H],
 	      Tail = T0
 	    }
@@ -954,12 +954,8 @@ must_see_object_list(List, Triples, Tail) -->
 must_see_object_list(_,_,_) -->
 	syntax_error(object_list_expected).
 
-
-objects([H|T], Triples, Tail) -->
-	graph_node(H, Triples, T0), !,
-	objects(T, T0, Tail).
-objects([], Tail, Tail) -->
-	[].
+object(Obj, Triples, Tail) -->
+	graph_node(Obj, Triples, Tail).
 
 %%	verb(-E)//
 
