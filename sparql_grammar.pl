@@ -250,6 +250,8 @@ resolve_construct_triple(rdf(S0,P0,O0), rdf(S,P,O), St0, St) :-
 %
 resolve_solutions(distinct(S0), distinct(S), Goal, State) :- !,
 	resolve_solutions(S0, S, Goal, State).
+resolve_solutions(reduced(S0), reduced(S), Goal, State) :- !,
+	resolve_solutions(S0, S, Goal, State).
 resolve_solutions(solutions(unsorted, Limit, Offset),
 		  solutions(unsorted, Limit, Offset), true, _) :- !.
 resolve_solutions(solutions(order_by(OrderBy0), Limit, Offset),
@@ -534,6 +536,8 @@ select_query(select(Projection, DataSets, Query, Solutions)) -->
 	keyword("select"),
 	(   keyword("distinct")
 	->  { Solutions = distinct(S0) }
+	;   keyword("reduced")
+	->  { Solutions = reduced(S0) }
 	;   { Solutions = S0 }
 	),
 	select_projection(Projection),
