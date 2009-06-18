@@ -490,7 +490,13 @@ load_syntax_manifests :-
 
 run_all_syntax_tests :-
 	forall(current_test(_, Test),
-	       (blocked_test(Test) -> assertz(skipped(Test)) ; syntax_test(Test))),
+	       (   blocked_test(Test)
+	       ->  assertz(skipped(Test))
+	       ;   syntax_test(Test)
+	       ->  true
+	       ;   format('FAILED: ~q~n', [Test]),
+		   fail
+	       )),
 	findall(T, passed(T), Passed), length(Passed, NPassed),
 	findall(T, failed(T), Failed), length(Failed, NFailed),
 	findall(T, skipped(T), Skipped), length(Skipped, NSkipped),
@@ -504,8 +510,10 @@ syntax_test(Name, Query) :-
 	test_name(Test, Name), !,
 	syntax_test(Test, Query).
 syntax_test(Test, Query) :-
-	test_query(Test, Codes),
+	test_query(Test, Codes), !,
 	syntax_test(Test, Codes, Query).
+syntax_test(Test, _) :-
+	assertz(skipped(Test)).
 
 blocked_test(Test) :-
 	test_name(Test, Name),
@@ -530,13 +538,13 @@ syntax_test(Test, Codes, Query) :-
 	(   catch(sparql_parse(Codes, Query, []), E, true)
 	->  (   nonvar(E)
 	    ->  assert(passed(Test))
-	    ;   test_name(Test, literal(Name)),
-		format('NEG TEST SUCCEEDED: ~q: ', [Name]),
+	    ;   test_name(Test, Name),
+		format('NEG TEST SUCCEEDED: ~q:~n', [Name]),
 		assert(failed(Test))
 	    )
 	;   assert(failed(Test)),
 	    test_name(Test, Name),
-	    format('NEG TEST FAILED WITHOUT ERROR: ~q: ', [Name])
+	    format('NEG TEST FAILED WITHOUT ERROR: ~q:~n', [Name])
 	).
 syntax_test(Test, _, _) :-
 	assert(skipped(Test)).

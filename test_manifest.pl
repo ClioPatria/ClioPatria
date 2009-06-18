@@ -118,7 +118,7 @@ current_test(Manifest, Test) :-
 	mf_member(Test, Collection).
 
 
-%%	test_name(?Test, ?Name)
+%%	test_name(?Test, ?Name) is det.
 %
 %	True if Name is the name associated with Test.
 
@@ -127,7 +127,6 @@ test_name(Test, Name) :-
 	mf_rdf(Test, mf:name, literal(Name)).
 test_name(Test, Name) :-
 	mf_rdf(Test, mf:name, literal(Name)), !.
-
 
 %%	test_syntax(+Test, ?PosNeg) is semidet.
 %
