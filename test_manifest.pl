@@ -154,7 +154,7 @@ test_query_file(Test, File) :-		% Normal cases
 	mf_rdf(Action, qt:query, FileURI), !,
 	file_name_to_url(File, FileURI).
 test_query_file(Test, File) :-		% SyntaxDev cases
-	mf_rdf(Test, mf:action, FileURI),
+	mf_rdf(Test, mf:action, FileURI), !,
 	file_name_to_url(File, FileURI).
 
 
