@@ -755,6 +755,13 @@ filtered_basic_graph_pattern(P) -->
 	;   { P = P1 }
 	).
 
+one_dot -->
+	".", !, skip_ws,
+	(   "."
+	->  syntax_error("double_dot")
+	;   ""
+	).
+
 optional_dot --> ".", skip_ws.
 optional_dot --> "".
 
@@ -770,11 +777,11 @@ block_of_triples(List, T) -->
 	block_of_triples_cont(T0, T).
 
 block_of_triples_cont(List, T) -->
-	".", skip_ws,
+	one_dot,
 	triples_same_subject(List, T0), !,
 	block_of_triples_cont(T0, T).
 block_of_triples_cont(List, T) -->
-	".", !, skip_ws,
+	one_dot, !,
 	block_of_triples_cont(List, T).
 block_of_triples_cont(T, T) -->
 	"".
@@ -880,7 +887,7 @@ construct_triples(List) -->
 
 construct_triples(List, T) -->
 	triples_same_subject(List, T0), !,
-	(   ".", skip_ws
+	(   one_dot
 	->  (   peek("}")
 	    ->  { T = T0 }
 	    ;   construct_triples(T0, T)
