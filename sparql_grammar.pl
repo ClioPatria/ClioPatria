@@ -496,14 +496,14 @@ query(Prolog, Query) -->
 
 prolog(prolog(Base, Prefixes)) -->
 	base_decl(Base), !,
-	prefix_decls(Prefixes).
+	prefix_decls(Prefixes, Base).
 prolog(prolog(Prefixes)) -->
-	prefix_decls(Prefixes).
+	prefix_decls(Prefixes, -).
 
-prefix_decls([H|T]) -->
-	prefix_decl(H), !,
-	prefix_decls(T).
-prefix_decls([]) -->
+prefix_decls([H|T], Base) -->
+	prefix_decl(H, Base), !,
+	prefix_decls(T, Base).
+prefix_decls([], _) -->
 	[].
 
 %%	base_decl(-Base:uri)// is semidet.
@@ -514,15 +514,15 @@ base_decl(Base) -->
 	keyword("base"),
 	q_iri_ref(Base).
 
-%%	prefix_decl(-Prefix)// is semidet.
+%%	prefix_decl(-Prefix, +Base)// is semidet.
 %
 %	Process "prefix <qname> <URI>" into a term Qname-IRI
 
-prefix_decl(Id-IRI) -->
+prefix_decl(Id-IRI, Base) -->
 	keyword("prefix"),
 	(   qname_ns(Id),
-	    q_iri_ref(IRI)
-	->  ""
+	    q_iri_ref(IRI0)
+	->  { global_url(IRI0, Base, IRI) }
 	;   syntax_error(illegal_prefix_declaration)
 	).
 
