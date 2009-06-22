@@ -7,6 +7,10 @@
 	* Realise decending and multi-column sorting
 	* Value-specific comparison
 
+* Implement ASK
+
+* Implement DESCRIBE
+
 * Implement named graphs
 
 * Implement value based semantics in xsd:dateTime
@@ -16,8 +20,19 @@
 
 	* Add rdf(X, Y, literal(number(1), X))
 
+* Generalise the optimiser to deal with SPARQL runtime functions and control
+  structures.
+
 * HTTP Server protocol
 
 	* Implement Accept header info
 	* Properly report errors.
 	* Added JSON replies
+
+---++ Jena compatibility
+
+	* Function properties
+	    * <S> <P> <O> has special meaning for some <P>, generating
+	    different values for <O>.
+
+	    --> Post processing
