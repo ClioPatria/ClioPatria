@@ -323,6 +323,8 @@ load_triples(rdf, File, Triples) :- !,
 	load_rdf(File, Triples).
 load_triples(ttl, File, Triples) :- !,
 	rdf_load_turtle(File, Triples, []).
+load_triples(n3, File, Triples) :- !,
+	rdf_load_turtle(File, Triples, []).
 
 
 		 /*******************************
