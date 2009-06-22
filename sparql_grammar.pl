@@ -318,9 +318,6 @@ resolve_graph_term(literal(type(IRI0, Value)),
 resolve_graph_term(boolean(Val),
 		   literal(type(Type, Val)), S, S) :- !,
 	rdf_equal(Type, xsd:boolean).
-resolve_graph_term(numeric(Type, Value),
-		   literal(type(Type, Atom)), S, S) :-
-	atom_number(Atom, Value).
 resolve_graph_term(T, T, S, S).
 
 
@@ -1053,8 +1050,6 @@ var(var(Name)) -->
 
 graph_term(T)    --> iri_ref(T), !.
 graph_term(T)    --> rdf_literal(T), !.
-graph_term(-(T)) --> "-", !, numeric_literal(T).
-graph_term(T)    --> "+", !, numeric_literal(T).
 graph_term(T)    --> numeric_literal(T), !.
 graph_term(T)    --> boolean_literal(T), !.
 graph_term(T)	 --> blank_node(T).
@@ -1240,15 +1235,27 @@ rdf_literal(literal(Value)) -->
 	skip_ws.
 
 %%	numeric_literal(-Number)//
+%
+%	Match a literal value and return it as a term
+%
+%		literal(type(Type, Atom))
+%
+%	Where Type is one of xsd:double,  xsd:decimal or xsd:integer and
+%	Atom is the matched text. The   value  cannot always be obtained
+%	using atom_number/2 because floats and decimals can start or end
+%	with a '.', something which is not allowed in Prolog.
 
-numeric_literal(numeric(Type, Number)) -->
-	(   double(Number)
+numeric_literal(literal(type(Type, Value))) -->
+	optional_pm(Codes, CV),
+	(   double_string(CV)
 	->  { rdf_equal(xsd:double, Type) }
-	;   decimal(Number)
+	;   decimal_string(CV)
 	->  { rdf_equal(xsd:decimal, Type) }
-	;   integer(Number)
+	;   integer_string(CV)
 	->  { rdf_equal(xsd:integer, Type) }
 	), !,
+	{ atom_codes(Value, Codes)
+	},
 	skip_ws.
 
 %%	boolean_literal(-TrueOrFalse)//
@@ -1382,55 +1389,56 @@ sub_lang_ids(T, T) -->
 	[].
 
 
-%%	integer(-Integer)//
+%%	integer(-Integer)// is semidet.
+%
+%	Match an integer and return its value.
+
+integer(Integer) -->
+	integer_string(Codes),
+	{ number_codes(Integer, Codes)
+	}.
+
+
+%%	integer_string(-Codes)// is semidet.
 %
 %	Extract integer value.
 
-integer(Int) -->
-	one_or_more_digits(Codes, []), !,
-	skip_ws,
-	{ number_codes(Int, Codes) }.
+integer_string(Codes) -->
+	one_or_more_digits(Codes, []), !.
 
-
-%%	decimal(-Float)//
+%%	decimal_string(-Codes)//
 %
-%	Extract float without exponent and return numeric value.
-%	TBD: merge with double?
+%	Extract float without exponent and return  the matched text as a
+%	list of codes.
 
-decimal(Float) -->
+decimal_string(Codes) -->
 	one_or_more_digits(Codes, T0), !,
 	dot(T0, T1),
-	digits(T1, "0"),		% extra 0 to ensure at least one
-	{ number_codes(Float, Codes) }.
-decimal(Float) -->
+	digits(T1, []).
+decimal_string(Codes) -->
 	dot(Codes, T1),
-	one_or_more_digits(T1, []),
-	{ number_codes(Float, Codes) }.
+	one_or_more_digits(T1, []).
 
 
-%%	double(-Float)//
+%%	double_string(-Codes)// is semidet.
 %
-%	Extract a float number with  exponent   and  return  the numeric
-%	value.
+%	Extract a float number with exponent and  return the result as a
+%	list of codes.
 
-double(Float) -->
+double_string(Codes) -->
 	one_or_more_digits(Codes, T0), !,
 	dot(T0, T1),
 	digits(T1, T2),
-	exponent(T2, []),
-	{ number_codes(Float, Codes) }.
-double(Float) -->
+	exponent(T2, []).
+double_string(Codes) -->
 	dot(Codes, T1),
 	one_or_more_digits(T1, T2), !,
-	exponent(T2, []),
-	{ number_codes(Float, Codes) }.
-double(Float) -->
+	exponent(T2, []).
+double_string(Codes) -->
 	one_or_more_digits(Codes, T2), !,
-	exponent(T2, []),
-	{ number_codes(Float, Codes) }.
+	exponent(T2, []).
 
-
-dot([0'.|T], T) --> ".".
+dot([0'.|T], T) --> ".".		% 0'
 
 
 %%	exponent(-Codes, ?Tail)//

@@ -40,9 +40,9 @@
 	term_expansion/2.
 
 %%	sparql_true(+Term)
-%	
+%
 %	Generated from FILTER Term, where Term must be converted to a
-%	boolean as 'Effective Boolean Value'. 
+%	boolean as 'Effective Boolean Value'.
 
 sparql_true(Term) :- !,
 	typed_eval(boolean, Term, Result),
@@ -78,7 +78,7 @@ eval_args([H0|T0], [Type0|Types], [H|T]) :-
 	eval_args(T0, Types, T).
 
 %%	eval(+Type, +Term, -Result)
-%	
+%
 %	Evaluate Term, converting the resulting argument to Type.
 
 typed_eval(no_eval, Term, Term).
@@ -105,28 +105,53 @@ eval_literal(Atom, simple_literal(Atom)) :-
 
 eval_typed_literal(Type, Atom, numeric(Type, Value)) :-
 	xsdp_numeric_uri(Type, _), !,
-	to_number(Atom, Value).
+	numeric_literal_value(Type, Atom, Value).
 eval_typed_literal(Type, Atom, boolean(Atom)) :-
 	rdf_equal(Type, xsd:boolean), !.
 eval_typed_literal(Type, Atom, date_time(Atom)) :-
 	rdf_equal(Type, xsd:dateTime), !.
 eval_typed_literal(Type, Atom, typed_literal(Type, Atom)).
 
-%%	to_number(+NumberOrAtom, -Number)
-%	
-%	Dubious.  Comes  from   grammar   that    translates   15   into
-%%	literal(type(xsd:integer, 15)).
+%%	numeric_literal_value(+Literal, -Value) is semidet.
+%
+%	Convert a SPARQL numeric literal into  its value for the purpose
+%	of comparison-by-value.
+%
+%	@tbd	Move this into the rdf_db library.  There we can achieve
+%		better performance and we can do more efficient
+%		matching.
 
-to_number(N, N) :-
-	number(N), !.
-to_number(A, N) :-
-	atom_number(A, N).
+numeric_literal_value(Type, Text, Value) :-
+	rdf_equal(Type, xsd:integer), !,
+	catch(atom_number(Text, Value), _, fail),
+	integer(Value).
+numeric_literal_value(_, Text, Value) :-
+	catch(atom_number(Text, Value), _, fail), !,
+	float(Value).
+numeric_literal_value(_, Text, Value) :-
+	catch(rdf_text_to_float(Text, Value), _, fail),
+	float(Value).
+
+rdf_text_to_float(Text, Value) :-
+	atom_codes(Text, Codes),
+	optional_sign(Codes, Rest, Sign),
+	(   Rest = [0'.|_]
+	->  number_codes(NonnegValue, [0'0|Rest])
+	;   last(Rest, 0'.)
+	->  append(Rest, [0'0], NonnegCodes),
+	    number_codes(NonnegCodes, NonnegValue)
+        ),
+	Value is NonnegValue*Sign.
+
+optional_sign([0'+|Rest], Rest, 1) :- !.
+optional_sign([0'-|Rest], Rest, -1) :- !.
+optional_sign(Rest, Rest, 1).
 
 %%	op(+Operator, -Result) is semidet.
-%	
+%
 %	@param Operator	Term of the format Op(Arg...) where each Arg
 %			is embedded in its type.
-%	@param Result	Result-value, embedded in its type.	
+%	@param Result	Result-value, embedded in its type.
 
 % SPARQL Unary operators
 op(not(boolean(X)), boolean(Result)) :-
@@ -233,7 +258,7 @@ op(langmatches(simple_literal(Lang),
    boolean(Result)) :-
 	(langmatches(Lang, Pat) -> Result = true ; Result = false).
 op(regex(simple_literal(Pat),
-	 simple_literal(String)), 
+	 simple_literal(String)),
    boolean(Result)) :-
 	(regex(Pat, String, '') -> Result = true ; Result = false).
 op(regex(simple_literal(Pat),
@@ -244,7 +269,7 @@ op(regex(simple_literal(Pat),
 
 %	Numeric types follows the Xpath definitions of
 %	http://www.w3.org/TR/xpath-functions/#numeric-functions
-%	TBD: 
+%	TBD:
 
 %%	combine_types_div(+TypeLeft, +TypeRight, -Type)
 
@@ -280,7 +305,7 @@ type_index(xsd:double,  4).
 
 
 %%	rdf_equal(+RDFTerm, +RDFTerm, -Boolean)
-%	
+%
 %	RDF Term equivalence. Described as   lexical equivalence, except
 %	where we have the logic to do value equivalence.
 
@@ -301,7 +326,7 @@ eq_bool(X, Y, true) :-
 eq_bool(_, _, false).
 
 %%	boolean_value(+Content, -Bool)
-%	
+%
 %	Convert the value from literal(xsd:boolean, Content) into
 %	either 'true' or 'false'.
 
@@ -362,7 +387,7 @@ make_type([boolean(_)],	       boolean) :- !.
 make_type([numeric(_, _)],     numeric) :- !.
 make_type([simple_literal(_)], simple_literal) :- !.
 make_type(_,		       any).
-	
+
 :- make_op_declarations.
 
 		 /*******************************
@@ -370,14 +395,14 @@ make_type(_,		       any).
 		 *******************************/
 
 %%	xsd_cast(+Term, -Type, -Arg)
-%	
+%
 %	Deals with xsd:dateTime(?a), casting ?a to   the XML Schema type
 %	dateTime. Supported types are the numeric types, xsd:boolean and
 %	xsd:dateTime.
 
 term_expansion(xsd_casts, Clauses) :-
 	findall(Clause, xsd_cast_clause(Clause), Clauses).
-	       
+
 xsd_cast_clause(xsd_cast(Term, Type, Arg)) :-
 	(   xsdp_numeric_uri(Type, _)
 	;   rdf_equal(xsd:dateTime, Type)
@@ -388,7 +413,7 @@ xsd_cast_clause(xsd_cast(Term, Type, Arg)) :-
 xsd_casts.
 
 %%	eval_cast(+Type, +Value, -Result)
-%	
+%
 %	Case Value to Type, resulting in a   typed  literal. Can we only
 %	case simple literals?
 
@@ -398,7 +423,7 @@ eval_cast(Type, literal(Value), Result) :-
 
 
 %%	eval_function(+Term, -Result)
-%	
+%
 %	Eval user-defined function.  User-defined functions are of the
 %	form sparql:function(Term, Result).
 
@@ -432,15 +457,15 @@ not(true, false).
 not(false, true).
 
 %%	bound(X)
-%	
+%
 %	Does not evaluate args.  If the argument is a function it
 %	is always bound.
 
 bound(X) :- nonvar(X).
 
 %%	str(+RDFTerm, -Atom)
-%	
-%	Extract lexical representation from RDFTerm.  
+%
+%	Extract lexical representation from RDFTerm.
 
 str(Var, _) :-
 	var(Var), !, fail.
@@ -463,7 +488,7 @@ str_literal(lang(_, Str), Str) :- !.
 str_literal(Str, Str).
 
 %%	lang(+RDFTerm, -Lang)
-%	
+%
 %	Extract language specification from an RDFTerm
 
 lang(0, _) :- !, fail.			% catch variables.
@@ -472,7 +497,7 @@ lang(literal(lang(Lang, _)), Lang) :- !.
 lang(literal(_), '').			% Fail on typed?
 
 %%	datatype(+RDFTerm, -IRI)
-%	
+%
 %	Extract type specification from an RDFTerm
 
 datatype(0, _) :- !, fail.
@@ -501,7 +526,7 @@ sparql_or(false, false,	false) :- !.
 sparql_or(_,	 _,	error).
 
 %%	langmatches(+Lang, +Pattern)
-%	
+%
 %	Section 11.4.11 function LangMatches.  This   is  slow. Guess we
 %	better move this to the  RDF  library.   Note  that  none of the
 %	functions return a language qualified   literal and we therefore
@@ -525,7 +550,7 @@ langmatches_codes([HP|TP], [HC|TC]) :- !,
 	langmatches_codes(TP, TC).
 
 %%	isiri(+IRI)
-%	
+%
 %	True if IRI is an IRI.  We get the argument un-evaluated.
 
 isiri(IRI) :-
@@ -555,7 +580,7 @@ isliteral(Expr) :-
 
 
 %%	regex(+String, +Pattern, +Flags)
-%	
+%
 %	TBD:
 %		- Avoid XPCE
 %		- Complete flags
@@ -578,7 +603,7 @@ make_regex(Pattern, _, Regex) :- !,
 	new(Regex, regex(Pattern)).
 
 %%	effective_boolean_value(+Expr, -Bool)
-%	
+%
 %	See SPARQL document, section 11.2.2: Effecitive Boolean Value
 
 effective_boolean_value(boolean(X), boolean(True)) :- !,
@@ -592,7 +617,7 @@ effective_boolean_value(numeric(_, X),  boolean(True)) :- !,
 effective_boolean_value(_,  boolean(error)).
 
 %%	sparql_eval(+Expr, -Results)
-%	
+%
 %	Evaluate an expression.
 
 sparql_eval(Expr, Expr) :-
@@ -610,7 +635,7 @@ to_rdf(simple_literal(L), literal(L)).
 to_rdf(iri(IRI), IRI).
 
 %%	is_rdf(+Term)
-%	
+%
 %	True if Term is a valid RDF term.
 
 is_rdf(0) :- !, fail.			% catch variables
