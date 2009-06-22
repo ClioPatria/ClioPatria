@@ -181,12 +181,25 @@ compare_results(_, _, no_result, _) :- !.
 compare_results(Test, ask, ask(Bool), [Bool]) :- !,
 	assert(passed(Test)).
 compare_results(Test, Type, select(ColNames, Rows), Result) :-
-	Type = select(MyColNames),
+	Type = select(MyColNames), !,
 	same_colnames(ColNames, MyColNames, Map),
 	(   Map == nomap
 	->  RowsMyOrder = Rows
 	;   map_rows(Rows, Map, RowsMyOrder)
 	),
+	compare_sets(Test, Type, RowsMyOrder, Result).
+compare_results(Test, construct, Correct, Result) :- !,
+	compare_sets(Test, compare_sets, Correct, Result).
+compare_results(Test, Type, Correct, Result) :-
+	test_name(Test, Name),
+	format('~`=t ~q ~`=t~72|~n', [Name]),
+	format('TYPE: ~q~n', [Type]),
+	write_list('CORRECT:', Correct, 8),
+	write_list('WE:', Result, 8),
+	format('~`=t~72|~n~n', []),
+	assert(failed(Test)).
+
+compare_sets(Test, Type, RowsMyOrder, Result) :-
 	var_blank_nodes_in_rows(RowsMyOrder, RowsMyOrderV),
 	var_blank_nodes_in_rows(Result, ResultV),
 	sort(RowsMyOrderV, OkRows),		% TBD: match blank nodes!
@@ -207,14 +220,7 @@ compare_results(Test, Type, select(ColNames, Rows), Result) :-
 	    format('~`=t~72|~n~n', []),
 	    assert(failed(Test))
 	).
-compare_results(Test, Type, Correct, Result) :-
-	test_name(Test, Name),
-	format('~`=t ~q ~`=t~72|~n', [Name]),
-	format('TYPE: ~q~n', [Type]),
-	write_list('CORRECT:', Correct, 8),
-	write_list('WE:', Result, 8),
-	format('~`=t~72|~n~n', []),
-	assert(failed(Test)).
+
 
 %%	same_colnames(+Names1, +Names2, -Map)
 %
@@ -387,7 +393,7 @@ write_cell('$null$') :- !,
 	write('NULL').
 write_cell(R) :-
 	atom(R), !,
-	format('<!~w>', [R]).
+	format('<~w>', [R]).
 write_cell(X) :-
 	format('~p', [X]).
 
