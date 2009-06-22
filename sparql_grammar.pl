@@ -193,11 +193,29 @@ resolve_query(ebv(E0), sparql_true(E), S0, S) :- !,
 	resolve_expression(E0, E, S0, S).
 resolve_query(Q, Q, S, S).		% TBD
 
-rdf_goal(S, P, O, RDF, State) :-
+rdf_goal(S, P, O0, RDF, State) :-
+	rdf_goal_object(O0, O),
 	(   state_graph(State, [Graph|_])
 	->  RDF = rdf(S, P, O, Graph:_)
 	;   RDF = rdf(S, P, O)
 	).
+
+%%	rdf_goal_object(+ObjIn, -ObjGoal) is det.
+%
+%	Note that in SPARQL plain literals   (e.g.,  "hello") only match
+%	literals that have neither a language  nor a type-qualifier. The
+%	SemWeb library introduced rdf(S,P,literal(plain(X), X)) for this
+%	purpose.
+
+rdf_goal_object(O, O) :-
+	var(O), !.
+:- if((rdf_version(X), X >= 20800)).
+rdf_goal_object(literal(X), O) :-
+	atom(X), !,
+	O = literal(plain(X), X).
+:- endif.
+rdf_goal_object(O, O).
+
 
 mkconj(true, Q, Q) :- !.
 mkconj(Q, true, Q) :- !.
@@ -286,7 +304,7 @@ resolve_state(prolog(Base, PrefixesList),
 		     var_assoc(Vars)
 		   ], State).
 
-%%	resolve_graph_term(+T0, -T, +State0, -State)
+%%	resolve_graph_term(+T0, -T, +State0, -State) is det.
 
 resolve_graph_term(Var, Var, S, S) :-
 	var(Var), !.
