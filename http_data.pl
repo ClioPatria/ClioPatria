@@ -47,6 +47,7 @@
 :- use_module(library('semweb/rdfs')).
 :- use_module(library('semweb/rdf_db')).
 :- use_module(library(semweb/rdf_library)).
+:- use_module(library(semweb/rdf_turtle)).
 :- use_module(library('http/html_write')).
 :- use_module(library('http/http_open')).
 :- use_module(library('http/http_dispatch')).
@@ -54,7 +55,6 @@
 :- use_module(library(rdf_ntriples)).
 :- use_module(library(debug)).
 :- use_module(library(settings)).
-:- use_module(rdf_turtle).
 :- use_module(rdf_store).
 
 					% entailment rules
