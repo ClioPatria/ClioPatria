@@ -72,11 +72,16 @@
 :- http_handler(sesame('clearRepository'),    clear_repository,	    []).
 :- http_handler(sesame('loadBaseOntology'),   load_base_ontology,   []).
 :- http_handler(sesame('listBaseOntologies'), list_base_ontologies, []).
-:- http_handler(sesame('unloadSource'),	      unload_source,	    []).
-:- http_handler(sesame('uploadData'),	      upload_data,	    []).
-:- http_handler(sesame('uploadFile'),	      upload_file,	    []).
-:- http_handler(sesame('uploadURL'),	      upload_url,	    []).
-:- http_handler(sesame('removeStatements'),   remove_statements,    []).
+:- http_handler(sesame('unloadSource'),	      unload_source,
+		[ time_limit(infinite) ]).
+:- http_handler(sesame('uploadData'),	      upload_data,
+		[ time_limit(infinite) ]).
+:- http_handler(sesame('uploadFile'),	      upload_file,
+		[ time_limit(infinite) ]).
+:- http_handler(sesame('uploadURL'),	      upload_url,
+		[ time_limit(infinite) ]).
+:- http_handler(sesame('removeStatements'),   remove_statements,
+		[ time_limit(infinite) ]).
 
 %%	http_login(+Request)
 %
@@ -91,11 +96,11 @@ http_login(Request) :-
 	login(User),
 	reply_page('Successful login',
 		   p(['Login succeeded for ', User])).
- 
+
 %%      http_logout(+Request)
 %
 %       HTTP handler to logout current user.
- 
+
 http_logout(_Request) :-
 	logged_on(User),
 	logout(User),
@@ -103,7 +108,7 @@ http_logout(_Request) :-
 		   p(['Logout succeeded for ', User])).
 
 %%	evaluate_query
-%	
+%
 %	HTTP handler for both SeRQL and SPARQL queries.
 
 evaluate_query(Request) :-
@@ -124,7 +129,7 @@ evaluate_query(Request) :-
 	downcase_atom(QueryLanguage, QLang),
 	compile(QLang, Query, Compiled,
 		[ entailment(Entailment),
-		  type(Type)	
+		  type(Type)
 		]),
 	findall(Reply, run(QLang, Compiled, Reply), Result),
 	statistics(cputime, CPU1),
@@ -151,10 +156,10 @@ evaluate_query(Request) :-
 			 p(['Answer = ', Reply])
 		       ])
 	).
-	
+
 
 %%	evaluate_graph_query(+Request)
-%	
+%
 %	Handle CONSTRUCT queries.
 
 evaluate_graph_query(Request) :-
@@ -175,7 +180,7 @@ evaluate_graph_query(Request) :-
 	downcase_atom(QueryLanguage, QLang),
 	compile(QLang, Query, Compiled,
 		[ entailment(Entailment),
-		  type(Type)	
+		  type(Type)
 		]),
 	(   graph_type(Type)
 	->  true
@@ -196,7 +201,7 @@ graph_type(construct).
 graph_type(describe).
 
 %%	evaluate_table_query(+Request)
-%	
+%
 %	Handle SELECT queries.
 
 evaluate_table_query(Request) :-
@@ -232,7 +237,7 @@ evaluate_table_query(Request) :-
 		    ]).
 
 %%	compile(+Language, +Query, -Compiled, +Options)
-%	
+%
 %	Compile a query and validate the query-type
 
 compile(serql, Query, Compiled, Options) :- !,
@@ -241,7 +246,7 @@ compile(sparql, Query, Compiled, Options) :- !,
 	sparql_compile(Query, Compiled, Options).
 compile(Language, _, _, _) :-
 	throw(error(domain_error(query_language, Language), _)).
-	
+
 %%	run(+Language, +Compiled, -Reply)
 
 run(serql, Compiled, Reply) :-
@@ -250,7 +255,7 @@ run(sparql, Compiled, Reply) :-
 	sparql_run(Compiled, Reply).
 
 %%	extract_rdf(+Request)
-%	
+%
 %	HTTP handler to extract RDF from the database.
 
 extract_rdf(Request) :-
@@ -272,7 +277,7 @@ extract_rdf(Request) :-
 		    [ serialization(Serialization),
 		      cputime(CPU)
 		    ]).
-	
+
 
 %%	export_triple(+Schema, +Data, +ExplicitOnly, -RDF).
 
@@ -296,7 +301,7 @@ schema_triple(rdf(S,_P,_O)) :-
 
 
 %%	list_repositories(+Request)
-%	
+%
 %	List the available repositories. This is only =default= for now
 
 list_repositories(_Request) :-
@@ -321,7 +326,7 @@ list_repositories(_Request) :-
 
 
 %%	clear_repository(+Request)
-%	
+%
 %	Clear the repository.
 
 clear_repository(Request) :-
@@ -340,9 +345,9 @@ clear_repository(Request) :-
 	       'Cleared database'-[]).
 
 %%	load_base_ontology(+Request)
-%	
+%
 %	Load a named ontology from the ontology library.
-%	
+%
 %	@tbd	Cannot use concurrent loading as the load as a whole is
 %		inside an rdf transaction.
 
@@ -363,7 +368,7 @@ load_base_ontology(Request) :-
 
 
 %%	list_base_ontologies(+Request)
-%	
+%
 %	Reply with a list of available base ontologies
 
 list_base_ontologies(Request) :-
@@ -386,7 +391,7 @@ list_base_ontologies(Request) :-
 %%	serql_base_ontology(-Name) is nondet.
 %
 %	True if Name is the name of an ontology from the library.
-%	
+%
 %	@deprecated	Use rdf_library_index/2.
 
 serql_base_ontology(O) :-
@@ -410,7 +415,7 @@ prepare_ontology_dirs :-
 	).
 
 %%	unload_source(+Request)
-%	
+%
 %	Remove triples loaded from a specified source
 
 unload_source(Request) :-
@@ -428,7 +433,7 @@ unload_source(Request) :-
 
 
 %%	upload_data(Request).
-%	
+%
 %	Add data to the repository
 
 upload_data(Request) :- !,
@@ -454,10 +459,10 @@ upload_data(Request) :- !,
 			    )),
 	       ResultFormat,
 	       'Loaded data from POST'-[]).
-	
+
 
 %%	upload_file(+Request)
-%	
+%
 %	Add data to the repository from a file form
 
 upload_file(Request) :-
@@ -483,10 +488,10 @@ upload_file(Request) :-
 			    )),
 	       ResultFormat,
 	       'Loaded data from POST'-[]).
-	
+
 
 %%	upload_url(+Request)
-%	
+%
 %	Add data to the repository
 
 upload_url(Request) :-
@@ -514,9 +519,9 @@ upload_url(Request) :-
 			    )),
 	       ResultFormat,
 	       'Loaded data from ~w'-[URL]).
-	
+
 %%	remove_statements(+Request)
-%	
+%
 %	Remove statements from the database
 
 remove_statements(Request) :-
@@ -561,7 +566,7 @@ remove_statements(Request) :-
 	    ntriple_part(Subject,   subject,   S),
 	    ntriple_part(Predicate, predicate, P),
 	    ntriple_part(Object,    object,    O),
-	    
+
 	    debug(removeStatements, 'Action = ~q', [rdf_retractall(S,P,O)]),
 	    action(Request, rdf_retractall(S,P,O),
 		   ResultFormat,
@@ -587,7 +592,7 @@ ntriple_part(Text, Field, _) :-
 
 
 %%	attribute_decl(+OptionName, -Options)
-%	
+%
 %	Default   options   for   specified     attribute   names.   See
 %	http_parameters/3.
 
@@ -644,14 +649,14 @@ attribute_decl(niceOutput, Options)   :- bool(off, Options).
 					% Our extensions
 attribute_decl(storeAs, [default('')]).
 
-bool(Def, 
+bool(Def,
      [ default(Def),
        type(oneof([on, off]))
      ]).
-     
+
 
 %%	action(+Request, :Goal, +Format, +Message)
-%	
+%
 %	Perform some -modifying-  goal,  reporting   time,  triples  and
 %	subject statistics.
 
@@ -669,7 +674,7 @@ action(_Request, G, Format, Message) :-
 	Triples is Triples1 - Triples0,
 	Subjects is Subjects1 - Subjects0,
 	done(Format, Message, CPU, Subjects, Triples).
-	
+
 run((A,B), Log) :- !,
 	run(A, Log),
 	run(B, Log).
