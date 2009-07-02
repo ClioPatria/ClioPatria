@@ -153,11 +153,11 @@ idle(online(_Login, Idle, _Connections)) -->
 	html(String).
 idle(_) -->
 	html(-).
-	
+
 
 mmss_duration(Time, String) :-		% Time in seconds
 	Secs is round(Time),
-	Hour is Secs // 3600, 
+	Hour is Secs // 3600,
 	Min  is (Secs // 60) mod 60,
 	Sec  is Secs mod 60,
 	format(string(String), '~`0t~d~2|:~`0t~d~5|:~`0t~d~8|', [Hour, Min, Sec]).
@@ -169,7 +169,7 @@ mmss_duration(Time, String) :-		% Time in seconds
 		 *******************************/
 
 %%	create_admin(+Request)
-%	
+%
 %	Create the administrator login.
 
 create_admin(_Request) :-
@@ -192,7 +192,7 @@ create_admin(_Request) :-
 			  [ \hidden(read, on),
 			    \hidden(write, on),
 			    \hidden(admin, on),
-				    
+
 			    table([ border(1),
 				    align(center)
 				  ],
@@ -213,10 +213,10 @@ create_admin(_Request) :-
 				  ])
 			  ])
 		   ]).
-	
+
 
 %%	add_user_form(+Request)
-%	
+%
 %	Form to register a user.
 
 add_user_form(_Request) :-
@@ -258,7 +258,8 @@ input(Name, Label, Options) -->
 
 %%	add_user(+Request)
 %
-%	Register a new user.
+%	API  to  register  a  new  user.  The  current  user  must  have
+%	administrative rights.
 
 add_user(Request) :-
 	(   \+ current_user(_)
@@ -302,7 +303,7 @@ add_user(Request) :-
 	).
 
 %%	edit_user_form(+Request)
-%	
+%
 %	Form to edit user properties
 
 edit_user_form(Request) :-
@@ -310,12 +311,12 @@ edit_user_form(Request) :-
 	http_parameters(Request,
 			[ user(User, [])
 			]),
-	
+
 	user_property(User, realname(RealName)),
-	
+
 	reply_page('Edit user',
 		   [ h4(['Edit user ', User, ' (', RealName, ')']),
-		     
+
 		     form([ action(location_by_id(edit_user)),
 			    method('GET')
 			  ],
@@ -336,7 +337,7 @@ edit_user_form(Request) :-
 						])))
 				  ])
 			  ]),
-		     
+
 		     p([ \action(location_by_id(del_user)+'?user='+encode(User),
 				 [ 'Delete ',
 				   b(User),
@@ -344,7 +345,7 @@ edit_user_form(Request) :-
 				 ])
 		       ])
 		   ]).
-	
+
 user_property(User, Name, Label, Options) -->
 	{  Term =.. [Name, Value],
 	   user_property(User, Term)
@@ -430,7 +431,7 @@ allow(Access, on) -->
 	].
 allow(_Access, off) --> !,
 	[].
-	
+
 pterm(read,  read(_Repositiory, _Action)).
 pterm(write, write(_Repositiory, _Action)).
 pterm(admin, admin(_Action)).
@@ -452,9 +453,9 @@ del_user(Request) :- !,
 	user_del(User),
 	list_users(Request).
 
-			  
+
 %%	change_password_form(+Request)
-%	
+%
 %	Allow user to change the password
 
 change_password_form(_Request) :-
@@ -462,7 +463,7 @@ change_password_form(_Request) :-
 	user_property(User, realname(RealName)),
 	reply_page('Change password',
 		   [ h4(['Change password for ', User, ' (', RealName, ')']),
-		     
+
 		     form([ action(location_by_id(change_password)),
 			    method('GET')
 			  ],
@@ -491,7 +492,7 @@ user_or_old(_) -->
 
 
 %%	change_password(+Request)
-%	
+%
 %	Actually change the password.  The user must be logged on.
 
 change_password(Request) :-
@@ -598,7 +599,7 @@ reply_login(_) :-
 		   [ h1(align(center), 'Login failed'),
 		     p(['Password incorrect'])
 		   ]).
-		     
+
 %%	user_logout(+Request)
 %
 %	Logout the current user
@@ -619,13 +620,19 @@ reload_attr(Frame, onLoad(Script)) :-
 		    ], Script).
 
 
-attribute_decl(read,  Options)   :- bool(off, Options).
-attribute_decl(write, Options)   :- bool(off, Options).
-attribute_decl(admin, Options)   :- bool(off, Options).
+attribute_decl(read,
+	       [ description('Provide read-only access to the RDF store')
+	       | Options])   :- bool(off, Options).
+attribute_decl(write,
+	       [ description('Provide write access to the RDF store')
+	       | Options])   :- bool(off, Options).
+attribute_decl(admin,
+	       [ description('Provide administrative rights')
+	       | Options])   :- bool(off, Options).
 
-bool(Def, 
+bool(Def,
      [ default(Def),
-       type(oneof([on, off]))
+       oneof([on, off])
      ]).
 
 
@@ -634,8 +641,8 @@ bool(Def,
 		 *******************************/
 
 %%	add_openid_server_form(+Request)
-%	
-%	Register an OpenID server
+%
+%	Return an HTML page to add a new OpenID server.
 
 add_openid_server_form(_Request) :-
 	authorized(admin(add_openid_server)),
@@ -684,8 +691,12 @@ new_openid_form -->
 add_openid_server(Request) :-
 	authorized(admin(add_openid_server)),
 	http_parameters(Request,
-			[ openid_server(Server0,          []),
-			  openid_description(Description, [ optional(true) ]),
+			[ openid_server(Server0,
+					[ description('URL of the server to allow')]),
+			  openid_description(Description,
+					     [ optional(true),
+					       description('Description of the server')
+					     ]),
 			  read(Read),
 			  write(Write)
 			],
@@ -718,7 +729,7 @@ canonical_url(URL0, URL) :-
 
 
 %%	edit_openid_server_form(+Request)
-%	
+%
 %	Form to edit user properties
 
 edit_openid_server_form(Request) :-
@@ -726,10 +737,10 @@ edit_openid_server_form(Request) :-
 	http_parameters(Request,
 			[ openid_server(Server, [])
 			]),
-	
+
 	reply_page('Edit OpenID server',
 		   [ h4(['Edit OpenID server ', Server]),
-		     
+
 		     form([ action(location_by_id(edit_openid_server)),
 			    method('GET')
 			  ],
@@ -746,7 +757,7 @@ edit_openid_server_form(Request) :-
 						])))
 				  ])
 			  ]),
-		     
+
 		     p([ \action(location_by_id(del_openid_server) +
 				 '?openid_server=' + encode(Server),
 				 [ 'Delete ', b(Server) ]) ])
@@ -913,7 +924,7 @@ save_settings(Request) :-
 		 *******************************/
 
 %%	hidden(+Name, +Value)
-%	
+%
 %	Create a hidden input field with given name and value
 
 hidden(Name, Value) -->
