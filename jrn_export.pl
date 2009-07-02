@@ -46,10 +46,20 @@ is will be used to synchronise servers.
 :- http_handler(serql(list_journals), list_journals, []).
 :- http_handler(serql(journal),	      journal,	     []).
 
-%%	list_journals
-%	
+%%	list_journals(+Request)
+%
 %	HTTP handler to list the available journals from the persistent
-%	store.
+%	store as an XML document.  Here is an example document:
+%
+%	==
+%	<journals>
+%	  <journal db="http://www.example.org/db1"/>
+%	  <journal db="http://www.example.org/db2"/>
+%	  ...
+%	</journals>
+%	==
+%
+%	@see /journal
 
 list_journals(_Request) :- !,
 	authorized(read(default, list_journals)),
@@ -59,16 +69,23 @@ list_journals(_Request) :- !,
 	       format('  <journal db="~w"/>~n', [DB])),
 	format('</journals>~n').
 
-%%	journal
+%%	journal(+Request)
 %
-%	HTTP handler that serves the journal for an RDF named graph.
+%	HTTP handler that serves the journal for an RDF named graph as a
+%	Prolog text. If no journal  is   available  for  the given named
+%	graph, it returns a 404 page.
+%
+%	@see /list_journals
+
 
 journal(Request) :- !,
 	http_parameters(Request,
-			[ 'DB'(DB, [])
+			[ 'DB'(DB, [description('URI for the named graph')])
 			],
 			[
 			]),
 	authorized(read(DB, read_journal)),
-	rdf_journal_file(DB, Path),
-	http_reply_file(Path, [mime_type(text/'x-prolog')], Request).
+	(   rdf_journal_file(DB, Path)
+	->  http_reply_file(Path, [mime_type(text/'x-prolog')], Request)
+	;   existence_error(http_location, DB)
+	).
