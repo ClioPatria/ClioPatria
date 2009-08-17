@@ -48,9 +48,12 @@
 :- use_module(library('semweb/rdf_db')).
 :- use_module(library(url)).
 
-:- http_handler(root(.),			serql_home,		 []).
-:- http_handler(root('sidebar.html'),		sidebar,		 []).
-:- http_handler(root('welcome.html'),		welcome,		 []).
+:- http_handler(root('.'),
+		http_redirect(moved, location_by_id(serql_home)),
+		[]).
+:- http_handler(serql('home.html'),		serql_home,		 []).
+:- http_handler(serql('sidebar.html'),		sidebar,		 []).
+:- http_handler(serql('welcome.html'),		welcome,		 []).
 :- http_handler(serql('user/statistics'),	statistics,		 []).
 :- http_handler(serql('user/construct'),	construct_form,		 []).
 :- http_handler(serql('user/query'),		query_form,		 []).
@@ -70,7 +73,7 @@
 %%	serql_home(+Request)
 %
 %	Print the home page.
-%	
+%
 %	NOTE: a frameset must _not_ have a body!
 
 serql_home(_Request) :-
@@ -78,18 +81,16 @@ serql_home(_Request) :-
 	->  true
 	;   Title = 'SWI-Prolog Semantic Web Server'
 	),
-	phrase(html([ head(title(Title)),
-		      frameset([cols('200,*')],
-			       [ frame([ src(location_by_id(sidebar)),
-					 name(sidebar)
-				       ]),
-				 frame([ src(location_by_id(welcome)),
-					 name(main)
-				       ])
-			       ])
-		    ]), HTML),
-	format('Content-type: text/html~n~n'),
-	print_html(HTML).
+	reply_html_page([ title(Title),
+			  frameset([cols('200,*')],
+				   [ frame([ src(location_by_id(sidebar)),
+					     name(sidebar)
+					   ]),
+				     frame([ src(location_by_id(welcome)),
+					     name(main)
+					   ])
+				   ])
+			], []).
 
 %%	sidebar(+Request)
 %
@@ -114,7 +115,7 @@ sidebar(_Request) :-
 %%	action(?Id, ?Label) is nondet.
 %
 %	True if Id/Label must appear in the side-menu.  Id is one of
-%	
+%
 %	    * handler-id
 %	    * -
 %	    * HTML code
@@ -147,7 +148,7 @@ current_user -->
 	html(center(i(a([target(main), href(URL)], RealName)))).
 current_user -->
 	html(center(font(color(red), i('<not logged in>')))).
-	
+
 cond_action(login) -->
 	(   { someone_logged_on }
 	->  []
@@ -175,9 +176,12 @@ someone_logged_on :-
 
 welcome(Request) :-
 	(   current_user(_)
-	->  http_reply_file(serql('welcome.html'), [cache(false)], Request)
-	;   http_location_by_id(create_admin, Location),
-	    throw(http_reply(moved_temporary(Location)))
+	->  http_reply_file(serql('welcome.html'),
+			    [cache(false)],
+			    Request)
+	;   http_redirect(moved_temporary,
+			  location_by_id(create_admin),
+			  Request)
 	).
 
 
@@ -186,7 +190,7 @@ welcome(Request) :-
 		 *******************************/
 
 %%	statistics(+Request)
-%	
+%
 %	Provide elementary statistics on the server.
 
 statistics(_Request) :-
@@ -236,7 +240,7 @@ triples_by_file([], Total) -->
 		  \nc('~D', Total)
 		])).
 triples_by_file([File-Triples|T], Total) -->
-	html(tr([ td(align(right), a(href(File), File)), 
+	html(tr([ td(align(right), a(href(File), File)),
 		  \nc('~D', Triples),
 		  td(\unload_button(File))
 		])),
@@ -256,7 +260,7 @@ lookup_statistics([rdf(S,P,O)-Count|T]) -->
 	lookup_statistics(T).
 
 %	current_sessions//0
-%	
+%
 %	Create a table of currently logged on users.
 
 current_sessions -->
@@ -321,7 +325,7 @@ ip(IP) -->
 
 
 %	server_statistics//0
-%	
+%
 %	Provide statistics on the HTTP server
 
 server_statistics -->
@@ -359,7 +363,7 @@ server_statistics -->
 		     | \http_workers(Workers)
 		     ])
 	     ]).
-	
+
 http_workers([]) -->
 	[].
 http_workers([H|T]) -->
@@ -386,9 +390,9 @@ http_workers([H|T]) -->
 		  ])
 	     ]),
 	http_workers(T).
-		  
+
 %%	construct_form(+Request)
-%	
+%
 %	Provide a page for issuing a =CONSTRUCT= query.
 
 construct_form(_Request) :-
@@ -505,7 +509,7 @@ script -->
 	[].
 
 %%	js_quoted(+Raw, -Quoted)
-%	
+%
 %	Quote text for use in JavaScript. Quoted does _not_ include the
 %	leading and trailing quotes.
 
@@ -536,8 +540,8 @@ js_quote_code(0'\t) --> !,
 js_quote_code(C) -->
 	[C].
 
-%%	query_form(+Request) 
-%	
+%%	query_form(+Request)
+%
 %	Provide a page for issuing a =SELECT= query.
 
 query_form(_Request) :-
@@ -587,8 +591,8 @@ query_form(_Request) :-
 		   ]).
 
 
-%%	select_form(+Request) 
-%	
+%%	select_form(+Request)
+%
 %	Provide a page for issuing a =SELECT= query
 
 select_form(_Request) :-
@@ -688,13 +692,13 @@ entailments([E|T]) -->
 	;   html(option([], E))
 	),
 	entailments(T).
-		 
+
 small(Text) -->
 	html(font(size(-1), Text)).
 
 
 %%	load_file_form(+Request)
-%	
+%
 %	Provide a form for uploading triples from a local file.
 
 load_file_form(_Request) :-
@@ -734,7 +738,7 @@ load_file_form(_Request) :-
 
 
 %%	load_url_form(+Request)
-%	
+%
 %	Provide a form for uploading triples from a URL.
 
 load_url_form(_Request) :-
@@ -766,7 +770,7 @@ load_url_form(_Request) :-
 
 
 %%	load_base_ontology_form(+Request)
-%	
+%
 %	Provide a form for loading an ontology from the archive.
 
 load_base_ontology_form(Request) :- !,
@@ -846,7 +850,7 @@ clear_repository_form(_Request) :-
 		   ]).
 
 
-%%	remove_statements_form(+Request) 
+%%	remove_statements_form(+Request)
 %
 %	HTTP handler providing a form to remove RDF statements.
 
@@ -901,9 +905,9 @@ actions([Path-Label|T]) -->
 	actions(T).
 
 %%	action(+Action, +Label)// is det
-%	
+%
 %	Add an action to the sidebar.  Action is one of
-%	
+%
 %		$ =-= :
 %		Add a horizontal rule (<hr>)
 %		$ Atom :
@@ -940,7 +944,7 @@ action_by_id(ID, Label) -->
 	html([a([target(main), href(Location)], Label), br([])]).
 
 %%	nc(+Format, +Value)// is det.
-%	
+%
 %	Numeric  cell.  The  value  is    formatted   using  Format  and
 %	right-aligned in a table cell (td).
 
@@ -958,7 +962,7 @@ nc(Fmt, Value, Options) -->
 
 
 %%	hidden(+Name, +Value)// is det.
-%	
+%
 %	Create a hidden input field with given name and value
 
 hidden(Name, Value) -->
