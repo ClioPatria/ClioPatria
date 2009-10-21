@@ -35,10 +35,12 @@
 :- use_module(user_db).
 :- use_module(library(lists)).
 :- use_module(library(rdf_write)).
-:- use_module(library('http/http_parameters')).
-:- use_module(library('http/http_dispatch')).
+:- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_request_value)).
 :- use_module(sparql).
 :- use_module(sparql_xml_result).
+:- use_module(sparql_json_result).
 
 :- http_handler(sparql(.), sparql_reply, []).
 
@@ -66,27 +68,51 @@ sparql_reply(Request) :-
 	findall(R, sparql_run(Compiled, R), Rows),
 	statistics(cputime, CPU1),
 	CPU is CPU1 - CPU0,
-	write_result(Type, Rows,
+	output_format(Request, Format),
+	write_result(Format, Type, Rows,
 		     [ cputime(CPU),
 		       ordered(Ordered),
 		       distinct(Distinct)
 		     ]).
-			
-write_result(ask, [True], Options) :- !,
-	format('Transfer-encoding: chunked~n'),
+
+output_format(Request, Format) :-
+	memberchk(accept(Accept), Request),
+	http_parse_header_value(accept, Accept, Media),
+	find_media(Media, Format), !.
+output_format(_, xml).
+
+find_media([media(Type, _, _, _)|T], Format) :-
+	(   sparql_media(Type, Format)
+	->  true
+	;   find_media(T, Format)
+	).
+
+sparql_media(application/'sparql-result+xml',   xml).
+sparql_media(application/'sparql-results+json', json).
+
+write_result(xml, Type, Rows, Options) :-
+	write_xml_result(Type, Rows, Options).
+write_result(json, Type, Rows, Options) :-
+	write_json_result(Type, Rows, Options).
+
+write_xml_result(ask, [True], Options) :- !,
 	format('Content-type: application/sparql-result+xml; charset=UTF-8~n~n'),
 	sparql_write_xml_result(current_output, ask(True), Options).
-write_result(select(VarNames), Rows, Options) :- !,
+write_xml_result(select(VarNames), Rows, Options) :- !,
 	format('Transfer-encoding: chunked~n'),
 	format('Content-type: application/sparql-result+xml; charset=UTF-8~n~n'),
 	sparql_write_xml_result(current_output, select(VarNames, Rows), Options).
-write_result(_, RDF, _Options) :-
+write_xml_result(_, RDF, _Options) :-
 	format('Content-type: application/rdf+xml; charset=UTF-8~n~n'),
 	rdf_write_xml(current_output, RDF).
 
+write_json_result(select(VarNames), Rows, Options) :- !,
+	format('Transfer-encoding: chunked~n'),
+	sparql_write_json_result(current_output, select(VarNames, Rows), Options).
+
 
 %%	sparql_decl(+OptionName, -Options)
-%	
+%
 %	Default   options   for   specified     attribute   names.   See
 %	http_parameters/3.
 
