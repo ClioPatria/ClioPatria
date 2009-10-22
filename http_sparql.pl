@@ -118,6 +118,9 @@ write_json_result(ask, [True], Options) :- !,
 write_json_result(select(VarNames), Rows, Options) :- !,
 	format('Transfer-encoding: chunked~n'),
 	sparql_write_json_result(current_output, select(VarNames, Rows), Options).
+write_json_result(_, _RDF, _Options) :-
+	throw(http_reply(bad_request(format('JSON output is only supported for \
+					     ASK and SELECT queries', [])))).
 
 
 %%	sparql_decl(+OptionName, -Options)
