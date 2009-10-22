@@ -53,7 +53,8 @@ sparql_reply(Request) :-
 	http_parameters(Request,
 			[ query(Query),
 			  'default-graph-uri'(DefaultGraphs),
-			  'named-graph-uri'(NamedGraphs)
+			  'named-graph-uri'(NamedGraphs),
+			  format(ReqFormat)
 			],
 			[ attribute_declarations(sparql_decl)
 			]),
@@ -68,18 +69,24 @@ sparql_reply(Request) :-
 	findall(R, sparql_run(Compiled, R), Rows),
 	statistics(cputime, CPU1),
 	CPU is CPU1 - CPU0,
-	output_format(Request, Format),
+	output_format(ReqFormat, Request, Format),
 	write_result(Format, Type, Rows,
 		     [ cputime(CPU),
 		       ordered(Ordered),
 		       distinct(Distinct)
 		     ]).
 
-output_format(Request, Format) :-
+output_format(ReqFormat, Request, Format) :-
+	var(ReqFormat), !,
+	accept_output_format(Request, Format).
+output_format('rdf+xml', _, xml).
+output_format(json, _, json).
+
+accept_output_format(Request, Format) :-
 	memberchk(accept(Accept), Request),
 	http_parse_header_value(accept, Accept, Media),
 	find_media(Media, Format), !.
-output_format(_, xml).
+accept_output_format(_, xml).
 
 find_media([media(Type, _, _, _)|T], Format) :-
 	(   sparql_media(Type, Format)
@@ -117,10 +124,19 @@ write_json_result(select(VarNames), Rows, Options) :- !,
 %	http_parameters/3.
 
 sparql_decl(query,
-	    []).
+	    [ description('The SPARQL query to execute')
+	    ]).
 sparql_decl('default-graph-uri',
- 	    [ zero_or_more
+ 	    [ list(atom),
+	      description('The default graph(s) to query (not supported)')
 	    ]).
 sparql_decl('named-graph-uri',
- 	    [ zero_or_more
+ 	    [ list(atom),
+	      description('Additional named graph(s) to query (not supported)')
+	    ]).
+sparql_decl(format,
+ 	    [ optional(true),
+	      oneof(['rdf+xml', json]),
+	      description('Result format.  If not specified, the \
+	      		  HTTP Accept header is used')
 	    ]).

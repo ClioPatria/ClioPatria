@@ -53,7 +53,7 @@ sparql_write_json_result(Out, select(VarNames, Rows), Options) :-
 	maplist(row_to_json(VarNames), Rows, Bindings),
 	with_output_to(Out,
 		       reply_json(JSON,
-				  [ content_type(application/'sparql-results'),
+				  [ content_type(application/'sparql-results; charset=UTF-8'),
 				    Options
 				  ])).
 
