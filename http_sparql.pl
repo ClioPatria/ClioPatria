@@ -113,6 +113,8 @@ write_xml_result(_, RDF, _Options) :-
 	format('Content-type: application/rdf+xml; charset=UTF-8~n~n'),
 	rdf_write_xml(current_output, RDF).
 
+write_json_result(ask, [True], Options) :- !,
+	sparql_write_json_result(current_output, ask(True), Options).
 write_json_result(select(VarNames), Rows, Options) :- !,
 	format('Transfer-encoding: chunked~n'),
 	sparql_write_json_result(current_output, select(VarNames, Rows), Options).

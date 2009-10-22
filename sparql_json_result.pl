@@ -37,23 +37,38 @@
 
 /** <module> Write SPARQL results as JSON
 
-@tbd:	 Support other SPARQL request results
-@author: Jan Wielemaker
-@author: Michiel Hildebrand
+@tbd	Support other SPARQL request results
+@author Jan Wielemaker
+@author Michiel Hildebrand
 */
+
+sparql_json_mime_type(application/'sparql-results; charset=UTF-8').
 
 %%	sparql_write_json_result(+Out:stream, +Result, +Options) is det.
 %
 %	Emit results from a SPARQL query as JSON.
+%
+%	@see http://www.w3.org/TR/rdf-sparql-json-res/
 
 sparql_write_json_result(Out, select(VarNames, Rows), Options) :-
 	JSON = json([ head    = json([vars=VarNames]),
 		      results = json([bindings=Bindings])
 		    ]),
 	maplist(row_to_json(VarNames), Rows, Bindings),
+	sparql_json_mime_type(Mime),
 	with_output_to(Out,
 		       reply_json(JSON,
-				  [ content_type(application/'sparql-results; charset=UTF-8'),
+				  [ content_type(Mime),
+				    Options
+				  ])).
+sparql_write_json_result(Out, ask(True), Options) :-
+	JSON = json([ head    = json([]),
+		      boolean = @True
+		    ]),
+	sparql_json_mime_type(Mime),
+	with_output_to(Out,
+		       reply_json(JSON,
+				  [ content_type(Mime),
 				    Options
 				  ])).
 
