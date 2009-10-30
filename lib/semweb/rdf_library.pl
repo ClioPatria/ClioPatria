@@ -92,30 +92,30 @@ The typical usage scenario is
 %
 %	Load ontologies from the  library.  A   library  must  first  be
 %	attached using rdf_attach_library/1.  Defined Options are:
-%	
+%
 %		* import(Bool)
 %		If =true= (default), also load ontologies that are
 %		explicitely imported.
-%		
+%
 %		* base_uri(URI)
 %		BaseURI used for loading RDF.  Local definitions in
 %		ontologies overrule this option.
-%		
+%
 %		* claimed_source(URL)
 %		URL from which we claim to have loaded the data.
-%		
+%
 %		* not_found(+Level)
 %		The system does a pre-check for the existence of
 %		all references RDF databases.  If Level is =error=
 %		it reports missing databases as an error and fails.
 %		If =warning= it prints them, but continues.  If
 %		=silent=, no checks are preformed.  Default is =error=.
-%		
+%
 %		* concurrent(Threads)
 %		Perform the load concurrently using N threads.  If not
 %		specified, the number is determined by
 %		guess_concurrency/2.
-%	
+%
 %		* load(+Bool)
 %		If =false=, to all the preparation, but do not execute
 %		the actual loading.  See also rdf_list_library/2.
@@ -137,11 +137,7 @@ rdf_load_library(Id, Options) :-
 	length(Cmds, NSources),
 	print_message(informational, rdf(loading(NSources, Threads))),
 	(   option(load(true), Options, true)
-	->  concurrent(Threads, Cmds,
-		       [ local(2000),	% we only need small stacks
-			 global(4000),
-			 trail(4000)
-		       ])
+	->  concurrent(Threads, Cmds, [])
 	;   true
 	).
 
@@ -184,7 +180,7 @@ report_conflics([C1-C2|T]) :-
 %
 %	Report existence errors. Fail if at   least  one source does not
 %	exist. and the not_found level is not =silent=.
-%	
+%
 %	@error existence_error(urls, ListOfUrls)
 
 check_existence(CommandsIn, Commands, Options) :-
@@ -224,20 +220,30 @@ report_missing([H|T], Level) :-
 %	demanded.
 
 guess_concurrency(Commands, Threads) :-
-	count_non_file_url(Commands, Count),
-	(   current_prolog_flag(cpu_count, CPUs)
-	->  true
-	;   CPUs = 1
+	count_uris(Commands, FileURLs, OtherURLs),
+	(   FileURLs > 0
+	->  (   current_prolog_flag(cpu_count, CPUs)
+	    ->  true
+	    ;   CPUs = 1
+	    ),
+	    FileThreads is min(FileURLs, CPUs)
+	;   FileThreads = 0
 	),
-	Threads is max(CPUs, min(5, Count)).
+	(   OtherURLs > 0
+	->  OtherThreads is min(5, OtherURLs)
+	;   OtherThreads = 0
+	),
+	Threads is FileThreads + OtherThreads.
 
-count_non_file_url([], 0).
-count_non_file_url([rdf_load(URL, _)|T], Count) :-
-	sub_atom(URL, 0, _, _, 'file://'), !,
-	count_non_file_url(T, Count).
-count_non_file_url([_|T], Count) :-
-	count_non_file_url(T, C0),
-	Count is C0 + 1.
+count_uris([], 0, 0).
+count_uris([rdf_load(URL, _)|T], F, NF) :-
+	count_uris(T, F0, NF0),
+	(   sub_atom(URL, 0, _, _, 'file://')
+	->  F is F0 + 1,
+	    NF = NF0
+	;   NF is NF0 + 1,
+	    F = F0
+	).
 
 
 %%	load_commands(+Id, +Options, -Pairs:list(Level-Command)) is det.
@@ -246,7 +252,7 @@ count_non_file_url([_|T], Count) :-
 %	Splitting  in  command  collection  and   execution  allows  for
 %	concurrent execution as well  as   forward  checking of possible
 %	problems.
-%	
+%
 %	@tbd	Fix poor style; avoid assert/retract.
 
 :- thread_local
@@ -342,17 +348,17 @@ manifest_for_path(URL, Manifest) :-
 %
 %	Print library dependency tree to the terminal.  Options include
 %	options for rdf_load_library/2 and
-%	
+%
 %		* show_source(+Boolean)
 %		If =true= (default), show location we are loading
-%		
+%
 %		* show_graph(+Boolean)
 %		If =true= (default =false=), show name of graph
-%		
+%
 %		* show_virtual(+Boolean)
 %		If =false= (default =true=), do not show virtual
 %		repositories.
-%		
+%
 %		* indent(Atom)
 %		Atom repeated for indentation levels
 
@@ -394,7 +400,7 @@ print_command(rdf_load(URL, RDFOptions), Options) :-
 	).
 
 exists_url(URL) :-
-	rdf_db:rdf_input(URL, Source, _BaseURI), 
+	rdf_db:rdf_input(URL, Source, _BaseURI),
 	existing_url_source(Source).
 
 existing_url_source(file(Path)) :- !,
@@ -402,7 +408,7 @@ existing_url_source(file(Path)) :- !,
 existing_url_source(url(http, URL)) :- !,
 	catch(http_open(URL, Stream, [ method(head) ]), _, fail),
 	close(Stream).
-	
+
 
 %%	rdf_list_library
 %
@@ -425,51 +431,51 @@ rdf_list_library :-
 %%	rdf_library_index(?Id, ?Facet) is nondet.
 %
 %	Query the content of the library.  Defined facets are:
-%	
+%
 %		* source(URL)
 %		Location from which to load the ontology
-%		
+%
 %		* title(Atom)
 %		Title used for the ontology
-%		
+%
 %		* comment(Atom)
 %		Additional comments for the ontology
-%		
+%
 %		* version(Atom)
 %		Version information on the ontology
-%		
+%
 %		* imports(Type, URL)
 %		URLs needed by this ontology. May succeed multiple
 %		times.  Type is one of =ontology=, =schema= or =instances=.
-%		
+%
 %		* base_uri(BaseURI)
 %		Base URI to use when loading documents. If BaseURI
 %		ends in =|/|=, the actual filename is attached.
-%		
+%
 %		* claimed_source(Source)
 %		URL from which we claim to have loaded the RDF. If
 %		Source ends in =|/|=, the actual filename is
 %		attached.
-%		
+%
 %		* blank_nodes(Share)
 %		Defines how equivalent blank nodes are handled, where
 %		Share is one of =share= or =noshare=.  Default is to
 %		share.
-%		
+%
 %		* provides_ns(URL)
 %		Ontology provides definitions in the namespace URL.
 %		The formal definition of this is troublesome, but in
 %		practice it means the ontology has triples whose
 %		subjects are in the given namespace.
-%		
+%
 %		* uses_ns(URL)
 %		The ontology depends on the given namespace.  Normally
 %		means it contains triples that have predicates or
 %		objects in the given namespace.
-%		
+%
 %		* manifest(Path)
 %		Manifest file this ontology is defined in
-%		
+%
 %		* virtual
 %		Entry is virtual (cannot be loaded)
 
@@ -487,7 +493,7 @@ rdf_library_index(Id, Facet) :-
 %%	rdf_attach_library(+Source)
 %
 %	Attach manifest from Source.  Source is one of
-%	
+%
 %		* URL
 %		Load single manifest from this URL
 %		* File
@@ -495,7 +501,7 @@ rdf_library_index(Id, Facet) :-
 %		* Directory
 %		Scan all subdirectories and load all =|Manifest.ttl|= or
 %		=|Manifest.rdf|= found.
-%		
+%
 %	Encountered namespaces are registered   using rdf_register_ns/2.
 %	Encountered ontologies are added to the index. If a manifest was
 %	already loaded it will be reloaded  if the modification time has
@@ -554,7 +560,7 @@ hidden_base('cvs').			% Windows
 %	Process a manifest file, registering  encountered namespaces and
 %	creating clauses for library/3. No op if manifest was loaded and
 %	not changed. Removes old data if the manifest was changed.
-%	
+%
 %	@param	Location is either a path name or a URL.
 
 process_manifest(Source) :-
@@ -583,7 +589,7 @@ process_triples(Manifest, Triples) :-
 		extract_namespace(Triples, Mnemonic, NameSpace),
 		NameSpaces),
 	findall(Ontology,
-		extract_ontology(Triples, Ontology), 
+		extract_ontology(Triples, Ontology),
 		Ontologies),
 	maplist(define_namespace, NameSpaces),
 	maplist(assert_ontology(Manifest), Ontologies).
@@ -697,7 +703,7 @@ is_manifest_file(Path) :-
 	file_name_extension(Base, Ext, Lwr),
 	manifest_file(Base),
 	rdf_extension(Ext), !.
-	
+
 manifest_file('Manifest').
 manifest_file('manifest').
 
@@ -708,7 +714,7 @@ rdf_extension(rdf).
 %%	assert_ontology(+Manifest, +Term:library(Name, File, Facets)) is det.
 %
 %	Add ontology to our library.
-%	
+%
 %	@tbd	Proper behaviour of re-definition?
 
 assert_ontology(Manifest, Term) :-
@@ -740,7 +746,7 @@ library(Id, URL, Facets) :-
 %	Translate a URL into a  canonical   form.  Currently  deals with
 %	file:// urls to take care of  filesystem properies such as being
 %	case insensitive and symbolic names.
-%	
+%
 %	@tbd	Generic URL handling should also strip ../, etc.
 
 canonical_url(FileURL, URL) :-
@@ -780,4 +786,4 @@ prolog:message(rdf(load_conflict(C1, C2))) -->
 	[ 'Conflicting loads: ~p <-> ~p'-[C1, C2] ].
 prolog:message(rdf(loading(Files, Threads))) -->
 	[ 'Loading ~D files using ~D threads ...'-[Files, Threads] ].
-	 
+
