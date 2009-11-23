@@ -567,8 +567,8 @@ hidden_base('cvs').			% Windows
 process_manifest(Source) :-
 	(   uri_file_name(Source, Manifest0)
 	->  absolute_file_name(Manifest0, Manifest)
-	;   Manifest = Source
-	),
+	;   absolute_file_name(Source, Manifest)
+	),				% Manifest is a canonical filename
 	source_time(Manifest, MT),
 	(   manifest(Manifest, Time),
 	    (	MT =< Time
@@ -737,10 +737,22 @@ assert_ontology(Manifest, Term) :-
 
 library(Id, URL, Facets) :-
 	nonvar(URL),
-	uri_normalized(URL, CanonicalURL),
+	normalize_url(URL, CanonicalURL),
 	library_db(Id, CanonicalURL, Facets).
 library(Id, URL, Facets) :-
 	library_db(Id, URL, Facets).
+
+%%	normalize_url(+URL, -Normalized)
+%
+%	Like uri_normalized/2, but we  also   need  (platform dependent)
+%	filename canonization.
+
+normalize_url(URL, CanonicalURL) :-
+	uri_file_name(URL, File), !,
+	absolute_file_name(File, CanFile),
+	uri_file_name(CanonicalURL, CanFile).
+normalize_url(URL, CanonicalURL) :-
+	uri_normalized(URL, CanonicalURL).
 
 %%	define_namespace(NS:ns(Mnemonic, Namespace)) is det.
 %
