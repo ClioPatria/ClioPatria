@@ -47,7 +47,7 @@
 :- use_module(library(error)).
 :- use_module(library(pairs)).
 :- use_module(library(date)).
-:- use_module(library(url)).
+:- use_module(library(uri)).
 :- use_module(library(http/http_open)).
 :- use_module(library(thread)).
 
@@ -509,7 +509,8 @@ rdf_library_index(Id, Facet) :-
 
 rdf_attach_library(URL) :-
 	atom(URL),
-	is_absolute_url(URL), !,
+	uri_is_global(URL),
+	\+ is_absolute_file_name(URL), !, % avoid interpreting C: as a schema
 	process_manifest(URL).
 rdf_attach_library(File) :-
 	absolute_file_name(File, Path,
@@ -564,7 +565,7 @@ hidden_base('cvs').			% Windows
 %	@param	Location is either a path name or a URL.
 
 process_manifest(Source) :-
-	(   file_name_to_url(Manifest0, Source)
+	(   uri_file_name(Source, Manifest0)
 	->  absolute_file_name(Manifest0, Manifest)
 	;   Manifest = Source
 	),
@@ -676,7 +677,7 @@ source_time(URL, Modified) :-
 	Date \== '',
 	parse_time(Date, Modified).
 source_time(URL, Modified) :-
-	file_name_to_url(File, URL), !,
+	uri_file_name(URL, File), !,
 	time_file(File, Modified).
 source_time(File, Modified) :-
 	time_file(File, Modified).
@@ -736,24 +737,10 @@ assert_ontology(Manifest, Term) :-
 
 library(Id, URL, Facets) :-
 	nonvar(URL),
-	canonical_url(URL, CanonicalURL),
+	uri_normalized(URL, CanonicalURL),
 	library_db(Id, CanonicalURL, Facets).
 library(Id, URL, Facets) :-
 	library_db(Id, URL, Facets).
-
-%%	canonical_url(+URL, -CanonicalURL) is det.
-%
-%	Translate a URL into a  canonical   form.  Currently  deals with
-%	file:// urls to take care of  filesystem properies such as being
-%	case insensitive and symbolic names.
-%
-%	@tbd	Generic URL handling should also strip ../, etc.
-
-canonical_url(FileURL, URL) :-
-	file_name_to_url(File, FileURL), !,
-	absolute_file_name(File, Abs),
-	file_name_to_url(Abs, URL).
-canonical_url(URL, URL).
 
 %%	define_namespace(NS:ns(Mnemonic, Namespace)) is det.
 %
