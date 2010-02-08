@@ -593,12 +593,12 @@ regex(String, Pattern, Flags) :-
 	send(Regex, search, string(String)).
 regex(String, Pattern, Flags) :-
 	make_regex(Pattern, Flags, Regex),
-	send(Regex, lock_object, @on),
+	send(Regex, lock_object, @(on)),
 	asserta(pattern_cache(Pattern, Flags, Regex)),
 	send(Regex, search, string(String)).
 
 make_regex(Pattern, i, Regex) :- !,
-	new(Regex, regex(Pattern, @off)).
+	new(Regex, regex(Pattern, @(off))).
 make_regex(Pattern, _, Regex) :- !,
 	new(Regex, regex(Pattern)).
 
