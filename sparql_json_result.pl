@@ -63,7 +63,7 @@ sparql_write_json_result(Out, select(VarNames, Rows), Options) :-
 				  ])).
 sparql_write_json_result(Out, ask(True), Options) :-
 	JSON = json([ head    = json([]),
-		      boolean = @True
+		      boolean = @(True)
 		    ]),
 	sparql_json_mime_type(Mime),
 	with_output_to(Out,
