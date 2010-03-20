@@ -65,13 +65,18 @@ sparql_query(Query, Row, Options) :-
 read_reply('application/rdf+xml', In, Row) :- !,
 	call_cleanup(load_rdf(stream(In), RDF), close(In)),
 	member(Row, RDF).
-read_reply('application/sparql-result+xml', In, Row) :- !,
+read_reply(MIME, In, Row) :-
+	sparql_result_mime(MIME), !,
 	call_cleanup(sparql_read_xml_result(stream(In), Result),
 		     close(In)),
 	xml_result(Result, Row).
 read_reply(Type, In, _) :-
 	close(In),
 	throw(error(domain_error(sparql_result_document, Type), _)).
+
+sparql_result_mime('application/sparql-results+xml').
+sparql_result_mime('application/sparql-result+xml').
+
 
 plain_content_type(Type, Plain) :-
 	sub_atom(Type, B, _, _, (;)), !,
@@ -104,10 +109,10 @@ sparql_param(Param, _Options) :-
 	throw(error(existence_error(option, Name), _)).
 
 %%	sparql_set_server(+OptionOrList)
-%	
+%
 %	Set sparql server default options.  Provided defaults are:
 %	host, port and repository.  For example:
-%	
+%
 %%		set_sparql_default([ host(localhost),
 %%				     port(8080)
 %%				     repository(world)
