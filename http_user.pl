@@ -666,8 +666,8 @@ result_format -->
 
 query_language -->
 	html(select(name(queryLanguage),
-		    [ option([selected], 'SeRQL'),
-		      option([],         'SPARQL')
+		    [ option([selected], 'SPARQL'),
+		      option([],         'SeRQL')
 		    ])).
 
 resource_menu -->
