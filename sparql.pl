@@ -44,30 +44,30 @@
 	function/2.			% user-defined functions
 
 %%	sparql_query(+Query, -Reply, +Options)
-%	
+%
 %	Where Query is either a SPARQL query text or a parsed
 %	query.  Reply depends on the type of query:
-%	
+%
 %		|SELECT		| row(Col1, Col2, ....) |
 %		|CONSTRUCT	| rdf(S,P,O) |
 %		|DESCRIBE	| rdf(S,P,O) |
 %		|ASK		| Reply == true or failure of pred |
-%		
+%
 %	Options are:
-%	
+%
 %		* entailment(Entailment)
 %		Specify the entailment module used (default: rdf)
-%		
+%
 %		* base_uri(Base)
 %		Specify the base IRI to use for parsing the query
-%		
+%
 %		* type(-Type)
 %		Returns one of select(-VarNames), construct, describe or
 %		ask.
-%		
+%
 %		* ordered(-Bool)
 %		True if query contains an ORDER BY clause
-%		
+%
 %		* distinct(-Bool)
 %		True if query contains a DISTINCT clause
 
@@ -77,7 +77,7 @@ sparql_query(Query, Reply, Options) :-
 
 
 %%	sparql_compile(+Query, -Compiled, +Options)
-%	
+%
 %	Performs  the  compilation  pass  of  solving  a  SPARQL  query.
 %	Splitting serves two purposes. The result of the compilation can
 %	be cached if desired and through  Options we can get information
@@ -116,7 +116,7 @@ solutions(solutions(unsorted, _, _), O) :- !,
 solutions(_, true).
 
 %%	sparql_run(+Compiled, -Reply) is nondet.
-%	
+%
 %	Runs a compiled SPARQL query, returning the result incrementally
 %	on backtracking. Provided there are  no   errors  in  the SPARQL
 %	implementation  the  only   errors   this    can   produce   are
@@ -144,9 +144,9 @@ sparql_run(describe(IRIs, _DataSets, Query, Solutions), Reply, Module) :-
 		       )),
 	sparql_describe(IRI, Module, Reply).
 
-	
+
 %%	select_results(+Spec, -Reply, :Goal)
-%	
+%
 %	Apply ordering and limits on result-set.
 
 select_results(distinct(solutions(Order, Limit, Offset)), Reply, Goal) :- !,
@@ -156,11 +156,11 @@ select_results(solutions(Order, Limit, Offset), Reply, Goal) :-
 
 
 %%	select_result(+Bindings, -Row, -Names) is det.
-%	
+%
 %	Transform the list Bindings of the form Name=Var into a Row term
 %	of the form row(Col1, Col2, ...) and a list of column-names. For
 %	example:
-%	
+%
 %	==
 %	?- select_result([x=1,y=2], Row, Names).
 %	Row = row(1,2), Names = [x,y]
@@ -175,11 +175,25 @@ vars_in_bindings([Name=Var|T0], [Var|T], [Name|NT]) :-
 	vars_in_bindings(T0, T, NT).
 
 %%	sparql_describe(+IRI, -Triple)
-%	
+%
 %	Return  -on  backtracking-  triples  that    describe  IRI.  The
 %	documentation does not specify which   triples  must be returned
 %	for a description. As a way to  get started we simply return all
 %	direct properties.
 
-sparql_describe(IRI, Module, rdf(IRI, P, O)) :-
-	Module:rdf(IRI, P, O).
+sparql_describe(_Var=IRI, Module, Triple) :- !,
+	sparql_describe(IRI, Module, Triple).
+sparql_describe(IRI, Module, Triple) :-
+	empty_assoc(Seen),
+	sparql_describe(IRI, Module, Triple, Seen).
+
+sparql_describe(IRI, Module, Triple, Seen) :-
+	Module:rdf(IRI, P, O),
+	(   rdf_is_bnode(O),
+	    \+ get_assoc(O, Seen, true)
+	->  (   Triple = rdf(IRI, P, O)
+	    ;	put_assoc(O, Seen, true, Seen2),
+	        sparql_describe(O, Module, Triple, Seen2)
+	    )
+	;   Triple = rdf(IRI, P, O)
+	).
