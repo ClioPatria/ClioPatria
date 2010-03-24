@@ -39,14 +39,22 @@
 :- use_module(http_admin).
 :- use_module(user_db).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library('http/thread_httpd')).
-:- use_module(library('http/http_dispatch')).
+:- use_module(library(http/thread_httpd)).
+:- use_module(library(thread_pool)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(time)).
 :- use_module(library(error)).
+:- use_module(library(settings)).
 
 :- if(exists_source(library(http/http_log))).
 :- use_module(library(http/http_log)).
 :- endif.
+
+:- setting(sparql:max_clients, nonneg, 100,
+	   'Maximum number of concurrent requests').
+:- setting(sparql:stack_size, nonneg, 1000,
+	   'Size of the global stack in mega-bytes').
+
 
 :- dynamic
 	start_time/1,			% Stamp
@@ -59,6 +67,7 @@
 %	http_server/2.
 
 serql_server(Port, Options) :-
+	create_pools,
 	http_server(serql_reply,
                     [ port(Port),
                       timeout(60),
@@ -85,13 +94,13 @@ serql_reply(Request) :-
 	http_dispatch(Request).
 
 %%	serql_server_property(?Property)
-%	
+%
 %	Query status and attributes of the server. Defined properties
 %	are:
-%	
+%
 %		* port(-Port)
 %		Port on which the server is running.
-%		
+%
 %		* start_time(-Time)
 %		TimeStamp when the server was started.
 
@@ -113,6 +122,25 @@ serql_server_set_property(loading(Bool)) :- !,
 serql_server_set_property(P) :-
 	domain_error(serql_server_property, P).
 
+%%	create_pools
+%
+%	Create required thread-pools
+
+create_pools :-
+	setting(sparql:max_clients, Count),
+	setting(sparql:stack_size, MB),
+	Global is MB * 1024,
+	Trail is MB * 1024,
+	thread_pool_create(sparql_query, Count,
+			   [ global(Global),
+			     trail(Trail)
+			   ]).
+
+
+		 /*******************************
+		 *	     MESSAGES		*
+		 *******************************/
+
 :- multifile
 	user:message_hook/3.
 
@@ -120,3 +148,4 @@ user:message_hook(rdf(restore(_, done(_DB, _T, _Count, Nth, Total))),
 		  _Kind, _Lines) :-
 	retractall(loading_done(_,_)),
 	assert(loading_done(Nth, Total)).
+

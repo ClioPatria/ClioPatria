@@ -42,7 +42,7 @@
 :- use_module(sparql_xml_result).
 :- use_module(sparql_json_result).
 
-:- http_handler(sparql(.), sparql_reply, []).
+:- http_handler(sparql(.), sparql_reply, [spawn(sparql_query)]).
 
 %%	sparql_reply(+Request)
 %
