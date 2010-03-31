@@ -54,7 +54,8 @@ sparql_reply(Request) :-
 			[ query(Query),
 			  'default-graph-uri'(DefaultGraphs),
 			  'named-graph-uri'(NamedGraphs),
-			  format(ReqFormat)
+			  format(ReqFormat),
+			  entailment(Entailment)
 			],
 			[ attribute_declarations(sparql_decl)
 			]),
@@ -64,7 +65,8 @@ sparql_reply(Request) :-
 	sparql_compile(Query, Compiled,
 		       [ type(Type),
 			 ordered(Ordered),
-			 distinct(Distinct)
+			 distinct(Distinct),
+			 entailment(Entailment)
 		       ]),
 	findall(R, sparql_run(Compiled, R), Rows),
 	statistics(cputime, CPU1),
@@ -145,3 +147,11 @@ sparql_decl(format,
 	      description('Result format.  If not specified, the \
 	      		  HTTP Accept header is used')
 	    ]).
+sparql_decl(entailment,
+ 	    [ optional(true),
+	      default(rdf),
+	      oneof(Es),
+	      description('Entailment used')
+	    ]) :-
+	findall(E, serql:entailment(E, _), Es).
+
