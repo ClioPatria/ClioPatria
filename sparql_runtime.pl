@@ -44,9 +44,11 @@
 %	Generated from FILTER Term, where Term must be converted to a
 %	boolean as 'Effective Boolean Value'.
 
-sparql_true(Term) :- !,
-	typed_eval(boolean, Term, Result),
-	Result = boolean(true).
+sparql_true(Term) :-
+	typed_eval(boolean, Term, Result), !,
+	true(Result).
+
+true(boolean(true)).
 
 %%	eval(+Term, -Result)
 
