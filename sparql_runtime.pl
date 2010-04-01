@@ -640,6 +640,6 @@ to_rdf(iri(IRI), IRI).
 %
 %	True if Term is a valid RDF term.
 
-is_rdf(0) :- !, fail.			% catch variables
 is_rdf(IRI) :- atom(IRI).
+is_rdf(Var) :- var(Var), !, fail.
 is_rdf(literal(_)).
