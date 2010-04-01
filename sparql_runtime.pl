@@ -108,6 +108,8 @@ eval_typed_literal(Type, Atom, numeric(Type, Value)) :-
 	numeric_literal_value(Type, Atom, Value).
 eval_typed_literal(Type, Atom, boolean(Atom)) :-
 	rdf_equal(Type, xsd:boolean), !.
+eval_typed_literal(Type, Atom, string(Atom)) :-
+	rdf_equal(Type, xsd:string), !.
 eval_typed_literal(Type, Atom, date_time(Atom)) :-
 	rdf_equal(Type, xsd:dateTime), !.
 eval_typed_literal(Type, Atom, typed_literal(Type, Atom)).

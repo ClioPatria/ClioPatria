@@ -36,6 +36,7 @@
 	    sparql_run/2		% +Compiled, -Reply
 	  ]).
 :- use_module(library(option)).
+:- use_module(library(semweb/rdf_db), [rdf_is_bnode/1]).
 :- use_module(sparql_grammar).
 :- use_module(sparql_runtime).
 :- use_module(rdfql_util).
