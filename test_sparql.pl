@@ -40,6 +40,7 @@
 	    edit_test_result/1,		% +NameOrIRI
 	    edit_test/1,		% +NameOrIRI
 	    list_tests/1,		% +Class
+	    list_db/0,
 
 					% SYNTAX TESTS
 	    syntax_test/1,		% +NameOrIRI
@@ -61,6 +62,9 @@
 :- use_module(sparql_xml_result).
 :- use_module(rdf_entailment, []).
 :- use_module(no_entailment, []).
+					% Toplevel debugging utilities
+:- use_module(user:library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_turtle_write)).
 
 :- dynamic
 	failed_result/2,
@@ -620,31 +624,18 @@ list_tests(skipped) :-
 	       (   test_name(Test, Name),
 		   format('SKIPPED: ~q~n', [Name]))).
 
+list_db :-
+	rdf_save_turtle(stream(current_output), []).
+
 
 		 /*******************************
 		 *		DEBUG		*
 		 *******************************/
 
-user:portray(String) :-
-	is_list(String),
-	length(String, Len),
-	Len > 3,
-	ascii_list(String),
-	format('"~s"', [String]).
+:- portray_text(true).
+
 user:portray(IRI) :-
 	atom(IRI),
 	rdf_global_id(NS:Local, IRI),
 	Local \== '',
 	format('~w:~w', [NS, Local]).
-
-ascii_list([]).
-ascii_list([H|T]) :-
-	ascii_char(H),
-	ascii_list(T).
-
-ascii_char(C) :-
-	integer(C),
-	between(32, 127, C), !.
-ascii_char(0'\r).
-ascii_char(0'\n).
-ascii_char(0'\t).
