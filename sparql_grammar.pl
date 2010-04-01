@@ -1396,7 +1396,8 @@ sub_lang_ids(T, T) -->
 integer(Integer) -->
 	integer_string(Codes),
 	{ number_codes(Integer, Codes)
-	}.
+	},
+	skip_ws.
 
 
 %%	integer_string(-Codes)// is semidet.
