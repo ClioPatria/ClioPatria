@@ -194,6 +194,12 @@ compare_results(Test, Type, select(ColNames, Rows), Result) :-
 	compare_sets(Test, Type, RowsMyOrder, Result).
 compare_results(Test, construct, Correct, Result) :- !,
 	compare_sets(Test, compare_sets, Correct, Result).
+compare_results(Test, ask, ask(Correct), [Result]) :- !,
+	test_name(Test, Name),
+	format('~`=t ~q ~`=t~72|~n', [Name]),
+	format('TYPE: ASK~n'),
+	format('CORRECT: ~q~n', [Correct]),
+	format('WE: ~q~n', [Result]).
 compare_results(Test, Type, Correct, Result) :-
 	test_name(Test, Name),
 	format('~`=t ~q ~`=t~72|~n', [Name]),
