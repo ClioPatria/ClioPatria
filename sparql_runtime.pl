@@ -106,8 +106,8 @@ eval_literal(Atom, simple_literal(Atom)) :-
 	atom(Atom), !.
 
 eval_typed_literal(Type, Atom, numeric(Type, Value)) :-
-	xsdp_numeric_uri(Type, _), !,
-	numeric_literal_value(Type, Atom, Value).
+	xsdp_numeric_uri(Type, Generic), !,
+	numeric_literal_value(Generic, Atom, Value).
 eval_typed_literal(Type, Atom, boolean(Atom)) :-
 	rdf_equal(Type, xsd:boolean), !.
 eval_typed_literal(Type, Atom, string(Atom)) :-
@@ -129,6 +129,9 @@ numeric_literal_value(Type, Text, Value) :-
 	rdf_equal(Type, xsd:integer), !,
 	catch(atom_number(Text, Value), _, fail),
 	integer(Value).
+numeric_literal_value(Type, Text, Value) :-
+	rdf_equal(Type, xsd:decimal), !,
+	catch(atom_number(Text, Value), _, fail).
 numeric_literal_value(_, Text, Value) :-
 	catch(atom_number(Text, Value), _, fail), !,
 	float(Value).
