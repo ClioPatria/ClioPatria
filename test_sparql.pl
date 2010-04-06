@@ -251,7 +251,7 @@ same_colnames(Names1, Names2, map(R1,R2)) :-
 fill_vars([], _, _, _, _).
 fill_vars([H|T], I, Names, R1, R2) :-
 	arg(I, R1, V),
-	nth1(I2, Names, H),
+	nth1(I2, Names, H), !,
 	arg(I2, R2, V),
 	IN is I + 1,
 	fill_vars(T, IN, Names, R1, R2).
