@@ -65,8 +65,9 @@ select_results(Distinct, Offset, Limit, unsorted, Result, Goal) :- !,
 	select_results(Distinct, Offset, Limit, Result, Goal).
 select_results(Distinct, Offset, Limit, order_by(Cols), Result, Goal) :- !,
 	term_variables(Cols, Vars),
-	SortKey =.. [v|Vars],
-	findall(SortKey-Result, Goal, Results0),
+	sort_key_goal(Vars, Keys, KeyGen),
+	SortKey =.. [v|Keys],
+	findall(SortKey-Result, (Goal,rdfql_util:KeyGen), Results0),
 	(   Distinct == distinct
 	->  sort(Results0, Results1)
 	;   Results1 = Results0
@@ -75,6 +76,36 @@ select_results(Distinct, Offset, Limit, order_by(Cols), Result, Goal) :- !,
 	apply_offset(Offset, Results2, Results3),
 	apply_limit(Limit, Results3, Results),
 	member(_Key-Result, Results).
+
+sort_key_goal([], [], true).
+sort_key_goal([V], [K], sort_key(V,K)) :- !.
+sort_key_goal([V|TV], [K|TK], (sort_key(V,K),G)) :-
+	sort_key_goal(TV, TK, G).
+
+
+%%	sort_key(+Result, -Key) is det.
+%
+%	Determine the sort-key from a result according to the SPARQL
+%	standard:
+%
+%	    1. undefined/null
+%	    2. blank nodes
+%	    3. IRIs
+%	    4. RDF Literals by their plain value (simple literal)
+
+sort_key(Var, Var) :- var(Var), !.
+sort_key(literal(L), sk(4, V)) :- !,
+	simple_literal(L, V).
+sort_key(IRI, sk(N, IRI)) :-
+	(   rdf_is_bnode(IRI)
+	->  N = 2
+	;   N = 3
+	).
+
+simple_literal(lang(_Lang, SL), SL).
+simple_literal(type(_Type, SL), SL).
+simple_literal(SL, SL).
+
 
 %%	select_results(+Distinct, +Offset, +Limit, -Result, :Goal)
 %
