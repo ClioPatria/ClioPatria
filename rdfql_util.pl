@@ -41,22 +41,22 @@
 	select_results/5.
 
 %%	select_results(+Distinct, +Offset, +Limit, :SortBy, -Result, :Goal)
-%	
+%
 %	Select results for the  template   Result  on  backtracking over
 %	Goal.
-%	
+%
 %	@param Distinct
 %	Iff 'distinct', only consider distinct solutions
-%		
+%
 %	@param Offset
 %	Skip the first Offset results.  Offset is applied after
 %	Distinct and SortBy
-%		
+%
 %	@param Limit
 %	Only return the first Limit results. Limit is applied
 %	after Distinct, SortBy and Offset. The value 'inf'
 %	returns all values.
-%		
+%
 %	@param SortBy
 %	Either 'unsorted' or the name of a predicate that sorts
 %	the result-set by calling call(SortBy, UnSorted, Sorted)
@@ -69,14 +69,15 @@ select_results(Distinct, Offset, Limit, order_by(Cols), Result, Goal) :- !,
 	findall(SortKey-Result, Goal, Results0),
 	(   Distinct == distinct
 	->  sort(Results0, Results1)
-	;   keysort(Results0, Results1)
+	;   Results1 = Results0
 	),
-	apply_offset(Offset, Results1, Results2),
-	apply_limit(Limit, Results2, Results),
+	keysort(Results1, Results2),
+	apply_offset(Offset, Results2, Results3),
+	apply_limit(Limit, Results3, Results),
 	member(_Key-Result, Results).
-	
+
 %%	select_results(+Distinct, +Offset, +Limit, -Result, :Goal)
-%	
+%
 %	Unsorted version. In this case we can avoid first collecting all
 %	results.
 
@@ -110,18 +111,25 @@ apply_limit(Counter, Offset, Limit, Last) :-
 	;   Last = false
 	).
 
-apply_offset(0, List, List) :- !.
+%%	apply_offset(+Offset, +AllSolutions, -OffsetSolutions) is det.
+
 apply_offset(N, [_|T], List) :-
-	N > 0,
+	N > 0, !,
 	N2 is N - 1,
 	apply_offset(N2, T, List).
+apply_offset(_, List, List).
+
+%%	apply_limit(+Limit,  +AllSolutions, -LimitSolutions) is det.
 
 apply_limit(inf, List, List) :- !.
-apply_limit(0, _, []).
-apply_limit(N, [H|T0], [H|T]) :-
-	N > 0,
+apply_limit(Limit, All, List) :-
+	limit(Limit, All, List).
+
+limit(N, [H|T0], [H|T]) :-
+	N > 0, !,
 	N2 is N - 1,
-	apply_offset(N2, T0, T).
+	limit(N2, T0, T).
+limit(_, _, []).
 
 
 		 /*******************************
@@ -129,7 +137,7 @@ apply_limit(N, [H|T0], [H|T]) :-
 		 *******************************/
 
 %%	entailment_module(+Entailment, -Module)
-%	
+%
 %	Find the Prolog module implementing the   entailment rules for a
 %	semantic web language.
 
