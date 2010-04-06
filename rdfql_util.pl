@@ -92,6 +92,9 @@ sort_key_goal([V|TV], [K|TK], (sort_key(V,K),G)) :-
 %	    2. blank nodes
 %	    3. IRIs
 %	    4. RDF Literals by their plain value (simple literal)
+%
+%	@bug This is not good enough. Literals must be compared in their
+%	value-space.  This requires some study.
 
 sort_key(Var, Var) :- var(Var), !.
 sort_key(literal(L), sk(4, V)) :- !,
