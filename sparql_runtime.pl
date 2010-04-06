@@ -133,11 +133,9 @@ numeric_literal_value(Type, Text, Value) :-
 	rdf_equal(Type, xsd:decimal), !,
 	catch(atom_number(Text, Value), _, fail).
 numeric_literal_value(_, Text, Value) :-
-	catch(atom_number(Text, Value), _, fail), !,
-	float(Value).
+	catch(atom_number(Text, Value), _, fail), !.
 numeric_literal_value(_, Text, Value) :-
-	catch(rdf_text_to_float(Text, Value), _, fail),
-	float(Value).
+	catch(rdf_text_to_float(Text, Value), _, fail).
 
 rdf_text_to_float(Text, Value) :-
 	atom_codes(Text, Codes),
