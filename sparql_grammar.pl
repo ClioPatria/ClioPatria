@@ -196,7 +196,7 @@ resolve_query(Q, Q, S, S).		% TBD
 rdf_goal(S, P, O0, RDF, State) :-
 	rdf_goal_object(O0, O),
 	(   state_graph(State, [Graph|_])
-	->  RDF = rdf(S, P, O, Graph)
+	->  RDF = rdf(S, P, O, Graph:_)
 	;   RDF = rdf(S, P, O)
 	).
 
