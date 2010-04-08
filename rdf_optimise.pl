@@ -727,6 +727,16 @@ complexity(Goal, Goal, State, Sz0, Sz, C0, C) :-
 	C is C0 + Sz0*SetUp + Sz*PerAlt,
 	debug(rdf_optimise(complexity), 'Complexity ~p: (~w) ~w --> ~w',
 	      [i(SI,PI,OI), Goal, Branch, C]).
+complexity(sparql_eval(E,V), sparql_eval(E,V), _, Sz0, Sz, C0, C) :- !,
+	term_variables(E, Vars),
+	all_bound(Vars),
+	Sz0 is Sz,			% probability of failure
+	C is C0 + Sz*20.		% Sz * CostOfEval
+complexity(sparql_true(E), sparql_true(E), _, Sz0, Sz, C0, C) :- !,
+	term_variables(E, Vars),
+	all_bound(Vars),
+	Sz is Sz0,			% probability of failure
+	C is C0 + Sz*20.		% Sz * CostOfEval
 complexity(G, G, _, Sz0, Sz, C0, C) :-	% non-rdf tests
 	term_variables(G, Vars),
 	all_bound(Vars),

@@ -37,8 +37,10 @@
 	  ]).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db), [rdf_is_bnode/1]).
+:- use_module(library(settings)).
 :- use_module(sparql_grammar).
 :- use_module(sparql_runtime).
+:- use_module(rdf_optimise).
 :- use_module(rdfql_util).
 
 :- multifile
@@ -84,8 +86,9 @@ sparql_query(Query, Reply, Options) :-
 %	be cached if desired and through  Options we can get information
 %	about the parsed query.
 
-sparql_compile(Query, sparql_query(Parsed, ReplyTemplate, Module), Options) :-
+sparql_compile(Query, sparql_query(Optimised, ReplyTemplate, Module), Options) :-
 	sparql_parse(Query, Parsed, Options),
+	optimise(Parsed, Optimised, Options),
 	option(entailment(Entailment), Options, rdf),
 	option(type(Type), Options, _),
 	option(ordered(Order), Options, _),
@@ -115,6 +118,35 @@ solutions(S, O, false) :-
 solutions(solutions(unsorted, _, _), O) :- !,
 	O = false.
 solutions(_, true).
+
+
+%%	optimise(+Parsed, -Optimised, +Options) is det.
+%
+%	Perform sparql query optimization using rdf_optimise/2.
+
+optimise(Parsed, Optimised, Options) :-
+	setting(serql_parms:optimise_query, Def),
+	option(optimise(true), Options, Def), !,
+	prolog_goal(Parsed, Goal0),
+	rdf_optimise(Goal0, Goal),
+	set_prolog_goal(Parsed, Goal, Optimised).
+optimise(Parsed, Parsed, _).
+
+
+prolog_goal(select(_Proj, _DataSets, Goal, _Solutions), Goal).
+prolog_goal(construct(_Templ, _DataSets, Goal, _Solutions), Goal).
+prolog_goal(ask(_DataSets, Goal), Goal).
+prolog_goal(describe(_Proj, _DataSets, Goal, _Solutions), Goal).
+
+set_prolog_goal(select(Proj, DataSets, _Goal, Solutions), Goal,
+		select(Proj, DataSets, Goal, Solutions)).
+set_prolog_goal(construct(Templ, DataSets, _Goal, Solutions), Goal,
+		construct(Templ, DataSets, Goal, Solutions)).
+set_prolog_goal(ask(DataSets, _Goal), Goal,
+		ask(DataSets, Goal)).
+set_prolog_goal(describe(Proj, DataSets, _Goal, Solutions), Goal,
+		describe(Proj, DataSets, Goal, Solutions)).
+
 
 %%	sparql_run(+Compiled, -Reply) is nondet.
 %

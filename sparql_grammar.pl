@@ -162,6 +162,20 @@ resolve_dataset(T0, IRI, S) :-
 	resolve_iri(T0, IRI, S).
 
 %%	resolve_query(+Q0, -Q, +State0, -State)
+%
+%	Create the initial translation from the  output of the parser to
+%	a Prolog query.   Constructs in the output are:
+%
+%	    * (Qa,Qb)
+%	    * (Qa;Qb)
+%	    * (Q*->true;true)
+%	    * rdf(S,P,O)
+%	    * rdf(S,P,O,G:_).
+%	    * sparql_true(Expression)
+%	    * sparql_eval(Expression, Value)
+%
+%	Note that an rdf/3 object can  be literal(plain(X), X) to demand
+%	an unqualified literal.
 
 resolve_query(List, Q, S0, S) :-
 	is_list(List), !,
