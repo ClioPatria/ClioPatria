@@ -52,7 +52,7 @@ the form set(List) to indicate a conjunction of distinct values.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 %%	serql_query(+Query, -Reply, +Module)
-%	
+%
 %	Where Query is either a SeRQL  query   text  or  a parsed query.
 %	Reply is, similar to the  ODBC  interface   a  term  of the form
 %	row(Col1, Col2, ...) for SELECT statements or a term rdf(S,P,O).
@@ -70,12 +70,12 @@ serql_query(Query, Result, Options) :-
 	serql_run(Compiled, Result).
 
 %%	serql_compile(+Query, -Compiled, +Options)
-%	
+%
 %	Compile a SeRQL query, returning the result in Compiled.  Options:
-%	
+%
 %		* entailment(Entailment)
 %		Entailment module to use.
-%		
+%
 %		* type(-Type)
 %		Return one of select(VarNames) or construct
 
@@ -136,7 +136,7 @@ compile(construct(RPath, Path, Where, Distinct, Limit, Offset),
 
 
 %%	mk_solutions(+Distinct, +Limit, +Offset, -Term)
-%	
+%
 %	Create a solutions-selecting term compatible to SPARQL.
 
 mk_solutions(distinct, Limit, Offset,
@@ -144,7 +144,7 @@ mk_solutions(distinct, Limit, Offset,
 mk_solutions(_, Limit, Offset, solutions(unsorted, Limit, Offset)).
 
 %%	set_type(+Type, +Options)
-%	
+%
 %	Fill option type(X)
 
 set_type(Type, Options) :-
@@ -168,7 +168,7 @@ serql_run(construct(Goal, Solutions), Reply, Module) :-
 	select_results(Solutions, Reply, Module:Goal).
 
 %%	select_results(+Spec, -Reply, :Goal)
-%	
+%
 %	Apply ordering and limits on result-set.
 
 select_results(distinct(solutions(Order, Limit, Offset)), Reply, Goal) :- !,
@@ -182,7 +182,7 @@ select_results(solutions(Order, Limit, Offset), Reply, Goal) :-
 		 *******************************/
 
 %%	serql_compile_path(+PathExpr, +Type, -PrologGoal)
-%	
+%
 %	Compile a Serql path expression into a plain Prolog goal.  Type
 %	is one of 'select' or 'construct'.
 
@@ -258,10 +258,10 @@ make_diff([], _, true).
 make_diff([Last], To, (Last \== To)) :- !.
 make_diff([H|T], To, (H \== To, More)) :-
 	make_diff(T, To, More).
-	
+
 
 %%	statements(+Graph, -ListOfTriples)
-%	
+%
 %	Extract  a  plain   list   of    triples   from   an   CONSTRUCT
 %	path-expression. Optional parts of the   tree are represented as
 %%	optional(Bool, ListOfTriples). Using CONSTRUCT *  (i.e. when the
@@ -341,9 +341,9 @@ projection_functions(I0, Arity, Row0, Row, Map0, Map) :-
 	    add_conj(Map0, serql_eval(A0, A), Map1),
 	    projection_functions(I, Arity, Row0, Row, Map1, Map)
 	).
-	    
+
 add_conj(true, X, X) :- !.
-add_conj(C0, G, (C0,G)).	    
+add_conj(C0, G, (C0,G)).
 
 
 		 /*******************************
@@ -364,9 +364,9 @@ Supported annotations (in standard order of terms):
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 %%	where_constraints(+Goal, -Annotations)
-%	
+%
 %	Each  annotation  is  either  a  plain   annotation  or  a  term
-%%	or(ListOfAlternatives). The latter is used   if  different paths
+%	or(ListOfAlternatives). The latter is used   if  different paths
 %	through the control-structure yields different annotations.
 
 where_constraints(Goal, Annotations) :-
@@ -375,7 +375,7 @@ where_constraints(Goal, Annotations) :-
 	join_alt_annots(AltAnnots1, Annotations).
 
 %%	where_constraint_list(+Goal, -Annotations)
-%	
+%
 %	Interpret   Goal,   making   annotations   on   the   variables.
 %	Backtracking yields alternative annotations  due to choicepoints
 %	in Goal.
@@ -383,7 +383,7 @@ where_constraints(Goal, Annotations) :-
 where_constraint_list(Goal, Annotations) :-
 	where_constraints(Goal, AttrVars, []),
 	attrs_to_terms(AttrVars, Annotations).
-	
+
 
 where_constraints((A,B)) --> !,
 	where_constraints(A),
@@ -406,7 +406,7 @@ where_constraints(rdf(S,P,_)) --> !,
 where_constraints(_) -->
 	[].
 
-constrain(Var, Cond) --> 
+constrain(Var, Cond) -->
 	{ var(Var) }, !,
 	(   { get_attr(Var, where, C0) }
 	->  { put_attr(Var, where, (Cond, C0)) },
@@ -423,9 +423,9 @@ constrain(datatype(X), Cond) --> !,
 	constrain(X, (literal, Cond)).
 constrain(_, _) -->
 	[].
-	
+
 %%	join_alt_annots(+ListOfAnnotLists, -AnnotatedVars)
-%	
+%
 %	ListOfAnnotLists is a list  of   alternative  annotations due to
 %	choicepoints. Each annotation list represents annotations in the
 %	form Var = Annotation. AnnotatedVars is a list of variables with
@@ -446,7 +446,7 @@ join_alt_annots(LoL, []) :-
 
 
 %%	normalise_annotation(+A0, -A)
-%	
+%
 %	Create  a  normalised  version  of    an   annotation  for  easy
 %	processing. Currently only deals  with   annotations  that are a
 %	conjunction.
@@ -469,14 +469,14 @@ list_do_conj([H|T0], (H,T)) :-
 
 
 %%	empty_annotations(+List)
-%	
+%
 %	True if there is no sensible conclusion   we  can draw using the
 %	annotations found. This is often the case if multiple paths in a
 %	disjunction do not deal with all   variables.  Note that this is
 %	not necessarily the end of the story. We could rewrite
-%	
+%
 %		A,(C1;C2) into (A,C1);(A,C2)
-%		
+%
 %	And apply optimisation on both branches.
 
 empty_annotations([]) :- !.
@@ -490,7 +490,7 @@ put_annotations(More, Var) :-
 	put_attr(Var, where, or(More)).
 
 %%	smallest_var(+ListOfList, -Smallest)
-%	
+%
 %	Get  the  smallest  (in  standard   order  of  terms)  annotated
 %	variable.
 
@@ -505,7 +505,7 @@ smallest_var([[S1=_|_]|T], S0, S) :- !,
 	smallest_var(T, S2, S).
 smallest_var([[]|T], S0, S) :-
 	smallest_var(T, S0, S).
-	
+
 smallest(A, B, S) :-
 	(   A @< B
 	->  S = A
@@ -513,7 +513,7 @@ smallest(A, B, S) :-
 	).
 
 %%	var_annotations(+Var, +LoL0, -LoL, -Annotations)
-%	
+%
 %	Get all Annotation for Var. Note   that the annotation is either
 %	the head of the list or not in the list.
 
@@ -533,7 +533,7 @@ where:attr_portray_hook(Val, _Var) :-
 	print(Val).
 
 %%	attrs_to_terms(AttrsVars, List)
-%	
+%
 %	Convert X{where=A} into X=A terms. Without   this  we cannot use
 %	bagof/3 and maintain the variables. Not sure   this  is a bug in
 %	bagof or not.
@@ -595,7 +595,7 @@ eq_list([eq(query(R))|T0], [R|T]) :-
 
 
 %%	clean_conj(+Goal0, -Goal)
-%	
+%
 %	Remove redundant true statements from a conjunction
 
 clean_conj((true, G0), G) :- !,
@@ -609,7 +609,7 @@ clean_conj(G, G).
 		 *******************************/
 
 %%	serql_parse(+Input, -ParseTree)
-%	
+%
 %	Parse the SeRQL statement Input into a Prolog representation.
 
 serql_parse(Codes, Query) :-
@@ -677,7 +677,7 @@ expand_uris(I0, Arity, Q0, Map, Q) :-
 
 
 %%	ns(?Id, ?URI)
-%	
+%
 %	Translate  between  namespace  id   and    URI.   If   the  flag
 %	rdf_db_namespaces is true, we share   the namespace declarations
 %	with the SeRQL store.
@@ -758,7 +758,7 @@ proj_names([_|T0], [-|T]) :-
 syntax_error(What, In, []) :-
 	throw(error(syntax_error(What),
 		    context(_, left(In)))).
-	
+
 add_error_location(error(syntax_error(What),
 			 context(_, left(After))),
 		   Tokens) :-
@@ -823,7 +823,7 @@ compilation_unit(Query, NameSpaces) -->
 	namespace_list(NameSpaces).
 
 %%	namespace_list(-NSList:list)// is det.
-%	
+%
 %	@param NSList	List of Prefix=URI for each defined namespace
 
 namespace_list([H|T]) -->
@@ -901,7 +901,7 @@ query_tail(Where, Limit, Offset) -->
 	    )
 	;   {Offset = 0}
 	).
-	
+
 projection(*) -->
 	[ * ], !.
 projection([H|T]) -->
@@ -1005,7 +1005,7 @@ node(var(-(_))) -->			% the _ is the variable that will
 
 node_elem_list([H|T]) -->
 	[ ',' ], !,
-	must_see_node_elem(H), 
+	must_see_node_elem(H),
 	node_elem_list(T).
 node_elem_list([]) -->
 	[].
@@ -1186,7 +1186,7 @@ token(Char) -->
 token(rest(Rest), In, []) :-		% catch syntax errors.
 	In \== [],
 	atom_codes(Rest, In).
-	
+
 
 single(0'*).
 single(0'=).
@@ -1201,7 +1201,7 @@ single(0',).
 single(0';).
 
 %	cmp//1
-%	
+%
 %	Returns Prolog comparison operators from the SeRQL ones.
 
 cmp(=<) --> "<=".
@@ -1213,7 +1213,7 @@ cmp(>)  --> ">".
 
 
 %%	uri_codes(-Codes)
-%	
+%
 %	Get a URI string.  Does not check for otherwise valid syntax.
 %	This could be done using library(url).
 
@@ -1245,7 +1245,7 @@ uri_code(0'}).
 
 
 %%	string_codes(-Codes)
-%	
+%
 %	Chars between "...",  Can contain \" and \\
 
 string_codes([C0|Cs]) -->
@@ -1260,7 +1260,7 @@ string_codes([C0|Cs]) -->
 
 
 %%	identifier(-Id)
-%	
+%
 %	An SeRQL must start with a letter or an underscore ('_') and can
 %	be followed by  zero  or   more  letters,  numbers, underscores,
 %	dashes ('-') or dots ('.').
@@ -1300,7 +1300,7 @@ blank -->
 	[].
 
 %%	serql_keyword(?Keyword)
-%	
+%
 %	True if Keyword is the lowercase version if a keyword
 
 serql_keyword(select).

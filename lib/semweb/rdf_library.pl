@@ -54,7 +54,7 @@
 /** <module> RDF Library Manager
 
 This module manages an ontology library. Such   a  library consists of a
-directory with manifest files  named   =manifest,rdf=  or =manifest.ttl=
+directory with manifest files  named   =manifest.rdf=  or =manifest.ttl=
 (Turtle). The manifest files define ontologies  appearing in the library
 as well as namespace mnemonics and dependencies.
 
@@ -65,10 +65,7 @@ The typical usage scenario is
 ?- rdf_load_library(my_ontology).
 ==
 
-
 @tbd	Add caching info
-@tbd	Allow HTTP-hosted repositories
-
 @author Jan Wielemaker
 */
 
@@ -628,6 +625,10 @@ ontology_type(X) :-
 
 facet(Triples, File, title(Title)) :-
 	edge(Triples, File, dc:title, literal(Title)).
+:- if(rdf_current_ns(dcterms, _)).
+facet(Triples, File, title(Title)) :-
+	edge(Triples, File, dcterms:title, literal(Title)).
+:- endif.
 facet(Triples, File, version(Version)) :-
 	edge(Triples, File, owl:versionInfo, literal(Version)).
 facet(Triples, File, comment(Comment)) :-

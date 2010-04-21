@@ -478,7 +478,7 @@ resolve_bnodes_args(I0, A, T0, T, BN0, BN) :-
 		 *	COMPILE EXPRESSIONS	*
 		 *******************************/
 
-%%	compile_expression(+Expression, -Var, -Var, -Goal, +State)
+%%	compile_expression(+Expression, -Var, -Goal, +State)
 %
 %	Compile an expression into a (compound)   goal that evaluates to
 %	the variable var. This version is  not realy compiling. Its just
