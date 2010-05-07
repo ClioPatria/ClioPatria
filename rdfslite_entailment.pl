@@ -61,11 +61,18 @@ does:
 	* Handle rdf:type using subProperties and rdfs:subClassOf
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+:- rdf_meta
+	rdf(o,o,o).
+
+:- if(\+current_predicate(rdf_db:rdf_meta_specification/3)).
+
 term_expansion((rdf(S0, P0, O0) :- Body),
 	       (rdf(S,  P,  O)  :- Body)) :-
 	rdf_global_id(S0, S),
 	rdf_global_id(P0, P),
 	rdf_global_id(O0, O).
+
+:- endif.
 
 rdf(literal(L), _, _) :-		% should move to compiler
 	nonvar(L), !, fail.
