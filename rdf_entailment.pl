@@ -45,12 +45,19 @@ semantic web sub language of RDF.  This   one  does  (still a lousy) job
 realising RDFS entailment on top of rdf_db.pl.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+:- rdf_meta
+	rdf(r,r,o).
+
+:- if(\+current_predicate(rdf_db:rdf_meta_specification/3)).
+
 term_expansion((rdf(S0, P0, O0) :- Body0),
 	       (rdf(S,  P,  O)  :- rdf_db:Body)) :-
 	rdf_global_id(S0, S),
 	rdf_global_id(P0, P),
 	rdf_global_id(O0, O),
 	expand_goal(Body0, Body).
+
+:- endif.
 
 rdf(S, P, O) :-
 	rdf(S, P, O).

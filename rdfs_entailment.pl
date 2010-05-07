@@ -30,7 +30,7 @@
 */
 
 :- module(rdfs_entailment,
-	  [ 
+	  [
 	  ]).
 :- use_module(rdfql_runtime).			% runtime tests
 :- use_module(library(nb_set)).
@@ -53,11 +53,19 @@ semantic web sub language of RDF.  This   one  does  (still a lousy) job
 realising RDFS entailment on top of rdf_db.pl.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+:- rdf_meta
+	rdf(o,o,o),
+	rdfs_individual_of(r,r).
+
+:- if(\+current_predicate(rdf_db:rdf_meta_specification/3)).
+
 term_expansion((rdf(S0, P0, O0) :- Body),
 	       (rdf(S,  P,  O)  :- Body)) :-
 	rdf_global_id(S0, S),
 	rdf_global_id(P0, P),
 	rdf_global_id(O0, O).
+
+:- endif.
 
 rdf(literal(L), _, _) :-		% should move to compiler
 	nonvar(L), !, fail.
@@ -127,7 +135,7 @@ rdfs_individual_of(Resource, Class) :-
 
 %%	rdfs_has_type(+Resource, -Class) is nondet.
 %%	rdfs_has_type(-Resource, +Class) is nondet.
-%	
+%
 %	Perform RDFS entailment rules to enumerate the types of Resource
 %	or generate all resources entailed  by   the  given  class.
 
@@ -153,7 +161,7 @@ rdfs_has_type(Resource, Class) :-
 	    New == true
 	;   throw(error(instantiation_error, _))
 	).
-	       
+
 
 		 /*******************************
 		 *	       REGISTER		*
