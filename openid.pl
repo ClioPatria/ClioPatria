@@ -100,7 +100,7 @@ login_page(Request) :-
 			  \openid_login_form(ReturnTo, []),
 			  \local_login(ReturnTo)
 			]).
-			
+
 explain_login(ReturnTo) -->
 	{ parse_url(ReturnTo, Parts),
 	  memberchk(path(Path), Parts)
@@ -237,9 +237,9 @@ openid_for_local_user(User, URL) :-
 	openid_current_host(Request, Host, Port),
 	http_location_by_id(openid_userpage, UserPages),
 	(   Port == 80
-	->  format(atom(URL), 'http://~w~w~w',
+	->  format(atom(URL), 'http://~w~w/~w',
 		   [ Host, UserPages, User ])
-	;   format(atom(URL), 'http://~w:~w~w~w',
+	;   format(atom(URL), 'http://~w:~w~w/~w',
 		   [ Host, Port, UserPages, User ])
 	).
 
