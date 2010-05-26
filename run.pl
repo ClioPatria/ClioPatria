@@ -1,10 +1,11 @@
-#!/home/jan/bin/pl -g serql_welcome -L128m -G128m -T128m -s
+#!/home/janw/bin/swipl -g serql_welcome -s
 /*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@uva.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2008, University of Amsterdam
+    Copyright (C): 2008-2010, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
