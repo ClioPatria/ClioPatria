@@ -1,16 +1,3 @@
-
-Sesame forum: http://www.openrdf.org/forum
-
-================================================================
-Bugjes:
-
-	* Sesame java client does not perform logout?
-
-	* Cookie id "sesame-sid" is actually "sesame_sid"
-
-	* Chain of optional values!?
-
-
 ================================================================
 Timing (Dual AMD 2600+, SuSE 9.0)
 
@@ -61,14 +48,14 @@ Sesame 20040714 (swiprolog branch)
 wns				219.34			57.15
 count(table(right_noun, Row))	  0.57			 2.17
 count(table(right_noun_r, Row))	  			 0.73
-count(table(multi_lex, Row))  43183.25			58.01	          
+count(table(multi_lex, Row))  43183.25			58.01
 
 Sesame 20040820
 
-				     Sesame 		
+				     Sesame
 				 (mem)    (MySQL)
-wns				196.65		
-count(table(right_noun, Row))	  0.64		
-count(table(right_noun_r, Row))   0.49	  		
+wns				196.65
+count(table(right_noun, Row))	  0.64
+count(table(right_noun_r, Row))   0.49
 count(table(multi_lex, Row))  31303.31
-	
+
