@@ -68,8 +68,8 @@
 :- use_module(library(error)).
 :- use_module(library(url)).
 :- use_module(library(debug)).
+:- use_module(library(persistency)).
 :- use_module(openid).
-:- use_module(db).
 
 /** <module> User administration
 
@@ -96,7 +96,7 @@ following:
 		 *	  USER DATABASE		*
 		 *******************************/
 
-:- db_term
+:- persistent
 	user(_Name, _UserOptions),
 	grant_openid_server(_Server, _ServerOptions).
 
@@ -113,7 +113,7 @@ set_user_database(File) :-
 
 user_add(Name, Options) :-
 	must_be(atom, Name),
-	db_assert(user(Name, Options)).
+	assert_user(Name, Options).
 
 %%	user_del(+Name)
 %
@@ -122,7 +122,7 @@ user_add(Name, Options) :-
 user_del(Name) :-
 	must_be(atom, Name),
 	(   user(Name, _)
-	->  db_retractall(user(Name, _))
+	->  retractall_user(Name, _)
 	;   existence_error(user, Name)
 	).
 
@@ -138,8 +138,8 @@ set_user_property(Name, Prop) :-
 	    ;   functor(Prop, PropName, Arity),
 		functor(Unbound, PropName, Arity),
 		delete(OldProps, Unbound, NewProps),
-		db_retractall(user(Name, _)),
-		db_assert(user(Name, [Prop|NewProps]))
+		retractall_user(Name, _),
+		assert_user(Name, [Prop|NewProps])
 	    )
 	;   existence_error(user, Name)
 	).
@@ -154,7 +154,7 @@ openid_add_server(Server, _Options) :-
 	throw(error(permission_error(create, openid_server, Server),
 		    context(_, 'Already present'))).
 openid_add_server(Server, Options) :-
-	db_assert(grant_openid_server(Server, Options)).
+	assert_grant_openid_server(Server, Options).
 
 
 %%	openid_del_server(+Server)
@@ -162,7 +162,7 @@ openid_add_server(Server, Options) :-
 %	Delete registration of an OpenID server.
 
 openid_del_server(Server) :-
-	db_retractall(grant_openid_server(Server, _)).
+	retractall_grant_openid_server(Server, _).
 
 
 %%	openid_set_property(+Server, +Property) is det.
@@ -177,8 +177,8 @@ openid_set_property(Server, Prop) :-
 	    ;   functor(Prop, PropName, Arity),
 		functor(Unbound, PropName, Arity),
 		delete(OldProps, Unbound, NewProps),
-		db_retractall(grant_openid_server(Server, _)),
-		db_assert(grant_openid_server(Server, [Prop|NewProps]))
+		retractall_grant_openid_server(Server, _),
+		assert_grant_openid_server(Server, [Prop|NewProps])
 	    )
 	;   existence_error(openid_server, Server)
 	).
@@ -217,7 +217,7 @@ openid_server_properties(Server, Properties) :-
 match_server(Server, Registered) :-
 	parse_url(Server, SParts),
 	memberchk(host(SHost), SParts),
-	parse_url(Registered, RParts),	
+	parse_url(Registered, RParts),
 	memberchk(host(RHost), RParts),
 	concat_atom(SL, '.', SHost),
 	concat_atom(RL, '.', RHost),
@@ -237,7 +237,7 @@ openid_server_property(Server, Property) :-
 		 *******************************/
 
 %%	current_user(?User)
-%	
+%
 %	True if User is a registered user.
 
 current_user(User) :-
@@ -245,10 +245,10 @@ current_user(User) :-
 
 %%	user_property(?User, ?Property) is nondet.
 %%	user_property(+User, +Property) is semidet.
-%	
+%
 %	True if Property is a defined property on User.  In addition to
 %	properties explicitely stored with users, we define:
-%	
+%
 %		* session(SessionID)
 %		* connection(LoginTime, Idle)
 %		* url(URL)
@@ -305,7 +305,7 @@ user_url(User, URL) :-
 		 *******************************/
 
 %%	validate_password(+User, +Password)
-%	
+%
 %	Validate the password for the given user and password.
 
 validate_password(User, Password) :-
@@ -315,12 +315,12 @@ validate_password(User, Password) :-
 
 
 %%	password_hash(+Password, ?Hash)
-%	
+%
 %	Generate a hash from a password  or   test  a password against a
 %	hash. Like Unix we add a random   2 character prefix to make the
 %	same password return different  hashes   and  thus obscure equal
 %	passwords.
-%	
+%
 %	@tbd	Use crypt/2 from library(crypt)
 
 password_hash(Password, Hash) :-
@@ -392,9 +392,9 @@ authorized(Action) :-
 
 
 %%	check_permission(+User, +Operation)
-%	
+%
 %	Validate that user is allowed to perform Operation.
-%	
+%
 %	@error	permission_error(http_location, access, Path)
 
 check_permission(User, Operation) :-
@@ -407,7 +407,7 @@ check_permission(_, _) :-
 	permission_error(http_location, access, Path).
 
 %%	denied(+User, +Operation)
-%	
+%
 %	Deny actions to all users but admin.  This is a bit of a quick
 %	hack to avoid loosing data in a multi-user experiment.  Do not
 %	yet rely on this,
@@ -418,7 +418,7 @@ denied(_, Operation) :-
 
 
 %%	deny_all_users(+Term)
-%	
+%
 %	Deny some action to all users.  See above.
 
 deny_all_users(Term) :-
@@ -430,7 +430,7 @@ deny_all_users(Term) :-
 
 
 %%	login(+User:atom) is det.
-%	
+%
 %	Accept user as a user that has logged on into the current
 %	session.
 
@@ -444,7 +444,7 @@ login(User) :-
 
 
 %%	logout(+User) is det.
-%	
+%
 %	Logout the specified user
 
 logout(User) :-
