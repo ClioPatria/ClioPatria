@@ -39,7 +39,8 @@
 		rdf_reachable/3,
 		rdf_has/3,
 		rdf_subject/1,
-		rdf_equal/2
+		rdf_equal/2,
+		op(_,_,_)
 	      ]).
 :- use_module(library('semweb/rdfs'),
 	      [ rdfs_subclass_of/2,

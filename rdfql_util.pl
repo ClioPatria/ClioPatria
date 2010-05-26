@@ -35,6 +35,7 @@
 	    entailment_module/2		% +Entailment, -Module
 	  ]).
 :- use_module(library(nb_set)).
+:- use_module(library(semweb/rdf_db), [rdf_is_bnode/1]).
 
 :- module_transparent
 	select_results/6,

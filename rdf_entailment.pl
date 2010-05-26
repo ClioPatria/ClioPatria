@@ -35,7 +35,8 @@
 :- use_module(rdfql_runtime).			% runtime tests
 :- use_module(library('semweb/rdf_db'),
 	      [ rdf_global_id/2,
-		rdf_subject/1
+		rdf_subject/1,
+		op(_,_,_)
 	      ]).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
