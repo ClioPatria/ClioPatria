@@ -76,12 +76,12 @@ settings:convert_text(uri, Text, URI) :- !,
 	->  rdf_global_id(NS:Local, URI)
 	;   URI = Text
 	).
-	
+
 %%	identifier(+Atom) is semidet.
 %
 %	True if Atom contains only alphanumerical characters or
 %	undercores.
-%	
+%
 %	@tbd	Must we support unicode here?  Check with Turtle.
 
 identifier(Text) :-
@@ -106,10 +106,10 @@ http_settings:input_item(uri, Value, Name) -->
 		 *******************************/
 
 %%	serql_setting(+Name, -Old, +New)
-%	
+%
 %	Change a setting.  Not  all   settings  are  changeable  without
 %	restarting the server.
-%	
+%
 %	@tbd	Handle setting broadcasts to update server statistics
 
 serql_setting(Name, Old, New) :-
@@ -122,19 +122,16 @@ serql_setting(Name, Old, New) :-
 
 :- setting(http:port, nonneg, env('PORT', 3020),
 	   'Port the http server listens to').
-:- setting(http:workers, between(1, 20), env('SERQL_WORKERS', 2),
+:- setting(http:workers, between(1, 20), env('SERQL_WORKERS', 5),
 	   'Number of server threads').
-:- setting(http:worker_options, list(any), [ local(50000),
-					     global(50000),
-					     trail(50000)
-					   ],
+:- setting(http:worker_options, list(any), [],
 	   'Additional options to pass to the HTTP server').
 :- setting(http:max_idle_time, nonneg, 3600,
 	   'Session timeout.  If 0, session never times out').
 :- setting(http:server_url, atom, 'http://localhost:'+setting(http:port),
 	   'Url of the server itself').
 :- setting(http:prefix, atom, '',
-	   'Set this to rebase the server').
+	   'Prefix to rebase the server').
 
 
 		 /*******************************
@@ -143,10 +140,6 @@ serql_setting(Name, Old, New) :-
 
 :- setting(user_data, atom, 'users.db',
 	   'File holding account information').
-:- setting(documentation_url, atom, 'http://www.openrdf.org/doc/users/',
-	   'URL for OpenRDF documentation').
-:- setting(serql_documentation_url, atom, 'http://www.openrdf.org/doc/sesame/users/ch06.html',
-	   'URL for SeRQL language').
 :- setting(default_entailment, atom, rdfs,
 	   'Default entailment rules applied').
 :- setting(optimise_query, boolean, true,
@@ -155,7 +148,7 @@ serql_setting(Name, Old, New) :-
 	   'Allow registered namespaces in queries').
 :- setting(title, atom, 'SWI-Prolog Semantic Web Server',
 	   'Title of the web-page').
-:- setting(persistent_store, atom, 'SeRQL-store',
+:- setting(persistent_store, atom, 'RDF-store',
 	   'Directory for persistent copy of in-memory RDF').
 :- setting(base_ontologies, list(any), [serql(rdfs)],
 	   'Load these files into a virgin database').

@@ -16,10 +16,9 @@
 
 \title{SWI-Prolog Semantic Web Server}
 \author{Jan Wielemaker \\
-	Human Computer Studies (HCS), \\
-	University of Amsterdam \\
+	University of Amsterdam, VU University of Amsterdam \\
 	The Netherlands \\
-	E-mail: \email{wielemak@science.uva.nl}}
+	E-mail: \email{J.Wielemaker@cs.vu.nl}}
 
 \maketitle
 
@@ -83,11 +82,13 @@ SPARQL support is based on the SPARQL specification, versioned April 6,
 2006.  Status:
 
 \begin{shortlist}
-    \item No query optimization
-    \item Limited value-testing, notably on xsd:dateTime
+    \item No optimization of literal operations.  Because many SPARQL
+	  operations require type-translations that depend on the
+	  literal found, many of these operations are slow.  The engine
+	  does optimize grpah expressions.
+    \item Incomplete value-testing, notably on xsd:dateTime
     \item Incomplete ORDER BY support.  Only ascending and all values
           are compared lexically.
-    \item No support for named graphs
     \item Passes current test-suite, except tests affected by the above
           or acknowledged as errornous.
 \end{shortlist}
@@ -105,15 +106,10 @@ Sesame documentation.
 
 \subsection{Getting started}
 
-The file \file{parms.pl} contains a number of settings relevant to the
-server. Notable the port to connect to, where to store user information,
-etc. Persistent data kept by the server is a list of users and their
-access rights (default \file{users.db}) and a file-based backup of the
-in-memory store (default in the directory \file{SeRQL-store}). Please
-check the content of \file{parms.pl} and follow directions in the
-comments. On Unix-like systems, edit \file{run.pl} to adjust the
-location of SWI-Prolog on the \verb$!#$ line. Next, start \file{run.pl}
-and launch the server using the command below.
+On Unix-like systems, edit \file{run.pl} to adjust the location of
+SWI-Prolog on the \verb$!#$ line. Next, start \file{run.pl}. On Window,
+\file{run.pl} can be opened from the explorer. Now launch the server
+using the command below (do not forget the terminating full-stop (.)):
 
 \begin{code}
 ?- serql_server.
@@ -126,18 +122,50 @@ admin and anonymous users are created.  Accounts can be created and
 modified by users with administrative rights through the
 \emph{List users ...} link on the sidebar.
 
-To restart from scratch, stop the server, delete the users database file
-and/or the triple backup file and restart the server as described above.
+\subsection{Configuring the server}
+
+To configure the server, login as \const{admin} and click
+\textsf{Settings...}. Edit settings and hit \textsf{Apply} to save them.
+In most cases you will have to restart the server before the new
+settings take effect.\footnote{BUG: indicate when and make more settings
+act without restarting}.
 
 
-\subsection{Persistent store}		\label{sec:backup}
+\subsection{Restarting from scratch: where is the data kept?}
 
-The \file{parms.pl} setting \term{persistent_store}{Directory, Options}
-can be used to specify file-based persistent backup for the in-memory
-triple store. The store is a combination of quick-load triple databases
-and journal files that hold the modifications made to the triple store.
-Details of the persistent store are documented with the SWI-Prolog
-\url[Semantic Web package]{http://www.swi-prolog.org/packages/semweb.html}
+Data is kept on the following three places.  Each of these can be
+removed.
+
+\begin{itemize}
+    \item \file{settings.db}
+This keeps settings that do not have their default value.  You
+can freely edit this file if the server is not running.  Note that
+the settings can change the locations of the items below.
+
+    \item \file{users.db}
+This keeps the registered users and their permissions.  You can
+freely edit this file if the server is not running.  Passwords
+are stored as MD5-hashes.
+
+    \item \file{RDF-store}
+This directory holds backup of the RDF data. Each named-graph is
+represented by two (optional) files. The base of this file is an encoded
+version of the graph-name. The extensions are \fileex{trp} for
+quick-load snapshots and \fileex{jrn} for \jargon{journal} files. See
+the SWI-Prolog \url[Semantic Web
+package]{http://www.swi-prolog.org/packages/semweb.html} for details.
+You can freely remove a graph by removing both files if the server is
+not running.
+
+    \item \file{httpd.log}
+Keeps a log of HTTP interactions.  Note that on heavily loaded servers
+this can be a significant slow-down and the file can become very big.
+Clear \textit{File in which to log HTTP requests} to stop logging.
+
+On Unix systems, this file can be moved or removed at any time.  The
+system will start a new log-file. On Windows this will give a sharing
+violation.
+\end{itemize}
 
 
 \section{Roadmap}
@@ -151,7 +179,7 @@ well as a compiler that translates this into a Prolog goal executing the
 query op top of the SWI-Prolog SemWeb package. The file
 \file{rdfql_runtime.pl} contains predicates that implement the
 constraints (SeRQL WHERE or SPARQL FILTER) and other constructs
-generated by the query-compiler. 
+generated by the query-compiler.
 
 Entailment reasoning is defined by \file{rdf_entailment.pl}.  Specific
 entailments are in seperate files:
@@ -262,15 +290,13 @@ the isResource(X) constraint tell the system it can do straight
 identifier comparison rather then the much more expensive general
 comparison.
 
-Query optimisation is not yet supported for SPARQL.
-
 \subsection{Webserver}
 
 The webserver is realised by \file{server.pl}, merely loading both
 components: \file{http_data.pl} providing the Sesame HTTP API using
 the same paths and parameters and \file{http_user.pl} providing a
 browser-friendly frontend.  Error messages are still very crude
-and almost all errors return a 500 server error page with a 
+and almost all errors return a 500 server error page with a
 transcription of the Prolog exception.
 
 The Sesame HTTP API deals with a large number of data formats, only part
@@ -286,7 +312,7 @@ thereof.
 The file \file{sesame_client.pl}, created by \url[Maarten
 Menken]{mailto:mrmenken@cs.vu.nl} provides an API to remote
 Sesame servers.  Below is a brief documentation of the available
-primitives.  All predicates take an option list.  To simplify 
+primitives.  All predicates take an option list.  To simplify
 applications that communicate with a single server defauls for
 the server and reposititory locations can be specified using
 set_sesame_default/1.
@@ -455,18 +481,14 @@ the user database file.
 
 \section{Downloading}
 
-The SWI-Prolog SeRQL engine is available from CVS using the following
-commands:
+The SWI-Prolog SeRQL engine is available from its
+\url[GIT]{http://git-scm.com/}
+\url[repository]{http://eculture.cs.vu.nl/git/eculture/SeRQL.git} using
+the following commands:
 
 \begin{code}
-% cvs -d :pserver:pl@gollem.science.uva.nl:/usr/local/cvspl login
-Password: prolog
-% cvs -d :pserver:pl@gollem.science.uva.nl:/usr/local/cvspl co SeRQL
+% git clone git://eculture.cs.vu.nl/home/git/eculture/SeRQL.git
 \end{code}
-
-Infrequently announces and snapshots are provided through the
-\url[Prolog
-Wiki]{http://gollem.science.uva.nl/twiki/pl/bin/view/Library/SeRQL}
 
 
 \subsection*{Acknowledgements}
@@ -475,7 +497,8 @@ The SeRQL server has been realised as part of the \url[HOPS
 project]{http://www.hops-fp6.org} and could not have been done without
 Sesame and feedback from Jeen Broekstra and Maarten Menken from the Free
 University of Amsterdam (VU). Adding SPARQL support has been realised as
-part of the E-culture sub-project of Dutch MultiMedia project.
+part of the E-culture sub-project of Dutch MultiMedia project.  Various
+extensions and cleanup has been realised with \url[Europeana]{http://www.europeana.eu/portal/}.
 
 \printindex
 

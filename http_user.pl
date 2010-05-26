@@ -400,8 +400,7 @@ construct_form(_Request) :-
 	reply_page('Specify a query',
 		   [ h1(align(center), 'Interactive SeRQL CONSTRUCT query'),
 
-		     p(['A ', \serql_doc_link('CONSTRUCT'),
-			' generates an RDF graph']),
+		     p(['A CONSTRUCT generates an RDF graph']),
 
 		     form([ name(query),
 			    action(location_by_id(evaluate_graph_query)),
@@ -600,8 +599,7 @@ select_form(_Request) :-
 	reply_page('Specify a query',
 		   [ h1(align(center), 'Interactive SeRQL SELECT query'),
 
-		     p(['A ', \serql_doc_link('SELECT'),
-			' generates a table']),
+		     p(['A SELECT generates a table']),
 
 		     form([ name(query),
 			    action(location_by_id(evaluate_table_query)),
@@ -644,11 +642,6 @@ select_form(_Request) :-
 		     \script
 		   ]).
 
-
-serql_doc_link(Label) -->
-	{ setting(serql_parms:serql_documentation_url, URL)
-	},
-	html(a([href(URL)], Label)).
 
 serialization -->
 	html(select(name(serialization),

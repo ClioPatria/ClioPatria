@@ -1,7 +1,7 @@
 ################################################################
 # SWI-Prolog `SeRQL' package
-# Author:    Jan Wielemaker. jan@swi.psy.uva.nl
-# Copyright: GPL (see COPYING or www.gnu.org
+# Author:    Jan Wielemaker. J.Wielemaker@cs.vu.nl
+# Copyright: SWI-Prolog LGPL, see www.swi-prolog.org
 ################################################################
 
 .SUFFIXES: .tex .dvi .doc .pl
@@ -10,15 +10,15 @@ SHELL=@SHELL@
 PLBASE=@PLBASE@
 PLARCH=@PLARCH@
 PL=@PL@
+PLSRC=/home/janw/src/pl-devel
 XPCEBASE=$(PLBASE)/xpce
 PKGDOC=$(PLBASE)/doc/packages
 PCEHOME=../pl/packages/xpce
 LIBDIR=$(PLBASE)/library/semweb/serql
 EXDIR=$(PKGDOC)/examples/http
-RUNTEX=../pl/man/runtex
+RUNTEX=$(PLSRC)/man/runtex
 
-DOCTOTEX=$(PCEHOME)/bin/doc2tex
-PLTOTEX=$(PCEHOME)/bin/pl2tex
+DOCTOTEX=$(PLSRC)/man/doc2tex
 LATEX=latex
 DOC=serql
 TEX=$(DOC).tex
@@ -39,7 +39,7 @@ CLIENT=		sesame_client.pl
 
 LIBPL=		$(SERQL) $(HTTP) $(ADMIN) $(OUT) $(MISC) $(CLIENT)
 
-all:		
+all:
 		@echo "Nothing to do for this package"
 
 install:	$(LIBPL)
@@ -50,10 +50,10 @@ install:	$(LIBPL)
 
 rpm-install:	install
 
-pdf-install:	
+pdf-install:
 		$(INSTALL_DATA) $(DOC).pdf $(PKGDOC)
 
-html-install:	
+html-install:
 		$(INSTALL_DATA) $(DOC).html $(PKGDOC)
 
 uninstall::
@@ -98,4 +98,4 @@ clean:
 
 distclean:	clean
 		rm -f $(TARGETS) config.cache config.status Makefile
-		
+

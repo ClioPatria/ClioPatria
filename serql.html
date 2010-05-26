@@ -14,6 +14,15 @@ dt.pubdef
 { background-color: #c5e1ff;
 }
 
+.bib dd
+{ margin-bottom: 1em;
+}
+
+.bib dt
+{ float: left;
+margin-right: 1.3ex;
+}
+
 pre.code
 { margin-left: 1.5em;
 margin-right: 1.5em;
@@ -85,17 +94,24 @@ span.sec-nr
 }
 
 span.sec-title
-{ margin-left: 0.5em;
+{ 
 }
 
 span.pred-ext
 { font-weight: bold;
 }
 
+span.pred-tag
+{ float: right;
+font-size: 80%;
+font-style: italic;
+color: #202020;
+}
+
 /* Footnotes */
 
 sup.fn { color: blue; text-decoration: underline; }
-span.fn-text: { display: none; }
+span.fn-text { display: none; }
 sup.fn span {display: none;}
 sup:hover span 
 { display: block !important;
@@ -112,10 +128,9 @@ font-size: smaller;
 <P>
 <DIV class="title">SWI-Prolog Semantic Web Server</DIV>
 <DIV class="author">Jan Wielemaker <BR>
-Human Computer Studies (HCS), <BR>
-University of Amsterdam <BR>
+University of Amsterdam, VU University of Amsterdam <BR>
 The Netherlands <BR>
-E-mail: <A class="url" href="mailto:wielemak@science.uva.nl">wielemak@science.uva.nl</A></DIV>
+E-mail: <A class="url" href="mailto:J.Wielemaker@cs.vu.nl">J.Wielemaker@cs.vu.nl</A></DIV>
 <DIV class="abstract">
 <DIV class="abstract-title">Abstract</DIV> SWI-Prolog offers an 
 extensive library for loading, saving and querying Semantic Web 
@@ -134,39 +149,41 @@ extensible platform for realising Semantic Web based applications.
 <H1><A NAME="document-contents">Table of Contents</A></H1>
 
 <DIV class="toc">
-<DIV class="toc-h2"><A class="sec" href="#sec:1"><SPAN class="sec-nr">1</SPAN><SPAN class="sec-title">Introduction</SPAN></A></DIV>
-<DIV class="toc-h2"><A class="sec" href="#sec:2"><SPAN class="sec-nr">2</SPAN><SPAN class="sec-title">Query 
+<DIV class="toc-h2"><A class="sec" href="#sec:1"><SPAN class="sec-nr">1</SPAN> <SPAN class="sec-title">Introduction</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:2"><SPAN class="sec-nr">2</SPAN> <SPAN class="sec-title">Query 
 Languages</SPAN></A></DIV>
-<DIV class="toc-h3"><A class="sec" href="#sec:2.1"><SPAN class="sec-nr">2.1</SPAN><SPAN class="sec-title">SPARQL 
+<DIV class="toc-h3"><A class="sec" href="#sec:2.1"><SPAN class="sec-nr">2.1</SPAN> <SPAN class="sec-title">SPARQL 
 Support</SPAN></A></DIV>
-<DIV class="toc-h3"><A class="sec" href="#sec:2.2"><SPAN class="sec-nr">2.2</SPAN><SPAN class="sec-title">SeRQL 
+<DIV class="toc-h3"><A class="sec" href="#sec:2.2"><SPAN class="sec-nr">2.2</SPAN> <SPAN class="sec-title">SeRQL 
 Support</SPAN></A></DIV>
-<DIV class="toc-h2"><A class="sec" href="#sec:3"><SPAN class="sec-nr">3</SPAN><SPAN class="sec-title">Installation 
+<DIV class="toc-h2"><A class="sec" href="#sec:3"><SPAN class="sec-nr">3</SPAN> <SPAN class="sec-title">Installation 
 and Administration</SPAN></A></DIV>
-<DIV class="toc-h3"><A class="sec" href="#sec:3.1"><SPAN class="sec-nr">3.1</SPAN><SPAN class="sec-title">Getting 
+<DIV class="toc-h3"><A class="sec" href="#sec:3.1"><SPAN class="sec-nr">3.1</SPAN> <SPAN class="sec-title">Getting 
 started</SPAN></A></DIV>
-<DIV class="toc-h3"><A class="sec" href="#sec:3.2"><SPAN class="sec-nr">3.2</SPAN><SPAN class="sec-title">Persistent 
-store</SPAN></A></DIV>
-<DIV class="toc-h2"><A class="sec" href="#sec:4"><SPAN class="sec-nr">4</SPAN><SPAN class="sec-title">Roadmap</SPAN></A></DIV>
-<DIV class="toc-h3"><A class="sec" href="#sec:4.1"><SPAN class="sec-nr">4.1</SPAN><SPAN class="sec-title">Query 
+<DIV class="toc-h3"><A class="sec" href="#sec:3.2"><SPAN class="sec-nr">3.2</SPAN> <SPAN class="sec-title">Configuring 
+the server</SPAN></A></DIV>
+<DIV class="toc-h3"><A class="sec" href="#sec:3.3"><SPAN class="sec-nr">3.3</SPAN> <SPAN class="sec-title">Restarting 
+from scratch: where is the data kept?</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:4"><SPAN class="sec-nr">4</SPAN> <SPAN class="sec-title">Roadmap</SPAN></A></DIV>
+<DIV class="toc-h3"><A class="sec" href="#sec:4.1"><SPAN class="sec-nr">4.1</SPAN> <SPAN class="sec-title">Query 
 processing and entailment</SPAN></A></DIV>
-<DIV class="toc-h3"><A class="sec" href="#sec:4.2"><SPAN class="sec-nr">4.2</SPAN><SPAN class="sec-title">Query 
+<DIV class="toc-h3"><A class="sec" href="#sec:4.2"><SPAN class="sec-nr">4.2</SPAN> <SPAN class="sec-title">Query 
 optimisation</SPAN></A></DIV>
-<DIV class="toc-h3"><A class="sec" href="#sec:4.3"><SPAN class="sec-nr">4.3</SPAN><SPAN class="sec-title">Webserver</SPAN></A></DIV>
-<DIV class="toc-h2"><A class="sec" href="#sec:5"><SPAN class="sec-nr">5</SPAN><SPAN class="sec-title">The 
+<DIV class="toc-h3"><A class="sec" href="#sec:4.3"><SPAN class="sec-nr">4.3</SPAN> <SPAN class="sec-title">Webserver</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:5"><SPAN class="sec-nr">5</SPAN> <SPAN class="sec-title">The 
 Sesame client</SPAN></A></DIV>
-<DIV class="toc-h2"><A class="sec" href="#sec:6"><SPAN class="sec-nr">6</SPAN><SPAN class="sec-title">Sesame 
+<DIV class="toc-h2"><A class="sec" href="#sec:6"><SPAN class="sec-nr">6</SPAN> <SPAN class="sec-title">Sesame 
 interoperability</SPAN></A></DIV>
-<DIV class="toc-h2"><A class="sec" href="#sec:7"><SPAN class="sec-nr">7</SPAN><SPAN class="sec-title">The 
+<DIV class="toc-h2"><A class="sec" href="#sec:7"><SPAN class="sec-nr">7</SPAN> <SPAN class="sec-title">The 
 SPARQL client</SPAN></A></DIV>
-<DIV class="toc-h2"><A class="sec" href="#sec:8"><SPAN class="sec-nr">8</SPAN><SPAN class="sec-title">Security 
+<DIV class="toc-h2"><A class="sec" href="#sec:8"><SPAN class="sec-nr">8</SPAN> <SPAN class="sec-title">Security 
 issues</SPAN></A></DIV>
-<DIV class="toc-h2"><A class="sec" href="#sec:9"><SPAN class="sec-nr">9</SPAN><SPAN class="sec-title">Downloading</SPAN></A></DIV>
+<DIV class="toc-h2"><A class="sec" href="#sec:9"><SPAN class="sec-nr">9</SPAN> <SPAN class="sec-title">Downloading</SPAN></A></DIV>
 </DIV>
 
 <P>
 
-<H2><A NAME="sec:1"><SPAN class="sec-nr">1</SPAN><SPAN class="sec-title">Introduction</SPAN></A></H2>
+<H2><A NAME="sec:1"><SPAN class="sec-nr">1</SPAN> <SPAN class="sec-title">Introduction</SPAN></A></H2>
 
 <P>The SWI-Prolog Semantic Web Server unifies the SWI-Prolog general Web 
 support and Semantic Web support, providing both a starting point for 
@@ -176,7 +193,7 @@ SWI-Prolog Web support libraries can be found in <A class="url" href="http://hcs
 and the Web</A>,<SUP class="fn">1<SPAN class="fn-text">Submitted to 
 Theory and Practice of Logic Programming</SPAN></SUP>
 
-<H2><A NAME="sec:2"><SPAN class="sec-nr">2</SPAN><SPAN class="sec-title">Query 
+<H2><A NAME="sec:2"><SPAN class="sec-nr">2</SPAN> <SPAN class="sec-title">Query 
 Languages</SPAN></A></H2>
 
 <P>The current server supports two query languages:
@@ -195,23 +212,25 @@ to resolve edges in the graph and calls to predicates from
 rdfql_runtime.pl that realise constraints imposed by the SeRQL
 <CODE>WHERE</CODE> clause and SPARQL <CODE>FILTER</CODE> clauses.
 
-<H3><A NAME="sec:2.1"><SPAN class="sec-nr">2.1</SPAN><SPAN class="sec-title">SPARQL 
+<H3><A NAME="sec:2.1"><SPAN class="sec-nr">2.1</SPAN> <SPAN class="sec-title">SPARQL 
 Support</SPAN></A></H3>
 
 <P>SPARQL support is based on the SPARQL specification, versioned April 
 6, 2006. Status:
 
 <P><UL COMPACT>
-<LI>No query optimization
-<LI>Limited value-testing, notably on xsd:dateTime
+<LI>No optimization of literal operations. Because many SPARQL 
+operations require type-translations that depend on the literal found, 
+many of these operations are slow. The engine does optimize grpah 
+expressions.
+<LI>Incomplete value-testing, notably on xsd:dateTime
 <LI>Incomplete ORDER BY support. Only ascending and all values are 
 compared lexically.
-<LI>No support for named graphs
 <LI>Passes current test-suite, except tests affected by the above or 
 acknowledged as errornous.
 </UL>
 
-<H3><A NAME="sec:2.2"><SPAN class="sec-nr">2.2</SPAN><SPAN class="sec-title">SeRQL 
+<H3><A NAME="sec:2.2"><SPAN class="sec-nr">2.2</SPAN> <SPAN class="sec-title">SeRQL 
 Support</SPAN></A></H3>
 
 <P>SeRQL support and compatibility is based on development version 
@@ -219,21 +238,18 @@ Support</SPAN></A></H3>
 built-in functions. Both SeRQL and the HTTP API are fully defined in the 
 Sesame documentation.
 
-<H2><A NAME="sec:3"><SPAN class="sec-nr">3</SPAN><SPAN class="sec-title">Installation 
+<H2><A NAME="sec:3"><SPAN class="sec-nr">3</SPAN> <SPAN class="sec-title">Installation 
 and Administration</SPAN></A></H2>
 
-<H3><A NAME="sec:3.1"><SPAN class="sec-nr">3.1</SPAN><SPAN class="sec-title">Getting 
+<H3><A NAME="sec:3.1"><SPAN class="sec-nr">3.1</SPAN> <SPAN class="sec-title">Getting 
 started</SPAN></A></H3>
 
-<P>The file <CODE>parms.pl</CODE> contains a number of settings relevant 
-to the server. Notable the port to connect to, where to store user 
-information, etc. Persistent data kept by the server is a list of users 
-and their access rights (default <CODE>users.db</CODE>) and a file-based 
-backup of the in-memory store (default in the directory <CODE>SeRQL-store</CODE>). 
-Please check the content of <CODE>parms.pl</CODE> and follow directions 
-in the comments. On Unix-like systems, edit <CODE>run.pl</CODE> to 
-adjust the location of SWI-Prolog on the <CODE>!#</CODE> line. Next, 
-start <CODE>run.pl</CODE> and launch the server using the command below.
+<P>On Unix-like systems, edit <CODE>run.pl</CODE> to adjust the location 
+of SWI-Prolog on the <CODE>!#</CODE> line. Next, start <CODE>run.pl</CODE>. 
+On Window,
+<CODE>run.pl</CODE> can be opened from the explorer. Now launch the 
+server using the command below (do not forget the terminating full-stop 
+(.)):
 
 <PRE class="code">
 ?- serql_server.
@@ -247,27 +263,56 @@ created. Accounts can be created and modified by users with
 administrative rights through the
 <EM>List users ...</EM> link on the sidebar.
 
-<P>To restart from scratch, stop the server, delete the users database 
-file and/or the triple backup file and restart the server as described 
-above.
+<H3><A NAME="sec:3.2"><SPAN class="sec-nr">3.2</SPAN> <SPAN class="sec-title">Configuring 
+the server</SPAN></A></H3>
 
-<H3><A NAME="sec:3.2"><SPAN class="sec-nr">3.2</SPAN><SPAN class="sec-title">Persistent 
-store</SPAN></A></H3>
+<P>To configure the server, login as <CODE>admin</CODE> and click
+<B>Settings...</B>. Edit settings and hit <B>Apply</B> to save them. In 
+most cases you will have to restart the server before the new settings 
+take effect.<SUP class="fn">2<SPAN class="fn-text">BUG: indicate when 
+and make more settings act without restarting</SPAN></SUP>.
 
-<A NAME="sec:backup"></A>
+<H3><A NAME="sec:3.3"><SPAN class="sec-nr">3.3</SPAN> <SPAN class="sec-title">Restarting 
+from scratch: where is the data kept?</SPAN></A></H3>
 
-<P>The <CODE>parms.pl</CODE> setting <CODE>persistent_store(Directory, 
-Options)</CODE> can be used to specify file-based persistent backup for 
-the in-memory triple store. The store is a combination of quick-load 
-triple databases and journal files that hold the modifications made to 
-the triple store. Details of the persistent store are documented with 
-the SWI-Prolog
-<A class="url" href="http://www.swi-prolog.org/packages/semweb.html">Semantic 
-Web package</A>
+<P>Data is kept on the following three places. Each of these can be 
+removed.
 
-<H2><A NAME="sec:4"><SPAN class="sec-nr">4</SPAN><SPAN class="sec-title">Roadmap</SPAN></A></H2>
+<P>
+<UL>
+<LI><CODE>settings.db</CODE> This keeps settings that do not have their 
+default value. You can freely edit this file if the server is not 
+running. Note that the settings can change the locations of the items 
+below.
 
-<H3><A NAME="sec:4.1"><SPAN class="sec-nr">4.1</SPAN><SPAN class="sec-title">Query 
+<P>
+<LI><CODE>users.db</CODE> This keeps the registered users and their 
+permissions. You can freely edit this file if the server is not running. 
+Passwords are stored as MD5-hashes.
+
+<P>
+<LI><CODE>RDF-store</CODE> This directory holds backup of the RDF data. 
+Each named-graph is represented by two (optional) files. The base of 
+this file is an encoded version of the graph-name. The extensions are trp 
+for quick-load snapshots and jrn for <EM>journal</EM> files. See the 
+SWI-Prolog <A class="url" href="http://www.swi-prolog.org/packages/semweb.html">Semantic 
+Web package</A> for details. You can freely remove a graph by removing 
+both files if the server is not running.
+
+<P>
+<LI><CODE>httpd.log</CODE> Keeps a log of HTTP interactions. Note that 
+on heavily loaded servers this can be a significant slow-down and the 
+file can become very big. Clear <I>File in which to log HTTP requests</I> 
+to stop logging.
+
+<P>On Unix systems, this file can be moved or removed at any time. The 
+system will start a new log-file. On Windows this will give a sharing 
+violation.
+</UL>
+
+<H2><A NAME="sec:4"><SPAN class="sec-nr">4</SPAN> <SPAN class="sec-title">Roadmap</SPAN></A></H2>
+
+<H3><A NAME="sec:4.1"><SPAN class="sec-nr">4.1</SPAN> <SPAN class="sec-title">Query 
 processing and entailment</SPAN></A></H3>
 
 <A NAME="sec:entailment"></A>
@@ -388,7 +433,7 @@ Similar to <A NAME="idx:serqlquery3:9"></A><A class="pred" href="#serql_query/3"
 </DD>
 </DL>
 
-<H3><A NAME="sec:4.2"><SPAN class="sec-nr">4.2</SPAN><SPAN class="sec-title">Query 
+<H3><A NAME="sec:4.2"><SPAN class="sec-nr">4.2</SPAN> <SPAN class="sec-title">Query 
 optimisation</SPAN></A></H3>
 
 <P>By default, but under control of the <A NAME="idx:setting1:10"></A><SPAN class="pred-ext">setting/1</SPAN> 
@@ -414,9 +459,7 @@ the isResource(X) constraint tell the system it can do straight
 identifier comparison rather then the much more expensive general 
 comparison.
 
-<P>Query optimisation is not yet supported for SPARQL.
-
-<H3><A NAME="sec:4.3"><SPAN class="sec-nr">4.3</SPAN><SPAN class="sec-title">Webserver</SPAN></A></H3>
+<H3><A NAME="sec:4.3"><SPAN class="sec-nr">4.3</SPAN> <SPAN class="sec-title">Webserver</SPAN></A></H3>
 
 <P>The webserver is realised by <CODE>server.pl</CODE>, merely loading 
 both components: <CODE>http_data.pl</CODE> providing the Sesame HTTP API 
@@ -432,7 +475,7 @@ for reading and writing in different formats. <CODE>rdf_html</CODE>,
 <CODE>rdf_write</CODE> and <CODE>xml_result</CODE> provide some 
 implementations thereof.
 
-<H2><A NAME="sec:5"><SPAN class="sec-nr">5</SPAN><SPAN class="sec-title">The 
+<H2><A NAME="sec:5"><SPAN class="sec-nr">5</SPAN> <SPAN class="sec-title">The 
 Sesame client</SPAN></A></H2>
 
 <P>The file <CODE>sesame_client.pl</CODE>, created by <A class="url" href="mailto:mrmenken@cs.vu.nl">Maarten 
@@ -596,7 +639,7 @@ values for that field.
 </DD>
 </DL>
 
-<H2><A NAME="sec:6"><SPAN class="sec-nr">6</SPAN><SPAN class="sec-title">Sesame 
+<H2><A NAME="sec:6"><SPAN class="sec-nr">6</SPAN> <SPAN class="sec-title">Sesame 
 interoperability</SPAN></A></H2>
 
 <P>The SWI-Prolog SeRQL engine provides a (still incomplete) drop-in 
@@ -606,7 +649,7 @@ Sesame Java API. Likewise the Prolog client realised by
 <CODE>sesame_client.pl</CODE> provides a Prolog API that can be used to 
 access both Sesame and the SWI-Prolog SeRQL engine.
 
-<H2><A NAME="sec:7"><SPAN class="sec-nr">7</SPAN><SPAN class="sec-title">The 
+<H2><A NAME="sec:7"><SPAN class="sec-nr">7</SPAN> <SPAN class="sec-title">The 
 SPARQL client</SPAN></A></H2>
 
 <P>The file <CODE>sparql_client.pl</CODE> provides a client to the 
@@ -641,7 +684,7 @@ Commonly set to specify the server location. For example:
 <P></DD>
 </DL>
 
-<H2><A NAME="sec:8"><SPAN class="sec-nr">8</SPAN><SPAN class="sec-title">Security 
+<H2><A NAME="sec:8"><SPAN class="sec-nr">8</SPAN> <SPAN class="sec-title">Security 
 issues</SPAN></A></H2>
 
 <P>HTTP Communication with the server, including usernames and 
@@ -650,20 +693,16 @@ overall security of the server is unknown. It is advised to run the
 server as user with minimal access rights, only providing write access 
 to the user database file.
 
-<H2><A NAME="sec:9"><SPAN class="sec-nr">9</SPAN><SPAN class="sec-title">Downloading</SPAN></A></H2>
+<H2><A NAME="sec:9"><SPAN class="sec-nr">9</SPAN> <SPAN class="sec-title">Downloading</SPAN></A></H2>
 
-<P>The SWI-Prolog SeRQL engine is available from CVS using the following 
-commands:
+<P>The SWI-Prolog SeRQL engine is available from its
+<A class="url" href="http://git-scm.com/">GIT</A>
+<A class="url" href="http://eculture.cs.vu.nl/git/eculture/SeRQL.git">repository</A> 
+using the following commands:
 
 <PRE class="code">
-% cvs -d :pserver:pl@gollem.science.uva.nl:/usr/local/cvspl login
-Password: prolog
-% cvs -d :pserver:pl@gollem.science.uva.nl:/usr/local/cvspl co SeRQL
+% git clone git://eculture.cs.vu.nl/home/git/eculture/SeRQL.git
 </PRE>
-
-<P>Infrequently announces and snapshots are provided through the
-<A class="url" href="http://gollem.science.uva.nl/twiki/pl/bin/view/Library/SeRQL">Prolog 
-Wiki</A>
 
 <H3>Acknowledgements</H3>
 
@@ -671,7 +710,8 @@ Wiki</A>
 project</A> and could not have been done without Sesame and feedback 
 from Jeen Broekstra and Maarten Menken from the Free University of 
 Amsterdam (VU). Adding SPARQL support has been realised as part of the 
-E-culture sub-project of Dutch MultiMedia project.
+E-culture sub-project of Dutch MultiMedia project. Various extensions 
+and cleanup has been realised with <A class="url" href="http://www.europeana.eu/portal/">Europeana</A>.
 
 <H1><A NAME="document-index">Index</A></H1>
 

@@ -1,6 +1,10 @@
 *~
-SeRQL-store
+RDF-store
 settings.db
 users.db
 .pl-history
 httpd.log
+Makefile
+config.log
+config.status
+serql.tex
