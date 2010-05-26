@@ -1,24 +1,30 @@
-/*  This file is part of ClioPatria.
+/*  Part of ClioPatria SeRQL and SPARQL server
 
-    Author:	Jan Wielemaker <J.Wielemak@uva.nl>
-    HTTP:	http://e-culture.multimedian.nl/
-    GITWEB:	http://gollem.science.uva.nl/git/ClioPatria.git
-    GIT:	git://gollem.science.uva.nl/home/git/ClioPatria.git
-    GIT:	http://gollem.science.uva.nl/home/git/ClioPatria.git
-    Copyright:  2007, E-Culture/MultimediaN
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2010, University of Amsterdam, VU University Amsterdam
 
-    ClioPatria is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
 
-    ClioPatria is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with ClioPatria.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
 */
 
 :- module(http_monitor,
@@ -36,7 +42,7 @@
 /** <module> Monitor an HTTP servers health status
 
 This module monitors an HTTP server and kills it if it proves to be
-in a bad state for some time.  
+in a bad state for some time.
 
 */
 
@@ -48,27 +54,27 @@ in a bad state for some time.
 %%	http_monitor(+Options) is det.
 %
 %	Monitor an HTTP service.  Options:
-%	
+%
 %	    * fork(+Bool)
 %	    If =true=, fork and monitor the parent process.  Unix only.
-%	    
+%
 %	    * pid(+PID)
 %	    The PID of the monitored process.  This process is killed if
 %	    it fails to respond
-%	    
+%
 %	    * interval(+Seconds)
 %	    Polling interval.  Default is to poll every 20 seconds.
-%	    
+%
 %	    * max_failures(+Count)
 %	    Terminate the monitored service after Count failed connects.
 %	    Default is 3 times.
-%	    
+%
 %	    * max_start_time(+Time)
 %	    Max time we consider 503 status acceptable.
-%	    
+%
 %	    * max_wait(+Wait)
 %	    Max time to wait for a reply.  Default is 10 seconds.
-%	    
+%
 %	    * url(URL)
 %	    URL to poll.  Default is =|http://localhost:<port>/|=
 
@@ -86,7 +92,7 @@ http_monitor(Options) :-
 	assert(started_at(Now)),
 	option(interval(Time), Options, 20),
 	repeat,
-	    catch(check(Options), E, 
+	    catch(check(Options), E,
 		  (   print_message(error, E),
 		      halt(1))),
 	    sleep(Time),
@@ -130,7 +136,7 @@ guarded_check(URL, Options) :-
 	http_open(URL, In, Options),
 	call_cleanup(read_stream_to_codes(In, _Codes),
 		     close(In)).
-	
+
 
 act(error(_, context(status(Code, Comment))), URL, Options) :- !,
 	print_message(warning, http_monitor(error(Code-Comment, URL))),
@@ -170,7 +176,7 @@ kill_server(Options) :-
 	between(1, 10, Try),
 	   signal_for_try(Try, Sig),
 	   print_message(informational, http_monitor(kill(Pid, Sig))),
-	   catch(kill(Pid, Sig), _E, Done=true),
+	   catch(kill(Pid, Sig), E, Done=true),
 	   (   Done == true
 	   ->  (   E = error(existence_error(process, Pid), _)
 	       ->  !
@@ -183,8 +189,10 @@ kill_server(_Options) :-
 	existence_error(option, pid).
 
 signal_for_try(Try, Sig) :-
-	(   Try < 6
+	(   Try < 3
 	->  Sig = int
+	;   Try < 5
+	->  Sig = term
 	;   Sig = kill
 	).
 
