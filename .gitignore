@@ -3,3 +3,4 @@ SeRQL-store
 settings.db
 users.db
 .pl-history
+httpd.log
