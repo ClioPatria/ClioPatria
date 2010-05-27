@@ -45,7 +45,7 @@
 	    openid_grant/1,		% +Request
 	    openid_file/1,		% +Request (?name=File)
 	    openid_server/3,		% ?OpenIDLogin, ?OpenID, ?Server
-	    
+
 	    openid_login_form/4,	% +ReturnTo, +Options, //
 	    openid_css/2,		% +Emit link to CSS page
 
@@ -84,7 +84,7 @@ messages.
 Steps, as seen from the _consumer_ (or _|relying partner|_).
 
 	1. Show login form, asking for =openid_identifier=
-	2. Get HTML page from =openid_identifier= and lookup 
+	2. Get HTML page from =openid_identifier= and lookup
 	   =|<link rel="openid.server" href="server">|=
 	3. Associate to _server_
 	4. Redirect browser (302) to server using mode =checkid_setup=,
@@ -101,19 +101,19 @@ This module is typically used through openid_user/3.
 %%	openid_hook(+Action)
 %
 %	Call hook on the OpenID management library.  Defined hooks are:
-%	
+%
 %		* login(+OpenID)
 %		Consider OpenID logged in.
-%		
+%
 %		* logout(+OpenID)
 %		Logout OpenID
-%		
+%
 %		* logged_in(?OpenID)
 %		True if OpenID is logged in
-%		
+%
 %		* grant(+Request, +Options)
 %		Server: Reply positive on OpenID
-%		
+%
 %		* trusted_server(?Server)
 %		True if Server is a trusted OpenID server
 
@@ -163,28 +163,28 @@ openid_logged_in(OpenID) :-
 %	True if OpenID is a validated OpenID associated with the current
 %	session. The scenario for which this predicate is designed is to
 %	allow  an  HTTP  handler  that  requires    a   valid  login  to
-%	use the transparent code below. 
-%	
+%	use the transparent code below.
+%
 %	==
 %	handler(Request) :-
 %		openid_user(Request, OpenID, []),
 %		...
 %	==
-%	
+%
 %	If the user is not yet logged on a sequence of redirects will
 %	follow:
-%	
+%
 %		1. Show a page for login (default: page /openid/login),
 %		   predicate reply_openid_login/1)
 %		2. Redirect to OpenID server to validate
 %		3. Redirect to validation
-%		
+%
 %	Options:
-%	
+%
 %		* login_url(Login)
 %		(Local) URL of page to enter OpenID information. Default
 %		is =|/openid/login|=.
-%	
+%
 %	@see openid_authenticate/4 produces errors if login is invalid
 %	or cancelled.
 
@@ -202,7 +202,7 @@ openid_user(Request, _OpenID, Options) :-
 	option(login_url(Login), Options, LoginURL),
 	current_url(Request, Here),
 	redirect_browser(Login,
-			 [ 'openid.return_to' = Here 
+			 [ 'openid.return_to' = Here
 			 ]).
 
 
@@ -212,7 +212,7 @@ openid_user(Request, _OpenID, Options) :-
 %	this  default  login  page.  One  is    to  provide  the  option
 %	=login_url= to openid_user/3 and the other   is  to define a new
 %	handler for =|/openid/login|= using http_handler/3.
-%	
+%
 %	@tbd	Add CSS to page
 %	@tbd	Use http_current_handler/2 to make the link more dynamic.
 
@@ -278,9 +278,9 @@ openid_login_form(ReturnTo, Options) -->
 %	openid.X name-value pairs. Options is,  against the conventions,
 %	placed in front of the Request   to allow for smooth cooperation
 %	with http_dispatch.pl.
-%	
+%
 %	The OpenId server will redirect to the openid.return_to URL.
-%	
+%
 %	@throws	http_reply(moved_temporary(Redirect))
 
 openid_verify(Options, Request) :-
@@ -308,7 +308,7 @@ openid_verify(Options, Request) :-
 				   'openid.return_to'    = ReturnTo,
 				   'openid.trust_root'   = TrustRoot
 				 ]).
-			
+
 
 %%	assert_openid(+OpenIDLogin, +OpenID, +Server) is det.
 %
@@ -325,7 +325,7 @@ assert_openid(OpenIDLogin, OpenID, Server) :-
 %
 %	True if OpenIDLogin is the typed id for OpenID verified by
 %	Server.
-%	
+%
 %	@param OpenIDLogin ID as typed by user (canonized)
 %	@param OpenID ID as verified by server
 %	@param Server URL of the OpenID server
@@ -400,12 +400,12 @@ redirect_browser(Location, FormExtra) :-
 %	True if OpenID is the claimed  OpenID   that  belongs to URL and
 %	Server is the URL of the  OpenID   server  that  can be asked to
 %	verify this claim.
-%	
+%
 %	@param  URL The OpenID typed by the user
 %	@param	OpenIDOrig Canonized OpenID typed by user
 %	@param	OpenID Possibly delegated OpenID
 %	@param  Server OpenID server that must validate OpenID
-%	
+%
 %	@tbd	Implement complete URL canonization as defined by the
 %		OpenID 2.0 proposal.
 
@@ -434,7 +434,7 @@ openid_resolve(URL, OpenID0, OpenID, Server) :-
 	;   OpenID = OpenID0,
 	    debug(openid(resolve), 'OpenID = ~q', [OpenID])
 	).
-	
+
 
 link(DOM, Type, Target) :-
 	sub_term(element(link, Attrs, []), DOM),
@@ -453,17 +453,17 @@ link(DOM, Type, Target) :-
 %	Succeeds if Request comes from the   OpenID  server and confirms
 %	that User is a verified OpenID   user. ReturnTo provides the URL
 %	to return to.
-%	
+%
 %	After openid_verify/2 has redirected the   browser to the OpenID
 %	server, and the OpenID server did   its  magic, it redirects the
 %	browser back to this address.  The   work  is fairly trivial. If
 %	=mode= is =cancel=, the OpenId server   denied. If =id_res=, the
 %	OpenId server replied positive, but  we   must  verify  what the
 %	server tells us by checking the HMAC-SHA signature.
-%	
+%
 %	This call fails silently if their is no =|openid.mode|= field in
 %	the request.
-%	
+%
 %	@throws	openid(cancel)
 %		if request was cancelled by the OpenId server
 %	@throws openid(signature_mismatch)
@@ -577,7 +577,7 @@ openid_server(Options, Request) :-
 	;   Mode == checkid_setup
 	->  checkid_setup_server(Request, Form, Options)
 	).
-			
+
 %%	associate_server(+Request, +Form, +Options)
 %
 %	Handle the association-request. If successful,   create a clause
@@ -637,13 +637,13 @@ new_assoc_handle(Handle) :-
 %	Validate an OpenID for a TrustRoot and redirect the browser back
 %	to the ReturnTo argument.  There   are  many  possible scenarios
 %	here:
-%	
+%
 %		1. Check some cookie and if present, grant immediately
 %		2. Use a 401 challenge page
 %		3. Present a normal grant/password page
 %		4. As (3), but use HTTPS for the exchange
 %		5. etc.
-%		
+%
 %	First thing to check is the immediate acknowledgement.
 
 checkid_setup_server(_Request, Form, _Options) :-
@@ -652,7 +652,7 @@ checkid_setup_server(_Request, Form, _Options) :-
 	memberchk('openid.return_to'	= ReturnTo,  Form),
 	memberchk('openid.trust_root'	= TrustRoot, Form),
 
-	server_association(_, Handle, _Association), 		% check 
+	server_association(_, Handle, _Association), 		% check
 
 	reply_html_page([ title('OpenID login'),
 			  \openid_css
@@ -744,13 +744,13 @@ openid_grant(Request) :-
 			     [ 'openid.mode' = cancel
 			     ])
 	).
-	    
+
 
 %%	grant_login(+Request, +Options) is det.
 %
 %	Validate login from Request (can  be   used  to get cookies) and
 %	Options, which contains at least:
-%	
+%
 %		* identity(Identity)
 %		* password(Password)
 %		* trustroot(TrustRoot)
@@ -763,7 +763,7 @@ grant_login(Request, Options) :-
 %	True if we  trust  the  given   OpenID  server.  Must  throw  an
 %	exception, possibly redirecting to a   page with trusted servers
 %	if the given server is not trusted.
-%	
+%
 %	@tbd	How do we manage this?  Broadcast?  Settings?  Hook?
 
 trusted(OpenID, Server) :-
@@ -809,7 +809,7 @@ signature_algorithm('DH-SHA256', sha256).
 
 %%	openid_file(+Request)
 %
-%	Serve fiels we use as logos, style-sheets, etc.
+%	Serve files we use as logos, style-sheets, etc.
 
 openid_file(Request) :-
 	http_parameters(Request,
@@ -842,7 +842,7 @@ image_file(openid_css,	     library('http/openid.css')).
 %	Associate with an open-id server.  We   first  check for a still
 %	valid old association. If there is  none   or  it is expired, we
 %	esstablish one and remember it.
-%	
+%
 %	@tbd	Should we store known associations permanently?  Where?
 
 openid_associate(URL, Handle, Assoc) :-
@@ -945,7 +945,7 @@ random_bytes(_, []).
 %%	dh_x(+Max, -X)
 %
 %	Generate a random key X where 1<=X<P-1)
-%	
+%
 %	@tbd	If we have /dev/urandom, use that.
 
 dh_x(P, X) :-
@@ -986,7 +986,7 @@ key_values_data(Pairs, Data) :-
 	phrase(data_form(Pairs), Data).
 key_values_data(Pairs, Data) :-
 	phrase(gen_data_form(Pairs), Data).
-	
+
 data_form([Key-Value|Pairs]) -->
 	utf8_string(KeyCodes), ":", utf8_string(ValueCodes), "\n", !,
 	{ atom_codes(Key, KeyCodes),
@@ -1084,7 +1084,7 @@ bytes_to_int([B|T], Int0, Int) :-
 %%	xor_codes(+C1:list(int), +C2:list(int), -XOR:list(int)) is det.
 %
 %	Compute xor of two strings.
-%	
+%
 %	@error	length_mismatch(L1, L2) if the two lists do not have equal
 %		length.
 
