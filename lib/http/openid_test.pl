@@ -1,46 +1,58 @@
-/*  This file is part of ClioPatria.
+/*  Part of ClioPatria SeRQL and SPARQL server
 
-    Author:
-    HTTP:	http://e-culture.multimedian.nl/
-    GITWEB:	http://gollem.science.uva.nl/git/ClioPatria.git
-    GIT:	git://gollem.science.uva.nl/home/git/ClioPatria.git
-    GIT:	http://gollem.science.uva.nl/home/git/ClioPatria.git
-    Copyright:  2007, E-Culture/MultimediaN
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2007-2010, University of Amsterdam,
+			      VU University Amsterdam
 
-    ClioPatria is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
 
-    ClioPatria is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with ClioPatria.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
 */
+
 
 :- asserta(file_search_path(library, '..')).
 
 :- use_module(http_openid).
-:- use_module(library('http/http_dispatch')).
-:- use_module(library('http/http_error')).
-:- use_module(library('http/thread_httpd')).
-:- use_module(library('http/html_write')).
-:- use_module(library(plunit)).
+:- use_module(library(uri)).
+:- use_module(library(http/http_host)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_path)).
+:- use_module(library(http/http_error)).
+:- use_module(library(http/thread_httpd)).
+:- use_module(library(http/html_write)).
+
+http:location(openid, root(openid), []).
 
 :- debug(openid(_)).
 %:- debug(http(_)).
 
-consumer(Port) :-
+server :-
 	http_server(http_dispatch,
-		    [ port(Port)
+		    [ port(8000)
 		    ]).
 
 
 assoc :-
-	openid_associate('http://localhost:8001/openid/server', Handle, Assoc),
+	openid_associate('http://localhost:8000/openid/server', Handle, Assoc),
 	writeln(Handle-Assoc).
 
 %%	secret(+Request) is det.
@@ -58,7 +70,7 @@ secret(Request) :-
 			[ 'You\'ve reached the secret page as user ', %'
 			  a(href(User), User)
 			]).
-	
+
 %%	root(+Request).
 %%	allow(+Request).
 %
@@ -86,7 +98,7 @@ root(_Request) :-
 			  p([ 'Or go directly to the ', a(href=secret, 'secret page') ])
 			]).
 
-		   
+
 allow(Request) :-
 	openid_authenticate(Request, Server, Identity, ReturnTo),
 	reply_html_page(title('Success'),
@@ -112,17 +124,25 @@ allow(Request) :-
 %	Generate a page for user below /user/<user>.
 
 user_page(Request) :-
-	http_openid:current_root_url(Request, Root),
-	atom_concat(Root, 'openid/server', Me),
-	memberchk(path(Path), Request),
-	atom_concat('/user/', User, Path),
+	http_current_host(Request, Host, Port,
+			  [ global(true)
+			  ]),
+	http_location_by_id(openid_server, ServerLocation),
+	uri_authority_data(host, AComp, Host),
+	uri_authority_data(port, AComp, Port),
+	uri_authority_components(Authority, AComp),
+	uri_data(scheme, Components, http),
+	uri_data(authority, Components, Authority),
+	uri_data(path, Components, ServerLocation),
+	uri_components(OpenIDServer, Components),
+	memberchk(path_info(User), Request),
 	reply_html_page([ link([ rel('openid.server'),
-				 href(Me)
+				 href(OpenIDServer)
 			       ]),
 			  title('OpenID page of ~w'-[User])
 			],
 			h1('OpenID page of ~w'-[User])).
-		   
+
 
 		 /*******************************
 		 *		DEBUG		*
