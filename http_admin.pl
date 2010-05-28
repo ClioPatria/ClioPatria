@@ -674,12 +674,11 @@ new_openid_form -->
 					])))
 			  ])),
 	       p([ 'Use this form to define access rights for users of an ',
-		   a(href('http://www.openid.net'), 'OpenID'), ' server.',
-		   'The special server', code(*), ' specifies access for all OpenID servers.',
+		   a(href('http://www.openid.net'), 'OpenID'), ' server. ',
+		   'The special server ', code(*), ' specifies access for all OpenID servers. ',
 		   'Here are some examples of servers:'
 		 ]),
-	       ul([ li(code('http://myopenid.com')),
-		    li(code('http://videntity.org'))
+	       ul([ li(code('http://myopenid.com'))
 		  ])
 	     ]).
 
