@@ -40,10 +40,22 @@
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/html_write)).
 
-http:location(openid, root(openid), []).
-
 :- debug(openid(_)).
 %:- debug(http(_)).
+
+http:location(openid, root(openid), []).
+
+:- multifile
+	http_openid:openid_hook/1.
+
+http_openid:openid_hook(trusted(_OpenID, Server)) :-
+	debug(openid(test), 'Trusting server ~q', [Server]).
+
+
+%%	server
+%
+%	Create demo server  and  client.   After  starting  the  server,
+%	contact http://localhost:8000/
 
 server :-
 	http_server(http_dispatch,
@@ -90,7 +102,7 @@ root(_Request) :-
 			       [ div([ 'OpenID: ',
 				       input([ name(openid_url),
 					       size(40),
-					  value('http://localhost:8000/bob') % test
+					       value('http://localhost:8000/user/bob') % test
 					     ]),
 				       input([type(submit), value('Verify!')])
 				     ])
@@ -100,15 +112,14 @@ root(_Request) :-
 
 
 allow(Request) :-
-	openid_authenticate(Request, Server, Identity, ReturnTo),
+	openid_authenticate(Request, Server, Identity, _ReturnTo),
 	reply_html_page(title('Success'),
 			[ h1('OpenID login succeeded'),
 			  p([ 'The OpenID server ',
 			      a(href(Server),Server),
 			      ' verified you as ',
 			      a(href(Identity), Identity)
-			    ]),
-			  p(['Redirect to ', a(href(ReturnTo), ReturnTo)])
+			    ])
 			]).
 
 
@@ -118,10 +129,17 @@ allow(Request) :-
 
 :- http_handler(root('user/'),	user_page,	   [prefix]).
 :- http_handler(openid(server),	openid_server([]), []).
+:- http_handler(openid(grant),	openid_grant, []).
+
+:- multifile
+	http_openid:openid_hook/1.
+
+http_openid:openid_hook(grant(_Request, Options)) :-
+	debug(openid(test), 'Granting access to ~p', [Options]).
 
 %%	user_page(+Request) is det.
 %
-%	Generate a page for user below /user/<user>.
+%	Generate a page for user as /user/<user>.
 
 user_page(Request) :-
 	http_current_host(Request, Host, Port,

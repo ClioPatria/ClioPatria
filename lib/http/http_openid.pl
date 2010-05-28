@@ -3,9 +3,10 @@
     Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2007, University of Amsterdam
+    Copyright (C): 2007-2010, University of Amsterdam,
+    			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -51,15 +52,16 @@
 
 	    openid_current_host/3	% +Request, -Host, -Port
 	  ]).
-:- use_module(library('http/http_open')).
-:- use_module(library('http/http_client')).
-:- use_module(library('http/html_write')).
-:- use_module(library('http/http_parameters')).
-:- use_module(library('http/http_wrapper')).
-:- use_module(library('http/thread_httpd')).
-:- use_module(library('http/http_dispatch')).
-:- use_module(library('http/http_session')).
-:- use_module(library('http/http_host')).
+:- use_module(library(http/http_open)).
+:- use_module(library(http/http_client)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_wrapper)).
+:- use_module(library(http/thread_httpd)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_session)).
+:- use_module(library(http/http_host)).
+:- use_module(library(http/http_path)).
 :- use_module(library(utf8)).
 :- use_module(library(error)).
 :- use_module(library(sgml)).
@@ -74,7 +76,7 @@
 :- use_module(library(lists)).
 
 
-/** <module> OpenID consumer library
+/** <module> OpenID consumer and server library
 
 This library implements the OpenID protocol (http://openid.net/). OpenID
 is a protocol to share identities on   the  network. The protocol itself
@@ -93,10 +95,45 @@ Steps, as seen from the _consumer_ (or _|relying partner|_).
 	   conformation of the claimed identity.
 	6. Validate signature and redirect to the target location.
 
-This module is typically used through openid_user/3.
+A *consumer* (an application that allows OpenID login) typically uses
+this library through openid_user/3. In addition, it must implement the
+hook http_openid:openid_hook(trusted(OpenId, Server)) to define accepted
+OpenID servers. Typically, this hook is used to provide a white-list of
+aceptable servers. Note that accepting any OpenID server is possible,
+but anyone on the internet can setup a dummy OpenID server that simply
+grants and signs every request. Here is an example:
 
-@author	Jan Wielemaker
+    ==
+    :- multifile http_openid:openid_hook/1.
+
+    http_openid:openid_hook(trusted(_, OpenIdServer)) :-
+	(   trusted_server(OpenIdServer)
+	->  true
+	;   throw(http_reply(moved_temporary('/openid/trustedservers')))
+	).
+
+    trusted_server('http://www.myopenid.com/server').
+    ==
+
+By default, information who is logged on  is maintained with the session
+using http_session_assert/1 with the term   openid(Identity).  The hooks
+login/logout/logged_in can be used to provide alternative administration
+of logged-in users (e.g., based on client-IP, using cookies, etc.).
+
+To create a *server*,  you  must  do   four  things:  bind  the handlers
+openid_server/2  and  openid_grant/1  to  HTTP    locations,  provide  a
+user-page for registered users and   define  the grant(Request, Options)
+hook to verify  your  users.  An  example   server  is  provided  in  in
+<plbase>/doc/packages/examples/demo_openid.pl
 */
+
+		 /*******************************
+		 *	  CONFIGURATION		*
+		 *******************************/
+
+http:location(openid, root(openid), [priority(-100)]).
+
+:- http_handler(openid(file), openid_file, []).
 
 %%	openid_hook(+Action)
 %
@@ -114,7 +151,7 @@ This module is typically used through openid_user/3.
 %		* grant(+Request, +Options)
 %		Server: Reply positive on OpenID
 %
-%		* trusted_server(?Server)
+%		* trusted(+OpenID, +Server)
 %		True if Server is a trusted OpenID server
 
 :- multifile
@@ -212,9 +249,6 @@ openid_user(Request, _OpenID, Options) :-
 %	this  default  login  page.  One  is    to  provide  the  option
 %	=login_url= to openid_user/3 and the other   is  to define a new
 %	handler for =|/openid/login|= using http_handler/3.
-%
-%	@tbd	Add CSS to page
-%	@tbd	Use http_current_handler/2 to make the link more dynamic.
 
 openid_login_page(Request) :-
 	http_parameters(Request,
@@ -459,7 +493,7 @@ link(DOM, Type, Target) :-
 %	browser back to this address.  The   work  is fairly trivial. If
 %	=mode= is =cancel=, the OpenId server   denied. If =id_res=, the
 %	OpenId server replied positive, but  we   must  verify  what the
-%	server tells us by checking the HMAC-SHA signature.
+%	server told us by checking the HMAC-SHA signature.
 %
 %	This call fails silently if their is no =|openid.mode|= field in
 %	the request.
@@ -489,7 +523,7 @@ openid_authenticate(Request, OpenIdServer, Identity, ReturnTo) :-
 			    ],
 			    [ form_data(Form)
 			    ]),
-	    concat_atom(SignedFields, ',', AtomFields),
+	    atomic_list_concat(SignedFields, ',', AtomFields),
 	    check_obligatory_fields(SignedFields),
 	    signed_pairs(SignedFields,
 			 [ mode-Mode,
@@ -513,7 +547,8 @@ openid_authenticate(Request, OpenIdServer, Identity, ReturnTo) :-
 	    )
 	).
 
-%%	signed_pairs(+FieldNames, +Pairs:list(Field-Value), +Form, -SignedPairs) is det.
+%%	signed_pairs(+FieldNames, +Pairs:list(Field-Value),
+%%		     +Form, -SignedPairs) is det.
 %
 %	Extract the signed field in the order they appear in FieldNames.
 
@@ -740,7 +775,7 @@ openid_grant(Request) :-
 			       'openid.signed' = Signed,
 			       'openid.sig' = Bas64Sig
 			     ])
-	;    redirect_browser(ReturnTo,
+	;   redirect_browser(ReturnTo,
 			     [ 'openid.mode' = cancel
 			     ])
 	).
@@ -763,8 +798,6 @@ grant_login(Request, Options) :-
 %	True if we  trust  the  given   OpenID  server.  Must  throw  an
 %	exception, possibly redirecting to a   page with trusted servers
 %	if the given server is not trusted.
-%
-%	@tbd	How do we manage this?  Broadcast?  Settings?  Hook?
 
 trusted(OpenID, Server) :-
 	openid_hook(trusted(OpenID, Server)).
@@ -777,7 +810,7 @@ trusted(OpenID, Server) :-
 
 signed_fields(Pairs, Signed) :-
 	signed_field_names(Pairs, Names),
-	concat_atom(Names, ',', Signed).
+	atomic_list_concat(Names, ',', Signed).
 
 signed_field_names([], []).
 signed_field_names([H0-_|T0], [H|T]) :-
