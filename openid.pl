@@ -62,7 +62,6 @@ http:location(openid, root(openid), []).
 		 *******************************/
 
 :- http_handler(openid(grant),  openid_grant, [prefix]).
-:- http_handler(openid(file),   openid_file, [prefix]).
 
 :- multifile
 	http_openid:openid_hook/2.
@@ -189,7 +188,7 @@ http_openid:openid_hook(grant(Request, Options)) :-
 
 openid_userpage(Request) :-
 	memberchk(path(Path), Request),
-	concat_atom(Parts, /, Path),
+	atomic_list_concat(Parts, /, Path),
 	append(_, [user, User], Parts), !,
 	file_base_name(Path, User),
 	(   current_user(User)
