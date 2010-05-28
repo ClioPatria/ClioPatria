@@ -90,7 +90,6 @@ login_page(Request) :-
 			[ 'openid.return_to'(ReturnTo, [])
 			]),
 	reply_html_page([ title('Login'),
-			  \openid_css,
 			  link([ rel(stylesheet),
 				 type('text/css'),
 				 href(location_by_id(rdfql_css))
