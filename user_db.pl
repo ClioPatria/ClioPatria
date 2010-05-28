@@ -3,9 +3,10 @@
     Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@scienc.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2007, University of Amsterdam
+    Copyright (C): 2007-2010, University of Amsterdam,
+			      VU University Amsterdam.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -66,7 +67,7 @@
 :- use_module(library(lists)).
 :- use_module(library(settings)).
 :- use_module(library(error)).
-:- use_module(library(url)).
+:- use_module(library(uri)).
 :- use_module(library(debug)).
 :- use_module(library(persistency)).
 :- use_module(openid).
@@ -215,14 +216,17 @@ openid_server_properties(Server, Properties) :-
 %	True if ServerURL is in the domain of RegisteredURL.
 
 match_server(Server, Registered) :-
-	parse_url(Server, SParts),
-	memberchk(host(SHost), SParts),
-	parse_url(Registered, RParts),
-	memberchk(host(RHost), RParts),
-	concat_atom(SL, '.', SHost),
-	concat_atom(RL, '.', RHost),
+	uri_host(Server, SHost),
+	uri_host(Registered, RHost),
+	atomic_list_concat(SL, '.', SHost),
+	atomic_list_concat(RL, '.', RHost),
 	append(_, RL, SL), !.
 
+uri_host(URI, Host) :-
+	uri_components(URI, CL),
+	uri_data(authority, CL, Authority),
+	uri_authority_components(Authority, AC),
+	uri_authority_data(host, AC, Host).
 
 openid_server_property(Server, Property) :-
 	openid_server_properties(Server, Properties),
@@ -294,7 +298,7 @@ uprop(Prop, User) :-
 
 
 user_url(User, URL) :-
-	is_absolute_url(User), !,
+	uri_is_global(User), !,
 	URL = User.
 user_url(User, URL) :-
 	openid_for_local_user(User, URL).
