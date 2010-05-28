@@ -68,9 +68,11 @@ user:file_search_path(serql, '/usr/local/serql').
 user:file_search_path(triple20,      serql('Triple20/src')).
 user:file_search_path(library,	     serql(lib)).
 user:file_search_path(ontology_root, serql('Ontologies')).
+user:file_search_path(css,	     serql('web/css')).
+user:file_search_path(icons,	     serql('web/icons')).
 
 :- load_files([version], [silent(true), if(not_loaded)]).
-:- check_prolog_version(50661).		% Demand >= 5.6.61
+:- check_prolog_version(5111).		% Demand >= 5.11.1
 
 :- load_files([ parms,
 		library(option),
@@ -97,19 +99,19 @@ user:file_search_path(ontology_root, serql('Ontologies')).
 
 %%	serql_server is det.
 %%	serql_server(+Options) is det.
-%	
+%
 %	Start the HTTP server.  Defined options are:
-%	
+%
 %		* port(Port)
 %		Attach to Port instead of the port specified in the
 %		configuration file.
-%		
+%
 %		* after_load(+Goal)
 %		Run Goal after loading/initialising the database.  Note
 %		that serql_server/1 is not a meta-predicate.  Goal is
 %		called in =user= and must be prefixed if calling in
 %		another module is required.
-%		
+%
 % 	In addition, all settings as defined in parms.pl are allowed as
 % 	options:
 %
@@ -144,7 +146,7 @@ after_load_option(Options, true, Options).
 
 
 %%	set_options(+List, -NotProcesses)
-%	
+%
 %	Set parameters as defined in  parms.pl   from  all  options that
 %	match a setting name.  Using +Option(Value, ...), multiple rules
 %	are appended.

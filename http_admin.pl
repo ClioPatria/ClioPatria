@@ -33,6 +33,7 @@
 	  [ reload_attr/2		% +Window, -Attribute
 	  ]).
 :- use_module(user_db).
+:- use_module(http_user).
 :- use_module(library('http/http_parameters')).
 :- use_module(library('http/http_session')).
 :- use_module(library('http/html_write')).
@@ -74,7 +75,7 @@
 %	Present menu with administrative tasks.
 
 tasks(_Request) :-
-	reply_page('Administrative tasks',
+	serql_page('Administrative tasks',
 		   [ \action(location_by_id(list_users), 'List users')
 		   ]).
 
@@ -88,7 +89,7 @@ action(URL, Label) -->
 
 list_users(_Request) :-
 	authorized(admin(list_users)),
-	reply_page('Users',
+	serql_page('Users',
 		   [ h1('Users'),
 		     \user_table,
 		     p([ \action(location_by_id(add_user_form), 'Add user')
@@ -178,7 +179,7 @@ create_admin(_Request) :-
 			context(_, 'Already initialized')))
 	;   true
 	),
-	reply_page('Create administrator',
+	serql_page('Create administrator',
 		   [ h1(align(center), 'Create administrator'),
 
 		     p('No accounts are available on this server. \
@@ -221,7 +222,7 @@ create_admin(_Request) :-
 
 add_user_form(_Request) :-
 	authorized(admin(add_user)),
-	reply_page('Add new user',
+	serql_page('Add new user',
 		   [ \new_user_form
 		   ]).
 
@@ -314,7 +315,7 @@ edit_user_form(Request) :-
 
 	user_property(User, realname(RealName)),
 
-	reply_page('Edit user',
+	serql_page('Edit user',
 		   [ h4(['Edit user ', User, ' (', RealName, ')']),
 
 		     form([ action(location_by_id(edit_user)),
@@ -461,7 +462,7 @@ del_user(Request) :- !,
 change_password_form(_Request) :-
 	logged_on(User),
 	user_property(User, realname(RealName)),
-	reply_page('Change password',
+	serql_page('Change password',
 		   [ h4(['Change password for ', User, ' (', RealName, ')']),
 
 		     form([ action(location_by_id(change_password)),
@@ -517,7 +518,7 @@ change_password(Request) :-
 	),
 	password_hash(New, Hash),
 	set_user_property(User, password(Hash)),
-	reply_page('Password changed',
+	serql_page('Password changed',
 		   [ h1(align(center), 'Password changed'),
 		     p([ 'Your password has been changed successfully' ])
 		   ]).
@@ -532,7 +533,7 @@ change_password(Request) :-
 %	HTTP handler that presents a form to login.
 
 login_form(_Request) :-
-	reply_page('Login',
+	serql_page('Login',
 		   [ h1(align(center), 'Login'),
 		     form([ action(location_by_id(user_login)),
 			    method('GET')
@@ -588,14 +589,14 @@ reply_login(Options) :-
 	(   option(return_to(ReturnTo), Options)
 	->  throw(http_reply(moved_temporary(ReturnTo)))
 	;   reload_attr(sidebar, OnLoad),
-	    reply_page('Login ok',
+	    serql_page('Login ok',
 		       body([ OnLoad
 			    ],
 			    [ h1(align(center), ['Welcome ', User])
 			    ]))
 	).
 reply_login(_) :-
-	reply_page('Login failed',
+	serql_page('Login failed',
 		   [ h1(align(center), 'Login failed'),
 		     p(['Password incorrect'])
 		   ]).
@@ -608,7 +609,7 @@ user_logout(_Request) :-
 	logged_on(User),
 	logout(User),
 	reload_attr(sidebar, OnLoad),
-	reply_page('Logout',
+	serql_page('Logout',
 		   body([ OnLoad
 			],
 			[ h1(align(center), ['Logged out ', User])
@@ -646,7 +647,7 @@ bool(Def,
 
 add_openid_server_form(_Request) :-
 	authorized(admin(add_openid_server)),
-	reply_page('Add OpenID server',
+	serql_page('Add OpenID server',
 		   [ \new_openid_form
 		   ]).
 
@@ -737,7 +738,7 @@ edit_openid_server_form(Request) :-
 			[ openid_server(Server, [])
 			]),
 
-	reply_page('Edit OpenID server',
+	serql_page('Edit OpenID server',
 		   [ h4(['Edit OpenID server ', Server]),
 
 		     form([ action(location_by_id(edit_openid_server)),
@@ -931,22 +932,3 @@ hidden(Name, Value) -->
 		     name(Name),
 		     value(Value)
 		   ])).
-
-
-reply_page(Title, Content) :-
-	phrase(page(title(Title), Content), HTML),
-	format('Content-type: text/html~n~n'),
-	print_html(HTML).
-
-%	Support Cross-Referencer and PceEmacs.
-
-:- multifile
-	emacs_prolog_colours:goal_colours/2,
-	prolog:called_by/2.
-
-
-emacs_prolog_colours:goal_colours(reply_page(_, HTML),
-				  built_in-[classify, Colours]) :-
-	catch(html_write:html_colours(HTML, Colours), _, fail).
-prolog:called_by(reply_page(_, HTML), Called) :-
-	catch(phrase(html_write:called_by(HTML), Called), _, fail).

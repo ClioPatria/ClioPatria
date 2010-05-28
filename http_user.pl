@@ -29,13 +29,17 @@
     the GNU General Public License.
 */
 
-:- module(http_user, []).
+:- module(http_user,
+	  [ serql_page/2		% +Title, +Content
+	  ]).
 
 :- use_module(server).
 :- use_module(xml_result).
 :- use_module(library('http/http_open')).
 :- use_module(library('http/thread_httpd')).
 :- use_module(library('http/html_write')).
+:- use_module(library('http/html_head')).
+:- use_module(library('http/http_server_files')).
 :- use_module(library('http/mimetype')).
 :- use_module(library('http/http_dispatch')).
 :- use_module(library('http/http_session')).
@@ -51,9 +55,8 @@
 :- http_handler(root('.'),
 		http_redirect(moved, location_by_id(serql_home)),
 		[]).
-:- http_handler(serql('home.html'),		serql_home,		 []).
-:- http_handler(serql('sidebar.html'),		sidebar,		 []).
-:- http_handler(serql('welcome.html'),		welcome,		 []).
+:- http_handler(serql('home.html'),		welcome,
+		[id(serql_home)]).
 :- http_handler(serql('user/statistics'),	statistics,		 []).
 :- http_handler(serql('user/construct'),	construct_form,		 []).
 :- http_handler(serql('user/query'),		query_form,		 []).
@@ -65,49 +68,27 @@
 :- http_handler(serql('user/removeStatements'),	remove_statements_form,	 []).
 
 :- http_handler(serql('documentation.html'),
-		http_reply_file(serql('serql.html'), []), [id(serql_doc)]).
+		reply_decorated_file(serql('serql.html')), [id(serql_doc)]).
 :- http_handler(serql('css/rdfql.css'),
 		http_reply_file(serql('rdfql.css'), []), [id(rdfql_css)]).
 
 
-%%	serql_home(+Request)
-%
-%	Print the home page.
-%
-%	NOTE: a frameset must _not_ have a body!
+sidebar -->
+	{ findall(Path-Label, action(Path, Label), Actions) },
+	html([ \current_user_info,
+	       hr([])
+	     | \actions(Actions)
+	     ]).
 
-serql_home(_Request) :-
-	(   setting(serql_parms:title, Title)
-	->  true
-	;   Title = 'SWI-Prolog Semantic Web Server'
-	),
-	reply_html_page([ title(Title),
-			  frameset([cols('200,*')],
-				   [ frame([ src(location_by_id(sidebar)),
-					     name(sidebar)
-					   ]),
-				     frame([ src(location_by_id(welcome)),
-					     name(main)
-					   ])
-				   ])
-			], []).
+current_user_info -->
+	html([ \current_user,
+	       hr([]),
+	       \action_by_id(serql_home, 'Home'),
+	       \cond_action(login),
+	       \cond_action(logout),
+	       \cond_action(change_password)
+	     ]).
 
-%%	sidebar(+Request)
-%
-%	HTTP handler to emit the left bar menu (frame content).
-
-sidebar(_Request) :-
-	findall(Path-Label, action(Path, Label), Actions),
-	reply_page('Sidebar',
-		   [ \current_user,
-		     hr([]),
-		     \action_by_id(welcome, 'Home'),
-		     \cond_action(login),
-		     \cond_action(logout),
-		     \cond_action(change_password),
-		     hr([])
-		   | \actions(Actions)
-		   ]).
 
 :- multifile
 	serql_http:sidebar_menu/2.
@@ -176,13 +157,22 @@ someone_logged_on :-
 
 welcome(Request) :-
 	(   current_user(_)
-	->  http_reply_file(serql('welcome.html'),
-			    [cache(false)],
-			    Request)
+	->  reply_decorated_file(serql('welcome.html'), Request)
 	;   http_redirect(moved_temporary,
 			  location_by_id(create_admin),
 			  Request)
 	).
+
+
+reply_decorated_file(Alias, _Request) :-
+	absolute_file_name(Alias, Page, [access(read)]),
+	load_html_file(Page, DOM),
+	contains_term(element(title, _, Title), DOM),
+	contains_term(element(body, _, Body), DOM),
+	Style = element(style, _, _),
+	findall(Style, sub_term(Style, DOM), Styles),
+	append(Styles, Body, Content),
+	serql_page(Title, Content).
 
 
 		 /*******************************
@@ -204,7 +194,7 @@ statistics(_Request) :-
 	rdf_statistics(core(Core)),
 	sort(UnsortedPairs, Pairs),
 	gethostname(Host),
-	reply_page('RDF statistics',
+	serql_page('RDF statistics',
 		   [ h1([id(stattitle)], ['RDF statistics for ', Host]),
 		     ol([id(toc)],
 			[
@@ -397,7 +387,7 @@ http_workers([H|T]) -->
 
 construct_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
-	reply_page('Specify a query',
+	serql_page('Specify a query',
 		   [ h1(align(center), 'Interactive SeRQL CONSTRUCT query'),
 
 		     p(['A CONSTRUCT generates an RDF graph']),
@@ -545,7 +535,7 @@ js_quote_code(C) -->
 
 query_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
-	reply_page('Specify a query',
+	serql_page('Specify a query',
 		   [ form([ name(query),
 			    action(location_by_id(evaluate_query)),
 			    method('GET')
@@ -596,7 +586,7 @@ query_form(_Request) :-
 
 select_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
-	reply_page('Specify a query',
+	serql_page('Specify a query',
 		   [ h1(align(center), 'Interactive SeRQL SELECT query'),
 
 		     p(['A SELECT generates a table']),
@@ -695,7 +685,7 @@ small(Text) -->
 %	Provide a form for uploading triples from a local file.
 
 load_file_form(_Request) :-
-	reply_page('Upload RDF',
+	serql_page('Upload RDF',
 		   [ h3(align(center), 'Upload an RDF document'),
 
 		     p(['Upload a document using POST to /servlets/uploadData. \
@@ -735,7 +725,7 @@ load_file_form(_Request) :-
 %	Provide a form for uploading triples from a URL.
 
 load_url_form(_Request) :-
-	reply_page('Load RDF from HTTP server',
+	serql_page('Load RDF from HTTP server',
 		   [ h3(align(center), 'Load RDF from HTTP server'),
 		     form([ action(location_by_id(upload_url)),
 			    method('GET')
@@ -768,7 +758,7 @@ load_url_form(_Request) :-
 
 load_base_ontology_form(Request) :- !,
 	authorized(read(status, listBaseOntologies)),
-	reply_page('Load base ontology',
+	serql_page('Load base ontology',
 		   [ h3(align(center), 'Load ontology from repository'),
 
 		     p('This page allows loading one of the ontologies \
@@ -825,7 +815,7 @@ emit_base_ontologies([row(H)|T]) -->
 %	HTTP handle presenting a form to clear the repository.
 
 clear_repository_form(_Request) :-
-	reply_page('Load base ontology',
+	serql_page('Load base ontology',
 		   [ h3(align(center), 'Clear entire repository'),
 
 		     p(['This operation removes ', b(all), ' triples from \
@@ -848,7 +838,7 @@ clear_repository_form(_Request) :-
 %	HTTP handler providing a form to remove RDF statements.
 
 remove_statements_form(_Request) :-
-	reply_page('Load base ontology',
+	serql_page('Load base ontology',
 		   [ h3(align(center), 'Remove statements'),
 
 		     p('Remove matching triples from the database.  The three \
@@ -927,14 +917,14 @@ action(Spec, Label) -->
 	  ;   Location = Spec
 	  )
 	},
-	html([a([target(main), href(Location)], Label), br([])]).
+	html([a([href(Location)], Label), br([])]).
 action(Action, _) -->
 	html(Action),
 	html(br([])).
 
 action_by_id(ID, Label) -->
 	{ http_location_by_id(ID, Location) },
-	html([a([target(main), href(Location)], Label), br([])]).
+	html([a([href(Location)], Label), br([])]).
 
 %%	nc(+Format, +Value)// is det.
 %
@@ -965,19 +955,19 @@ hidden(Name, Value) -->
 		   ])).
 
 
-server_url(Local, URL) :-
-	setting(http:server_url, Base),
-	atom_concat(Base, Local, URL).
-
-
 		 /*******************************
 		 *		EMIT		*
 		 *******************************/
 
-reply_page(Title, Content) :-
-	phrase(page(title(Title), Content), HTML),
-	format('Content-type: text/html~n~n'),
-	print_html(HTML).
+:- meta_predicate
+	serql_page(:, :).
+
+serql_page(Title, Content) :-
+	reply_html_page(title(Title),
+			[ \html_requires(css('serql.css')),
+			  div(id(sidebar), \sidebar),
+			  div(id(content), Content)
+			]).
 
 
                  /*******************************
@@ -989,9 +979,9 @@ reply_page(Title, Content) :-
         prolog:called_by/2.
 
 
-emacs_prolog_colours:goal_colours(reply_page(_, HTML),
+emacs_prolog_colours:goal_colours(serql_page(_, HTML),
                                   built_in-[classify, Colours]) :-
         catch(html_write:html_colours(HTML, Colours), _, fail).
 
-prolog:called_by(reply_page(_, HTML), Called) :-
+prolog:called_by(serql_page(_, HTML), Called) :-
         catch(phrase(html_write:called_by(HTML), Called), _, fail).
