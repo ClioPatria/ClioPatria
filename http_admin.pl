@@ -66,9 +66,6 @@
 :- http_handler(serql('user/logout'),		      user_logout,	       []).
 :- http_handler(serql('admin/settings'),	      settings,		       []).
 :- http_handler(serql('admin/save_settings'),	      save_settings,	       []).
-:- http_handler(serql('css/settings.css'),
-		http_reply_file(library('settings.css'), []),
-		[id(settings_css)]).
 
 %%	tasks(+Request)
 %
@@ -887,19 +884,11 @@ settings(_Request) :-
 	;   authorized(read(admin, settings)),
 	    Edit = false
 	),
-	phrase(page([ title('Settings'),
-		      link([ rel(stylesheet),
-			     type('text/css'),
-			     href(location_by_id(settings_css))
-			   ])
-		    ],
-		    [ \http_show_settings([ edit(Edit),
-					    hide_module(false),
-					    action('save_settings')
-					  ])
-		    ]), HTML),
-	format('Content-type: text/html~n~n'),
-	print_html(HTML).
+	serql_page('Settings',
+		   \http_show_settings([ edit(Edit),
+					 hide_module(false),
+					 action('save_settings')
+				       ])).
 
 %%	save_settings(+Request)
 %
@@ -907,16 +896,8 @@ settings(_Request) :-
 
 save_settings(Request) :-
 	authorized(admin(edit_settings)),
-	phrase(page([ title('Save settings'),
-		      link([ rel(stylesheet),
-			     type('text/css'),
-			     href(location_by_id(settings_css))
-			   ])
-		    ],
-		    [ \http_apply_settings(Request, [save(true)])
-		    ]), HTML),
-	format('Content-type: text/html~n~n'),
-	print_html(HTML).
+	serql_page('Save settings',
+		   \http_apply_settings(Request, [save(true)])).
 
 
 		 /*******************************

@@ -26,6 +26,7 @@
 	    http_apply_settings/4	% +Request, +Options
 	  ]).
 :- use_module(library('http/html_write')).
+:- use_module(library('http/html_head')).
 :- use_module(library('http/http_parameters')).
 :- use_module(library(option)).
 :- use_module(library(lists)).
@@ -35,19 +36,21 @@
 %%	http_show_settings(+Options)// is det
 %
 %	Emit an HTML representation of the current settings.  Options:
-%	
+%
 %		* edit(+Boolean)
-%		
+%
 %		* hide_module(+Boolean)
 %		If true, hide module headers from the user.
-%		
+%
 %		* module(+ModuleList)
 %		If present, only show settings from modules in ModuleList.
+
 http_show_settings(Options) -->
 	{ findall(M-N, current_setting(M:N), List),
 	  keysort(List, Sorted),
 	  join_by_key(Sorted, ByModule)
 	},
+	html_requires(css('settings.css')),
 	(   { option(edit(true), Options, true),
 	      option(action(Action), Options, '/http/settings')
 	    }
@@ -85,11 +88,11 @@ show_modules([M-List|T], Options) -->
 	show_modules(T, Options).
 
 show_module(Module, _Settings, Options) -->
-	{ 
+	{
 	    option(modules(ListOfModules), Options),
-	    \+ memberchk(Module,ListOfModules), 
+	    \+ memberchk(Module,ListOfModules),
 	    !
-	}, 
+	},
 	[].
 
 show_module(Module, Settings, Options) -->
@@ -100,7 +103,7 @@ show_module_header(_Module, Options) -->
 	{ option(hide_module(true), Options, false)}, !.
 show_module_header(Module, _Options) -->
 	html(tr(th([colspan(2), class('settings-module')], Module))).
-	  
+
 show_settings([], _, _, _) -->
 	[].
 show_settings([H|T], Module, EO, Options) -->
@@ -116,10 +119,10 @@ show_setting(H, Module, EO, Options) -->
 	},
 	html(tr(class('settings-entry-'+EO),
 		[ td(class('settings-comment'), Comment),
-		  td(class('settings-value'), 
+		  td(class('settings-value'),
 		     \show_value(Type, Value, Module:H, Options))
 		])).
-			
+
 
 show_value(Type, Value, Id, Options) -->
 	{ option(edit(true), Options, true) }, !,
@@ -194,11 +197,11 @@ oneof([H|T], Value) -->
 %	Process  form  data  created   by  http_show_settings//1,  apply
 %	changes to the settings and create   a  feedback page indicating
 %	which settings have changed.  Options:
-%	
+%
 %		* save(Boolean)
 %		If =true= and some settings have changed, call
-%		save_settings/0.  
-%		
+%		save_settings/0.
+%
 %		* save_as(File)
 %		If some settings have changed, call save_settings(File).
 %		The option =save_as= overrules =save=.
@@ -210,8 +213,9 @@ http_apply_settings(Request, Options) -->
 	  debug(settings, 'Form data: ~p', [Data]),
 	  phrase(process_settings_form(Data), Changes)
 	},
+	html_requires(css('settings.css')),
 	report_changed(Changes, Options).
-	
+
 
 report_changed([], _) -->
 	html(div(class('settings.updated'), 'No changes')).
@@ -231,7 +235,7 @@ report_changed(L, Options) -->
 	},
 	html(div(class('settings.updated'), ['Changed ', N, ' settings'])).
 
-report_errors([]) --> 
+report_errors([]) -->
 	[].
 report_errors([error(Error)|T]) -->
 	report_error(Error),
@@ -245,13 +249,13 @@ report_error(no_setting(Id)) -->
 report_error(bad_value(Id, RawValue)) -->
 	{ format(string(Name), '~w', [Id]) },
 	html(div(class('settings.error'), ['Wrong value for ', Name, ': ', RawValue])).
-	
+
 
 %%	process_settings_form(+FormData)//
 %
 %	Process the raw form data, producing a list holding terms of the
 %	form:
-%	
+%
 %		* error(no_setting(Setting))
 %		* error(bad_value(Setting, Value))
 %		* change(Setting, Old, New)
@@ -277,7 +281,7 @@ process_form_field(Id, RawValue) -->
 	    )
 	;   [ error(no_setting(Id)) ]
 	).
-	      
+
 
 
 		 /*******************************
