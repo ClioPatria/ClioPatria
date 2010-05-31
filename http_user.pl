@@ -69,8 +69,6 @@
 
 :- http_handler(serql('documentation.html'),
 		reply_decorated_file(serql('serql.html')), [id(serql_doc)]).
-:- http_handler(serql('css/rdfql.css'),
-		http_reply_file(serql('rdfql.css'), []), [id(rdfql_css)]).
 
 
 sidebar -->
@@ -172,7 +170,7 @@ reply_decorated_file(Alias, _Request) :-
 	Style = element(style, _, _),
 	findall(Style, sub_term(Style, DOM), Styles),
 	append(Styles, Body, Content),
-	serql_page(Title, Content).
+	serql_page(title(Title), Content).
 
 
 		 /*******************************
@@ -194,7 +192,7 @@ statistics(_Request) :-
 	rdf_statistics(core(Core)),
 	sort(UnsortedPairs, Pairs),
 	gethostname(Host),
-	serql_page('RDF statistics',
+	serql_page(title('RDF statistics'),
 		   [ h1([id(stattitle)], ['RDF statistics for ', Host]),
 		     ol([id(toc)],
 			[
@@ -387,7 +385,7 @@ http_workers([H|T]) -->
 
 construct_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
-	serql_page('Specify a query',
+	serql_page(title('Specify a query'),
 		   [ h1(align(center), 'Interactive SeRQL CONSTRUCT query'),
 
 		     p(['A CONSTRUCT generates an RDF graph']),
@@ -535,7 +533,7 @@ js_quote_code(C) -->
 
 query_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
-	serql_page('Specify a query',
+	serql_page(title('Specify a query'),
 		   [ form([ name(query),
 			    action(location_by_id(evaluate_query)),
 			    method('GET')
@@ -574,10 +572,19 @@ query_form(_Request) :-
 						    ])
 					    ])
 				       ])
-				  ])
+				  ]),
+			    \query_docs
 			  ]),
 		     \script
 		   ]).
+
+
+query_docs -->
+	html(ul([ li(a(href('http://www.w3.org/TR/rdf-sparql-query/'),
+		       'SPARQL Documentation')),
+		  li(a(href('http://www.openrdf.org/'),
+		       'Sesame and SeRQL site'))
+		])).
 
 
 %%	select_form(+Request)
@@ -586,7 +593,7 @@ query_form(_Request) :-
 
 select_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
-	serql_page('Specify a query',
+	serql_page(title('Specify a query'),
 		   [ h1(align(center), 'Interactive SeRQL SELECT query'),
 
 		     p(['A SELECT generates a table']),
@@ -685,7 +692,7 @@ small(Text) -->
 %	Provide a form for uploading triples from a local file.
 
 load_file_form(_Request) :-
-	serql_page('Upload RDF',
+	serql_page(title('Upload RDF'),
 		   [ h3(align(center), 'Upload an RDF document'),
 
 		     p(['Upload a document using POST to /servlets/uploadData. \
@@ -725,7 +732,7 @@ load_file_form(_Request) :-
 %	Provide a form for uploading triples from a URL.
 
 load_url_form(_Request) :-
-	serql_page('Load RDF from HTTP server',
+	serql_page(title('Load RDF from HTTP server'),
 		   [ h3(align(center), 'Load RDF from HTTP server'),
 		     form([ action(location_by_id(upload_url)),
 			    method('GET')
@@ -758,7 +765,7 @@ load_url_form(_Request) :-
 
 load_base_ontology_form(Request) :- !,
 	authorized(read(status, listBaseOntologies)),
-	serql_page('Load base ontology',
+	serql_page(title('Load base ontology'),
 		   [ h3(align(center), 'Load ontology from repository'),
 
 		     p('This page allows loading one of the ontologies \
@@ -815,7 +822,7 @@ emit_base_ontologies([row(H)|T]) -->
 %	HTTP handle presenting a form to clear the repository.
 
 clear_repository_form(_Request) :-
-	serql_page('Load base ontology',
+	serql_page(title('Load base ontology'),
 		   [ h3(align(center), 'Clear entire repository'),
 
 		     p(['This operation removes ', b(all), ' triples from \
@@ -838,7 +845,7 @@ clear_repository_form(_Request) :-
 %	HTTP handler providing a form to remove RDF statements.
 
 remove_statements_form(_Request) :-
-	serql_page('Load base ontology',
+	serql_page(title('Load base ontology'),
 		   [ h3(align(center), 'Remove statements'),
 
 		     p('Remove matching triples from the database.  The three \
@@ -962,8 +969,8 @@ hidden(Name, Value) -->
 :- meta_predicate
 	serql_page(:, :).
 
-serql_page(Title, Content) :-
-	reply_html_page(title(Title),
+serql_page(Head, Content) :-
+	reply_html_page(Head,
 			[ \html_requires(css('serql.css')),
 			  div(id(sidebar), \sidebar),
 			  div(id(content), Content)

@@ -72,7 +72,7 @@
 %	Present menu with administrative tasks.
 
 tasks(_Request) :-
-	serql_page('Administrative tasks',
+	serql_page(title('Administrative tasks'),
 		   [ \action(location_by_id(list_users), 'List users')
 		   ]).
 
@@ -86,7 +86,7 @@ action(URL, Label) -->
 
 list_users(_Request) :-
 	authorized(admin(list_users)),
-	serql_page('Users',
+	serql_page(title('Users'),
 		   [ h1('Users'),
 		     \user_table,
 		     p([ \action(location_by_id(add_user_form), 'Add user')
@@ -176,7 +176,7 @@ create_admin(_Request) :-
 			context(_, 'Already initialized')))
 	;   true
 	),
-	serql_page('Create administrator',
+	serql_page(title('Create administrator'),
 		   [ h1(align(center), 'Create administrator'),
 
 		     p('No accounts are available on this server. \
@@ -219,7 +219,7 @@ create_admin(_Request) :-
 
 add_user_form(_Request) :-
 	authorized(admin(add_user)),
-	serql_page('Add new user',
+	serql_page(title('Add new user'),
 		   [ \new_user_form
 		   ]).
 
@@ -606,7 +606,7 @@ user_logout(_Request) :-
 	logged_on(User),
 	logout(User),
 	reload_attr(sidebar, OnLoad),
-	serql_page('Logout',
+	serql_page(title('Logout'),
 		   body([ OnLoad
 			],
 			[ h1(align(center), ['Logged out ', User])

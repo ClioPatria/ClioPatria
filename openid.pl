@@ -38,7 +38,9 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_session)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
 :- use_module(library(http/http_hook)).
+:- use_module(http_user).
 :- use_module(library(lists)).
 :- use_module(library(error)).
 :- use_module(library(option)).
@@ -88,21 +90,17 @@ login_page(Request) :-
 	http_parameters(Request,
 			[ 'openid.return_to'(ReturnTo, [])
 			]),
-	reply_html_page([ title('Login'),
-			  link([ rel(stylesheet),
-				 type('text/css'),
-				 href(location_by_id(rdfql_css))
-			       ])
-			],
-			[ \explain_login(ReturnTo),
-			  \openid_login_form(ReturnTo, []),
-			  \local_login(ReturnTo)
-			]).
+	serql_page(title('Login'),
+		   [ \explain_login(ReturnTo),
+		     \openid_login_form(ReturnTo, []),
+		     \local_login(ReturnTo)
+		   ]).
 
 explain_login(ReturnTo) -->
 	{ parse_url(ReturnTo, Parts),
 	  memberchk(path(Path), Parts)
 	},
+	html_requires(css('rdfql.css')),
 	html(div(class('rdfql-login'),
 		 [ p([ 'You are trying to access a page (~w) that requires authorization.'-[Path],
 		       'You can either login using an ', a(href('http://www.openid.net'), 'OpenID'),
@@ -143,13 +141,13 @@ hidden(Name, Value) -->
 
 trusted_openid_servers(_Request) :-
 	findall(S, openid_current_server(S), Servers),
-	reply_html_page(title('Trusted OpenID servers'),
-			[ h4('Trusted OpenID servers'),
-			  p([ 'We accept OpenID logins from the following OpenID providers. ',
-			      'Please register with one of them.'
-			    ]),
-			  ul(\trusted_openid_servers(Servers))
-			]).
+	serql_page(title('Trusted OpenID servers'),
+		   [ h4('Trusted OpenID servers'),
+		     p([ 'We accept OpenID logins from the following OpenID providers. ',
+			 'Please register with one of them.'
+		       ]),
+		     ul(\trusted_openid_servers(Servers))
+		   ]).
 
 trusted_openid_servers([]) -->
 	[].
@@ -193,14 +191,14 @@ openid_userpage(Request) :-
 	file_base_name(Path, User),
 	(   current_user(User)
 	->  findall(P, user_property(User, P), Props),
-	    reply_html_page([ link([ rel('openid.server'),
-				     href(location_by_id(openid_server))
-				   ]),
-			      title('OpenID page for user ~w'-[User])
-			    ],
-			    [ h1('OpenID page for user ~w'-[User]),
-			      \user_properties(Props)
-			    ])
+	    serql_page([ link([ rel('openid.server'),
+				href(location_by_id(openid_server))
+			      ]),
+			 title('OpenID page for user ~w'-[User])
+		       ],
+		       [ h1('OpenID page for user ~w'-[User]),
+			 \user_properties(Props)
+		       ])
 	;   existence_error(http_location, Path)
 	).
 
@@ -253,9 +251,9 @@ login_handler(_Request) :-
 	ensure_logged_on(User),
 	user_property(User, url(URL)),
 	reload_attr(sidebar, OnLoad),
-	reply_html_page(title('Login ok'),
-			body(OnLoad,
-			     [ h1('Login ok'),
-			       p(['You''re logged on with OpenID ',
-				  a(href(URL), URL)])
-			     ])).
+	serql_page(title('Login ok'),
+		   body(OnLoad,
+			[ h1('Login ok'),
+			  p(['You''re logged on with OpenID ',
+			     a(href(URL), URL)])
+			])).
