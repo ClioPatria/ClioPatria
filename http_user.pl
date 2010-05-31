@@ -49,6 +49,7 @@
 :- use_module(user_db).
 :- use_module(library(debug)).
 :- use_module(http_admin).
+:- use_module(http_stats).
 :- use_module(library('semweb/rdf_db')).
 :- use_module(library(url)).
 :- use_module(library(occurs)).
@@ -183,15 +184,11 @@ reply_decorated_file(Alias, _Request) :-
 %	Provide elementary statistics on the server.
 
 statistics(_Request) :-
-	findall(File-Triples,
-		rdf_statistics(triples_by_file(File, Triples)),
-		UnsortedPairs),
 	findall(Index-Count,
 		rdf_statistics(lookup(Index, Count)),
 		Lookup),
 	rdf_statistics(triples(Total)),
 	rdf_statistics(core(Core)),
-	sort(UnsortedPairs, Pairs),
 	gethostname(Host),
 	serql_page(title('RDF statistics'),
 		   [ h1([id(stattitle)], ['RDF statistics for ', Host]),
@@ -204,13 +201,7 @@ statistics(_Request) :-
 			]),
 		     h4([id(ntriples)], 'Triples in database'),
 		     p('The RDF store contains ~D triples in ~D bytes memory'-[Total, Core]),
-		     table([ id(filesourcetable),
-			     border(1),
-			     cellpadding(2)
-			   ],
-			   [ tr([ th('Source'), th(colspan(2), 'Triples') ])
-			   | \triples_by_file(Pairs, Total)
-			   ]),
+		     \graph_triple_table([file_action(unload_button)]),
 		     h4([id(callstats)],'Call statistics'),
 		     table([ border(1),
 			     cellpadding(2)
@@ -224,23 +215,11 @@ statistics(_Request) :-
 		     \server_statistics
 		   ]).
 
-triples_by_file([], Total) -->
-	html(tr([ th([align(right), id(total)], 'Total:'),
-		  \nc('~D', Total)
-		])).
-triples_by_file([File-Triples|T], Total) -->
-	html(tr([ td(align(right), a(href(File), File)),
-		  \nc('~D', Triples),
-		  td(\unload_button(File))
-		])),
-	triples_by_file(T, Total).
-
-
 unload_button(File) -->
-	html(a(href(location_by_id(unload_source) +
-		    '?resultFormat=html&source=' +
-		    encode(File)),
-	       'Unload')).
+	html(td(a(href(location_by_id(unload_source) +
+		       '?resultFormat=html&source=' +
+		       encode(File)),
+		  'Unload'))).
 
 lookup_statistics([]) -->
 	[].
