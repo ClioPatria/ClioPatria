@@ -51,7 +51,7 @@ http_show_settings(Options) -->
 	  join_by_key(Sorted, ByModule)
 	},
 	html_requires(css('settings.css')),
-	(   { option(edit(true), Options, true),
+	(   { option(edit(true), Options, false),
 	      option(action(Action), Options, '/http/settings')
 	    }
 	->  html(form([ action(Action),
@@ -59,8 +59,9 @@ http_show_settings(Options) -->
 		      ],
 		      table(class('settings'),
 			    \settings_table(ByModule, Options))))
-	;   html(table(class('settings'),
-		       \settings_table(ByModule, Options)))
+	;   html([ table(class('settings'),
+			 \settings_table(ByModule, Options))
+		 ])
 	).
 
 settings_table(ByModule, Options) -->
@@ -71,7 +72,8 @@ settings_table(ByModule, Options) -->
 	;   show_modules(ByModule, Options)
 	),
 	(   { option(edit(true), Options, true) }
-	->  html(tr(td([ colspan(2),
+	->  html(tr(class(buttons),
+		    td([ colspan(2),
 			 align(right)
 		       ],
 		       [ input([ type(reset) ]),
@@ -245,10 +247,12 @@ report_errors([_|T]) -->
 
 report_error(no_setting(Id)) -->
 	{ format(string(Name), '~w', [Id]) },
-	html(div(class('settings.error'), ['Setting ', Name, ' does not exist.'])).
+	html(div(class('settings.error'),
+		 ['Setting ', Name, ' does not exist.'])).
 report_error(bad_value(Id, RawValue)) -->
 	{ format(string(Name), '~w', [Id]) },
-	html(div(class('settings.error'), ['Wrong value for ', Name, ': ', RawValue])).
+	html(div(class('settings.error'),
+		 ['Wrong value for ', Name, ': ', RawValue])).
 
 
 %%	process_settings_form(+FormData)//

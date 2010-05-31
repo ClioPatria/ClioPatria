@@ -51,10 +51,11 @@
 :- use_module(http_admin).
 :- use_module(library('semweb/rdf_db')).
 :- use_module(library(url)).
+:- use_module(library(occurs)).
 
 :- http_handler(root('.'),
 		http_redirect(moved, location_by_id(serql_home)),
-		[]).
+		[priority(-100)]).
 :- http_handler(serql('home.html'),		welcome,
 		[id(serql_home)]).
 :- http_handler(serql('user/statistics'),	statistics,		 []).

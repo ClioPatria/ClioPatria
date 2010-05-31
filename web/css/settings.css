@@ -13,6 +13,14 @@ th.settings-module
   background-color: navy
 }
 
+table.settings
+{ margin-top: 5mm;
+  margin-left: 10%;
+  border-width: 1px;
+  border-style: solid;
+  border-collapse: collapse;
+}
+
 table.settings td
 { vertical-align: top;
 }
@@ -21,6 +29,10 @@ table.settings tr.settings-entry-odd
 { background-color: #f0f0f0;
 }
 
-div.list
+table.settings tr.buttons
+{ background-color: navy;
+}
+
+table.settings div.list
 { border-width: 1;
 }

@@ -884,11 +884,19 @@ settings(_Request) :-
 	;   authorized(read(admin, settings)),
 	    Edit = false
 	),
-	serql_page('Settings',
-		   \http_show_settings([ edit(Edit),
-					 hide_module(false),
-					 action('save_settings')
-				       ])).
+	serql_page(title('Settings'),
+		   [ \http_show_settings([ edit(Edit),
+					   hide_module(false),
+					   action('save_settings')
+					 ]),
+		     \warn_no_edit(Edit)
+		   ]).
+
+warn_no_edit(true) --> !.
+warn_no_edit(_) -->
+	html(p(id(settings_no_edit),
+	       [ a(href(location_by_id(login_form)), 'Login'),
+		 ' as ', code(admin), ' to edit the settings.' ])).
 
 %%	save_settings(+Request)
 %
@@ -896,7 +904,7 @@ settings(_Request) :-
 
 save_settings(Request) :-
 	authorized(admin(edit_settings)),
-	serql_page('Save settings',
+	serql_page(title('Save settings'),
 		   \http_apply_settings(Request, [save(true)])).
 
 
