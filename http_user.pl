@@ -3,9 +3,10 @@
     Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2007, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -54,6 +55,7 @@
 :- use_module(library(semweb/rdf_library)).
 :- use_module(library(url)).
 :- use_module(library(occurs)).
+:- use_module(library(pairs)).
 
 :- http_handler(root('.'),
 		http_redirect(moved, location_by_id(serql_home)),
@@ -74,77 +76,110 @@
 		reply_decorated_file(serql('serql.html')), [id(serql_doc)]).
 
 
-sidebar -->
-	{ findall(Path-Label, action(Path, Label), Actions) },
-	html([ \current_user_info,
-	       hr([])
-	     | \actions(Actions)
-	     ]).
+navigation -->
+	{ findall(Key-Item, current_menu_item(Key, Item), Pairs),
+	  group_pairs_by_key(Pairs, ByKey)
+	},
+	html_requires(css('menu.css')),
+%	{gtrace},
+	html(ul(id(nav),
+		\menu(ByKey))).
 
-current_user_info -->
-	html([ \current_user,
-	       hr([]),
-	       \action_by_id(serql_home, 'Home'),
-	       \cond_action(login),
-	       \cond_action(logout),
-	       \cond_action(change_password)
-	     ]).
+menu([]) --> !.
+menu([_-[Item]|T]) --> !,
+	menu_item(Item),
+	menu(T).
+menu([Key-Items|T]) -->
+	{ menu_label(Key, Key, Label) },
+	html(li([ a([Label]),
+		  ul(\menu_items(Items))
+		])),
+	menu(T).
+
+menu_items([]) --> [].
+menu_items([H|T]) --> menu_item(H), menu_items(T).
+
+menu_item(item(Spec, Label)) -->
+	{ atom(Spec) }, !,
+	{ (   \+ sub_atom(Spec, 0, _, _, 'http://'),
+	      catch(http_location_by_id(Spec, Location), E,
+		    (   print_message(informational, E),
+			fail))
+	  ->  true
+	  ;   Location = Spec
+	  )
+	},
+	html(li(a([href(Location)], Label))).
+
+
+current_menu_item(Key, item(Location, Label)) :-
+	menu_item(Where, DefLabel),
+	(   Where = Key/Location
+	->  menu_label(Location, DefLabel, Label)
+	;   Where = Location,
+	    Key = Location,
+	    menu_label(Location, DefLabel, Label)
+	).
 
 
 :- multifile
-	serql_http:sidebar_menu/2.
+	serql_http:sidebar_menu/2,	% +Action, +Label
+	serql_http:menu_item/2,		% +Action, +Label
+	serql_http:menu_label/2.	% +Id, -Label
 
-%%	action(?Id, ?Label) is nondet.
+%%	menu_item(?Id, ?Label) is nondet.
 %
 %	True if Id/Label must appear in the side-menu.  Id is one of
 %
 %	    * handler-id
-%	    * -
 %	    * HTML code
 
-action(query_form,		'Query database').
-action(-,-).
-action(load_file_form,	 	'Upload a file').
-action(load_url_form,		'Load from HTTP').
-action(load_base_ontology_form, 'Load base ontology').
-action(-,-).
-action(remove_statements_form,  'Remove statements').
-action(clear_repository_form,	'Clear the repository').
-action(-,-).
-action(statistics,		'Statistics').
-action(list_users,		'Users ...').
-action(settings,		'Settings ...').
-action(serql_doc,		'Documentation').
-action(Path, Label) :-
+menu_item(home/serql_home,		'Home').
+menu_item(query/query_form,		'Query').
+menu_item(file/load_file_form,	 	'Load local file').
+menu_item(file/load_url_form,		'Load from HTTP').
+menu_item(file/load_base_ontology_form, 'Load base ontology').
+menu_item(file/remove_statements_form,  'Remove statements').
+menu_item(file/clear_repository_form,	'Clear the repository').
+menu_item(view/statistics,		'Statistics').
+menu_item(admin/list_users,		'Users ...').
+menu_item(admin/settings,		'Settings ...').
+menu_item(help/serql_doc,		'Documentation').
+menu_item(application/Path, Label) :-
 	serql_http:sidebar_menu(Path, Label).
+menu_item(user/login_form,		'Login') :-
+	\+ someone_logged_on.
+menu_item(current_user/user_logout,	'Logout') :-
+	someone_logged_on.
+menu_item(current_user/change_password_form,	'Change password') :-
+	someone_logged_on.
 
-
-current_user -->
-	{ catch(logged_on(User), _, fail),
-	  (   user_property(User, realname(RealName))
-	  ->  true
-	  ;   RealName = User
-	  ),
-	  user_property(User, url(URL))
-	}, !,
-	html(center(i(a([target(main), href(URL)], RealName)))).
-current_user -->
-	html(center(font(color(red), i('<not logged in>')))).
-
-cond_action(login) -->
-	(   { someone_logged_on }
-	->  []
-	;   action_by_id(login_form, 'Login')
+menu_label(Item, _Default, Label) :-
+	serql_http:menu_label(Item, Label), !.
+menu_label(serql_home, _Default, 'Home') :- !.
+menu_label(current_user, _Default, Label) :-
+	logged_on(User, X),
+	X \== User, !,
+	(   user_property(User, realname(RealName))
+	->  true
+	;   RealName = User
+	),
+	(   user_property(User, url(URL))
+	->  Label = a(href(URL), i(RealName))
+	;   Label = i(RealName)
 	).
-cond_action(logout) -->
-	(   { someone_logged_on }
-	->  action_by_id(user_logout, 'Logout')
-	;   []
-	).
-cond_action(change_password) -->
-	(   { someone_logged_on }
-	->  action_by_id(change_password_form, 'Change password')
-	;   []
+menu_label(_, Default, Label) :-
+	capitalize(Default, Label).
+
+capitalize(Atom, Capital) :-
+	atom_codes(Atom, Codes),
+	(   maplist(is_upper, Codes)
+	->  Capital = Atom
+	;   Codes = [First|Rest]
+	->  code_type(First, to_lower(Up)),
+	    UpCodes = [Up|Rest],
+	    atom_codes(Capital, UpCodes)
+	;   Capital = Atom
 	).
 
 someone_logged_on :-
@@ -842,8 +877,9 @@ hidden(Name, Value) -->
 
 serql_page(Head, Content) :-
 	reply_html_page(Head,
-			[ \html_requires(css('serql.css')),
-			  div(id(sidebar), \sidebar),
+			[ %\html_requires(css('serql.css')),
+			  div(id(sidebar), \navigation),
+			  br(clear(all)),
 			  div(id(content), Content)
 			]).
 

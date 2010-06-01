@@ -1,0 +1,142 @@
+@charset "ISO-8859-1";
+
+/* from http://denilsonsa.selfip.org/~denilson/menu/menu.html
+*/
+
+#nav {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+#nav + *{
+	clear: left;
+}
+
+#nav ul {
+	padding: 0;
+	margin:0;
+	list-style: none;
+	z-index:99;
+	position:relative;
+	overflow:visible;
+}
+
+#nav > li ul {
+	text-align: left;
+}
+#nav li { /* Appearance settings (eye candy) */
+	position: relative;
+	background: #E7E7E7;
+/*	background: url(trans/white80.png);*/
+	color: #00F;
+	border: solid 1px #AAA;
+	height: auto;
+	max-width: 10em;
+	overflow: visible;
+}
+#nav ul ul {
+	width: 8em;
+}
+#nav > li {
+	margin: 0;
+	float: left;
+	text-align: center;
+	height: 1.6em;
+}
+
+
+#nav a {
+	text-decoration: none;
+	padding: 0 0.5em;
+	line-height: 1.6em;
+	background: transparent;
+	color: inherit;
+	overflow: hidden;
+}
+#nav li li a {
+	line-height: normal;
+	padding: 0.15em 0.25em;
+}
+
+#nav ul, #nav li, #nav a{
+	display: block;
+}
+
+
+#nav ul{
+	visibility: hidden;
+}
+
+/* (sub-)submenus */
+#nav ul ul, #nav ul ul ul{
+	position:absolute;
+	top: 0;
+	left: 95%;
+	visibility: hidden;
+}
+
+/* Shadow! */
+
+#nav li:hover {
+/*	border-style: outset;*/
+/*	background: #D7D7D7;*/
+	background: #1AD;
+	color: white;
+}
+#nav > li ul {
+/*	background: #666;*/
+	background: transparent url("trans/black40.png");
+}
+#nav > li > ul {
+	margin: -1px;  /* This is to make the width equal to parent li width. */
+	position: relative;
+/*	top:  4px; */
+	left: 4px;
+}
+#nav > li ul li {
+	position: relative;
+/*	top:  -4px; */
+	left: -4px;
+}
+/* end shadow */
+
+
+/* Enlarger */
+/* #nav > li {width: 8em;} */ /* popping disappears if we use a fixed-width */
+/*
+#nav > li:hover {
+	margin: -0.2em;
+	padding: 0.2em;
+	z-index: 2;  /* Opera does not seem to respect this. */
+}
+#nav > li:hover > a {
+	margin: -0.2em;
+	padding: 0.2em 0.7em;
+}
+*/
+/* end enlarger */
+
+
+/* Interactive lines: show/hide menus */
+#nav li:hover ul ul, #nav li:hover ul ul ul{
+	visibility: hidden;
+}
+
+#nav li:hover ul, #nav ul li:hover ul, #nav ul ul li:hover ul{
+	visibility: visible;
+}
+
+.skipnav {
+	display: none;
+}
+
+#nonav {
+	display: block;
+	background: transparent;
+	height: 1px;
+	border: 0;
+	margin: 0 0 -1px 0;
+	padding: 0;
+}
+
