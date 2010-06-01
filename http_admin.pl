@@ -198,32 +198,9 @@ create_admin(_Request) :-
 			account that can subsequently be used to create \
 			new users.'),
 
-		     form([ action(location_by_id(add_user)),
-			    method('GET')
-			  ],
-			  [ \hidden(read, on),
-			    \hidden(write, on),
-			    \hidden(admin, on),
-
-			    table([ border(1),
-				    align(center)
-				  ],
-				  [ \input(user, 'Name',
-					   [value('admin')]),
-				    \input(realname, 'Realname',
-					   [value('Administrator')]),
-				    \input(pwd1,     'Password',
-					   [type(password)]),
-				    \input(pwd2,     'Retype',
-					   [type(password)]),
-				    tr(td([ colspan(2),
-					    align(right)
-					  ],
-					  input([ type(submit),
-						  value('Create')
-						])))
-				  ])
-			  ])
+		     \new_user_form([ user(admin),
+				      real_name('Administrator')
+				    ])
 		   ]).
 
 
@@ -234,10 +211,21 @@ create_admin(_Request) :-
 add_user_form(_Request) :-
 	authorized(admin(add_user)),
 	serql_page(title('Add new user'),
-		   [ \new_user_form
+		   [ \new_user_form([])
 		   ]).
 
-new_user_form -->
+new_user_form(Options) -->
+	{ (   option(user(User), Options)
+	  ->  UserOptions = [value(User)],
+	      PermUser = User
+	  ;   UserOptions = [],
+	      PermUser = (-)
+	  ),
+	  (   option(real_name(RealName), Options)
+	  ->  RealNameOptions = [value(RealName)]
+	  ;   RealNameOptions = []
+	  )
+	},
 	html_requires(css('rdfql.css')),
 	html([ h1('Add new user'),
 	       form([ action(location_by_id(add_user)),
@@ -247,14 +235,14 @@ new_user_form -->
 			    class(rdfql)
 			  ],
 			  [ \input(user,     'Name',
-				   []),
+				   UserOptions),
 			    \input(realname, 'Realname',
-				   []),
+				   RealNameOptions),
 			    \input(pwd1,     'Password',
 				   [type(password)]),
 			    \input(pwd2,     'Retype',
 				   [type(password)]),
-			    \permissions(-),
+			    \permissions(PermUser),
 			    tr(class(buttons),
 			       td([ colspan(2),
 				    align(right)
@@ -390,7 +378,8 @@ permission_checkbox(User, Name, Label) -->
 	      pterm(Name, Action),
 	      memberchk(Action, Actions)
 	  ->  Opts = [checked]
-	  ;   Name == read
+	  ;   def_user_permissions(User, DefPermissions),
+	      memberchk(Name, DefPermissions)
 	  ->  Opts = [checked]
 	  ;   Opts = []
 	  )
@@ -401,6 +390,10 @@ permission_checkbox(User, Name, Label) -->
 		     ]),
 	       Label
 	     ]).
+
+def_user_permissions(-, [read]).
+def_user_permissions(admin, [read, write, admin]).
+
 
 %%	edit_user(Request)
 %
@@ -611,12 +604,12 @@ reply_login(Options) :-
 	login(User),
 	(   option(return_to(ReturnTo), Options)
 	->  throw(http_reply(moved_temporary(ReturnTo)))
-	;   serql_page('Login ok',
+	;   serql_page(title('Login ok'),
 		       h1(align(center), ['Welcome ', User]))
 	).
 reply_login(_) :-
-	serql_page('Login failed',
-		   [ h1(align(center), 'Login failed'),
+	serql_page(title('Login failed'),
+		   [ h1('Login failed'),
 		     p(['Password incorrect'])
 		   ]).
 
