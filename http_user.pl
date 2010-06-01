@@ -215,6 +215,10 @@ statistics(_Request) :-
 		     \server_statistics
 		   ]).
 
+unload_button([title]) --> !,
+	html(th('Action')).
+unload_button([total]) --> !,
+	html(th(class(empty), '')).
 unload_button(File) -->
 	html(td(a(href(location_by_id(unload_source) +
 		       '?resultFormat=html&source=' +

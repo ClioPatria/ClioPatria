@@ -39,25 +39,41 @@
 :- meta_predicate
 	graph_triple_table(:, ?, ?).
 
+%%	graph_triple_table(+Options)//
+%
+%	HTML component that displays a table   with the triple-count per
+%	graph.  Options:
+%
+%	    * file_action(:Action)
+%	    Calls Action(File, List, Tail) at the end of each row, which
+%	    allows for additional rows.  Action is called with File set
+%	    to =|[title]|= for the title-row.
+
 graph_triple_table(Options) -->
 	{ meta_options(is_meta, Options, QOptions),
 	  triple_stats(Total, Pairs)
 	},
+	html_requires(css('rdfql.css')),
 	html(table([ id('triples-by-graph')
 		   ],
-		   [ tr([ th('Graph'), th('Triples') ])
+		   [ tr([ th('Graph'),
+			  th('Triples'),
+			  \extra([title], QOptions)
+			])
 		   | \triples_by_file(Pairs, Total, odd, QOptions)
 		   ])).
 
 is_meta(file_action).
 
-triples_by_file([], Total, _, _Options) -->
+triples_by_file([], Total, _, Options) -->
 	html(tr([ th([align(right), id(total)], 'Total:'),
-		  \nc('~D', Total)
+		  \nc('~D', Total, [class(total)]),
+		  \extra([total], Options)
 		])).
 triples_by_file([Triples-File|T], Total, OE, Options) -->
 	{ oe(OE, OE2) },
-	html(tr([ td([class(OE), align(right)], a(href(File), File)),
+	html(tr(class(OE),
+		[ td(align(right), a(href(File), File)),
 		  \nc('~D', Triples),
 		  \extra(File, Options)
 		])),

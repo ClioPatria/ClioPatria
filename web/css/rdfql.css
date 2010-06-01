@@ -24,4 +24,34 @@ div.local-login form
   margin-left: 2cm;
 }
 
+#triples-by-graph
+{ margin-top: 5mm;
+  margin-left: 10%;
+  border-width: 1px;
+  border-style: solid;
+  border-collapse: collapse;
+}
 
+#triples-by-graph th
+{ color: white;
+  background-color: navy
+}
+
+#triples-by-graph td,th
+{ border-width: 1px;
+  border-style: solid;
+}
+
+#triples-by-graph td.total
+{ font-weight: bold;
+}
+
+#triples-by-graph th.empty
+{ border-style: none;
+  border-width: 0px;
+  background-color: white;
+}
+
+#triples-by-graph tr.odd
+{ background-color: #f0f0f0;
+}

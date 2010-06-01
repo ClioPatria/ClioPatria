@@ -39,6 +39,7 @@
 :- use_module(sparql).
 :- use_module(library('http/http_parameters')).
 :- use_module(http_admin).
+:- use_module(http_user).
 :- use_module(user_db).
 :- use_module(rdf_html).
 :- use_module(xml_result).
@@ -94,7 +95,7 @@ http_login(Request) :-
 			]),
 	validate_password(User, Password),
 	login(User),
-	reply_page('Successful login',
+	serql_page(title('Successful login'),
 		   p(['Login succeeded for ', User])).
 
 %%      http_logout(+Request)
@@ -104,7 +105,7 @@ http_login(Request) :-
 http_logout(_Request) :-
 	logged_on(User),
 	logout(User),
-	reply_page('Successful logout',
+	serql_page(title('Successful logout'),
 		   p(['Logout succeeded for ', User])).
 
 %%	evaluate_query
@@ -151,7 +152,7 @@ evaluate_query(Request) :-
 			  cputime(CPU)
 			])
 	;   Type == ask
-	->  reply_page('ASK Result',
+	->  serql_page(title('ASK Result'),
 		       [ h4('ASK query completed'),
 			 p(['Answer = ', Reply])
 		       ])
@@ -686,7 +687,7 @@ done(html, Fmt-Args, CPU, Subjects, Triples) :-
 	format(string(Message), Fmt, Args),
 	rdf_statistics(triples(TriplesNow)),
 	rdf_statistics(subjects(SubjectsNow)),
-	reply_page('Success',
+	serql_page(title('Success'),
 		   [ h4('Operation completed'),
 		     p(Message),
 		     h4('Statistics'),
@@ -732,13 +733,3 @@ store_query(Type, As, Query) :-
 	logged_on(User),
 	retractall(stored_query(As, User, Type, _)),
 	assert(stored_query(As, User, Type, Query)).
-
-
-		 /*******************************
-		 *		EMIT		*
-		 *******************************/
-
-reply_page(Title, Content) :-
-	phrase(page(title(Title), Content), HTML),
-	format('Content-type: text/html~n~n'),
-	print_html(HTML).
