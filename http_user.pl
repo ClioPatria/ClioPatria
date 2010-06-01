@@ -184,9 +184,6 @@ reply_decorated_file(Alias, _Request) :-
 %	Provide elementary statistics on the server.
 
 statistics(_Request) :-
-	findall(Index-Count,
-		rdf_statistics(lookup(Index, Count)),
-		Lookup),
 	rdf_statistics(triples(Total)),
 	rdf_statistics(core(Core)),
 	gethostname(Host),
@@ -203,14 +200,7 @@ statistics(_Request) :-
 		     p('The RDF store contains ~D triples in ~D bytes memory'-[Total, Core]),
 		     \graph_triple_table([file_action(unload_button)]),
 		     h4([id(callstats)],'Call statistics'),
-		     table([ border(1),
-			     cellpadding(2)
-			   ],
-			   [ tr([ th(colspan(3), 'Indexed'),
-				  th('Calls')
-				]),
-			     \lookup_statistics(Lookup)
-			   ]),
+		     \rdf_call_stat_table,
 		     \current_sessions,
 		     \server_statistics
 		   ]).
@@ -224,12 +214,6 @@ unload_button(File) -->
 		       '?resultFormat=html&source=' +
 		       encode(File)),
 		  'Unload'))).
-
-lookup_statistics([]) -->
-	[].
-lookup_statistics([rdf(S,P,O)-Count|T]) -->
-	html(tr([ td(S), td(P), td(O), \nc('~D', Count)])),
-	lookup_statistics(T).
 
 %	current_sessions//0
 %

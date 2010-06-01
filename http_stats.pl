@@ -29,7 +29,8 @@
 */
 
 :- module(http_stats,
-	  [ graph_triple_table//1	% +Options
+	  [ graph_triple_table//1,	% +Options
+	    rdf_call_stat_table//0
 	  ]).
 :- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
@@ -54,7 +55,8 @@ graph_triple_table(Options) -->
 	  triple_stats(Total, Pairs)
 	},
 	html_requires(css('rdfql.css')),
-	html(table([ id('triples-by-graph')
+	html(table([ id('triples-by-graph'),
+		     class(rdfql)
 		   ],
 		   [ tr([ th('Graph'),
 			  th('Triples'),
@@ -93,6 +95,34 @@ extra(File, Options) -->
 	{ option(file_action(Action), Options) }, !,
 	call(Action, File).
 extra(_, _) --> [].
+
+
+%%	rdf_call_stat_table//
+%
+%	Display table with RDF-call statistics
+
+rdf_call_stat_table -->
+	{ rdf_call_stats(Lookup) },
+	html_requires(css('rdfql.css')),
+	html(table([ id('rdf-call-stats'),
+		     class(rdfql)
+		   ],
+		   [ tr([ th(colspan(3), 'Indexed'),
+			  th('Calls')
+			]),
+		     \lookup_statistics(Lookup)
+		   ])).
+
+rdf_call_stats(Lookup) :-
+	findall(Index-Count,
+		rdf_statistics(lookup(Index, Count)),
+		Lookup).
+
+lookup_statistics([]) -->
+	[].
+lookup_statistics([rdf(S,P,O)-Count|T]) -->
+	html(tr([ td(S), td(P), td(O), \nc('~D', Count)])),
+	lookup_statistics(T).
 
 
 		 /*******************************

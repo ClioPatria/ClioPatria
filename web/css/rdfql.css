@@ -24,22 +24,26 @@ div.local-login form
   margin-left: 2cm;
 }
 
-#triples-by-graph
-{ margin-top: 5mm;
+table.rdfql
+{ margin-top: 1ex;
   margin-left: 10%;
   border-width: 1px;
   border-style: solid;
   border-collapse: collapse;
 }
 
-#triples-by-graph th
+table.rdfql th
 { color: white;
   background-color: navy
 }
 
-#triples-by-graph td,th
+table.rdfql td,th
 { border-width: 1px;
   border-style: solid;
+}
+
+table.rdfql tr.odd
+{ background-color: #f0f0f0;
 }
 
 #triples-by-graph td.total
@@ -52,6 +56,3 @@ div.local-login form
   background-color: white;
 }
 
-#triples-by-graph tr.odd
-{ background-color: #f0f0f0;
-}
