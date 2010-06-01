@@ -35,22 +35,23 @@
 
 :- use_module(server).
 :- use_module(xml_result).
-:- use_module(library('http/http_open')).
-:- use_module(library('http/thread_httpd')).
-:- use_module(library('http/html_write')).
-:- use_module(library('http/html_head')).
-:- use_module(library('http/http_server_files')).
-:- use_module(library('http/mimetype')).
-:- use_module(library('http/http_dispatch')).
-:- use_module(library('http/http_session')).
-:- use_module(library('http/http_host')).
+:- use_module(library(http/http_open)).
+:- use_module(library(http/thread_httpd)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
+:- use_module(library(http/http_server_files)).
+:- use_module(library(http/mimetype)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_session)).
+:- use_module(library(http/http_host)).
 :- use_module(http_data).
 :- use_module(library(settings)).
 :- use_module(user_db).
 :- use_module(library(debug)).
 :- use_module(http_admin).
 :- use_module(http_stats).
-:- use_module(library('semweb/rdf_db')).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_library)).
 :- use_module(library(url)).
 :- use_module(library(occurs)).
 
@@ -189,23 +190,24 @@ statistics(Request) :-
 	http_current_host(Request, Host, _Port, [global(true)]),
 	file_action(FileAction),
 	serql_page(title('RDF statistics'),
-		   [ h1([id(stattitle)], ['RDF statistics for ', Host]),
-		     ol([id(toc)],
-			[ li(a(href('#ntriples'),    'Triples in database')),
-			  li(a(href('#callstats'),   'Call statistics')),
-			  li(a(href('#sessions'),    'Active sessions')),
-			  li(a(href('#serverstats'), 'Server statistics'))
-			]),
-		     h4([id(ntriples)], 'Triples in database'),
-		     p('The RDF store contains ~D triples in ~D bytes memory'-[Total, Core]),
-		     \graph_triple_table(FileAction),
-		     h4([id(callstats)],'Call statistics'),
-		     \rdf_call_stat_table,
-		     h4([id(sessions)], 'Active sessions'),
-		     \http_session_table,
-		     h4([id(serverstats)], 'Server statistics'),
-		     \http_server_statistics
-		   ]).
+		   div(id('rdf-statistics'),
+		       [ h1([id(stattitle)], ['RDF statistics for ', Host]),
+			 ol([id(toc)],
+			    [ li(a(href('#ntriples'),    'Triples in database')),
+			      li(a(href('#callstats'),   'Call statistics')),
+			      li(a(href('#sessions'),    'Active sessions')),
+			      li(a(href('#serverstats'), 'Server statistics'))
+			    ]),
+			 h4([id(ntriples)], 'Triples in database'),
+			 p('The RDF store contains ~D triples in ~D bytes memory'-[Total, Core]),
+			 \graph_triple_table(FileAction),
+			 h4([id(callstats)],'Call statistics'),
+			 \rdf_call_stat_table,
+			 h4([id(sessions)], 'Active sessions'),
+			 \http_session_table,
+			 h4([id(serverstats)], 'Server statistics'),
+			 \http_server_statistics
+		       ])).
 
 file_action([file_action(unload_button)]) :-
 	logged_on(User, anonymous),
@@ -609,35 +611,58 @@ load_url_form(_Request) :-
 
 load_base_ontology_form(Request) :- !,
 	authorized(read(status, listBaseOntologies)),
+	get_base_ontologies(Request, Ontologies),
 	serql_page(title('Load base ontology'),
 		   [ h3(align(center), 'Load ontology from repository'),
 
-		     p('This page allows loading one of the ontologies \
-		        provided with the toolkit.'),
+		     p('Select an ontology from the registered libraries'),
 
-		     form([ action(location_by_id(load_base_ontology)),
-			    method('GET')
-			  ],
-			  [ \hidden(resultFormat, html),
-			    b('Ontology'),
-			    select(name(ontology),
-				   [ option([], '')
-				   | \base_ontologies(Request)
-				   ]),
-			    input([ type(submit),
-				    value('Load')
-				  ])
-			  ])
+		     \load_base_ontology_form(Ontologies)
 		   ]).
 
+%%	load_base_ontology_form(+Ontologies)//
+%
+%	HTML component that emits a form to load a base-ontology and its
+%	dependencies. Ontologies is a list   of  ontology-identifiers as
+%	used by rdf_load_library/1.
 
-base_ontologies(Request) -->
-	{ get_base_ontologies(Request, Rows) },
-	emit_base_ontologies(Rows).
+load_base_ontology_form(Ontologies) -->
+	html_requires(css('rdfql.css')),
+	html(form([ action(location_by_id(load_base_ontology)),
+		    method('GET')
+		  ],
+		  [ \hidden(resultFormat, html),
+		    table([ id('load-base-ontology-form'),
+			    class(rdfql)
+			  ],
+			  [ tr([ th('Ontology'),
+				 td(select(name(ontology),
+					   [ option([], '')
+					   | \emit_base_ontologies(Ontologies)
+					   ]))
+			       ]),
+			    tr(class(buttons),
+			       td([colspan(2), align(right)],
+				  input([ type(submit),
+					  value('Load')
+					])))
+			  ])
+		  ])).
+
+
+emit_base_ontologies([]) -->
+	[].
+emit_base_ontologies([H|T]) -->
+	(   { rdf_library_index(H, title(Title)) }
+	->  html(option([value(H)], [H, ' -- ', Title]))
+	;   html(option([value(H)], H))
+	),
+	emit_base_ontologies(T).
+
 
 get_base_ontologies(_Request, List) :-
-	catch(findall(row(O), serql_base_ontology(O), List), _, fail), !.
-get_base_ontologies(Request, Rows) :-
+	catch(findall(O, serql_base_ontology(O), List), _, fail), !.
+get_base_ontologies(Request, List) :-
 	http_current_host(Request, Host, Port, []),
 	http_location_by_id(list_base_ontologies, ListBaseOntos),
 	debug(base_ontologies, 'Opening http://~w:~w~w',
@@ -652,14 +677,8 @@ get_base_ontologies(Request, Rows) :-
 		  [ % request_header('Cookie', Cookie)
 		  ]),
 	debug(base_ontologies, '--> Reading from ~w', [In]),
-	xml_read_result_table(In, Rows, _VarNames).
-
-emit_base_ontologies([]) -->
-	[].
-emit_base_ontologies([row(H)|T]) -->
-	html(option([], H)),
-	emit_base_ontologies(T).
-
+	xml_read_result_table(In, Rows, _VarNames),
+	maplist(arg(1), Rows, List).
 
 %%	clear_repository_form(+Request)
 %
@@ -696,36 +715,44 @@ remove_statements_form(_Request) :-
 		        fields are in ntriples notation.  Omitted fields \
 			match any value.'),
 
-		     form([ action(location_by_id(remove_statements)),
-			    method('GET')
-			  ],
-			  [ \hidden(repository, default),
-			    \hidden(resultFormat, html),
-			    table([ tr([ th(align(right), 'Subject: '),
-					 td(input([ name(subject),
-						    size(50)
-						  ]))
-				       ]),
-				    tr([ th(align(right), 'Predicate: '),
-					 td(input([ name(predicate),
-						    size(50)
-						  ]))
-				       ]),
-				    tr([ th(align(right), 'Object: '),
-					 td(input([ name(object),
-						    size(50)
-						  ]))
-				       ]),
-				    tr([ td([ align(right),
-					      colspan(2)
-					    ],
-					    input([ type(submit),
-						    value('Remove')
-						  ]))
-				       ])
-				  ])
-			  ])
+		     \remove_statements_form
 		   ]).
+
+remove_statements_form -->
+	html_requires(css('rdfql.css')),
+	html(form([ action(location_by_id(remove_statements)),
+		    method('GET')
+		  ],
+		  [ \hidden(repository, default),
+		    \hidden(resultFormat, html),
+		    table([ id('remove-statements-form'),
+			    class(rdfql)
+			  ],
+			  [ tr([ th(align(right), 'Subject: '),
+				 td(input([ name(subject),
+					    size(50)
+					  ]))
+			       ]),
+			    tr([ th(align(right), 'Predicate: '),
+				 td(input([ name(predicate),
+					    size(50)
+					  ]))
+			       ]),
+			    tr([ th(align(right), 'Object: '),
+				 td(input([ name(object),
+					    size(50)
+					  ]))
+			       ]),
+			    tr(class(buttons),
+			       [ td([ align(right),
+				      colspan(2)
+				    ],
+				    input([ type(submit),
+					    value('Remove')
+					  ]))
+			       ])
+			  ])
+		  ])).
 
 
 		 /*******************************

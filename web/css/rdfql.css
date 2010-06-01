@@ -27,7 +27,7 @@ div.local-login form
 table.rdfql
 { margin-top: 1ex;
   margin-left: 5%;
-  border-width: 1px;
+  border-width: 0px;
   border-style: solid;
   border-collapse: collapse;
 }
@@ -40,10 +40,15 @@ table.rdfql th
 table.rdfql td,th
 { border-width: 1px;
   border-style: solid;
+  border-color: #A0A0A0;
 }
 
 table.rdfql tr.odd
 { background-color: #f0f0f0;
+}
+
+tr.buttons td
+{ border-width: 0px;
 }
 
 #triples-by-graph td.total
@@ -56,3 +61,10 @@ table.rdfql tr.odd
   background-color: white;
 }
 
+#rdf-statistics h1
+{ text-align: center;
+}
+
+#rdf-statistics h4
+{ background-color: #b9daff;
+}

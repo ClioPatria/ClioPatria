@@ -30,15 +30,16 @@
 */
 
 :- module(http_admin,
-	  [ reload_attr/2		% +Window, -Attribute
+	  [
 	  ]).
 :- use_module(user_db).
 :- use_module(http_user).
-:- use_module(library('http/http_parameters')).
-:- use_module(library('http/http_session')).
-:- use_module(library('http/html_write')).
-:- use_module(library('http/mimetype')).
-:- use_module(library('http/http_dispatch')).
+:- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_session)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
+:- use_module(library(http/mimetype)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(url)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
@@ -86,38 +87,45 @@ action(URL, Label) -->
 
 list_users(_Request) :-
 	authorized(admin(list_users)),
+	if_allowed(admin(user(edit)),   [edit(true)], UserOptions),
+	if_allowed(admin(openid(edit)), [edit(true)], OpenIDOptions),
 	serql_page(title('Users'),
 		   [ h1('Users'),
-		     \user_table,
-		     p([ \action(location_by_id(add_user_form), 'Add user')
-		       ]),
+		     \user_table(UserOptions),
+		     p(\action(location_by_id(add_user_form), 'Add user')),
 		     h1('OpenID servers'),
-		     \openid_server_table,
-		     p([ \action(location_by_id(add_openid_server_form), 'Add OpenID server')
-		       ])
+		     \openid_server_table(OpenIDOptions),
+		     p(\action(location_by_id(add_openid_server_form), 'Add OpenID server'))
 		   ]).
 
-%%	user_table//
-%
-%	HTML DCG generating a table of registered users.
+if_allowed(Token, Options, Options) :-
+	logged_on(User, anonymous),
+	catch(check_permission(User, Token), _, fail), !.
+if_allowed(_, _, []).
 
-user_table -->
+%%	user_table(+Options)//
+%
+%	HTML component generating a table of registered users.
+
+user_table(Options) -->
 	{ setof(U, current_user(U), Users)
 	},
-	html([ table([ border(1)
+	html_requires(css('rdfql.css')),
+	html([ table([ id('user-table'),
+		       class(rdfql)
 		     ],
 		     [ tr([ th('UserID'),
 			    th('RealName'),
 			    th('On since'),
 			    th('Idle')
 			  ])
-		     | \list_users(Users)
+		     | \list_users(Users, Options)
 		     ])
 	     ]).
 
-list_users([]) -->
+list_users([], _) -->
 	[].
-list_users([User|T]) -->
+list_users([User|T], Options) -->
 	{ user_property(User, realname(Name)),
 	  findall(Idle-Login,
 		  user_property(User, connection(Login, Idle)),
@@ -134,9 +142,15 @@ list_users([User|T]) -->
 		  td(Name),
 		  td(\on_since(OnLine)),
 		  td(\idle(OnLine)),
-		  td(a(href(location_by_id(edit_user_form)+'?user='+encode(User)), 'Edit'))
+		  \edit_user_button(User, Options)
 		])),
-	list_users(T).
+	list_users(T, Options).
+
+edit_user_button(User, Options) -->
+	{ option(edit(true), Options) }, !,
+	html(td(a(href(location_by_id(edit_user_form)+'?user='+encode(User)), 'Edit'))).
+edit_user_button(_, _) -->
+	[].
 
 on_since(online(Login, _Idle, _Connections)) --> !,
 	{ format_time(string(Date), '%+', Login)
@@ -224,11 +238,13 @@ add_user_form(_Request) :-
 		   ]).
 
 new_user_form -->
+	html_requires(css('rdfql.css')),
 	html([ h1('Add new user'),
 	       form([ action(location_by_id(add_user)),
 		      method('GET')
 		    ],
-		    table([ border(1)
+		    table([ id('new-user-form'),
+			    class(rdfql)
 			  ],
 			  [ \input(user,     'Name',
 				   []),
@@ -239,7 +255,8 @@ new_user_form -->
 			    \input(pwd2,     'Retype',
 				   [type(password)]),
 			    \permissions(-),
-			    tr(td([ colspan(2),
+			    tr(class(buttons),
+			       td([ colspan(2),
 				    align(right)
 				  ],
 				  input([ type(submit),
@@ -250,7 +267,7 @@ new_user_form -->
 
 
 input(Name, Label, Options) -->
-	html(tr([ td(align(right), Label),
+	html(tr([ th(align(right), Label),
 		  td(input([name(Name),size(40)|Options]))
 		])).
 
@@ -310,39 +327,41 @@ edit_user_form(Request) :-
 			[ user(User, [])
 			]),
 
-	user_property(User, realname(RealName)),
+	serql_page(title('Edit user'),
+		   \edit_user_form(User)).
 
-	serql_page('Edit user',
-		   [ h4(['Edit user ', User, ' (', RealName, ')']),
+%%	edit_user_form(+User)//
+%
+%	HTML component to edit the properties of User.
 
-		     form([ action(location_by_id(edit_user)),
-			    method('GET')
-			  ],
-			  [ \hidden(user, User),
-			    table([ border(1),
-				    align(center)
-				  ],
-				  [ \user_property(User,
-						   realname,
-						   'Realname',
-						   []),
-				    \permissions(User),
-				    tr(td([ colspan(2),
-					    align(right)
-					  ],
-					  input([ type(submit),
-						  value('Modify')
-						])))
-				  ])
-			  ]),
+edit_user_form(User) -->
+	{ user_property(User, realname(RealName))
+	},
+	html_requires(css('rdfql.css')),
+	html([ h4(['Edit user ', User, ' (', RealName, ')']),
 
-		     p([ \action(location_by_id(del_user)+'?user='+encode(User),
-				 [ 'Delete ',
-				   b(User),
-				   ' (', b(RealName), ')'
-				 ])
-		       ])
-		   ]).
+	       form([ action(location_by_id(edit_user)),
+		      method('GET')
+		    ],
+		    [ \hidden(user, User),
+		      table([ id('edit-user-form'),
+			      class(rdfql)
+			    ],
+			    [ \user_property(User, realname, 'Realname', []),
+			      \permissions(User),
+			      tr(class(buttons),
+				 td([ colspan(2),
+				      align(right)
+				    ],
+				    input([ type(submit),
+					    value('Modify')
+					  ])))
+			    ])
+		    ]),
+
+	       p(\action(location_by_id(del_user)+'?user='+encode(User),
+			 [ 'Delete user ', b(User), ' (', i(RealName), ')' ]))
+	     ]).
 
 user_property(User, Name, Label, Options) -->
 	{  Term =.. [Name, Value],
@@ -350,12 +369,12 @@ user_property(User, Name, Label, Options) -->
 	-> O2 = [value(Value)|Options]
 	;  O2 = Options
 	},
-	html(tr([ td(align(right), Label),
+	html(tr([ th(align(right), Label),
 		  td(input([name(Name),size(40)|O2]))
 		])).
 
 permissions(User) -->
-	html(tr([ td(align(right), 'Permissions'),
+	html(tr([ th(align(right), 'Permissions'),
 		  td([ \permission_checkbox(User, read,  'Read'),
 		       \permission_checkbox(User, write, 'Write'),
 		       \permission_checkbox(User, admin, 'Admin')
@@ -370,6 +389,8 @@ permission_checkbox(User, Name, Label) -->
 	      ),
 	      pterm(Name, Action),
 	      memberchk(Action, Actions)
+	  ->  Opts = [checked]
+	  ;   Name == read
 	  ->  Opts = [checked]
 	  ;   Opts = []
 	  )
@@ -585,12 +606,8 @@ reply_login(Options) :-
 	login(User),
 	(   option(return_to(ReturnTo), Options)
 	->  throw(http_reply(moved_temporary(ReturnTo)))
-	;   reload_attr(sidebar, OnLoad),
-	    serql_page('Login ok',
-		       body([ OnLoad
-			    ],
-			    [ h1(align(center), ['Welcome ', User])
-			    ]))
+	;   serql_page('Login ok',
+		       h1(align(center), ['Welcome ', User]))
 	).
 reply_login(_) :-
 	serql_page('Login failed',
@@ -605,18 +622,8 @@ reply_login(_) :-
 user_logout(_Request) :-
 	logged_on(User),
 	logout(User),
-	reload_attr(sidebar, OnLoad),
 	serql_page(title('Logout'),
-		   body([ OnLoad
-			],
-			[ h1(align(center), ['Logged out ', User])
-			])).
-
-reload_attr(Frame, onLoad(Script)) :-
-	concat_atom([ 'top.frames[\'', Frame, '\'].location=top.frames[\'',
-		      Frame, '\'].location.href'
-		    ], Script).
-
+		   h1(align(center), ['Logged out ', User])).
 
 attribute_decl(read,
 	       [ description('Provide read-only access to the RDF store')
@@ -644,7 +651,7 @@ bool(Def,
 
 add_openid_server_form(_Request) :-
 	authorized(admin(add_openid_server)),
-	serql_page('Add OpenID server',
+	serql_page(title('Add OpenID server'),
 		   [ \new_openid_form
 		   ]).
 
@@ -654,17 +661,20 @@ add_openid_server_form(_Request) :-
 %	Present form to add a new OpenID provider.
 
 new_openid_form -->
+	html_requires(css('rdfql.css')),
 	html([ h1('Add new OpenID server'),
 	       form([ action(location_by_id(add_openid_server)),
 		      method('GET')
 		    ],
-		    table([ border(1)
+		    table([ id('add-openid-server'),
+			    class(rdfql)
 			  ],
 			  [ \input(openid_server, 'Server homepage', []),
 			    \input(openid_description, 'Server description',
 				   []),
 			    \permissions(-),
-			    tr(td([ colspan(2),
+			    tr(class(buttons),
+			       td([ colspan(2),
 				    align(right)
 				  ],
 				  input([ type(submit),
@@ -735,30 +745,36 @@ edit_openid_server_form(Request) :-
 			[ openid_server(Server, [])
 			]),
 
-	serql_page('Edit OpenID server',
-		   [ h4(['Edit OpenID server ', Server]),
+	serql_page(title('Edit OpenID server'),
+		   \edit_openid_server_form(Server)).
 
-		     form([ action(location_by_id(edit_openid_server)),
-			    method('GET')
-			  ],
-			  [ \hidden(openid_server, Server),
-			    table([ border(1)
-				  ],
-				  [ \openid_property(Server, description, 'Description', []),
-				    \permissions(Server),
-				    tr(td([ colspan(2),
-					    align(right)
-					  ],
-					  input([ type(submit),
-						  value('Modify')
-						])))
-				  ])
-			  ]),
+edit_openid_server_form(Server) -->
+	html_requires(css('rdfql.css')),
+	html([ h4(['Edit OpenID server ', Server]),
 
-		     p([ \action(location_by_id(del_openid_server) +
-				 '?openid_server=' + encode(Server),
-				 [ 'Delete ', b(Server) ]) ])
-		   ]).
+	       form([ action(location_by_id(edit_openid_server)),
+		      method('GET')
+		    ],
+		    [ \hidden(openid_server, Server),
+		      table([ id('edit-openid-server-form'),
+			      class(rdfql)
+			    ],
+			    [ \openid_property(Server, description, 'Description', []),
+			      \permissions(Server),
+			      tr(class(buttons),
+				 td([ colspan(2),
+				      align(right)
+				    ],
+				    input([ type(submit),
+					    value('Modify')
+					  ])))
+			    ])
+		    ]),
+
+	       p(\action(location_by_id(del_openid_server) +
+			 '?openid_server=' + encode(Server),
+			 [ 'Delete ', b(Server) ]))
+	     ]).
 
 
 openid_property(Server, Name, Label, Options) -->
@@ -767,42 +783,50 @@ openid_property(Server, Name, Label, Options) -->
 	-> O2 = [value(Value)|Options]
 	;  O2 = Options
 	},
-	html(tr([ td(align(right), Label),
+	html(tr([ th(align(right), Label),
 		  td(input([name(Name),size(40)|O2]))
 		])).
 
 
-%%	openid_server_table//
+%%	openid_server_table(+Options)//
 %
 %	List registered openid servers
 
-openid_server_table -->
+openid_server_table(Options) -->
 	{ setof(S, openid_current_server(S), Servers), !
 	},
-	html([ table([ border(1)
+	html([ table([ id('trusted-open-id-servers'),
+		       class(rdfql)
 		     ],
 		     [ tr([ th('Server'),
 			    th('Description')
 			  ])
-		     | \openid_list_servers(Servers)
+		     | \openid_list_servers(Servers, Options)
 		     ])
 	     ]).
-openid_server_table -->
+openid_server_table(_) -->
 	[].
 
-openid_list_servers([]) -->
+openid_list_servers([], _) -->
 	[].
-openid_list_servers([H|T]) -->
-	openid_list_server(H),
-	openid_list_servers(T).
+openid_list_servers([H|T], Options) -->
+	openid_list_server(H, Options),
+	openid_list_servers(T, Options).
 
-openid_list_server(Server) -->
+openid_list_server(Server, Options) -->
 	html(tr([td(\openid_server(Server)),
 		 td(\openid_field(Server, description)),
-		 td(a(href(location_by_id(edit_openid_server_form) +
-			   '?openid_server='+encode(Server)
-			  ), 'Edit'))
+		 \edit_openid_button(Server, Options)
 		])).
+
+edit_openid_button(Server, Options) -->
+	{ option(edit(true), Options) }, !,
+	html(td(a(href(location_by_id(edit_openid_server_form) +
+		       '?openid_server='+encode(Server)
+		      ), 'Edit'))).
+edit_openid_button(_, _) --> [].
+
+
 
 openid_server(*) --> !,
 	html(*).

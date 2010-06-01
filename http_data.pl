@@ -37,21 +37,22 @@
 :- use_module(parms).
 :- use_module(serql).
 :- use_module(sparql).
-:- use_module(library('http/http_parameters')).
+:- use_module(library(http/http_parameters)).
 :- use_module(http_admin).
 :- use_module(http_user).
 :- use_module(user_db).
 :- use_module(rdf_html).
 :- use_module(xml_result).
 :- use_module(rdf_io).
-:- use_module(library('semweb/rdf_edit')).
-:- use_module(library('semweb/rdfs')).
-:- use_module(library('semweb/rdf_db')).
+:- use_module(library(semweb/rdf_edit)).
+:- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_library)).
 :- use_module(library(semweb/rdf_turtle)).
-:- use_module(library('http/html_write')).
-:- use_module(library('http/http_open')).
-:- use_module(library('http/http_dispatch')).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
+:- use_module(library(http/http_open)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(memfile)).
 :- use_module(library(rdf_ntriples)).
 :- use_module(library(debug)).
@@ -365,7 +366,14 @@ load_base_ontology(Request) :-
 	action(Request,
 	       rdf_load_library(Ontology, [concurrent(1)]),
 	       Format,
-	       'Loaded base ontology ~w'-[Ontology]).
+	       \loaded_base_ontology(Ontology)).
+
+loaded_base_ontology(Id) -->
+	html('Loaded base ontology '),
+	(   { rdf_library_index(Id, title(Title)) }
+	->  html([Id, ' -- ', Title])
+	;   html(Id)
+	).
 
 
 %%	list_base_ontologies(+Request)
@@ -683,26 +691,9 @@ run(A, Log) :-
 	rdf_transaction(A, Log).
 
 
-done(html, Fmt-Args, CPU, Subjects, Triples) :-
-	format(string(Message), Fmt, Args),
-	rdf_statistics(triples(TriplesNow)),
-	rdf_statistics(subjects(SubjectsNow)),
+done(html, Message, CPU, Subjects, Triples) :-
 	serql_page(title('Success'),
-		   [ h4('Operation completed'),
-		     p(Message),
-		     h4('Statistics'),
-		     table([ border(1),
-			     cellpadding(3)
-			   ],
-			   [ tr([td(''), th('+/-'), th('now')]),
-			     tr([th(align(right), 'CPU time'),
-				 \right(CPU), td('')]),
-			     tr([th(align(right), 'Subjects'),
-				 \right(Subjects), \right(SubjectsNow)]),
-			     tr([th(align(right), 'Triples'),
-				 \right(Triples), \right(TriplesNow)])
-			   ])
-		   ]).
+		   \result_table(Message, CPU, Subjects, Triples)).
 done(xml, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format(string(Message), Fmt, Args),
 	format('Content-type: text/xml~n~n'),
@@ -720,6 +711,43 @@ done(rdf, Fmt-Args, _CPU, _Subjects, _Triples) :-
 right(V) -->
 	html(td(align(right), V)).
 
+result_table(Message, CPU, Subjects, Triples) -->
+	{ rdf_statistics(triples(TriplesNow)),
+	  rdf_statistics(subjects(SubjectsNow))
+	},
+	html_requires(css('rdfql.css')),
+	html([ h4('Operation completed'),
+	       p(Message),
+	       h4('Statistics'),
+	       table([ id('result'),
+		       class(rdfql)
+		     ],
+		     [ tr([td(''), th('+/-'), th('now')]),
+		       tr([th(align(right), 'CPU time'),
+			   \nc('~3f', CPU), td('')]),
+		       tr([th(align(right), 'Subjects'),
+			   \nc('~D', Subjects), \nc('~D', SubjectsNow)]),
+		       tr([th(align(right), 'Triples'),
+			   \nc('~D', Triples), \nc('~D', TriplesNow)])
+		     ])
+	     ]).
+
+
+%%	nc(+Format, +Value)// is det.
+%
+%	Numeric  cell.  The  value  is    formatted   using  Format  and
+%	right-aligned in a table cell (td).
+
+nc(Fmt, Value) -->
+	nc(Fmt, Value, []).
+
+nc(Fmt, Value, Options) -->
+	{ (   memberchk(align(_), Options)
+	  ->  Opts = Options
+	  ;   Opts = [align(right)|Options]
+	  )
+	},
+	html(td(Opts, Fmt-[Value])).
 
 		 /*******************************
 		 *	   SAVED QUERIES	*

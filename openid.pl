@@ -250,10 +250,8 @@ openid_for_local_user(User, URL) :-
 login_handler(_Request) :-
 	ensure_logged_on(User),
 	user_property(User, url(URL)),
-	reload_attr(sidebar, OnLoad),
 	serql_page(title('Login ok'),
-		   body(OnLoad,
-			[ h1('Login ok'),
-			  p(['You''re logged on with OpenID ',
-			     a(href(URL), URL)])
-			])).
+		   [ h1('Login ok'),
+		     p(['You''re logged on with OpenID ',
+			a(href(URL), URL)])
+		   ]).
