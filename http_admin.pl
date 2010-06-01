@@ -480,29 +480,34 @@ del_user(Request) :- !,
 change_password_form(_Request) :-
 	logged_on(User),
 	user_property(User, realname(RealName)),
-	serql_page('Change password',
+	serql_page(title('Change password'),
 		   [ h4(['Change password for ', User, ' (', RealName, ')']),
 
-		     form([ action(location_by_id(change_password)),
-			    method('GET')
-			  ],
-			  [ table([ border(1),
-				    align(center)
-				  ],
-				  [ \user_or_old(User),
-				    \input(pwd1,     'New Password',
-					   [type(password)]),
-				    \input(pwd2,     'Retype',
-					   [type(password)]),
-				    tr(td([ align(right),
-					    colspan(2)
-					  ],
-					  input([ type(submit),
-						  value('Change password')
-						])))
-				  ])
-			  ])
+		     \change_password_form(User)
 		   ]).
+
+change_password_form(User) -->
+	html_requires(css('rdfql.css')),
+	html(form([ action(location_by_id(change_password)),
+		    method('GET')
+		  ],
+		  [ table([ id('change-password-form'),
+			    class(rdfql)
+			  ],
+			  [ \user_or_old(User),
+			    \input(pwd1,     'New Password',
+				   [type(password)]),
+			    \input(pwd2,     'Retype',
+				   [type(password)]),
+			    tr(class(buttons),
+			       td([ align(right),
+				    colspan(2)
+				  ],
+				  input([ type(submit),
+					  value('Change password')
+					])))
+			  ])
+		  ])).
 
 user_or_old(admin) --> !,
 	input(user, 'User', []).
