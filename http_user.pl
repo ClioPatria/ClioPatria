@@ -314,13 +314,13 @@ stored_queries([Name-Query|T], I) -->
 	{ I2 is I + 1,
 	  atom_concat(f, I, FName),
 	  js_quoted(Query, QuotedQuery),
-	  sformat(Script,
-		  'function ~w()\n\
-		   { document.query.query.value=\'~w\';\n\
-		   }\n',
-		  [ FName, QuotedQuery ]),
+	  format(atom(Script),
+		 'function ~w()\n\
+		 { document.query.query.value=\'~w\';\n\
+		 }\n',
+		 [ FName, QuotedQuery ]),
 	  assert(script_fragment(Script)),
-	  sformat(Call, '~w()', [FName])
+	  format(atom(Call), '~w()', [FName])
 	},
 	html(option([onClick(Call)], Name)),
 	stored_queries(T, I2).
@@ -392,7 +392,7 @@ query_form(_Request) :-
 				 ' query'
 			       ]),
 			    table(align(center),
-				  [ \store_recall(User, select, 3-2),
+				  [ \store_recall(User, _, 3-2),
 				    tr([ td(colspan(5),
 					    textarea([ name(query),
 						       rows(15),
