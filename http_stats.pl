@@ -30,12 +30,18 @@
 
 :- module(http_stats,
 	  [ graph_triple_table//1,	% +Options
-	    rdf_call_stat_table//0
+	    rdf_call_stat_table//0,
+	    http_session_table//0,
+	    http_server_statistics//0
 	  ]).
 :- use_module(library(option)).
+:- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library('http/http_session')).
+:- use_module(library('http/thread_httpd')).
 :- use_module(library('http/html_write')).
 :- use_module(library('http/html_head')).
+:- use_module(user_db).
 
 :- meta_predicate
 	graph_triple_table(:, ?, ?).
@@ -123,6 +129,145 @@ lookup_statistics([]) -->
 lookup_statistics([rdf(S,P,O)-Count|T]) -->
 	html(tr([ td(S), td(P), td(O), \nc('~D', Count)])),
 	lookup_statistics(T).
+
+
+%%	http_session_table//
+%
+%	HTML component that writes a table of currently logged on users.
+
+http_session_table -->
+	{ findall(S, session(S), Sessions0),
+	  sort(Sessions0, Sessions),
+	  Sessions \== [], !
+	},
+	html([ table([ id('http-session-table'),
+		       class(rdfql)
+		     ],
+		     [ tr([th('User'), th('Real Name'),
+			   th('On since'), th('Idle'), th('From')])
+		     | \sessions(Sessions)
+		     ])
+	     ]).
+http_session_table -->
+	html(p('No users logged in')).
+
+session(s(Idle, User, SessionID, Peer)) :-
+	http_current_session(SessionID, peer(Peer)),
+	http_current_session(SessionID, idle(Idle)),
+	(   user_property(User, session(SessionID))
+	->  true
+	;   User = (-)
+	).
+
+sessions([]) --> [].
+sessions([H|T]) --> session(H), sessions(T).
+
+session(s(Idle, -, _SessionID, Peer)) -->
+	html(tr([td(-), td(-), td(-), td(\idle(Idle)), td(\ip(Peer))])).
+session(s(Idle, User, _SessionID, Peer)) -->
+	{  (   user_property(User, realname(RealName))
+	   ->  true
+	   ;   RealName = '?'
+	   ),
+	   (   user_property(User, connection(OnSince, _Idle))
+	   ->  true
+	   ;   OnSince = 0
+	   )
+	},
+	html(tr([td(User), td(RealName), td(\date(OnSince)), td(\idle(Idle)), td(\ip(Peer))])).
+
+idle(Time) -->
+	{ Secs is round(Time),
+	  Min is Secs // 60,
+	  Sec is Secs mod 60
+	},
+	html('~`0t~d~2|:~`0t~d~5|'-[Min, Sec]).
+
+date(Date) -->
+	{ format_time(string(S), '%+', Date)
+	},
+	html(S).
+
+ip(ip(A,B,C,D)) --> !,
+	html('~d.~d.~d.~d'-[A,B,C,D]).
+ip(IP) -->
+	html('~w'-[IP]).
+
+
+%%	http_server_statistics//
+%
+%	HTML component showing statistics on the HTTP server
+
+http_server_statistics -->
+	{ findall(Port-ID, http_current_worker(Port, ID), Workers),
+	  group_pairs_by_key(Workers, Servers),
+	  statistics(heapused, Heap)
+	},
+	html([ table([ id('http-server-statistics'),
+		       class(rdfql)
+		     ],
+		     [ \servers_stats(Servers),
+		       tr([ th([align(right), colspan(3)], 'Heap memory:'),
+			    \nc('~D', Heap, [align(left), colspan(3)])
+			  ])
+		     ])
+	     ]).
+
+servers_stats([]) --> [].
+servers_stats([H|T]) -->
+	server_stats(H), servers_stats(T).
+
+server_stats(Port-Workers) -->
+	{ length(Workers, NWorkers),
+	  http_server_property(Port, start_time(StartTime)),
+	  format_time(string(ST), '%+', StartTime)
+	},
+	html([ tr([ th([align(right), colspan(3)], 'Port:'),
+		    td(colspan(3), Port)
+		  ]),
+	       tr([ th([align(right), colspan(3)], 'Started:'),
+		    td(colspan(3), ST)
+		  ]),
+	       tr([ th([align(right), colspan(3)], '# worker threads:'),
+		    td(colspan(3), NWorkers)
+		  ]),
+	       tr(th(colspan(6), 'Statistics by worker')),
+	       tr([ th('Thread'),
+		    th('CPU'),
+		    th(''),
+		    th('Local'),
+		    th('Global'),
+		    th('Trail')
+		  ]),
+	       \http_workers(Workers)
+	     ]).
+
+
+http_workers([]) -->
+	[].
+http_workers([H|T]) -->
+	{ thread_statistics(H, locallimit, LL),
+	  thread_statistics(H, globallimit, GL),
+	  thread_statistics(H, traillimit, TL),
+	  thread_statistics(H, localused, LU),
+	  thread_statistics(H, globalused, GU),
+	  thread_statistics(H, trailused, TU),
+	  thread_statistics(H, cputime, CPU)
+	},
+	html([ tr([ td(rowspan(2), H),
+		    \nc('~3f', CPU, [rowspan(2)]),
+		    th('In use'),
+		    \nc('~D', LU),
+		    \nc('~D', GU),
+		    \nc('~D', TU)
+		  ]),
+	       tr([ th('Limit'),
+		    \nc('~D', LL),
+		    \nc('~D', GL),
+		    \nc('~D', TL)
+		  ])
+	     ]),
+	http_workers(T).
 
 
 		 /*******************************

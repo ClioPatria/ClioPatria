@@ -183,27 +183,35 @@ reply_decorated_file(Alias, _Request) :-
 %
 %	Provide elementary statistics on the server.
 
-statistics(_Request) :-
+statistics(Request) :-
 	rdf_statistics(triples(Total)),
 	rdf_statistics(core(Core)),
-	gethostname(Host),
+	http_current_host(Request, Host, _Port, [global(true)]),
+	file_action(FileAction),
 	serql_page(title('RDF statistics'),
 		   [ h1([id(stattitle)], ['RDF statistics for ', Host]),
 		     ol([id(toc)],
-			[
-			 li(a([href('#ntriples')],'Triples in database')),
-			 li(a([href('#callstats')],'Call statistics')),
-			 li(a([href('#sessions')],'Active sessions')),
-			 li(a([href('#serverstats')],'Server statistics'))
+			[ li(a(href('#ntriples'),    'Triples in database')),
+			  li(a(href('#callstats'),   'Call statistics')),
+			  li(a(href('#sessions'),    'Active sessions')),
+			  li(a(href('#serverstats'), 'Server statistics'))
 			]),
 		     h4([id(ntriples)], 'Triples in database'),
 		     p('The RDF store contains ~D triples in ~D bytes memory'-[Total, Core]),
-		     \graph_triple_table([file_action(unload_button)]),
+		     \graph_triple_table(FileAction),
 		     h4([id(callstats)],'Call statistics'),
 		     \rdf_call_stat_table,
-		     \current_sessions,
-		     \server_statistics
+		     h4([id(sessions)], 'Active sessions'),
+		     \http_session_table,
+		     h4([id(serverstats)], 'Server statistics'),
+		     \http_server_statistics
 		   ]).
+
+file_action([file_action(unload_button)]) :-
+	logged_on(User, anonymous),
+	catch(check_permission(User, write(_, unload(_))), _, fail), !.
+file_action([]).
+
 
 unload_button([title]) --> !,
 	html(th('Action')).
@@ -214,138 +222,6 @@ unload_button(File) -->
 		       '?resultFormat=html&source=' +
 		       encode(File)),
 		  'Unload'))).
-
-%	current_sessions//0
-%
-%	Create a table of currently logged on users.
-
-current_sessions -->
-	{ findall(S, session(S), Sessions0),
-	  sort(Sessions0, Sessions),
-	  Sessions \== [], !
-	},
-	html([ h4([id(sessions)], 'Active sessions'),
-	       table([ id(sessiontable),
-		       border(1),
-		       cellpadding(2)
-		     ],
-		     [ %caption('Active sessions'),
-		       tr([th('User'), th('Real Name'), th('On since'), th('Idle'), th('From')])
-		     | \sessions(Sessions)
-		     ])
-	     ]).
-current_sessions -->
-	html(p('No users logged in')).
-
-session(s(Idle, User, SessionID, Peer)) :-
-	http_current_session(SessionID, peer(Peer)),
-	http_current_session(SessionID, idle(Idle)),
-	(   user_property(User, session(SessionID))
-	->  true
-	;   User = (-)
-	).
-
-sessions([]) --> [].
-sessions([H|T]) --> session(H), sessions(T).
-
-session(s(Idle, -, _SessionID, Peer)) -->
-	html(tr([td(-), td(-), td(-), td(\idle(Idle)), td(\ip(Peer))])).
-session(s(Idle, User, _SessionID, Peer)) -->
-	{  (   user_property(User, realname(RealName))
-	   ->  true
-	   ;   RealName = '?'
-	   ),
-	   (   user_property(User, connection(OnSince, _Idle))
-	   ->  true
-	   ;   OnSince = 0
-	   )
-	},
-	html(tr([td(User), td(RealName), td(\date(OnSince)), td(\idle(Idle)), td(\ip(Peer))])).
-
-idle(Time) -->
-	{ Secs is round(Time),
-	  Min is Secs // 60,
-	  Sec is Secs mod 60
-	},
-	html('~`0t~d~2|:~`0t~d~5|'-[Min, Sec]).
-
-date(Date) -->
-	{ format_time(string(S), '%+', Date)
-	},
-	html(S).
-
-ip(ip(A,B,C,D)) --> !,
-	html('~d.~d.~d.~d'-[A,B,C,D]).
-ip(IP) -->
-	html('~w'-[IP]).
-
-
-%	server_statistics//0
-%
-%	Provide statistics on the HTTP server
-
-server_statistics -->
-	{ serql_server_property(port(Port)),
-	  serql_server_property(started(StartTime)),
-	  format_time(string(ST), '%+', StartTime),
-	  http_workers(Port, NWorkers),
-	  findall(ID, http_current_worker(Port, ID), Workers),
-	  statistics(heapused, Heap)
-	},
-	html([ h4([id(serverstats)], 'Server statistics'),
-	       table([ border(1),
-		       cellpadding(2)
-		     ],
-		     [ tr([ th([align(right), colspan(3)], 'Port:'),
-			    td(colspan(3), Port)
-			  ]),
-		       tr([ th([align(right), colspan(3)], 'Started:'),
-			    td(colspan(3), ST)
-			  ]),
-		       tr([ th([align(right), colspan(3)], 'Heap memory:'),
-			    \nc('~D', Heap, [align(left), colspan(3)])
-			  ]),
-		       tr([ th([align(right), colspan(3)], '# worker threads:'),
-			    td(colspan(3), NWorkers)
-			  ]),
-		       tr(th(colspan(6), 'Statistics by worker')),
-		       tr([ th('Thread'),
-			    th('CPU'),
-			    th(''),
-			    th('Local'),
-			    th('Global'),
-			    th('Trail')
-			  ])
-		     | \http_workers(Workers)
-		     ])
-	     ]).
-
-http_workers([]) -->
-	[].
-http_workers([H|T]) -->
-	{ thread_statistics(H, locallimit, LL),
-	  thread_statistics(H, globallimit, GL),
-	  thread_statistics(H, traillimit, TL),
-	  thread_statistics(H, localused, LU),
-	  thread_statistics(H, globalused, GU),
-	  thread_statistics(H, trailused, TU),
-	  thread_statistics(H, cputime, CPU),
-	  sformat(Time, '~2f', [CPU])
-	},
-	html([ tr([ td(rowspan(2), H),
-		    td([rowspan(2), align(right)], Time),
-		    th('In use'),
-		    \nc('~D', LU),
-		    \nc('~D', GU),
-		    \nc('~D', TU)
-		  ]),
-	       tr([ th('Limit'),
-		    \nc('~D', LL),
-		    \nc('~D', GL),
-		    \nc('~D', TL)
-		  ])
-	     ]),
-	http_workers(T).
 
 %%	construct_form(+Request)
 %
