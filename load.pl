@@ -71,7 +71,7 @@ user:file_search_path(library,	     serql(lib)).
 user:file_search_path(ontology_root, serql('Ontologies')).
 user:file_search_path(css,	     serql('web/css')).
 user:file_search_path(icons,	     serql('web/icons')).
-user:file_search_path(yui,	     serql('web/yui')).
+user:file_search_path(yui,	     serql('web/yui/2.7.0')).
 
 :- load_files([version], [silent(true), if(not_loaded)]).
 :- check_prolog_version(5111).		% Demand >= 5.11.1
@@ -90,10 +90,11 @@ user:file_search_path(yui,	     serql('web/yui')).
 		library(http/http_session),
 		library(http/http_dispatch),
 		library(http/thread_httpd),
-		user_db,
-		openid,
-		rdf_store,
-		jrn_export
+		user_db,			% User database
+		openid,				% OpenID login management
+		rdf_store,			% Setup RDF-store
+		jrn_export,			% export journal information
+		http_browse			% Browse the repository
 	      ],
 	      [ silent(true),
 		if(not_loaded)
