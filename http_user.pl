@@ -51,6 +51,7 @@
 :- use_module(library(debug)).
 :- use_module(http_admin).
 :- use_module(http_stats).
+:- use_module(http_browse).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_library)).
 :- use_module(library(url)).
@@ -81,7 +82,6 @@ navigation -->
 	  group_pairs_by_key(Pairs, ByKey)
 	},
 	html_requires(css('menu.css')),
-%	{gtrace},
 	html(ul(id(nav),
 		\menu(ByKey))).
 
@@ -134,19 +134,23 @@ current_menu_item(Key, item(Location, Label)) :-
 %	    * handler-id
 %	    * HTML code
 
-menu_item(home/serql_home,		'Home').
-menu_item(query/query_form,		'Query').
 menu_item(file/load_file_form,	 	'Load local file').
 menu_item(file/load_url_form,		'Load from HTTP').
 menu_item(file/load_base_ontology_form, 'Load base ontology').
 menu_item(file/remove_statements_form,  'Remove statements').
 menu_item(file/clear_repository_form,	'Clear the repository').
+menu_item(query/query_form,		'Query').
+menu_item(view/list_graphs,		'Graphs').
 menu_item(view/statistics,		'Statistics').
-menu_item(admin/list_users,		'Users ...').
-menu_item(admin/settings,		'Settings ...').
-menu_item(help/serql_doc,		'Documentation').
+menu_item(admin/list_users,		'Users').
+menu_item(admin/settings,		'Settings').
+% Old-style application menus
 menu_item(application/Path, Label) :-
 	serql_http:sidebar_menu(Path, Label).
+% Home location
+menu_item(help/serql_home,		'Home').
+menu_item(help/serql_doc,		'Documentation').
+% Keep users at the end
 menu_item(user/login_form,		'Login') :-
 	\+ someone_logged_on.
 menu_item(current_user/user_logout,	'Logout') :-
@@ -877,11 +881,12 @@ hidden(Name, Value) -->
 
 serql_page(Head, Content) :-
 	reply_html_page(Head,
-			[ %\html_requires(css('serql.css')),
-			  div(id(sidebar), \navigation),
-			  br(clear(all)),
-			  div(id(content), Content)
-			]).
+			body(class('yui-skin-sam'),
+			     [ div(id(sidebar), \navigation),
+			       \rdf_search_form,
+			       br(clear(all)),
+			       div(id(content), Content)
+			     ])).
 
 
                  /*******************************

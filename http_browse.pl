@@ -22,7 +22,7 @@
 */
 
 :- module(browse_named_graphs,
-	  [
+	  [ rdf_search_form//0
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
@@ -47,6 +47,7 @@
 :- use_module(library(option)).
 :- use_module(library(apply)).
 
+:- use_module(http_user).
 
 
 		 /*******************************
@@ -1411,7 +1412,12 @@ search(Request) :-
 	     p('Searching for ~w'-[Query])).
 
 
-search_form -->
+%%	rdf_search_form//
+%
+%	Provide a search form to find labels in the database.
+
+rdf_search_form -->
+	html_requires(css('rdf_browse.css')),
 	html(form([ id(search_form),
 		    action(location_by_id(search))
 		  ],
@@ -1720,35 +1726,7 @@ delete_list_prefix(N, [_|T], List) :-
 	page(:, :).
 
 page(Title, HTML) :-
-	to_list(HTML, List),
-	reply_html_page(Title,
-			body(class('yui-skin-sam'),
-			     [ \html_requires(css('rdf_browse.css')),
-			       \page_header
-			     | List
-			     ])).
-
-page_header -->
-	html([ div(id(header),
-		   [ \places,
-		     \search_form,
-		     br(clear(all))
-		   ])
-	     ]).
-
-places -->
-	html(div(id(places),
-		 [ span(id(places_label), 'Places'),
-		   \place('Graphs', list_graphs)
-		 ])).
-
-place(Label, Id) -->
-	{ http_link_to_id(Id, [], HREF) },
-	html(a(href(HREF), Label)).
-
-to_list(List, List) :-
-	is_list(List), !.
-to_list(Elem, [Elem]).
+	serql_page(Title, HTML).
 
 :- multifile
 	emacs_prolog_colours:goal_colours/2,
