@@ -1,0 +1,160 @@
+/* CSS file for RDF browser
+*/
+
+#header
+{ padding-bottom: 5px;
+  border-color: #a0a0a0;
+  border-style: solid;
+  border-width: 0 0 1px 0; /*top right bottom left*/
+}
+
+#search_form
+{ float: right;
+}
+
+#places
+{ float: left;
+}
+
+#places_label
+{ color: #b0b0b0;
+  font-weight: bold;
+  padding-right: 5px;
+}
+
+table.rdf_browse, table.properties
+{ border-width: 1px;
+  border-style: solid;
+  border-collapse: collapse;
+  margin-left: 1cm;
+}
+
+table.rdf_browse td
+{ border-width: 0 1px 0 1px;
+  border-style: solid;
+}
+
+tr.even td
+{ background-color: #e0e0e0;
+}
+
+table.properties tr.even th
+{ background-color: #e0e0e0;
+}
+
+td.int
+{ text-align:right;
+  padding-right:5px;
+}
+
+td.empty, td.cint
+{ text-align:center;
+}
+
+td.object
+{ padding-left: 2em;
+}
+
+table.rdf_browse th
+{ color: white;
+  background-color: blue;
+}
+
+table.rdf_browse th.sorted
+{ color: yellow;
+  background-color: blue;
+}
+
+table.rdf_browse th a
+{ color: white;
+}
+
+table.rdf_browse tr.skip th
+{ color:white;
+  background-color: blue;
+  text-align: center;
+  padding-top: 1cm;
+  padding-bottom: 1cm;
+}
+
+table.rdf_browse th.total
+{ text-align: right;
+  padding-right: 7px;
+  color:black;
+  background-color: transparent;
+}
+
+table.properties th
+{ text-align: right;
+  padding-right: 7px;
+  color:black;
+}
+
+span.undef
+{ color: red;
+}
+
+div.triple
+{ margin-left: 1cm;
+}
+
+div.bnode_attr
+{ display:inline-block;
+  text-align: center;
+  position: relative;
+  top: 0.5em;
+  border: 1px;
+  border-style: dotted;
+}
+
+input.gaction
+{ width: 2cm;
+}
+
+a.llobject				/* linked literal */
+{ color: black;
+}
+
+/*****************************************************************/
+
+span.account
+{ color: blue;
+}
+
+span.acmatch
+{ background-color: #bbbbff;
+}
+
+span.tqual, span.lqual
+{ font-weight: bold;
+}
+
+
+/*****************************************************************/
+
+#rdf_upload table
+{ margin-left: 1cm;
+  border-style: inset;
+  border-width: 2px;
+  padding: 10px;
+}
+
+#rdf_upload table td
+{
+}
+
+td.submit
+{ text-align: right;
+  padding-top: 10px;
+}
+
+td.label
+{ font-weight: bold;
+  text-align: right;
+  padding-right: 5px;
+  border-width: 0 0 0 0;
+}
+
+#rdf_upload input
+{ width: 100%;
+}
