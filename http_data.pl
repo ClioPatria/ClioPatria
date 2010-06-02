@@ -76,6 +76,8 @@
 :- http_handler(sesame('listBaseOntologies'), list_base_ontologies, []).
 :- http_handler(sesame('unloadSource'),	      unload_source,
 		[ time_limit(infinite) ]).
+:- http_handler(sesame('unloadGraph'),	      unload_graph,
+		[ time_limit(infinite) ]).
 :- http_handler(sesame('uploadData'),	      upload_data,
 		[ time_limit(infinite) ]).
 :- http_handler(sesame('uploadFile'),	      upload_file,
@@ -441,6 +443,24 @@ unload_source(Request) :-
 	       'Unloaded triples from ~w'-[Source]).
 
 
+%%	unload_graph(+Request)
+%
+%	Remove a named graph.
+
+unload_graph(Request) :-
+	http_parameters(Request,
+			[ repository(Repository),
+			  graph(Graph, []),
+			  resultFormat(Format)
+			],
+			[ attribute_declarations(attribute_decl)
+			]),
+	authorized(write(Repository, unload(Graph))),
+	action(Request, rdf_unload(Graph),
+	       Format,
+	       'Unloaded triples from ~w'-[Graph]).
+
+
 %%	upload_data(Request).
 %
 %	Add data to the repository
@@ -606,21 +626,24 @@ ntriple_part(Text, Field, _) :-
 %	http_parameters/3.
 
 attribute_decl(repository,
-	       [ optional(true)
+	       [ optional(true),
+		 description('Name of the repository (ignored)')
 	       ]).
 attribute_decl(query,
-	       [
+	       [ description('SPARQL or SeRQL quer-text')
 	       ]).
 attribute_decl(queryLanguage,
-	       [ default('SeRQL'),
-		 type(oneof(['SeRQL', 'SPARQL']))
+	       [ default('SPARQL'),
+		 type(oneof(['SeRQL', 'SPARQL'])),
+		 description('Query language used in query-text')
 	       ]).
 attribute_decl(serialization,
 	       [ default(rdfxml),
 		 type(oneof([ rdfxml,
 			      ntriples,
 			      n3
-			    ]))
+			    ])),
+		 default('Serialization for graph-data')
 	       ]).
 attribute_decl(resultFormat,
 	       [ default(xml),

@@ -29,8 +29,7 @@
 */
 
 :- module(http_stats,
-	  [ graph_triple_table//1,	% +Options
-	    rdf_call_stat_table//0,
+	  [ rdf_call_stat_table//0,
 	    http_session_table//0,
 	    http_server_statistics//0
 	  ]).
@@ -42,65 +41,6 @@
 :- use_module(library('http/html_write')).
 :- use_module(library('http/html_head')).
 :- use_module(user_db).
-
-:- meta_predicate
-	graph_triple_table(:, ?, ?).
-
-%%	graph_triple_table(+Options)//
-%
-%	HTML component that displays a table   with the triple-count per
-%	graph.  Options:
-%
-%	    * file_action(:Action)
-%	    Calls Action(File, List, Tail) at the end of each row, which
-%	    allows for additional rows.  Action is called with File set
-%	    to =|[title]|= for the title-row.
-
-graph_triple_table(Options) -->
-	{ meta_options(is_meta, Options, QOptions),
-	  triple_stats(Total, Pairs)
-	},
-	html_requires(css('rdfql.css')),
-	html(table([ id('triples-by-graph'),
-		     class(rdfql)
-		   ],
-		   [ tr([ th('Graph'),
-			  th('Triples'),
-			  \extra([title], QOptions)
-			])
-		   | \triples_by_file(Pairs, Total, odd, QOptions)
-		   ])).
-
-is_meta(file_action).
-
-triples_by_file([], Total, _, Options) -->
-	html(tr([ th([align(right), id(total)], 'Total:'),
-		  \nc('~D', Total, [class(total)]),
-		  \extra([total], Options)
-		])).
-triples_by_file([Triples-File|T], Total, OE, Options) -->
-	{ oe(OE, OE2) },
-	html(tr(class(OE),
-		[ td(align(right), a(href(File), File)),
-		  \nc('~D', Triples),
-		  \extra(File, Options)
-		])),
-	triples_by_file(T, Total, OE2, Options).
-
-oe(odd, even).
-oe(even, odd).
-
-triple_stats(Total, Pairs) :-
-	rdf_statistics(triples(Total)),
-	findall(Triples-File,
-		rdf_statistics(triples_by_file(File, Triples)),
-		UnsortedPairs),
-	sort(UnsortedPairs, Pairs).
-
-extra(File, Options) -->
-	{ option(file_action(Action), Options) }, !,
-	call(Action, File).
-extra(_, _) --> [].
 
 
 %%	rdf_call_stat_table//

@@ -224,10 +224,7 @@ reply_decorated_file(Alias, _Request) :-
 %	Provide elementary statistics on the server.
 
 statistics(Request) :-
-	rdf_statistics(triples(Total)),
-	rdf_statistics(core(Core)),
 	http_current_host(Request, Host, _Port, [global(true)]),
-	file_action(FileAction),
 	serql_page(title('RDF statistics'),
 		   div(id('rdf-statistics'),
 		       [ h1([id(stattitle)], ['RDF statistics for ', Host]),
@@ -238,8 +235,7 @@ statistics(Request) :-
 			      li(a(href('#serverstats'), 'Server statistics'))
 			    ]),
 			 h4([id(ntriples)], 'Triples in database'),
-			 p('The RDF store contains ~D triples in ~D bytes memory'-[Total, Core]),
-			 \graph_triple_table(FileAction),
+			 \triple_statistics,
 			 h4([id(callstats)],'Call statistics'),
 			 \rdf_call_stat_table,
 			 h4([id(sessions)], 'Active sessions'),
@@ -248,21 +244,21 @@ statistics(Request) :-
 			 \http_server_statistics
 		       ])).
 
-file_action([file_action(unload_button)]) :-
-	logged_on(User, anonymous),
-	catch(check_permission(User, write(_, unload(_))), _, fail), !.
-file_action([]).
+
+triple_statistics -->
+	{ rdf_statistics(triples(Total)),
+	  rdf_statistics(core(Core)),
+	  graph_count(Count),
+	  http_link_to_id(list_graphs, [], ListGraphs)
+	},
+	html(p([ 'The RDF store contains ~D triples '-[Total],
+		 'in ~D '-[Count], a(href(ListGraphs), graphs),
+		 ', using ~D bytes memory'-[Core]])).
 
 
-unload_button([title]) --> !,
-	html(th('Action')).
-unload_button([total]) --> !,
-	html(th(class(empty), '')).
-unload_button(File) -->
-	html(td(a(href(location_by_id(unload_source) +
-		       '?resultFormat=html&source=' +
-		       encode(File)),
-		  'Unload'))).
+graph_count(Count) :-
+	aggregate_all(count, rdf_graph(_), Count).
+
 
 %%	construct_form(+Request)
 %

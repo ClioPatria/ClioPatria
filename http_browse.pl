@@ -48,6 +48,7 @@
 :- use_module(library(apply)).
 
 :- use_module(http_user).
+:- use_module(user_db).
 
 
 		 /*******************************
@@ -238,14 +239,19 @@ graph_actions(Graph) -->
 		  \li_delete_graph(Graph)
 		])).
 
-li_delete_graph(_) --> !.		% disabled
 li_delete_graph(Graph) -->
-	{ http_link_to_id(delete_graph, [], Action) },
+	{ logged_on(User, X),
+	  X \== User,
+	  catch(check_permission(User, write(_, unload(Graph))), _, fail), !,
+	  http_link_to_id(unload_graph, [], Action)
+	},
 	html(li(form(action(Action),
 		     [ input([type(hidden), name(graph), value(Graph)]),
+		       input([type(hidden), name(resultFormat), value(html)]),
 		       input([class(gaction), type(submit), value('Delete')]),
 		       ' this graph'
 		     ]))).
+li_delete_graph(_) --> [].
 
 li_download_graph(Graph, How) -->
 	{ http_link_to_id(download_graph, [], Action),
