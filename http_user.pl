@@ -241,7 +241,10 @@ statistics(Request) :-
 			 h4([id(sessions)], 'Active sessions'),
 			 \http_session_table,
 			 h4([id(serverstats)], 'Server statistics'),
-			 \http_server_statistics
+			 p('Static workers and statistics:'),
+			 \http_server_statistics,
+			 p('Defined dynamic worker pools:'),
+			 \http_server_pool_table
 		       ])).
 
 

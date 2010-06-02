@@ -43,6 +43,11 @@ table.rdfql td,th
   border-color: #A0A0A0;
 }
 
+table.rdfql th.port,td.port
+{ color: navy;
+  background-color: yellow;
+}
+
 table.rdfql tr.odd
 { background-color: #f0f0f0;
 }

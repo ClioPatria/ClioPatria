@@ -31,7 +31,8 @@
 :- module(http_stats,
 	  [ rdf_call_stat_table//0,
 	    http_session_table//0,
-	    http_server_statistics//0
+	    http_server_statistics//0,
+	    http_server_pool_table//0
 	  ]).
 :- use_module(library(option)).
 :- use_module(library(pairs)).
@@ -162,8 +163,8 @@ server_stats(Port-Workers) -->
 	  http_server_property(Port, start_time(StartTime)),
 	  format_time(string(ST), '%+', StartTime)
 	},
-	html([ tr([ th([align(right), colspan(3)], 'Port:'),
-		    td(colspan(3), Port)
+	html([ tr([ th([align(right), colspan(3), class(port)], 'Port:'),
+		    td([colspan(3), class(port)], Port)
 		  ]),
 	       tr([ th([align(right), colspan(3)], 'Started:'),
 		    td(colspan(3), ST)
@@ -211,6 +212,44 @@ http_workers([H|T]) -->
 
 
 		 /*******************************
+		 *	      POOLS		*
+		 *******************************/
+
+%%	http_server_pool_table//
+%
+%	Display table with statistics on thread-pools.
+
+http_server_pool_table -->
+	{ findall(Pool, current_thread_pool(Pool), Pools),
+	  sort(Pools, Sorted)
+	},
+	html(table([ id('http-server-pool'),
+		     class(rdfql)
+		   ],
+		   [ tr([th('Name'), th('Running'), th('Size'), th('Waiting'), th('Backlog')])
+		   | \server_pools(Sorted)
+		   ])).
+
+server_pools([]) --> [].
+server_pools([H|T]) --> server_pool(H), server_pools(T).
+
+server_pool(Pool) -->
+	{ findall(P, thread_pool_property(Pool, P), List),
+	  memberchk(size(Size), List),
+	  memberchk(running(Running), List),
+	  memberchk(backlog(Waiting), List),
+	  memberchk(options(Options), List),
+	  option(backlog(MaxBackLog), Options, infinite)
+	},
+	html(tr([ td(Pool),
+		  \nc('~D', Running),
+		  \nc('~D', Size),
+		  \nc('~D', Waiting),
+		  \nc('~D', MaxBackLog)
+		])).
+
+
+		 /*******************************
 		 *	       UTIL		*
 		 *******************************/
 
@@ -223,10 +262,13 @@ nc(Fmt, Value) -->
 	nc(Fmt, Value, []).
 
 nc(Fmt, Value, Options) -->
-	{ format(string(Txt), Fmt, [Value]),
-	  (   memberchk(align(_), Options)
+	{ (   memberchk(align(_), Options)
 	  ->  Opts = Options
 	  ;   Opts = [align(right)|Options]
 	  )
 	},
-	html(td(Opts, Txt)).
+	(   { number(Fmt) }
+	->  html(td(Opts, Fmt-[Value]))
+	;   html(td(Opts, '~w'-[Value]))
+	).
+
