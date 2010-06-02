@@ -30,7 +30,7 @@
 */
 
 :- module(http_admin,
-	  [
+	  [ change_password_form//1
 	  ]).
 :- use_module(user_db).
 :- use_module(http_user).
@@ -478,6 +478,11 @@ change_password_form(_Request) :-
 
 		     \change_password_form(User)
 		   ]).
+
+%%	change_password_form(+UserID)//
+%
+%	HTML component that shows a form   for changing the password for
+%	UserID.
 
 change_password_form(User) -->
 	html_requires(css('rdfql.css')),
