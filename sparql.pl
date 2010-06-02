@@ -36,6 +36,7 @@
 	    sparql_run/2		% +Compiled, -Reply
 	  ]).
 :- use_module(library(option)).
+:- use_module(library(assoc)).
 :- use_module(library(semweb/rdf_db), [rdf_is_bnode/1]).
 :- use_module(library(settings)).
 :- use_module(sparql_grammar).
@@ -191,16 +192,17 @@ select_results(solutions(Order, Limit, Offset), Reply, Goal) :-
 %%	select_result(+Bindings, -Row, -Names) is det.
 %
 %	Transform the list Bindings of the form Name=Var into a Row term
-%	of the form row(Col1, Col2, ...) and a list of column-names. For
-%	example:
+%	of the form row(Col1, Col2, ...)   and a term names(Name1, ...).
+%	For example:
 %
 %	==
 %	?- select_result([x=1,y=2], Row, Names).
-%	Row = row(1,2), Names = [x,y]
+%	Row = row(1,2), Names = names(x,y)
 %	==
 
 select_result(Bindings, Row, Names) :-
-	vars_in_bindings(Bindings, Vars, Names),
+	vars_in_bindings(Bindings, Vars, VarNames),
+	Names =.. [names|VarNames],
 	Row =.. [row|Vars].
 
 vars_in_bindings([], [], []).

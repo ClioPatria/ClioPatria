@@ -22,7 +22,8 @@
 */
 
 :- module(browse_named_graphs,
-	  [ rdf_search_form//0
+	  [ rdf_search_form//0,
+	    resource_link//2		% +ResourceOrLiteral, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
@@ -803,15 +804,16 @@ resource_link(R) -->
 	resource_link(R, []).
 
 resource_link(R, Options) -->
-	{ (   option(force(true), Options)
-	  ;   rdf(R, _, _)
+	{ (   rdf(R, _, _)
+	  ->  true
+	  ;   option(force(true), Options)
 	  ), !,
 	  http_link_to_id(list_resource, [r=R], HREF)
 	},
-	html(a(href(HREF), \label(R))).
-resource_link(R, _) -->
+	html(a(href(HREF), \resource_label(R, Options))).
+resource_link(R, Options) -->
 	{ atom(R) }, !,
-	html(span(class(undef), \label(R))).
+	html(span(class(undef), \resource_label(R, Options))).
 resource_link(Literal, Options) -->
 	{ (   option(graph(Graph), Options)
 	  ->  aggregate_all(count, rdf(_,_,Literal, Graph), Count)
@@ -830,6 +832,26 @@ resource_link(Literal, Options) -->
 resource_link(Literal, _) -->
 	literal_label(Literal).
 
+resource_label(R, Options) -->
+	{ option(resource_format(Format), Options) }, !,
+	resource_flabel(Format, R).
+resource_label(R, _) -->
+	label(R).
+
+resource_flabel(plain, R) --> !,
+	html(R).
+resource_flabel(nslabel, R) --> !,
+	(   { rdf_global_id(NS:_Local, R), !,
+	      label_property(P),
+	      rdf_has(R, P, Value),
+	      text_of_literal(Value, Label)
+	    }
+	->  html([span(class(ns),NS),':',span(class(rlabel),Label)])
+	;   label(R)
+	).
+
+resource_flabel(_, R) -->
+	label(R).
 
 flip_pairs([], []).
 flip_pairs([Key-Val|Pairs], [Val-Key|Flipped]) :-

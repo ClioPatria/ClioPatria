@@ -3,9 +3,10 @@
     Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        jan@swi.psy.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2004, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -30,11 +31,15 @@
 */
 
 :- module(rdf_html,
-	  [ 
+	  [
 	  ]).
-:- use_module(library('http/html_write')).
-:- use_module(library('semweb/rdf_db')).
-:- use_module(library('semweb/rdfs')).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
+
+:- use_module(http_user).
+:- use_module(http_browse).
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -47,9 +52,9 @@ with emitting RDF related material in HTML human-readable format.
 		 *******************************/
 
 %%	write_table(+Format, +Serialization, +Rows, +Options)
-%	
+%
 %	Write a result-table in human-readable HTML format
-%	
+%
 %	@param Format	Must be =html=
 
 :- multifile
@@ -58,17 +63,21 @@ with emitting RDF related material in HTML human-readable format.
 
 rdf_io:write_table(html, _Serialization, Rows, Options) :- !,
 	length(Rows, Count),
-	phrase(page(title('Query result'),
-		    [ \query_statistics([count(Count)|Options], rows),
-		      table([ align(center),
-			      border(1)
-			    ],
-			    [ \variables(Options)
-			    | \rows(Rows, Options)
-			    ])
-		    ]), HTML),
-	format('Content-type: text/html~n~n'),
-	print_html(HTML).
+	serql_page(title('Query result'),
+		   [ \query_statistics([count(Count)|Options], rows),
+		     \select_result_table(Rows, Options)
+		   ]).
+
+select_result_table(Rows, Options) -->
+	html_requires(css('rdf_browse.css')),
+	html_requires(css('rdfql.css')),
+	html(table([ id('query-result-select'),
+		     class(rdfql)
+		   ],
+		   [ \variables(Options)
+		   | \rows(Rows, Options)
+		   ])).
+
 
 variables(Options) -->
 	{ memberchk(variables(Vars), Options),
@@ -81,7 +90,7 @@ varnames([]) -->
 varnames([Name|T]) -->
 	html(th(Name)),
 	varnames(T).
-	  
+
 rows([], _) -->
 	[].
 rows([H|T], Options) -->
@@ -92,27 +101,31 @@ rows([H|T], Options) -->
 cells([], _) -->
 	[].
 cells([H|T], Options) -->
-	html(td(\object(H, Options))),
+	html(td(\resource_link(H, Options))),
 	cells(T, Options).
 
-	
+
 		 /*******************************
 		 *	    GRAPH OUTPUT	*
 		 *******************************/
 
 rdf_io:write_graph(html, _Serialization, Triples, Options) :-
 	length(Triples, Count),
-	phrase(page(title('Query result'),
-		    [ \query_statistics([count(Count)|Options], triples),
-		      table([ align(center),
-			      border(1)
-			    ],
-			    [ tr([th('Subject'), th('Predicate'), th('Object')])
-			    | \triples(Triples, Options)
-			    ])
-		    ]), HTML),
-	format('Content-type: text/html~n~n'),
-	print_html(HTML).
+	serql_page(title('Query result'),
+		   [ \query_statistics([count(Count)|Options], triples),
+		     \consult_result_table(Triples, Options)
+		   ]).
+
+
+consult_result_table(Triples, Options) -->
+	html_requires(css('rdf_browse.css')),
+	html_requires(css('rdfql.css')),
+	html(table([ id('query-result-rdf'),
+		     class(rdfql)
+		   ],
+		   [ tr([th('Subject'), th('Predicate'), th('Object')])
+		   | \triples(Triples, Options)
+		   ])).
 
 triples([], _) -->
 	[].
@@ -121,52 +134,13 @@ triples([H|T], Options) -->
 	triples(T, Options).
 
 triple(rdf(S,P,O), Options) -->
-	html(tr([ td(\resource(S, Options)),
-		  td(\resource(P, Options)),
-		  td(\object(O, Options))])).
-		  
-resource(R, Options) -->
-	{   memberchk(resource_format(Fmt), Options)
-	->  true
-	;   Fmt = plain
-	},
-	resource(Fmt, R, Options).
-
-resource(_, R, _) -->
-	{ var(R) }, !.
-resource(plain, R, _) --> !,
-	html(R).
-resource(_, R, _) -->
-	{ sub_atom(R, 0, L, _, '__file:/'), !, % bnode
-	  sub_atom(R, L, _, 0, Path),
-	  file_base_name(Path, Base),
-	  atom_concat('__', Base, Label)
-	},
-	html(Label).
-resource(ns, R, _) --> !,
-	(   { rdf_global_id(NS:Local, R) }
-	->  html([NS, :, Local])
-	;   html(R)
-	).
-resource(nslabel, R, _) --> !,
-	{ rdfs_ns_label(R, Label)
-	},
-	html(Label).
-
-object(V,_Options) -->
-	{ var(V) }, !.
-object(literal(type(T, V)), Options) --> !,
-	html(['"', V, '"^^', \resource(T, Options)]).
-object(literal(lang(L, V)), _) --> !,
-	html(['"', V, '"@', L]).
-object(literal(V), _) --> !,
-	html(['"', V, '"']).
-object(R, Options) -->
-	resource(R, Options).
+	html(tr([ td(\resource_link(S, Options)),
+		  td(\resource_link(P, Options)),
+		  td(\resource_link(O, Options))])).
 
 
 %%	query_statistics(+Options, +Units)// is det.
-%	
+%
 %	Emit a short line above the page summarizing resource usage
 %	and result size.
 
