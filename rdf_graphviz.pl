@@ -1,24 +1,31 @@
-/*  This file is part of ClioPatria.
+/*  Part of ClioPatria SeRQL and SPARQL server
 
-    Author:
-    HTTP:	http://e-culture.multimedian.nl/
-    GITWEB:	http://gollem.science.uva.nl/git/ClioPatria.git
-    GIT:	git://gollem.science.uva.nl/home/git/ClioPatria.git
-    GIT:	http://gollem.science.uva.nl/home/git/ClioPatria.git
-    Copyright:  2007, E-Culture/MultimediaN
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2007-2010, University of Amsterdam,
+		   VU University Amsterdam
 
-    ClioPatria is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
 
-    ClioPatria is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with ClioPatria.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
 */
 
 :- module(rdf_graphviz,
@@ -31,7 +38,7 @@
 :- use_module(library(option)).
 :- use_module(library(gensym)).
 :- use_module(library(lists)).
-:- use_module(util(rdf_util)).
+:- use_module(library(semweb/rdf_label)).
 
 
 /** <module> Interface to graphviz for RDF graphs
@@ -41,7 +48,6 @@ is  http://www.graphviz.org/  This  module  translates    an  RDF  graph
 represented as a list of rdf(S,P,O) into a .dot file.
 
 @author	Jan Wielemaker
-@tbd	Add more options to this library
 */
 
 %%	gviz_write_rdf(+Stream, +Graph, +Options) is det.
@@ -61,7 +67,7 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %
 %	    * lang(+Lang)
 %	    Lang is the language used for the labels.  See
-%	    vp_label/4.
+%	    resource_label/4.
 %
 %	    * bags(Bags)
 %	    How to handle bags.  Values are
@@ -94,6 +100,7 @@ gviz_write_rdf(Stream, Graph, Options0) :-
 	format(Stream, '~n}~n', []).
 
 is_meta(wrap_url).
+is_meta(shape_hook).
 
 %%	write_graph_attributes(+List, +Out)
 %
@@ -175,9 +182,7 @@ write_edge(rdf(S,P,O), Done0, Done2, Stream, Options) :-
 	write_node_id(S, Done0, Done1, Stream),
 	write(Stream, ' -> '),
 	write_node_id(O, Done1, Done2, Stream),
-	option(lang(Lang), Options, en),
-	option(max_label_length(Len), Options, 25),
-	vp_label(P, Len, Lang, PL),
+	resource_label(P, PL, Options),
 	c_escape(PL, String),
 	wrap_url(P, URL, Options),
 	format(Stream, ' [url="~w" label="~s"];\n', [URL, String]).
@@ -208,27 +213,27 @@ gv_write_nodes([RDF-ID|T], Stream, Options) :-
 %	the declared edges is alreadu written to Stream.
 
 write_node_attributes(R, Stream, Options) :-
-	atom(R),
+	rdf_is_resource(R),
 	option(bags(Bags), Options),
 	get_assoc(R, Bags, Members), !,
 	Members = [First|_],
-	shape(First, MemberShape),
+	shape(First, MemberShape, Options),
 	option(bags(merge(BagShape, Max)), Options, merge([shape(box)], 5)),
 	merge_options(BagShape, MemberShape, Shape),
 	bag_label(Members, Max, Label, Options),
 	write_attributes([html(Label)|Shape], Stream).
 write_node_attributes(R, Stream, Options) :-
-	atom(R), !,
-	shape(R, Shape),
-	option(max_label_length(MaxLen), Options, 25),
-	option(lang(Lang), Options, en),
-	vp_label(R, MaxLen, Lang, Label),
+	rdf_is_resource(R), !,
+	shape(R, Shape, Options),
+	resource_label(R, Label, Options),
 	wrap_url(R, URL, Options),
 	write_attributes([url(URL), label(Label)|Shape], Stream).
 write_node_attributes(Lit, Stream, Options) :-
+	shape(Lit, Shape, Options),
 	option(max_label_length(MaxLen), Options, 25),
-	text_of_literal(Lit, Text, MaxLen),
-	write_attributes([label(Text), shape(box)], Stream).
+	literal_text(Lit, Text),
+	truncate_atom(Text, MaxLen, Summary),
+	write_attributes([label(Summary)|Shape], Stream).
 
 bag_label(Members, Max, Label, Options) :-
 	length(Members, Len),
@@ -252,10 +257,44 @@ html_bag_label([H|T], I, Max, Len, Options) -->
 	html_bag_label(T, I2, Max, Len, Options).
 
 html_resource_label(Resource, Options) -->
-	{ option(max_label_length(MaxLen), Options, 25),
-	  rdf_label(Resource, MaxLen, Label)
+	{ resource_label(Resource, Label, Options)
 	},
 	html(Label).
+
+
+%%	resource_label(+Resource, -Label:Atom, +Options) is det.
+%
+%	Label is the textual label to show for Resource. Process the
+%	options
+%
+%	    * lang(+Lang)
+%	    * max_label_length(+Len)
+
+resource_label(Resource, Label, Options) :-
+	(   option(lang(Lang), Options),
+	    Literal = literal(lang(Lang)),
+	    rdf_label(Resource, Literal)
+	->  true
+	;   rdf_label(Resource, Literal)
+	->  true
+	), !,
+	literal_text(Literal, Text),
+	option(max_label_length(MaxLen), Options, 25),
+	truncate_atom(Text, MaxLen, Label).
+resource_label(BNode, Label, Options) :-
+	rdf_is_bnode(BNode), !,
+	rdf_has(BNode, rdf:value, Value),
+	resource_label(Value, ValueLabel, Options),
+	format(atom(Label), '[~w ...]', [ValueLabel]).
+resource_label(Resource, Label, _Options) :-
+	uri_components(Resource, Components),
+	(   uri_data(fragment, Components, Fragment),
+	    nonvar(Fragment)
+	->  Label = Fragment
+	;   uri_data(path, Components, Path),
+	    file_base_name(Path, Label)
+	).
+
 
 %%	write_attributes(+Attributes:list, +Out:stream) is det.
 %
@@ -323,13 +362,14 @@ wrap_url(URL0, URL, Options) :-
 wrap_url(URL, URL, _).
 
 
-%%	shape(+Resource, -Attributes) is det.
+%%	shape(+Term, -Attributes, +Options) is det.
 %
-%	Shape is the shape of box to use for Resource.
-%
-%	@tbd	We should make this more generic.  Possibly we should look at
-%		IsaViz and its style-language called GSS (Graph Stylesheets)
+%	Shape is the shape of the node to use for Resource.  Processes the
+%	option =shape_hook= using call(ShapeHook, Obj, Shape).
 
-shape(R, [ style(filled), fillcolor('#fff48f') ]) :-
-	rdfs_individual_of(R, vra:'Work'), !.
-shape(_, []).
+shape(Obj, Shape, Options) :-
+	option(shape_hook(Hook), Options),
+	call(Hook, Obj, Shape), !.
+shape(Literal, [shape(box)], _) :-
+	rdf_is_literal(Literal), !.
+shape(_, [], _).
