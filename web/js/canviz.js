@@ -305,8 +305,8 @@ var CanvizEntity = Class.create({
 						position: 'absolute',
 						left:   Math.round(ctxScale * this.bbRect.l + this.canviz.padding) + 'px',
 						top:    Math.round(ctxScale * this.bbRect.t + this.canviz.padding) + 'px',
-						width:  Math.round(ctxScale * this.bbRect.getWidth()) + 'px',
-						height: Math.round(ctxScale * this.bbRect.getHeight()) + 'px'
+						width:  0, // Math.round(ctxScale * this.bbRect.getWidth()) + 'px',
+						height: 0, // Math.round(ctxScale * this.bbRect.getHeight()) + 'px'
 					});
 				}
 				ctx.restore();
