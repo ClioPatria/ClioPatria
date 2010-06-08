@@ -1128,8 +1128,7 @@ context_graph(URI) -->
 	html([ h4('Context graph'),
 	       \canviz_graph(context_graph(URI),
 			     [ wrap_url(resource_link),
-			       graph_attributes([ rankdir('RL'),
-						  size(6,6)
+			       graph_attributes([ rankdir('RL')
 						]),
 			       shape_hook(shape(URI))
 			     ])
