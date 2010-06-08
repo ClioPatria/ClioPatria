@@ -39,9 +39,6 @@
 :- use_module(library(apply)).
 :- use_module(library(lists)).
 :- use_module(library(settings)).
-:- use_module(util(rdf_util)).
-:- use_module(util(util)).
-:- use_module(util(iface_util)).
 
 /** <module> Abstract RDF graphs
 
@@ -50,7 +47,7 @@ represented as lists of rdf(S,P,O).  Supported operations:
 
 	* merge_sameas_graph(+GraphIn, -GraphOut, +Options)
 	Merge nodes by owl:sameAs
-	
+
 	* bagify_graph(+GraphIn, -GraphOut, -Bags, +Options)
 	Bagify a graph, returning a new graph holding bags of resources
 	playing a similar role in the graph.
@@ -66,11 +63,11 @@ represented as lists of rdf(S,P,O).  Supported operations:
 %	Collapse nodes in GraphIn that are   related through an identity
 %	mapping.  By  default,  owl:sameAs  is  the  identity  relation.
 %	Options defines:
-%	
+%
 %	    * predicate(-PredOrList)
 %	    Use an alternate or list of predicates that are to be
 %	    treated as identity relations.
-%	    
+%
 %	    * sameas_mapped(-Assoc)
 %	    Assoc from resources to the resource it was mapped to.
 
@@ -135,7 +132,7 @@ sameas_map([rdf(S, P, O)|T], SameAs, Assoc0, Assoc) :-
 	sameas_map(T, SameAs, Assoc1, Assoc).
 sameas_map([_|T], SameAs, Assoc0, Assoc) :-
 	sameas_map(T, SameAs, Assoc0, Assoc).
-	    
+
 putall([], Assoc, _, Assoc).
 putall([H|T], Assoc0, Value, Assoc) :-
 	put_assoc(H, Assoc0, Value, Assoc1),
@@ -144,7 +141,7 @@ putall([H|T], Assoc0, Value, Assoc) :-
 
 %%	same_as(+Predicate:resource, +SameAs:list) is semidet.
 %
-%	True if Predicate expresses a same-as mapping.  
+%	True if Predicate expresses a same-as mapping.
 
 same_as(P, Super) :-
 	member(S, Super),
@@ -177,19 +174,19 @@ representer_map([R-Set|T], Assoc0, Assoc) :-
 %	of type rdf:Bag and the RDF for the   bags  is put in Bags. I.e.
 %	appending GraphOut and Bags provides a proper RDF model. Options
 %	provides additional abstraction properties.  In particular:
-%	
+%
 %	    * class(+Class)
 %	    Try to bundle objects under Class rather than their
 %	    rdf:type.  Multiple of these options may be defined
-%	    
+%
 %	    * property(+Property)
 %	    Consider predicates that are an rdfs:subPropertyOf
 %	    Property the same relations.
-%	    
+%
 %	    * bagify_literals(+Bool)
-%	    If =true= (default), also try to put literals into a 
+%	    If =true= (default), also try to put literals into a
 %	    bag.  Works well to collapse non-preferred labels.
-%	    
+%
 %	@tbd Handle the property option
 
 :- rdf_meta
@@ -296,11 +293,11 @@ resource_bags([ByClassH|ByClassT], NodeToEdges) -->
 	},
 	Bags,
 	resource_bags(ByClassT, NodeToEdges).
-	
+
 %%	ord_subkeys(+Keys, +Pairs, -SubPairs) is det.
 %
 %	SubPairs is the sublist of Pairs with a key in Keys.
-%	
+%
 %	@param Keys	Sorted list of keys
 %	@param Pairs	Key-sorted pair-list
 %	@param SubPairs	Key-sorted pair-list
@@ -341,7 +338,7 @@ longer_than_one([_,_|_]).
 %
 %	NodeEdges is an assoc from resource to a sorted list of involved
 %	triples. Only subject and objects are considered.
-%	
+%
 %	Processes =bagify_literals= and =property= options
 
 graph_node_edges(Graph, Assoc, Options) :-
@@ -360,12 +357,12 @@ graph_node_edges([rdf(S,P,O)|T], LitToo, Map, Assoc0, Assoc) :-
 	;   Assoc2 = Assoc1
 	),
 	graph_node_edges(T, LitToo, Map1, Assoc2, Assoc).
-	
+
 add_assoc(Key, Assoc0, Value, Assoc) :-
 	get_assoc(Key, Assoc0, Old, Assoc, [Value|Old]), !.
 add_assoc(Key, Assoc0, Value, Assoc) :-
 	put_assoc(Key, Assoc0, [Value], Assoc).
-	
+
 
 %%	property_map(+Options, -Map:assoc(P-Super))
 %
@@ -441,7 +438,7 @@ bag_members([H|T], I, ID) -->
 	},
 	statement(ID, P, H),
 	bag_members(T, I2, ID).
-	
+
 statement(S, P, O) -->
 	[ rdf(S, P, O) ].
 
@@ -455,7 +452,7 @@ statement(S, P, O) -->
 %
 %	Merge equivalent properties joining the same nodes.  They are
 %	replaced by their common ancestors.
-%	
+%
 %	@param GraphIn	List of rdf(S,P,O)
 %	@param GraphOut List of rdf(S,P,O)
 %	@param Options  Option list (unused)
@@ -492,21 +489,21 @@ sub_property_of(P, Super) :-
 %	branching (more than one child per   node) covering all Objects.
 %	The partial ordering is defined   by  the non-deterministic goal
 %	call(Pred, +Node, -Parent).
-%	
+%
 %		* Build up a graph represented as Node->Children and
 %		a list of roots.  The initial list of roots is Objects.
 %		The graph is built using breath-first search to minimize
 %		depth.
-%		
+%
 %		* Once we have all roots, we delete all branches that
 %		have only a single child.
-%		
+%
 %	@param	Forest	is a list of trees.  Each tree is represented
 %		as Root-Children, where Children is a possibly
 %		empty list if sub-trees.
-%		
-%	@tbd	First prune dead-ends?	
-%	
+%
+%	@tbd	First prune dead-ends?
+%
 %		==
 %		rdf_db:rdf_global_term([ulan:assisted_by, ulan:cousin_of], In),
 %		gtrace,
@@ -546,15 +543,15 @@ ancestor_tree(Objects, Pred, Nodes0, Nodes, Roots) :-
 %
 %	Explore the ancestor graph one more step. This is the main loop
 %	looking for a spanning tree.  We are done if
-%	
+%
 %		* There is only one open node left and no closed ones.
 %		We found the single common root.
-%		
+%
 %		* No open nodes are left.  We have a set of closed roots
 %		which form our starting points.  We still have to figure
 %		out the minimal set of these, as some of the trees may
 %		overlap others.
-%		
+%
 %		* We have an open node covering all targets. This is the
 %		lowest one as we used breath-first expansion.  This step
 %		is too expensive.
@@ -567,17 +564,17 @@ ancestor_tree(Open, _, Objects, _, Nodes, Nodes, [One]) :-
 ancestor_tree(Open, Closed, Objects, Pred, Nodes0, Nodes, Roots) :-
 	expand_ancestor_tree(Open, NewOpen, NewClosed, Closed, Nodes0, Nodes1, Pred),
 	ancestor_tree(NewOpen, NewClosed, Objects, Pred, Nodes1, Nodes, Roots).
-			     
+
 
 %%	expand_ancestor_tree(+Open0, -Open,
 %%			     +Closed0, -Closed,
-%%			     +Nodes0, -Nodes, 
+%%			     +Nodes0, -Nodes,
 %%			     :Pred)
 %
 %	Expand the explored graph with one level. Open are the currently
 %	open nodes. Closed  are  the  nodes   that  have  no  parent and
 %	therefore are roots.
-%	
+%
 %	@param Nodes	is an assoc R->(State*list(Child))
 
 expand_ancestor_tree([], [], Closed, Closed, Nodes, Nodes, _).
@@ -622,7 +619,7 @@ in_tree(Node, Root, Nodes) :-
 %%	prune_forest(+Nodes, +Roots, -MinimalForest) is det.
 %
 %	MinimalForest is the minimal forest overlapping all targets.
-%	
+%
 %	@tbd Currently doesn't remove unnecessary trees.
 
 prune_forest(Nodes, Roots, Forest) :-
@@ -691,7 +688,7 @@ tree_covers_list([H|T], Nodes) -->
 %	statements over Map. Then delete   duplicates from the resulting
 %	graph as well as rdf(S,P,S) links that did not appear before the
 %	mapping.
-%	
+%
 %	@tbd	Should we look inside literals for mapped types?  That
 %		would be consistent with abstract_graph/3.
 
@@ -732,7 +729,7 @@ map_object(O, _, O).
 %	Map a graph to a new graph  by   mapping  all  fields of the RDF
 %	statements over Map. The nodes in these  graphs are terms of the
 %	form Abstract-list(concrete).
-%	
+%
 %	@param AbstractMap assoc Abstract -> ordset(concrete)
 
 map_graph(GraphIn, Map, GraphOut, AbstractMap) :-
@@ -749,7 +746,7 @@ map_graph(GraphIn, Map, GraphOut, AbstractMap) :-
 %
 %	True if PairsInKeys is a subset  of   Pairs  whose key appear in
 %	Keys. Pairs must be key-sorted and Keys must be sorted.  E.g.
-%	
+%
 %	==
 %	?- pairs_keys_intersection([a-1,b-2,c-3], [a,c], X).
 %	X = [a-1,c-3]
@@ -796,7 +793,7 @@ map_to_bagged_graph(GraphIn, Map, GraphOut, Bags) :-
 %	assertion(map_assoc(is_ordset, AbstractMap)),
 	empty_assoc(Nodes),
 	rdf_to_paired_graph(GraphIn, PairGraph),
-	phrase(bagify_triples(AbstractGraph, PairGraph, AbstractMap, 
+	phrase(bagify_triples(AbstractGraph, PairGraph, AbstractMap,
 			      Nodes, Bags, []),
 	       GraphOut).
 
@@ -861,7 +858,7 @@ keysort_values(K-V0, K-V) :-
 %
 %	Find properties actually used between two   bags.  S0 and O0 are
 %	the subject and object from the   abstract graph.
-%	
+%
 %	@param GraphIn	original concrete graph represented as pairs.
 %			See rdf_to_paired_graph/2.
 %	@param AbstractMap Assoc Abstract->Concrete, where Concrete is
@@ -886,7 +883,7 @@ used_properties(S0, O0, GraphIn, Map, PList) :-
 %	Graph. All resources are in Resources,   regardless  of the role
 %	played in the graph: node, edge (predicate)  or type for a typed
 %	literal.
-%	
+%
 %	@see graph_resources/4 distinguishes the role of the resources.
 
 graph_resources(Graph, Resources) :-
@@ -897,7 +894,7 @@ graph_resources(Graph, Resources) :-
 %
 %	Nodes is a sorted list of   all resources and literals appearing
 %	in Graph.
-%	
+%
 %	@tbd	Better name
 
 graph_nodes(Graph, Nodes) :-
@@ -925,7 +922,7 @@ graph_resources([], R, R, P, P, T, T, L, L).
 graph_resources([rdf(S,P,O)|T], [S|RT0], RT, [P|PTl0], PTl, Tl0, Tl, L0, L) :-
 	object_resources(O, RT0, RT1, Tl0, Tl1, L0, L1),
 	graph_resources(T, RT1, RT, PTl0, PTl, Tl1, Tl, L1, L).
-	
+
 
 object_resources(O, R0, R, T0, T, L0, L) :-
 	(   atom(O)
@@ -939,7 +936,7 @@ object_resources(O, R0, R, T0, T, L0, L) :-
 	;   assertion(fail)
 	).
 
-	
+
 		 /*******************************
 		 *	      ABSTRACT		*
 		 *******************************/
@@ -952,17 +949,17 @@ object_resources(O, R0, R, T0, T, L0, L) :-
 %	need to map nodes in the graph consistently. I.e. if we abstract
 %	the object of rdf(s,p,o), we must abstract the subject of rdf(o,
 %	p2, o2) to the same resource.
-%	
+%
 %	If we want to do incremental growing   we  must keep track which
 %	nodes where mapped to which resources.  Option?
-%	
+%
 %	We must also decide on the abstraction   level  for a node. This
 %	can be based on the weight  in   the  search graph, the involved
 %	properties and focus such  as  location   and  time.  Should  we
 %	express this focus in the weight?
-%	
+%
 %	Options:
-%	
+%
 %	    * map_in(?Map)
 %	    If present, this is the initial resource abstraction map.
 %	    * map_out(-Map)
@@ -985,7 +982,7 @@ abstract_graph(GraphIn, GraphOut, Options) :-
 	->  map_to_bagged_graph(GraphIn, MapOut, GraphOut, Bags)
 	;   map_graph(GraphIn, MapOut, GraphOut)
 	).
-	
+
 map_in(Options, Map) :-
 	option(map_in(Map), Options, Map),
 	(var(Map) -> empty_assoc(Map) ; true).
@@ -997,7 +994,7 @@ map_out(Options, Map) :-
 %
 %	Create the abstraction map  for  the   nodes  of  the  graph. It
 %	consists of two steps:
-%	
+%
 %	    1. Map all instances to their class, except for concepts
 %	    2. If some instances are mapped to class A and others to
 %	       class B, where A is a super-class of B, map all instances
@@ -1053,7 +1050,7 @@ deref_map(Map0, Map) :-
 	findall(KV, mapped_kv(KV, Map0), Pairs),
 	deref(Pairs, NewPairs),
 	list_to_assoc(NewPairs, Map).
-	
+
 mapped_kv(K-V, Assoc) :-
 	gen_assoc(K, Assoc, V),
 	K \== V.
@@ -1102,30 +1099,73 @@ edge_map([], Map, Map).
 edge_map([R|T], Map0, Map) :-
 	get_assoc(R, Map0, _), !,
 	edge_map(T, Map0, Map).
-edge_map([R|T], Map0, Map) :-
-	iface_abstract_predicate(R, C),
-	put_assoc(R, Map0, C, Map1),
-	edge_map(T, Map1, Map).
+%edge_map([R|T], Map0, Map) :-
+%	iface_abstract_predicate(R, C),
+%	put_assoc(R, Map0, C, Map1),
+%	edge_map(T, Map1, Map).
 
 %%	concept_of(+Resource, -Concept) is det.
 %
 %	True if Concept is the concept Resource belongs to.  If Resource
 %	is a concept itself, Concept is Resource.
-%	
+%
 %	@tbd	Make thesaurus concept classes a subclass of skos:Class.
 %	@tbd	Put in a reusable place, merge with kwd_search.pl
 
 concept_of(O, O) :-
-	iface_concept(O), !.
+	rdfs_individual_of(O, skos:'Concept'), !.
 concept_of(O, C) :-
-	class_of(O, C).
+	rdf_has(O, rdf:type, C), !.
+concept_of(O, O).
 
 %%	broader(+Term, -Broader) is nondet.
 %
 %	True if Broader is a broader term according to the SKOS schema.
-%	
+%
 %	@tbd Deal with owl:sameAs (and skos:exactMatch)
 
 broader(Term, Broader) :-
 	rdf_reachable(Term, skos:broader, Broader),
 	Broader \== Term.
+
+%%	rdf_representative(+Resources:list, -Representative:atom) is det.
+%
+%	Representative is the most popular   resource from the non-empty
+%	list  Resources.  The  preferred   representative  is  currently
+%	defined as the resource with the   highest  number of associated
+%	edges.
+%
+%	@tbd	Think about the function.  Use sum of logs or sum of sqrt?
+
+rdf_representative([H], Representative) :- !,
+	Representative = H.
+rdf_representative([H|T], Representative) :-
+	fan_in_out(H, Fan0),
+	best(T, Fan0, H, Representative).
+
+best([], _, R, R).
+best([H|T], S0, R0, R) :-
+	fan_in_out(H, S1),
+	(   S1 > S0
+	->  best(T, S1, H, R)
+	;   best(T, S0, R0, R)
+	).
+
+fan_in_out(R, Fan) :-
+	count(rdf(R, _, _), 100, FanOut),
+	count(rdf(_, _, R), 100, FanIn),
+	Fan is FanOut + FanIn.
+
+:- meta_predicate
+	count(:, +, -).
+
+count(G, Max, Count) :-
+        C = c(0),
+        (   G,
+            arg(1, C, C0),
+            C1 is C0+1,
+            nb_setarg(1, C, C1),
+            C1 == Max
+        ->  Count = Max
+        ;   arg(1, C, Count)
+        ).
