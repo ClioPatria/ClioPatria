@@ -38,6 +38,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(process)).
 :- use_module(library(debug)).
+:- use_module(library(option)).
 :- use_module(rdf_graphviz).
 
 :- html_resource(js('canviz.js'),
@@ -56,7 +57,11 @@
 %
 %	Display an RDF graph on a canviz (HTML5). The graph is a list of
 %	rdf(S,P,O) triples and is  obtained   by  calling  call(Closure,
-%	Graph). Options is an option-list for gviz_write_rdf/3.
+%	Graph). Options is  an  option-list   for  gviz_write_rdf/3.  In
+%	addition, it processes the option:
+%
+%	    * render(+Exe)
+%	    Set the rendering engine.  Default is =dot=.
 
 :- meta_predicate
 	canviz_graph(:, +, ?, ?).
@@ -90,7 +95,7 @@ send_graph(Request) :-
 	call(Closure, Graph),
 	length(Graph, Len),
 	debug(canviz, 'Graph contains ~D triples', [Len]),
-	Renderer = dot,
+	select_option(render(Renderer), Options, GraphOptions, dot),
 	process_create(path(Renderer), ['-Txdot'],
 		       [ stdin(pipe(ToDOT)),
 			 stdout(pipe(XDotOut)),
@@ -98,7 +103,7 @@ send_graph(Request) :-
 		       ]),
 	set_stream(ToDOT, encoding(utf8)),
 	set_stream(XDotOut, encoding(utf8)),
-	thread_create(send_to_dot(Graph, Options, ToDOT), _,
+	thread_create(send_to_dot(Graph, GraphOptions, ToDOT), _,
 		      [ detached(true) ]),
 	format('Content-type: text/plain; charset=UTF-8\n'),
 	format('Transfer-Encoding: chunked\n\n'),
