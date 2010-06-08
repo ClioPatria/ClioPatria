@@ -80,6 +80,10 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %	        place the first Max members and add a note stating
 %	        '... showing N of M' to indicate the actual number
 %
+%	    * edge_links(+Boolean)
+%	    If =false= (default =true=) do not put href atributes on
+%	    edges.
+%
 %	    * wrap_url(:Goal)
 %	    If present, URLs of the graph are replaced with the
 %	    result of call(Goal, URL0, URL)
@@ -92,7 +96,7 @@ gviz_write_rdf(Stream, Graph, Options0) :-
 	format(Stream, 'digraph G~n{ ', []),
 	option(graph_attributes(Attrs), Options, []),
 	write_graph_attributes(Attrs, Stream),
-	write_graph_attributes([fontname('Verdana:style=Regular')], Stream), % Doesn't apper to work?
+%	write_graph_attributes([fontname('Verdana:style=Regular')], Stream), % Doesn't apper to work?
 	combine_bags(Graph, Triples, Bags, Options),
 	gv_write_edges(Triples, Done, Stream, Options),
 	assoc_to_list(Done, Nodes),
@@ -184,8 +188,11 @@ write_edge(rdf(S,P,O), Done0, Done2, Stream, Options) :-
 	write_node_id(O, Done1, Done2, Stream),
 	resource_label(P, PL, Options),
 	c_escape(PL, String),
-	wrap_url(P, URL, Options),
-	format(Stream, ' [url="~w" label="~s"];\n', [URL, String]).
+	(   option(edge_links(true), Options, true)
+	->  wrap_url(P, URL, Options),
+	    format(Stream, ' [href="~w" label="~s"];\n', [URL, String])
+	;   format(Stream, ' [label="~s"];\n', [String])
+	).
 
 write_node_id(S, Done, Done, Stream) :-
 	get_assoc(S, Done, Id), !,
@@ -227,7 +234,7 @@ write_node_attributes(R, Stream, Options) :-
 	shape(R, Shape, Options),
 	resource_label(R, Label, Options),
 	wrap_url(R, URL, Options),
-	write_attributes([url(URL), label(Label)|Shape], Stream).
+	write_attributes([href(URL), label(Label)|Shape], Stream).
 write_node_attributes(Lit, Stream, Options) :-
 	shape(Lit, Shape, Options),
 	option(max_label_length(MaxLen), Options, 25),
@@ -327,6 +334,8 @@ write_attributes_2([H|T], Out) :-
 
 string_attribute(label(_)).
 string_attribute(url(_)).
+string_attribute(href(_)).
+string_attribute('URL'(_)).
 string_attribute(fillcolor(_)).
 
 html_attribute(html(_), label).
