@@ -49,6 +49,7 @@
 :- use_module(library(apply)).
 
 :- use_module(http_canviz).
+:- use_module(library(semweb/rdf_abstract)).
 
 :- use_module(http_user).
 :- use_module(user_db).
@@ -1141,7 +1142,9 @@ shape(Start, Start, [style(filled), fillcolor('#00ff00')]).
 
 context_graph(URI, RDF) :-
 	findall(T, context_triple(URI, T), RDF0),
-	sort(RDF0, RDF).
+	sort(RDF0, RDF1),
+	bagify_graph(RDF1, RDF2, Bags, []),
+	append(RDF2, Bags, RDF).
 
 :- rdf_meta
 	transitive_context(r),
