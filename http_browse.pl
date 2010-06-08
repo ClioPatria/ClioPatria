@@ -48,6 +48,8 @@
 :- use_module(library(option)).
 :- use_module(library(apply)).
 
+:- use_module(http_canviz).
+
 :- use_module(http_user).
 :- use_module(user_db).
 
@@ -1100,7 +1102,8 @@ order(rdfs:isDefinedBy,	3001).
 
 uri_info(URI, Graph) -->
 	uri_class_info(URI, Graph),
-	uri_predicate_info(URI, Graph).
+	uri_predicate_info(URI, Graph),
+	context_graph(URI).
 
 uri_class_info(URI, Graph) -->
 	{ rdf_current_predicate(URI)
@@ -1116,6 +1119,57 @@ uri_predicate_info(URI, Graph) -->
 	class_table([URI], Graph, []).
 uri_predicate_info(_, _) --> [].
 
+
+%%	context_graph(+URI)// is det.
+%
+%	Show graph with the context of URI
+
+context_graph(URI) -->
+	html([ h4('Context graph'),
+	       \canviz_graph(context_graph(URI),
+			     [ wrap_url(resource_link),
+			       graph_attributes([ rankdir('RL'),
+						  size(6,6)
+						]),
+			       shape_hook(shape(URI))
+			     ])
+	     ]).
+
+resource_link(URI, HREF) :-
+	http_link_to_id(list_resource, [r(URI)], HREF).
+
+shape(Start, Start, [style(filled), fillcolor('#00ff00')]).
+
+context_graph(URI, RDF) :-
+	findall(T, context_triple(URI, T), RDF0),
+	sort(RDF0, RDF).
+
+:- rdf_meta
+	transitive_context(r),
+	context(r).
+
+context_triple(URI, Triple) :-
+	transitive_context(CP),
+	parents(URI, CP, Triples, [URI]),
+	member(Triple, Triples).
+context_triple(URI, rdf(URI, P, O)) :-
+	context(R),
+	rdf_has(URI, R, O, P).
+context_triple(URI, rdf(S, P, URI)) :-
+	context(R),
+	rdf_has(S, R, URI, P).
+
+parents(URI, Up, [rdf(URI, P, Parent)|T], Visited) :-
+	rdf_has(URI, Up, Parent, P),
+	\+ memberchk(P, Visited),
+	parents(Parent, Up, T, [Parent|Visited]).
+parents(_, _, [], _).
+
+transitive_context(rdfs:subClassOf).
+transitive_context(rdfs:subPropertyOf).
+transitive_context(skos:broader).
+
+context('http://purl.org/vocabularies/cornetto/internalRelation').
 
 %%	list_triples(+Request)
 %

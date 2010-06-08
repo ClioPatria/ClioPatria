@@ -64,11 +64,12 @@
 %	    Set the rendering engine.  Default is =dot=.
 
 :- meta_predicate
-	canviz_graph(:, +, ?, ?).
+	canviz_graph(:, :, ?, ?).
 
 canviz_graph(Closure, Options) -->
-	{ variant_sha1(Closure+Options, Hash),
-	  http_session_assert(canviz(Hash, Closure+Options)),
+	{ meta_options(is_meta, Options, QOptions),
+	  variant_sha1(Closure+QOptions, Hash),
+	  http_session_assert(canviz(Hash, Closure+QOptions)),
 	  http_link_to_id(send_graph, [hash(Hash)], HREF)
 	},
 	html_requires(js('canviz.js')),
@@ -82,6 +83,8 @@ canviz_graph(Closure, Options) -->
 		       ])
 	     ]).
 
+is_meta(wrap_url).
+is_meta(shape_hook).
 
 %%	send_graph(+Request)
 %
