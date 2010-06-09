@@ -62,10 +62,23 @@
 %
 %	    * render(+Exe)
 %	    Set the rendering engine.  Default is =dot=.
+%
+%	This facility requires the graphiz   renderer programs installed
+%	in the executable search-path.
 
 :- meta_predicate
 	canviz_graph(:, :, ?, ?).
 
+canviz_graph(_Closure, Options) -->
+	{ option(render(Renderer), Options, dot)
+	},
+	\+ { process:exe_options(ExeOptions),
+	     absolute_file_name(path(Renderer), _,
+				[ file_errors(fail),
+				  ExeOptions
+				])
+	   }, !,
+	no_graph_viz(Renderer).
 canviz_graph(Closure, Options) -->
 	{ meta_options(is_meta, Options, QOptions),
 	  variant_sha1(Closure+QOptions, Hash),
@@ -85,6 +98,14 @@ canviz_graph(Closure, Options) -->
 
 is_meta(wrap_url).
 is_meta(shape_hook).
+
+no_graph_viz(Renderer) -->
+	html(div(id('no-graph-viz'),
+		 [ 'The server does not have the graphviz program ',
+		   code(Renderer), ' installed in PATH. ',
+		   'See ', a(href('http://www.graphviz.org/'),
+			     'http://www.graphviz.org/'), ' for details.'
+		 ])).
 
 %%	send_graph(+Request)
 %
