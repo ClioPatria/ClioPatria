@@ -267,7 +267,7 @@ nc(Fmt, Value, Options) -->
 	  ;   Opts = [align(right)|Options]
 	  )
 	},
-	(   { number(Fmt) }
+	(   { number(Value) }
 	->  html(td(Opts, Fmt-[Value]))
 	;   html(td(Opts, '~w'-[Value]))
 	).
