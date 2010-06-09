@@ -110,11 +110,29 @@ var CanvizEntity = Class.create({
 		return attrValue;
 	},
 	draw: function(ctx, ctxScale, redrawCanvasOnly) {
-		var i, tokens, fillColor, strokeColor;
+		var i, tokens, fillColor, strokeColor, label;
+		var urls, href_index, href_count;
 		if (!redrawCanvasOnly) {
 			this.initBB();
 			var bbDiv = new Element('div');
 			this.canviz.elements.appendChild(bbDiv);
+		}
+		label = this.getAttr('label', true);
+		if ( label && label.match('<table[^>]*>.*</table>') ) {
+			var h;
+//			debug('Got a table');
+			urls = new Array();
+			var hrefl = label.split('href="');
+			for(h=1; h<hrefl.length; h++) {
+				var at = hrefl[h].indexOf('"');
+				urls.push(hrefl[h].substr(0, at));
+//				debug(urls[h-1]);
+			}
+			href_index = 0;
+			href_count = urls.length;
+		} else {
+			href_count = 0;
+			href_index = 0;
 		}
 		this.drawAttrs.each(function(drawAttr) {
 			var command = drawAttr.value;
@@ -202,13 +220,22 @@ var CanvizEntity = Class.create({
 										str = str.replace(/  +/, spaces);
 									}
 								} while (matches);
-								var text;
-								var href = this.getAttr('URL', true) || this.getAttr('href', true);
+								var text, href;
+								if ( href_index < href_count ) {
+									href = urls[href_index++];
+									text = new Element('a', {href: href});
+								} else {
+									href = this.getAttr('URL', true) || this.getAttr('href', true);
+									if ( href ) {
+										var target = this.getAttr('target', true) || '_self';
+										var tooltip = this.getAttr('tooltip', true) || label;
+//										debug(this.name + ', href ' + href + ', target ' + target + ', tooltip ' + tooltip);
+										text = new Element('a', {href: href, target: target, title: tooltip});
+									} else {
+										text = new Element('span');
+									}
+								}
 								if (href) {
-									var target = this.getAttr('target', true) || '_self';
-									var tooltip = this.getAttr('tooltip', true) || this.getAttr('label', true);
-//									debug(this.name + ', href ' + href + ', target ' + target + ', tooltip ' + tooltip);
-									text = new Element('a', {href: href, target: target, title: tooltip});
 									['onclick', 'onmousedown', 'onmouseup', 'onmouseover', 'onmousemove', 'onmouseout'].each(function(attrName) {
 										var attrValue = this.getAttr(attrName, true);
 										if (attrValue) {
@@ -218,8 +245,6 @@ var CanvizEntity = Class.create({
 									text.setStyle({
 										textDecoration: 'none'
 									});
-								} else {
-									text = new Element('span');
 								}
 								text.update(str);
 								text.setStyle({
