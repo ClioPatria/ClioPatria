@@ -1491,12 +1491,76 @@ re_link(NewParams, HREF) :-
 		 *	      SEARCH		*
 		 *******************************/
 
+%%	search(+Request)
+%
+%	HTTP handler to search for triples   that contain a literal that
+%	matches a query.
+%
+%	@tbd	Produce a sensible search language.
+
 search(Request) :-
 	http_parameters(Request,
-			[ q(Query, [length>=1])
+			[ q(QueryText, [length>=1])
 			]),
-	page(title('Search results'),
-	     p('Searching for ~w'-[Query])).
+	literal_query(QueryText, Query),
+	rdf_find_literals(Query, Literals),
+	phrase(ltriples(Literals), Triples),
+	page(title('Search results for ~q'-[Query]),
+	     [ h4('Search results for token "~q"'-[Query]),
+	       \rdf_table(Triples,
+			  [
+			  ])
+	     ]).
+
+literal_query(QueryText, Query) :-
+	tokenize_atom(QueryText, Tokens), !,
+	once(phrase(query(Query), Tokens)).
+literal_query(QueryText, case(QueryText)).
+
+query(Query) -->
+	simple_query(Q1),
+	(   eos
+	->  {Query = Q1}
+	;   query(Q2),
+	    {Query = and(Q1,Q2)}
+	).
+
+eos([],[]).
+
+simple_query(Token) -->
+	['"',Token,'"'], !.
+simple_query(not(Token)) -->
+	[-, Token].
+simple_query(case(Token)) -->
+	[Token].
+
+ltriples([]) -->
+	[].
+ltriples([H|T]) -->
+	findall(rdf(S,P,literal(L)), rdf(S,P,literal(exact(H), L))),
+	ltriples(T).
+
+%%	rdf_table(+Triples, +Options)// is det.
+%
+%	Emit a table of triples.
+%
+%	@param Triples is a list of rdf(S,P,O).
+
+rdf_table(Triples, Options) -->
+	{ option(top_max(TopMax), Options, 500),
+	  option(top_max(BottomMax), Options, 500)
+	},
+	html(table(class(rdf_browse),
+		   [ tr([ th('Subject'), th('Predicate'), th('Object') ])
+		   | \table_rows_top_bottom(triple, Triples,
+					    TopMax, BottomMax)
+		   ])).
+
+triple(rdf(S,P,O)) -->
+	html([ td(class(subject),   \resource_link(S)),
+	       td(class(predicate), \resource_link(P)),
+	       td(class(object),    \resource_link(O))
+	     ]).
 
 
 %%	rdf_search_form//
