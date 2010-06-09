@@ -32,6 +32,7 @@
 	  [ merge_sameas_graph/3,	% +GraphIn, -GraphOut, +Options
 	    bagify_graph/4,		% +GraphIn, -GraphOut, -Bags, +Options
 	    abstract_graph/3,		% +GraphIn, -GraphOut, +Options
+	    minimise_graph/2,		% +GraphIn, -GraphOut
 
 	    graph_resources/2		% +Graph, -Resources
 	  ]).
@@ -1158,6 +1159,65 @@ fan_in_out(R, Fan) :-
 	count(rdf(R, _, _), 100, FanOut),
 	count(rdf(_, _, R), 100, FanIn),
 	Fan is FanOut + FanIn.
+
+
+		 /*******************************
+		 *	      SIMPLIFY		*
+		 *******************************/
+
+%%	minimise_graph(+GraphIn, -GraphOut) is det.
+%
+%	Remove redudant triples from  a   graph.  Redundant  triples are
+%	defined as:
+%
+%		* Super-properties of another property
+%		* Inverse
+%		* Symetric
+%		* Entailed transitive
+%
+%	@tbd Implement entailed transitive
+
+minimise_graph(RDF0, RDF) :-
+	partition(object_triple, RDF0, ObjRDF, LitRDF),
+	map_list_to_pairs(os_rdf, ObjRDF, Pairs),
+	group_pairs_by_key(Pairs, Grouped),
+	maplist(key_remove_reduntant_relations, Grouped, MinGroups),
+	append([LitRDF|MinGroups], RDF).
+
+object_triple(rdf(_,_,O)) :-
+	atom(O).
+
+os_rdf(rdf(S,_,O), (A+B)) :-
+	(   S @< O
+	->  A = S, B = O
+	;   A = O, B = S
+	).
+
+key_remove_reduntant_relations(_-Rs0, Rs) :-
+	remove_reduntant_relations(Rs0, Rs).
+
+remove_reduntant_relations([R], [R]) :- !.
+remove_reduntant_relations(List0, List) :-
+	select(rdf(S,P1,O), List0, List1),
+	select(rdf(S,P2,O), List1, List2),
+	rdfs_subproperty_of(P1, P2), !,
+	remove_reduntant_relations([rdf(S,P1,O)|List2], List).
+remove_reduntant_relations(List0, List) :-
+	select(rdf(S,P,O), List0, List1),
+	select(rdf(O,P,S), List1, List2),
+	rdfs_individual_of(P, owl:'SymmetricProperty'), !,
+	remove_reduntant_relations([rdf(S,P,O)|List2], List).
+remove_reduntant_relations(List0, List) :-
+	select(rdf(S,P1,O), List0, List1),
+	select(rdf(O,P2,S), List1, List2),
+	rdf_has(P1, owl:inverseOf, P2), !,
+	remove_reduntant_relations([rdf(S,P2,O)|List2], List).
+remove_reduntant_relations(List, List).
+
+
+		 /*******************************
+		 *		UTIL		*
+		 *******************************/
 
 :- meta_predicate
 	count(:, +, -).

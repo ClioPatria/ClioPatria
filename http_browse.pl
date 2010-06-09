@@ -1143,8 +1143,9 @@ shape(Start, Start, [style(filled), fillcolor('#00ff00')]).
 context_graph(URI, RDF) :-
 	findall(T, context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
-	bagify_graph(RDF1, RDF2, Bags, []),
-	append(RDF2, Bags, RDF).
+	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
+	bagify_graph(RDF2, RDF3, Bags, []), 	% Create bags of similar resources
+	append(RDF3, Bags, RDF).
 
 :- rdf_meta
 	transitive_context(r),
@@ -1170,8 +1171,10 @@ parents(_, _, [], _).
 transitive_context(rdfs:subClassOf).
 transitive_context(rdfs:subPropertyOf).
 transitive_context(skos:broader).
+transitive_context(P) :-
+	rdfs_individual_of(P, owl:'TransitiveProperty').
 
-context('http://purl.org/vocabularies/cornetto/internalRelation').
+context(skos:related).
 
 %%	list_triples(+Request)
 %
