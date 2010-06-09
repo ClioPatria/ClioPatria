@@ -86,7 +86,7 @@
 }
 #nav > li ul {
 /*	background: #666;*/
-	background: transparent url("trans/black40.png");
+	background: transparent url("../icons/black40.png");
 }
 #nav > li > ul {
 	margin: -1px;  /* This is to make the width equal to parent li width. */
