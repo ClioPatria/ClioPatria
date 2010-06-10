@@ -1140,6 +1140,14 @@ resource_link(URI, HREF) :-
 
 shape(Start, Start, [style(filled), fillcolor('#00ff00')]).
 
+%%	context_graph(+URI, -Triples) is det.
+%
+%	Triples is a graph  that  describes   the  environment  of  URI.
+%	Currently, the environment is defined as:
+%
+%	    * skos:related properties (using 1 step)
+%	    * Transitive properties (using upto 3 steps).
+
 context_graph(URI, RDF) :-
 	findall(T, context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
@@ -1153,7 +1161,7 @@ context_graph(URI, RDF) :-
 
 context_triple(URI, Triple) :-
 	transitive_context(CP),
-	parents(URI, CP, Triples, [URI]),
+	parents(URI, CP, Triples, [URI], 3),
 	member(Triple, Triples).
 context_triple(URI, rdf(URI, P, O)) :-
 	context(R),
@@ -1162,17 +1170,20 @@ context_triple(URI, rdf(S, P, URI)) :-
 	context(R),
 	rdf_has(S, R, URI, P).
 
-parents(URI, Up, [rdf(URI, P, Parent)|T], Visited) :-
+parents(URI, Up, [rdf(URI, P, Parent)|T], Visited, MaxD) :-
+	succ(MaxD2, MaxD),
 	rdf_has(URI, Up, Parent, P),
-	\+ memberchk(P, Visited),
-	parents(Parent, Up, T, [Parent|Visited]).
-parents(_, _, [], _).
+	\+ memberchk(Parent, Visited),
+	parents(Parent, Up, T, [Parent|Visited], MaxD2).
+parents(_, _, [], _, _).
 
 transitive_context(rdfs:subClassOf).
 transitive_context(rdfs:subPropertyOf).
 transitive_context(skos:broader).
 transitive_context(P) :-
-	rdfs_individual_of(P, owl:'TransitiveProperty').
+	rdfs_individual_of(P, owl:'TransitiveProperty'),
+	rdf_predicate_property(P, rdfs_subject_branch_factor(BF)),
+	BF < 2.0.
 
 context(skos:related).
 
