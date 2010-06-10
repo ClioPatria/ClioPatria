@@ -41,6 +41,15 @@
 :- use_module(library(option)).
 :- use_module(rdf_graphviz).
 
+/** <module> Render RDF-graphs
+
+This module provides canviz_graph//2 to render lists of rdf(S,P,O) terms
+as graphs.
+
+@see	library(semweb/rdf_abstract) for various operations on graphs
+	represented as lists of rdf(S,P,O).
+*/
+
 :- html_resource(js('canviz.js'),
 		 [ requires([ js('path/path.js'),
 			      js('prototype/prototype.js')
@@ -65,6 +74,9 @@
 %
 %	This facility requires the graphiz   renderer programs installed
 %	in the executable search-path.
+%
+%	@see http://code.google.com/p/canviz/
+%	@see http://www.graphviz.org/
 
 :- meta_predicate
 	canviz_graph(:, :, ?, ?).
@@ -109,11 +121,13 @@ no_graph_viz(Renderer) -->
 
 %%	send_graph(+Request)
 %
-%	HTTP handler to send a graph.
+%	HTTP handler to send a graph.  This   HTTP  handler is a private
+%	handler for canviz_graph//2, rendering  a   list  of  rdf(S,P,O)
+%	triples using Graphviz.
 
 send_graph(Request) :-
 	http_parameters(Request,
-			[ hash(Hash, [])
+			[ hash(Hash, [ description('Hash-key to the graph-data')])
 			]),
 	http_session_data(canviz(Hash, Closure+Options)),
 	call(Closure, Graph),
