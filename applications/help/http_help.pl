@@ -39,16 +39,16 @@
 :- use_module(library(lists)).
 :- use_module(library(apply)).
 					% PlDoc interface
-:- use_module(pldoc(doc_html)).
-:- use_module(pldoc(doc_process)).
+:- use_module(library(pldoc/doc_html)).
+:- use_module(library(pldoc/doc_process)).
 
 /** <module> Explore the running HTTP server
 
 */
 
-:- http_handler(root(doc/http),		    http_help,	     []).
-:- http_handler(root(doc/http_handler),	    help_on_handler, []).
-:- http_handler(root(doc/http_ac_location), ac_location,     []).
+:- http_handler(root(help/http),	     http_help,	      []).
+:- http_handler(root(help/http_handler),     help_on_handler, []).
+:- http_handler(root(help/http_ac_location), ac_location,     []).
 
 %%	http_help(Request)
 %
