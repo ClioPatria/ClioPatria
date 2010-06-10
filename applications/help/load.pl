@@ -45,7 +45,7 @@ Integrates PlDoc from /help/source/
 http:location(pldoc, root('help/source'), [priority(10)]).
 
 :- multifile
-	serql_http:menu_item/2.
+	http_user:menu_item/2.
 
-serql_http:menu_item(help/http_api,	http_help).
-serql_http:menu_item(help/source,	pldoc_root).
+http_user:menu_item(help/http_help,	'HTTP API').
+http_user:menu_item(help/pldoc_root,	'Source code').

@@ -34,28 +34,24 @@
 @author	Michiel Hildebrand
 */
 
-% http libraries
-:- use_module(library('http/html_write')).
-:- use_module(library('http/html_head')).
-
+:- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
+:- use_module(library(http/js_write)).
 :- use_module(library(settings)).
-
-% utils
-:- use_module(util(javascript)).
 
 /***************************************************
 * required html resources
 ***************************************************/
 
-:- html_resource(script('api_test.js'),
-	[	requires([
-	        script('parameters.js'),
-			yui('button/button.js'),
-			yui('container/container.js'),
-			yui('dragdrop/dragdrop.js'),
-			yui('container/assets/skins/sam/container.css')
-		])
-	]).
+:- html_resource(js('api_test.js'),
+		 [ requires([
+			     js('parameters.js'),
+			     yui('button/button.js'),
+			     yui('container/container.js'),
+			     yui('dragdrop/dragdrop.js'),
+			     yui('container/assets/skins/sam/container.css')
+			    ])
+		 ]).
 
 
 /***************************************************
@@ -72,7 +68,7 @@ api_tester(Path) -->
 	api_tester(Path, ?).
 
 api_tester(Path, []) --> !,
-	html_requires(script('api_test.js')),
+	html_requires(js('api_test.js')),
 	init_api_tester,
 	html([ div(class('api_test'),
 		   [ table(tbody(tr([ td([ span(class(path), [a(href(Path), Path)])]),
@@ -84,7 +80,7 @@ api_tester(Path, []) --> !,
 		   ])
 	     ]).
 api_tester(Path, _) -->
-	html_requires(script('api_test.js')),
+	html_requires(js('api_test.js')),
 	init_api_tester,
 	html([ div([class('api_test'), width('100%')],
 		   [ table(tbody(tr([ td([span(class(path), [Path]), '?']),
