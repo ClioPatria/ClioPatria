@@ -78,12 +78,14 @@
 
 
 navigation -->
-	{ findall(Key-Item, current_menu_item(Key, Item), Pairs),
-	  group_pairs_by_key(Pairs, ByKey)
+	{ findall(Key-Item, current_menu_item(Key, Item), Pairs0),
+	  sort(Pairs0, Pairs),
+	  group_pairs_by_key(Pairs, ByKey),
+	  sort_menu_popups(ByKey, Menu)
 	},
 	html_requires(css('menu.css')),
 	html(ul(id(nav),
-		\menu(ByKey))).
+		\menu(Menu))).
 
 menu([]) --> !.
 menu([_-[Item]|T]) --> !,
@@ -124,8 +126,9 @@ current_menu_item(Key, item(Location, Label)) :-
 
 :- multifile
 	serql_http:sidebar_menu/2,	% +Action, +Label
-	serql_http:menu_item/2,		% +Action, +Label
-	serql_http:menu_label/2.	% +Id, -Label
+	serql_http:menu_label/2,	% +Id, -Label
+	menu_item/2,			% +Action, +Label
+	menu_popup_order/2.
 
 %%	menu_item(?Id, ?Label) is nondet.
 %
@@ -157,6 +160,26 @@ menu_item(current_user/user_logout,	'Logout') :-
 	someone_logged_on.
 menu_item(current_user/change_password_form,	'Change password') :-
 	someone_logged_on.
+
+sort_menu_popups(List, Sorted) :-
+	map_list_to_pairs(popup_order, List, Keyed),
+	keysort(Keyed, KeySorted),
+	pairs_values(KeySorted, Sorted).
+
+popup_order(Key-Members, Order-(Key-Members)) :-
+	(   menu_popup_order(Key, Order)
+	->  true
+	;   Order = 10000
+	).
+
+menu_popup_order(file,	       1000).
+menu_popup_order(query,	       2000).
+menu_popup_order(view,	       3000).
+menu_popup_order(admin,	       4000).
+menu_popup_order(application,  5000).
+menu_popup_order(help,	       6000).
+menu_popup_order(user,	       7000).
+menu_popup_order(current_user, 8000).
 
 menu_label(Item, _Default, Label) :-
 	serql_http:menu_label(Item, Label), !.
