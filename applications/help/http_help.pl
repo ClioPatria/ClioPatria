@@ -78,7 +78,7 @@ help_page -->
 	{ tree_view_options(Options) },
 	html([ \html_requires(css('httpdoc.css')),
 	       \html_requires(pldoc),
-	       \html_requires(script('api_test.js')),
+	       \html_requires(js('api_test.js')),
 	       div(id(sidebar), \http_tree_view(Options)),
 	       div(id(find), \quick_find_div_content),
 	       div(id(content), []),
