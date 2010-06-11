@@ -227,6 +227,12 @@ welcome(Request) :-
 	).
 
 
+%%	reply_decorated_file(+Alias, +Request) is det.
+%
+%	Present an HTML file embedded using  the server styling. This is
+%	achieved by parsing the  HTML  and   passing  the  parsed DOM to
+%	serql_page/2.
+
 reply_decorated_file(Alias, _Request) :-
 	absolute_file_name(Alias, Page, [access(read)]),
 	load_html_file(Page, DOM),

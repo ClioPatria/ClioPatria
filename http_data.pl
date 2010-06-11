@@ -111,9 +111,12 @@ http_logout(_Request) :-
 	serql_page(title('Successful logout'),
 		   p(['Logout succeeded for ', User])).
 
-%%	evaluate_query
+%%	evaluate_query(+Request) is det.
 %
-%	HTTP handler for both SeRQL and SPARQL queries.
+%	HTTP handler for both SeRQL  and   SPARQL  queries. This handler
+%	deals with _interactive_  queries.   Machines  typically  access
+%	/sparql/ to submit queries and process   result compliant to the
+%	SPARQL protocol.
 
 evaluate_query(Request) :-
 	http_parameters(Request,
@@ -634,43 +637,48 @@ attribute_decl(query,
 	       ]).
 attribute_decl(queryLanguage,
 	       [ default('SPARQL'),
-		 type(oneof(['SeRQL', 'SPARQL'])),
+		 oneof(['SeRQL', 'SPARQL']),
 		 description('Query language used in query-text')
 	       ]).
 attribute_decl(serialization,
 	       [ default(rdfxml),
-		 type(oneof([ rdfxml,
-			      ntriples,
-			      n3
-			    ])),
-		 default('Serialization for graph-data')
+		 oneof([ rdfxml,
+			 ntriples,
+			 n3
+		       ]),
+		 description('Serialization for graph-data')
 	       ]).
 attribute_decl(resultFormat,
 	       [ default(xml),
 		 type(oneof([ xml,
 			      html,
 			      rdf
-			    ]))
+			    ])),
+		 description('Serialization format of the result')
 	       ]).
 attribute_decl(resourceFormat,
 	       [ default(ns),
-		 type(oneof([ plain,
-			      ns,
-			      nslabel
-			    ]))
+		 oneof([ plain,
+			 ns,
+			 nslabel
+		       ]),
+		 description('How to format URIs in the table')
 	       ]).
 attribute_decl(entailment,		% cache?
 	       [ default(Default),
-		 type(oneof([Es]))
+		 oneof(Es),
+		 description('Reasoning performed')
 	       ]) :-
 	setting(serql_parms:default_entailment, Default),
 	findall(E, serql:entailment(E, _), Es).
 attribute_decl(dataFormat,
 	       [ default(rdfxml),
-		 type(oneof([rdfxml, ntriples]))
+		 oneof([rdfxml, ntriples]),
+		 description('Serialization of the data')
 	       ]).
 attribute_decl(baseURI,
-	       [ default('foo:bar')
+	       [ default('http://example.org/'),
+		 description('Base URI for relative resources')
 	       ]).
 attribute_decl(verifyData, Options)   :- bool(off, Options).
 attribute_decl(schema, Options)	      :- bool(off, Options).
@@ -679,11 +687,14 @@ attribute_decl(explicitOnly, Options) :- bool(off, Options).
 attribute_decl(niceOutput, Options)   :- bool(off, Options).
 attribute_decl(niceOutput, Options)   :- bool(off, Options).
 					% Our extensions
-attribute_decl(storeAs, [default('')]).
+attribute_decl(storeAs,
+	       [ default(''),
+		 description('Store query under this name')
+	       ]).
 
 bool(Def,
      [ default(Def),
-       type(oneof([on, off]))
+       oneof([on, off])
      ]).
 
 
