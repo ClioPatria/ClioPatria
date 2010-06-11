@@ -24,9 +24,7 @@
 :- module(doc_components,
 	  [ api_tester//1,		% +Path
 	    api_tester//2,		% Path, Parameters
-	    init_api_tester//0,
-	    parameter_table//1,		% +Options
-	    api_examples//2		% +SearchStrings:list, +Path
+	    init_api_tester//0
 	  ]).
 
 /** <module> Documentation page utilities
@@ -36,7 +34,6 @@
 
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/js_write)).
 :- use_module(library(settings)).
 
 /***************************************************
@@ -44,12 +41,11 @@
 ***************************************************/
 
 :- html_resource(js('api_test.js'),
-		 [ requires([
-			     js('parameters.js'),
-			     yui('button/button.js'),
-			     yui('container/container.js'),
-			     yui('dragdrop/dragdrop.js'),
-			     yui('container/assets/skins/sam/container.css')
+		 [ requires([ js('parameters.js'),
+			      yui('button/button.js'),
+			      yui('container/container.js'),
+			      yui('dragdrop/dragdrop.js'),
+			      yui('container/assets/skins/sam/container.css')
 			    ])
 		 ]).
 
@@ -98,83 +94,5 @@ api_tester(Path, _) -->
 
 
 init_api_tester -->
-	html(script('initApiPanel();\n')).
-
-
-/***************************************************
-* parameter table
-***************************************************/
-
-%%  parameter_table(+Functor)
-%
-%   Write HTML table with all parameters defined
-%   as clauses with Functor.
-/*
-parameter_table(Options) -->
-	{ meta_options(parameter_table:is_meta, Options, MetaOptions) },
-    table(MetaOptions).              % local predicate
-
-is_meta(goal).
-*/
-parameter_table(Options) -->
-    {   option(goal(F), Options),
-        option(module(M), Options),
-        %strip_module(F0, M, F),
-        findall(row(N,D,V,Def), call(M:F,N,D,V,Def), Rows)
-    },
-    html(table([class(parameters), border(1)],
-        tbody([
-            tr([
-                th('Parameter'),
-                th('Values'),
-                th('Default'),
-                th('Description')
-            ]),
-            \parameter_rows(Rows, 0)
-        ])
-    )).
-
-parameter_rows([], _) --> !.
-parameter_rows([H|T], N) -->
-    {   N1 is N + 1,
-        (   0 is N mod 2
-        ->  Class = even
-        ;   Class = odd
-        ),
-        H = row(Name,Desc,Values, Default)
-    },
-    html(tr(class(Class), [
-        td(class(paramter), Name),
-        td(\parameter_values(Values)),
-        td(Default),
-        td(Desc)
-    ])),
-    parameter_rows(T, N1).
-
-parameter_values(L) -->
-    { is_list(L) }, !,
-    html(ul(
-        \parameter_value_list(L)
-    )).
-parameter_values(boolean) -->
-    html('true | false').
-parameter_values(V) -->
-    html(V).
-
-parameter_value_list([]) --> !.
-parameter_value_list([H|T]) -->
-    html(li(\parameter_values(H))),
-    parameter_value_list(T).
-
-/***************************************************
-* example list
-***************************************************/
-
-api_examples(Examples, Path) -->
-    examples(Examples, Path).
-
-examples([], _) --> !.
-examples([E|Es], Path) -->
-    { format(string(Req), 'javascript:apiRequest("~w", "~w")', [Path, E]) },
-    html(li(a(href(Req), E))),
-    examples(Es, Path).
+	html(script(type('text/javascript'),
+		    'initApiPanel();\n')).

@@ -34,6 +34,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/http_host)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
@@ -54,11 +55,15 @@
 %
 %	HTTP handler to explore the Prolog HTTP server
 
-http_help(_Request) :-
-	gethostname(Host),
+http_help(Request) :-
+	http_current_host(Request, Host, Port, [global(true)]),
+	(   Port == 80
+	->  Authority = Host
+	;   format(atom(Authority), '~w:~w', [Host, Port])
+	),
 	reply_html_page(title('Server help'),
 			[ body(class('yui-skin-sam'),
-			       [ h1(class(title), 'Server at ~w'-[Host]),
+			       [ h1(class(title), 'Server at ~w'-[Authority]),
 				 \help_page
 			       ])
 			]).
@@ -92,7 +97,7 @@ tree_view_options(
 %	#content.
 
 script -->
-	{ http_location_by_id(help_on_handler, Handler)
+	{ http_link_to_id(help_on_handler, [], Handler)
 	},
 	html([ script(type('text/javascript'), \[
 'function helpNode(node)\n',

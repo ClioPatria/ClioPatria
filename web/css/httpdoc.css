@@ -1,10 +1,10 @@
 #sidebar
 { float: left;
-  width: 200px;
+  width: 250px;
 }
 
 #content
-{ margin-left: 200px;
+{ margin-left: 250px;
   padding-top: 5px;
   padding-left: 5px;
   border-style: solid;
@@ -73,7 +73,7 @@ table.file_handler th
 		 *******************************/
 
 #find
-{ margin-left: 200px;
+{ margin-left: 250px;
   padding-left: 5px;
   padding-bottom: 1ex;
   border-style: solid;
