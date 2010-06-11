@@ -685,7 +685,6 @@ attribute_decl(schema, Options)	      :- bool(off, Options).
 attribute_decl(data, Options)	      :- bool(off, Options).
 attribute_decl(explicitOnly, Options) :- bool(off, Options).
 attribute_decl(niceOutput, Options)   :- bool(off, Options).
-attribute_decl(niceOutput, Options)   :- bool(off, Options).
 					% Our extensions
 attribute_decl(storeAs,
 	       [ default(''),
