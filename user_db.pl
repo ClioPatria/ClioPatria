@@ -59,7 +59,6 @@
 
 	    deny_all_users/1		% +What
 	  ]).
-:- use_module(library(semweb/rdf_db)).
 :- use_module(library(http/http_session)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_openid)).
@@ -321,26 +320,15 @@ validate_password(User, Password) :-
 %%	password_hash(+Password, ?Hash)
 %
 %	Generate a hash from a password  or   test  a password against a
-%	hash. Like Unix we add a random   2 character prefix to make the
-%	same password return different  hashes   and  thus obscure equal
-%	passwords.
-%
-%	@tbd	Use crypt/2 from library(crypt)
+%	hash. Uses crypt/2. The default hashing is Unix-compatible MD5.
 
 password_hash(Password, Hash) :-
 	var(Hash), !,
-	C1 is random(0'z-0'a) + 0'a,
-	C2 is random(0'z-0'a) + 0'a,
-	atom_codes(Password, Codes),
-	rdf_atom_md5([C1,C2|Codes], 100000, Hash0),
-	atom_codes(Prefix, [C1, C2]),
-	atom_concat(Prefix, Hash0, Hash).
+	append("$1$", _, HashString),
+	crypt(Password, HashString),
+	atom_codes(Hash, HashString).
 password_hash(Password, Hash) :-
-	sub_atom(Hash, 0, 2, _, Prefix),
-	sub_atom(Hash, 2, _, 0, Hash0),
-	atom_codes(Prefix, [C1, C2]),
-	atom_codes(Password, Codes),
-	rdf_atom_md5([C1,C2|Codes], 100000, Hash0).
+	crypt(Password, Hash).
 
 
 		 /*******************************
