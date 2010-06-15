@@ -31,7 +31,11 @@
 :- module(cp_help, []).
 :- use_module(library(doc_http)).       % Load pldoc
 :- use_module(library(http/http_hook)). % Get hook signatures
+:- use_module(library(http/html_write)).
+
 :- use_module(http_help).		% Help on HTTP server
+:- use_module(ac_predicate).		% Predicate autocompletion
+:- use_module('../../http_user').	% ClioPatria Menu
 
 /** <module> Support PlDoc
 
@@ -49,3 +53,13 @@ http:location(pldoc, root('help/source'), [priority(10)]).
 
 http_user:menu_item(help/http_help,	'HTTP API').
 http_user:menu_item(help/pldoc_root,	'Source code').
+
+:- multifile
+	user:body//2.
+
+user:body(pldoc(_), Content) -->
+	html(body(class('yui-skin-sam'),
+		  [ div(id(sidebar), \cp_menu),
+		    br(clear(all)),
+		    div(id(content), Content)
+		  ])).

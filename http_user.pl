@@ -31,7 +31,8 @@
 */
 
 :- module(http_user,
-	  [ serql_page/2		% +Title, +Content
+	  [ serql_page/2,		% +Title, +Content
+	    cp_menu//0			% ClioPatria menu
 	  ]).
 
 :- use_module(server).
@@ -77,7 +78,7 @@
 		reply_decorated_file(serql('serql.html')), [id(serql_doc)]).
 
 
-navigation -->
+cp_menu -->
 	{ findall(Key-Item, current_menu_item(Key, Item), Pairs0),
 	  sort(Pairs0, Pairs),
 	  group_pairs_by_key(Pairs, ByKey),
@@ -910,7 +911,7 @@ hidden(Name, Value) -->
 serql_page(Head, Content) :-
 	reply_html_page(Head,
 			body(class('yui-skin-sam'),
-			     [ div(id(sidebar), \navigation),
+			     [ div(id(sidebar), \cp_menu),
 			       \rdf_search_form,
 			       br(clear(all)),
 			       div(id(content), Content)
