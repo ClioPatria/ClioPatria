@@ -1,4 +1,4 @@
-#!/home/janw/bin/swipl -g serql_welcome -s
+#!@PL@ -g serql_welcome -s
 
 :- use_module(library(semweb/rdf_db)).
 
