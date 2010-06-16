@@ -63,10 +63,11 @@ with emitting RDF related material in HTML human-readable format.
 
 rdf_io:write_table(html, _Serialization, Rows, Options) :- !,
 	length(Rows, Count),
-	serql_page(title('Query result'),
-		   [ \query_statistics([count(Count)|Options], rows),
-		     \select_result_table(Rows, Options)
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Query result'),
+			[ \query_statistics([count(Count)|Options], rows),
+			  \select_result_table(Rows, Options)
+			]).
 
 select_result_table(Rows, Options) -->
 	html_requires(css('rdf_browse.css')),
@@ -111,10 +112,11 @@ cells([H|T], Options) -->
 
 rdf_io:write_graph(html, _Serialization, Triples, Options) :-
 	length(Triples, Count),
-	serql_page(title('Query result'),
-		   [ \query_statistics([count(Count)|Options], triples),
-		     \consult_result_table(Triples, Options)
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Query result'),
+			[ \query_statistics([count(Count)|Options], triples),
+			  \consult_result_table(Triples, Options)
+			]).
 
 
 consult_result_table(Triples, Options) -->

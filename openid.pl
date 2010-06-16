@@ -90,11 +90,12 @@ login_page(Request) :-
 	http_parameters(Request,
 			[ 'openid.return_to'(ReturnTo, [])
 			]),
-	serql_page(title('Login'),
-		   [ \explain_login(ReturnTo),
-		     \openid_login_form(ReturnTo, []),
-		     \local_login(ReturnTo)
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Login'),
+			[ \explain_login(ReturnTo),
+			  \openid_login_form(ReturnTo, []),
+			  \local_login(ReturnTo)
+			]).
 
 explain_login(ReturnTo) -->
 	{ parse_url(ReturnTo, Parts),
@@ -141,13 +142,14 @@ hidden(Name, Value) -->
 
 trusted_openid_servers(_Request) :-
 	findall(S, openid_current_server(S), Servers),
-	serql_page(title('Trusted OpenID servers'),
-		   [ h4('Trusted OpenID servers'),
-		     p([ 'We accept OpenID logins from the following OpenID providers. ',
-			 'Please register with one of them.'
-		       ]),
-		     ul(\trusted_openid_servers(Servers))
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Trusted OpenID servers'),
+			[ h4('Trusted OpenID servers'),
+			  p([ 'We accept OpenID logins from the following OpenID providers. ',
+			      'Please register with one of them.'
+			    ]),
+			  ul(\trusted_openid_servers(Servers))
+			]).
 
 trusted_openid_servers([]) -->
 	[].
@@ -191,14 +193,15 @@ openid_userpage(Request) :-
 	file_base_name(Path, User),
 	(   current_user(User)
 	->  findall(P, user_property(User, P), Props),
-	    serql_page([ link([ rel('openid.server'),
-				href(location_by_id(openid_server))
-			      ]),
-			 title('OpenID page for user ~w'-[User])
-		       ],
-		       [ h1('OpenID page for user ~w'-[User]),
-			 \user_properties(Props)
-		       ])
+	    reply_html_page(cliopatria(default),
+			    [ link([ rel('openid.server'),
+				     href(location_by_id(openid_server))
+				   ]),
+			      title('OpenID page for user ~w'-[User])
+			    ],
+			    [ h1('OpenID page for user ~w'-[User]),
+			      \user_properties(Props)
+			    ])
 	;   existence_error(http_location, Path)
 	).
 
@@ -250,8 +253,9 @@ openid_for_local_user(User, URL) :-
 login_handler(_Request) :-
 	ensure_logged_on(User),
 	user_property(User, url(URL)),
-	serql_page(title('Login ok'),
-		   [ h1('Login ok'),
-		     p(['You''re logged on with OpenID ',
-			a(href(URL), URL)])
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Login ok'),
+			[ h1('Login ok'),
+			  p(['You''re logged on with OpenID ',
+			     a(href(URL), URL)])
+			]).

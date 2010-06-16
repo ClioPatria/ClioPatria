@@ -92,12 +92,13 @@ http:location(rdf_browser, root(browse), []).
 %	Entry page
 
 welcome(_Request) :-
-	page(title('RDF Explorer'),
-	     [ h4('Welcome to the SWI-Prolog RDF Explorer'),
-	       p([ 'This web-application allows the user to get an ',
-		   'overview of an RDF database.'
-		 ])
-	     ]).
+	reply_html_page(cliopatria(default),
+			title('RDF Explorer'),
+			[ h4('Welcome to the SWI-Prolog RDF Explorer'),
+			  p([ 'This web-application allows the user to get an ',
+			      'overview of an RDF database.'
+			    ])
+			]).
 
 
 %%	list_graphs(+Request)
@@ -115,10 +116,11 @@ list_graphs(_Request) :-
 	pairs_values(Sorted, UpCount),
 	reverse(UpCount, DownCount),
 	append(DownCount, [virtual(total)], Rows),
-	page(title('RDF Graphs'),
-	     [ h4('Named graphs in the RDF store'),
-	       \graph_table(Rows, [])
-	     ]).
+	reply_html_page(cliopatria(default),
+			title('RDF Graphs'),
+			[ h4('Named graphs in the RDF store'),
+			  \graph_table(Rows, [])
+			]).
 
 
 graph_table(Graphs, Options) -->
@@ -166,11 +168,12 @@ list_graph(Request) :-
 	->  true
 	;   existence_error(graph, Graph)
 	),
-	page(title('RDF Graph ~w'-[Graph]),
-	     [ h4('Summary information for graph "~w"'-[Graph]),
-	       \graph_info(Graph),
-	       \graph_actions(Graph)
-	     ]).
+	reply_html_page(cliopatria(default),
+			title('RDF Graph ~w'-[Graph]),
+			[ h4('Summary information for graph "~w"'-[Graph]),
+			  \graph_info(Graph),
+			  \graph_actions(Graph)
+			]).
 
 graph_info(Graph) -->
 	html_property_table(row(P,V),
@@ -327,8 +330,9 @@ delete_graph(Request) :-
 			]),
 	rdf_statistics(triples_by_file(Graph, Triples)),
 	rdf_retractall(_,_,_,Graph),
-	page(title('Deleted graph ~w'-[Graph]),
-	     p('Deleted graph ~w (~D triples)'-[Graph, Triples])).
+	reply_html_page(cliopatria(default),
+			title('Deleted graph ~w'-[Graph]),
+			p('Deleted graph ~w (~D triples)'-[Graph, Triples])).
 
 
 %%	list_classes(+Request)
@@ -341,10 +345,11 @@ list_classes(Request) :-
 			]),
 	findall(Type, type_in_graph(Graph, Type), Types),
 	sort_by_label(Types, Sorted),
-	page(title('Classes in graph ~w'-[Graph]),
-	     [ h4(['Classes in graph ', \graph_link(Graph)]),
-	       \class_table(Sorted, Graph, [])
-	     ]).
+	reply_html_page(cliopatria(default),
+			title('Classes in graph ~w'-[Graph]),
+			[ h4(['Classes in graph ', \graph_link(Graph)]),
+			  \class_table(Sorted, Graph, [])
+			]).
 
 class_table(Classes, Graph, Options) -->
 	{ option(top_max(TopMax), Options, 500),
@@ -461,10 +466,11 @@ list_instances(Request) :-
 	;   Table = TableByName
 	),
 
-	page(title(\instance_table_title(Graph, Class, Sort)),
-	     [ h4(\html_instance_table_title(Graph, Class, Sort)),
-	       \instance_table(Table, [])
-	     ]).
+	reply_html_page(cliopatria(default),
+			title(\instance_table_title(Graph, Class, Sort)),
+			[ h4(\html_instance_table_title(Graph, Class, Sort)),
+			  \instance_table(Table, [])
+			]).
 
 instance_table_title(Graph, Class, Sort) -->
 	{ var(Class) }, !,
@@ -531,10 +537,11 @@ list_predicates(Request) :-
 			]),
 	findall(Pred, predicate_in_graph(Graph, Pred), Preds),
 	sort_by_label(Preds, Sorted),
-	page(title('Predicates in graph ~w'-[Graph]),
-	     [ h4(['Predicates in graph ', \graph_link(Graph)]),
-	       \predicate_table(Sorted, Graph, [])
-	     ]).
+	reply_html_page(cliopatria(default),
+			title('Predicates in graph ~w'-[Graph]),
+			[ h4(['Predicates in graph ', \graph_link(Graph)]),
+			  \predicate_table(Sorted, Graph, [])
+			]).
 
 predicate_table(Preds, Graph, Options) -->
 	{ option(top_max(TopMax), Options, 500),
@@ -648,17 +655,18 @@ list_predicate_resources(Request) :-
 
 	pred_resource_options(Pred, Which, Options),
 
-	page(title(\resource_table_title(Graph, Pred, Which, Sort)),
-	     [ h4(\html_resource_table_title(Graph, Pred, Which,
-					     Sort, SkosMap)),
-	       \resource_frequency_table(Table,
-					 [ skosmap(SkosMap),
-					   predicate(Pred),
-					   side(Which),
-					   sort(Sort)
-					 | Options
-					 ])
-	     ]).
+	reply_html_page(cliopatria(default),
+			title(\resource_table_title(Graph, Pred, Which, Sort)),
+			[ h4(\html_resource_table_title(Graph, Pred, Which,
+							Sort, SkosMap)),
+			  \resource_frequency_table(Table,
+						    [ skosmap(SkosMap),
+						      predicate(Pred),
+						      side(Which),
+						      sort(Sort)
+						    | Options
+						    ])
+			]).
 
 pred_resource_options(_, domain, [label('Class'), force(true)]) :- !.
 pred_resource_options(_, range, [label('Class'), force(true)]) :- !.
@@ -910,14 +918,15 @@ list_resource(Request) :-
 			  graph(Graph, [optional(true)])
 			]),
 	label_of(URI, Label),
-	page(title('Resource ~w'-[Label]),
-	     [ h4([ 'Local view for ',
-		    \location(URI, Graph)
-		  ]),
-	       \local_view(URI, Graph, [sorted(Sorted)]),
-	       p(\as_object(URI, Graph)),
-	       \uri_info(URI, Graph)
-	     ]).
+	reply_html_page(cliopatria(default),
+			title('Resource ~w'-[Label]),
+			[ h4([ 'Local view for ',
+			       \location(URI, Graph)
+			     ]),
+			  \local_view(URI, Graph, [sorted(Sorted)]),
+			  p(\as_object(URI, Graph)),
+			  \uri_info(URI, Graph)
+			]).
 
 %%	location(+URI, ?Graph) is det.
 %
@@ -1214,10 +1223,11 @@ list_triples(Request) :-
 	sort_pairs_by_label(Pairs, Sorted),
 	length(Pairs, Count),
 	label_of(Pred, PLabel),
-	page(title('Triples for ~w in graph ~w'-[PLabel, Graph]),
-	     [ h4(\triple_header(Count, Pred, Dom, Range, Graph)),
-	       \triple_table(Sorted, Pred, [])
-	     ]).
+	reply_html_page(cliopatria(default),
+			title('Triples for ~w in graph ~w'-[PLabel, Graph]),
+			[ h4(\triple_header(Count, Pred, Dom, Range, Graph)),
+			  \triple_table(Sorted, Pred, [])
+			]).
 
 rdf_in_domain(S,P,O,Dom,Graph) :-
 	rdf(S, P, O, Graph),
@@ -1291,10 +1301,11 @@ list_triples_with_object(Request) :-
 	sort_pairs_by_label(Pairs, Sorted),
 	length(Pairs, Count),
 	label_of(Object, OLabel),
-	page(title('Triples with object ~w'-[OLabel]),
-	     [ h4(\otriple_header(Count, Object, P, Graph)),
-	       \otriple_table(Sorted, Object, [])
-	     ]).
+	reply_html_page(cliopatria(default),
+			title('Triples with object ~w'-[OLabel]),
+			[ h4(\otriple_header(Count, Object, P, Graph)),
+			  \otriple_table(Sorted, Object, [])
+			]).
 
 target_object(RObject, _LObject, RObject) :-
 	atom(RObject), !.
@@ -1516,12 +1527,11 @@ search(Request) :-
 	literal_query(QueryText, Query),
 	rdf_find_literals(Query, Literals),
 	phrase(ltriples(Literals), Triples),
-	page(title('Search results for ~q'-[Query]),
-	     [ h4('Search results for token "~q"'-[Query]),
-	       \rdf_table(Triples,
-			  [
-			  ])
-	     ]).
+	reply_html_page(cliopatria(default),
+			title('Search results for ~q'-[Query]),
+			[ h4('Search results for token "~q"'-[Query]),
+			  \rdf_table(Triples, [])
+			]).
 
 literal_query(QueryText, Query) :-
 	tokenize_atom(QueryText, Tokens), !,
@@ -1882,19 +1892,3 @@ delete_list_prefix(_, [], []) :- !.
 delete_list_prefix(N, [_|T], List) :-
 	N2 is N - 1,
 	delete_list_prefix(N2, T, List).
-
-
-:- meta_predicate
-	page(:, :).
-
-page(Title, HTML) :-
-	serql_page(Title, HTML).
-
-:- multifile
-	emacs_prolog_colours:goal_colours/2,
-	prolog:called_by/2.
-
-emacs_prolog_colours:goal_colours(page(T,H), Colours) :-
-	emacs_prolog_colours:goal_colours(reply_html_page(T,H), Colours).
-prolog:called_by(page(T,H), Colours) :-
-	prolog:called_by(reply_html_page(T,H), Colours).

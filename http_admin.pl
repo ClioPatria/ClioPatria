@@ -73,9 +73,10 @@
 %	Present menu with administrative tasks.
 
 tasks(_Request) :-
-	serql_page(title('Administrative tasks'),
-		   [ \action(location_by_id(list_users), 'List users')
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Administrative tasks'),
+			[ \action(location_by_id(list_users), 'List users')
+			]).
 
 
 action(URL, Label) -->
@@ -89,14 +90,15 @@ list_users(_Request) :-
 	authorized(admin(list_users)),
 	if_allowed(admin(user(edit)),   [edit(true)], UserOptions),
 	if_allowed(admin(openid(edit)), [edit(true)], OpenIDOptions),
-	serql_page(title('Users'),
-		   [ h1('Users'),
-		     \user_table(UserOptions),
-		     p(\action(location_by_id(add_user_form), 'Add user')),
-		     h1('OpenID servers'),
-		     \openid_server_table(OpenIDOptions),
-		     p(\action(location_by_id(add_openid_server_form), 'Add OpenID server'))
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Users'),
+			[ h1('Users'),
+			  \user_table(UserOptions),
+			  p(\action(location_by_id(add_user_form), 'Add user')),
+			  h1('OpenID servers'),
+			  \openid_server_table(OpenIDOptions),
+			  p(\action(location_by_id(add_openid_server_form), 'Add OpenID server'))
+			]).
 
 if_allowed(Token, Options, Options) :-
 	logged_on(User, anonymous),
@@ -190,18 +192,19 @@ create_admin(_Request) :-
 			context(_, 'Already initialized')))
 	;   true
 	),
-	serql_page(title('Create administrator'),
-		   [ h1(align(center), 'Create administrator'),
+	reply_html_page(cliopatria(default),
+			title('Create administrator'),
+			[ h1(align(center), 'Create administrator'),
 
-		     p('No accounts are available on this server. \
-		        This form allows for creation of an administrative \
-			account that can subsequently be used to create \
-			new users.'),
+			  p('No accounts are available on this server. \
+			  This form allows for creation of an administrative \
+			  account that can subsequently be used to create \
+			  new users.'),
 
-		     \new_user_form([ user(admin),
-				      real_name('Administrator')
-				    ])
-		   ]).
+			  \new_user_form([ user(admin),
+					   real_name('Administrator')
+					 ])
+			]).
 
 
 %%	add_user_form(+Request)
@@ -210,9 +213,10 @@ create_admin(_Request) :-
 
 add_user_form(_Request) :-
 	authorized(admin(add_user)),
-	serql_page(title('Add new user'),
-		   [ \new_user_form([])
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Add new user'),
+			[ \new_user_form([])
+			]).
 
 new_user_form(Options) -->
 	{ (   option(user(User), Options)
@@ -315,8 +319,9 @@ edit_user_form(Request) :-
 			[ user(User, [])
 			]),
 
-	serql_page(title('Edit user'),
-		   \edit_user_form(User)).
+	reply_html_page(cliopatria(default),
+			title('Edit user'),
+			\edit_user_form(User)).
 
 %%	edit_user_form(+User)//
 %
@@ -473,11 +478,12 @@ del_user(Request) :- !,
 change_password_form(_Request) :-
 	logged_on(User),
 	user_property(User, realname(RealName)),
-	serql_page(title('Change password'),
-		   [ h4(['Change password for ', User, ' (', RealName, ')']),
+	reply_html_page(cliopatria(default),
+			title('Change password'),
+			[ h4(['Change password for ', User, ' (', RealName, ')']),
 
-		     \change_password_form(User)
-		   ]).
+			  \change_password_form(User)
+			]).
 
 %%	change_password_form(+UserID)//
 %
@@ -539,10 +545,11 @@ change_password(Request) :-
 	),
 	password_hash(New, Hash),
 	set_user_property(User, password(Hash)),
-	serql_page('Password changed',
-		   [ h1(align(center), 'Password changed'),
-		     p([ 'Your password has been changed successfully' ])
-		   ]).
+	reply_html_page(cliopatria(default),
+			'Password changed',
+			[ h1(align(center), 'Password changed'),
+			  p([ 'Your password has been changed successfully' ])
+			]).
 
 
 		 /*******************************
@@ -554,30 +561,31 @@ change_password(Request) :-
 %	HTTP handler that presents a form to login.
 
 login_form(_Request) :-
-	serql_page('Login',
-		   [ h1(align(center), 'Login'),
-		     form([ action(location_by_id(user_login)),
-			    method('GET')
-			  ],
-			  table([ tr([ th(align(right), 'User:'),
-				       td(input([ name(user),
-						  size(40)
-						]))
-				     ]),
-				  tr([ th(align(right), 'Password:'),
-				       td(input([ type(password),
-						  name(password),
-						  size(40)
-						]))
-				     ]),
-				  tr([ td([ align(right), colspan(2) ],
-					  input([ type(submit),
-						  value('Login')
-						]))
+	reply_html_page(cliopatria(default),
+			'Login',
+			[ h1(align(center), 'Login'),
+			  form([ action(location_by_id(user_login)),
+				 method('GET')
+			       ],
+			       table([ tr([ th(align(right), 'User:'),
+					    td(input([ name(user),
+						       size(40)
+						     ]))
+					  ]),
+				       tr([ th(align(right), 'Password:'),
+					    td(input([ type(password),
+						       name(password),
+						       size(40)
+						     ]))
+					  ]),
+				       tr([ td([ align(right), colspan(2) ],
+					       input([ type(submit),
+						       value('Login')
+						     ]))
+					  ])
 				     ])
-				])
-			 )
-		   ]).
+			      )
+			]).
 
 %%	user_login(+Request)
 %
@@ -609,14 +617,16 @@ reply_login(Options) :-
 	login(User),
 	(   option(return_to(ReturnTo), Options)
 	->  throw(http_reply(moved_temporary(ReturnTo)))
-	;   serql_page(title('Login ok'),
-		       h1(align(center), ['Welcome ', User]))
+	;   reply_html_page(cliopatria(default),
+			    title('Login ok'),
+			    h1(align(center), ['Welcome ', User]))
 	).
 reply_login(_) :-
-	serql_page(title('Login failed'),
-		   [ h1('Login failed'),
-		     p(['Password incorrect'])
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Login failed'),
+			[ h1('Login failed'),
+			  p(['Password incorrect'])
+			]).
 
 %%	user_logout(+Request)
 %
@@ -625,8 +635,9 @@ reply_login(_) :-
 user_logout(_Request) :-
 	logged_on(User),
 	logout(User),
-	serql_page(title('Logout'),
-		   h1(align(center), ['Logged out ', User])).
+	reply_html_page(cliopatria(default),
+			title('Logout'),
+			h1(align(center), ['Logged out ', User])).
 
 attribute_decl(read,
 	       [ description('Provide read-only access to the RDF store')
@@ -654,9 +665,10 @@ bool(Def,
 
 add_openid_server_form(_Request) :-
 	authorized(admin(add_openid_server)),
-	serql_page(title('Add OpenID server'),
-		   [ \new_openid_form
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Add OpenID server'),
+			[ \new_openid_form
+			]).
 
 
 %%	new_openid_form// is det.
@@ -748,8 +760,9 @@ edit_openid_server_form(Request) :-
 			[ openid_server(Server, [])
 			]),
 
-	serql_page(title('Edit OpenID server'),
-		   \edit_openid_server_form(Server)).
+	reply_html_page(cliopatria(default),
+			title('Edit OpenID server'),
+			\edit_openid_server_form(Server)).
 
 edit_openid_server_form(Server) -->
 	html_requires(css('rdfql.css')),
@@ -911,13 +924,14 @@ settings(_Request) :-
 	;   authorized(read(admin, settings)),
 	    Edit = false
 	),
-	serql_page(title('Settings'),
-		   [ \http_show_settings([ edit(Edit),
-					   hide_module(false),
-					   action('save_settings')
-					 ]),
-		     \warn_no_edit(Edit)
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Settings'),
+			[ \http_show_settings([ edit(Edit),
+						hide_module(false),
+						action('save_settings')
+					      ]),
+			  \warn_no_edit(Edit)
+			]).
 
 warn_no_edit(true) --> !.
 warn_no_edit(_) -->
@@ -931,8 +945,9 @@ warn_no_edit(_) -->
 
 save_settings(Request) :-
 	authorized(admin(edit_settings)),
-	serql_page(title('Save settings'),
-		   \http_apply_settings(Request, [save(true)])).
+	reply_html_page(cliopatria(default),
+			title('Save settings'),
+			\http_apply_settings(Request, [save(true)])).
 
 
 		 /*******************************

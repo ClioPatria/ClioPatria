@@ -98,8 +98,9 @@ http_login(Request) :-
 			]),
 	validate_password(User, Password),
 	login(User),
-	serql_page(title('Successful login'),
-		   p(['Login succeeded for ', User])).
+	reply_html_page(cliopatria(default),
+			title('Successful login'),
+			p(['Login succeeded for ', User])).
 
 %%      http_logout(+Request)
 %
@@ -108,8 +109,9 @@ http_login(Request) :-
 http_logout(_Request) :-
 	logged_on(User),
 	logout(User),
-	serql_page(title('Successful logout'),
-		   p(['Logout succeeded for ', User])).
+	reply_html_page(cliopatria(default),
+			title('Successful logout'),
+			p(['Logout succeeded for ', User])).
 
 %%	evaluate_query(+Request) is det.
 %
@@ -158,10 +160,11 @@ evaluate_query(Request) :-
 			  cputime(CPU)
 			])
 	;   Type == ask
-	->  serql_page(title('ASK Result'),
-		       [ h4('ASK query completed'),
-			 p(['Answer = ', Reply])
-		       ])
+	->  reply_html_page(cliopatria(default),
+			    title('ASK Result'),
+			    [ h4('ASK query completed'),
+			      p(['Answer = ', Reply])
+			    ])
 	).
 
 
@@ -725,8 +728,9 @@ run(A, Log) :-
 
 
 done(html, Message, CPU, Subjects, Triples) :-
-	serql_page(title('Success'),
-		   \result_table(Message, CPU, Subjects, Triples)).
+	reply_html_page(cliopatria(default),
+			title('Success'),
+			\result_table(Message, CPU, Subjects, Triples)).
 done(xml, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format(string(Message), Fmt, Args),
 	format('Content-type: text/xml~n~n'),

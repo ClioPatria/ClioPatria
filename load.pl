@@ -78,6 +78,7 @@ user:file_search_path(js,	     serql('web/js')).
 :- check_prolog_version(5111).		% Demand >= 5.11.1
 
 :- load_files([ parms,
+		page,			% HTML Page layout
 		library(option),
 		library(debug),
 		library(lists),

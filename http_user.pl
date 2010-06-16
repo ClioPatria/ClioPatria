@@ -31,8 +31,7 @@
 */
 
 :- module(http_user,
-	  [ serql_page/2,		% +Title, +Content
-	    cp_menu//0			% ClioPatria menu
+	  [ cp_menu//0			% ClioPatria menu
 	  ]).
 
 :- use_module(server).
@@ -232,7 +231,7 @@ welcome(Request) :-
 %
 %	Present an HTML file embedded using  the server styling. This is
 %	achieved by parsing the  HTML  and   passing  the  parsed DOM to
-%	serql_page/2.
+%	reply_html_page/3.
 
 reply_decorated_file(Alias, _Request) :-
 	absolute_file_name(Alias, Page, [access(read)]),
@@ -242,7 +241,8 @@ reply_decorated_file(Alias, _Request) :-
 	Style = element(style, _, _),
 	findall(Style, sub_term(Style, DOM), Styles),
 	append(Styles, Body, Content),
-	serql_page(title(Title), Content).
+	reply_html_page(cliopatria(html_file),
+			title(Title), Content).
 
 
 		 /*******************************
@@ -255,27 +255,28 @@ reply_decorated_file(Alias, _Request) :-
 
 statistics(Request) :-
 	http_current_host(Request, Host, _Port, [global(true)]),
-	serql_page(title('RDF statistics'),
-		   div(id('rdf-statistics'),
-		       [ h1([id(stattitle)], ['RDF statistics for ', Host]),
-			 ol([id(toc)],
-			    [ li(a(href('#ntriples'),    'Triples in database')),
-			      li(a(href('#callstats'),   'Call statistics')),
-			      li(a(href('#sessions'),    'Active sessions')),
-			      li(a(href('#serverstats'), 'Server statistics'))
-			    ]),
-			 h4([id(ntriples)], 'Triples in database'),
-			 \triple_statistics,
-			 h4([id(callstats)],'Call statistics'),
-			 \rdf_call_stat_table,
-			 h4([id(sessions)], 'Active sessions'),
-			 \http_session_table,
-			 h4([id(serverstats)], 'Server statistics'),
-			 p('Static workers and statistics:'),
-			 \http_server_statistics,
-			 p('Defined dynamic worker pools:'),
-			 \http_server_pool_table
-		       ])).
+	reply_html_page(cliopatria(default),
+			title('RDF statistics'),
+			div(id('rdf-statistics'),
+			    [ h1([id(stattitle)], ['RDF statistics for ', Host]),
+			      ol([id(toc)],
+				 [ li(a(href('#ntriples'),    'Triples in database')),
+				   li(a(href('#callstats'),   'Call statistics')),
+				   li(a(href('#sessions'),    'Active sessions')),
+				   li(a(href('#serverstats'), 'Server statistics'))
+				 ]),
+			      h4([id(ntriples)], 'Triples in database'),
+			      \triple_statistics,
+			      h4([id(callstats)],'Call statistics'),
+			      \rdf_call_stat_table,
+			      h4([id(sessions)], 'Active sessions'),
+			      \http_session_table,
+			      h4([id(serverstats)], 'Server statistics'),
+			      p('Static workers and statistics:'),
+			      \http_server_statistics,
+			      p('Defined dynamic worker pools:'),
+			      \http_server_pool_table
+			    ])).
 
 
 triple_statistics -->
@@ -299,53 +300,54 @@ graph_count(Count) :-
 
 construct_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
-	serql_page(title('Specify a query'),
-		   [ h1(align(center), 'Interactive SeRQL CONSTRUCT query'),
+	reply_html_page(cliopatria(default),
+			title('Specify a query'),
+			[ h1(align(center), 'Interactive SeRQL CONSTRUCT query'),
 
-		     p(['A CONSTRUCT generates an RDF graph']),
+			  p(['A CONSTRUCT generates an RDF graph']),
 
-		     form([ name(query),
-			    action(location_by_id(evaluate_graph_query)),
-			    method('GET')
-			  ],
-			  [ \hidden(repository, default),
-			    table(align(center),
-				  [ \store_recall(User, construct, 3-2),
-				    tr([ td(colspan(6),
-					    textarea([ name(query),
-						       rows(15),
-						       cols(80)
-						     ],
-						     'CONSTRUCT '))
-				       ]),
-				    tr([ td([ \small('QLang: '),
-					      \query_language
+			  form([ name(query),
+				 action(location_by_id(evaluate_graph_query)),
+				 method('GET')
+			       ],
+			       [ \hidden(repository, default),
+				 table(align(center),
+				       [ \store_recall(User, construct, 3-2),
+					 tr([ td(colspan(6),
+						 textarea([ name(query),
+							    rows(15),
+							    cols(80)
+							  ],
+							  'CONSTRUCT '))
 					    ]),
-					 td([ \small('Format: '),
-					      \result_format
-					    ]),
-					 td([ \small('Serial.: '),
-					      \serialization
-					    ]),
-					 td([ \small('Res.: '),
-					      \resource_menu
-					    ]),
-					 td([ \small('Entail.: '),
-					      \entailment
-					    ]),
-					 td(align(right),
-					    [ input([ type(reset),
-						      value('Reset')
-						    ]),
-					      input([ type(submit),
-						      value('Go!')
-						    ])
+					 tr([ td([ \small('QLang: '),
+						   \query_language
+						 ]),
+					      td([ \small('Format: '),
+						   \result_format
+						 ]),
+					      td([ \small('Serial.: '),
+						   \serialization
+						 ]),
+					      td([ \small('Res.: '),
+						   \resource_menu
+						 ]),
+					      td([ \small('Entail.: '),
+						   \entailment
+						 ]),
+					      td(align(right),
+						 [ input([ type(reset),
+							   value('Reset')
+							 ]),
+						   input([ type(submit),
+							   value('Go!')
+							 ])
+						 ])
 					    ])
 				       ])
-				  ])
-			  ]),
-		     \script
-		   ]).
+			       ]),
+			  \script
+			]).
 
 store_recall(anonymous, _, _) -->
 	[].
@@ -447,50 +449,51 @@ js_quote_code(C) -->
 
 query_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
-	serql_page(title('Specify a query'),
-		   [ form([ name(query),
-			    action(location_by_id(evaluate_query)),
-			    method('GET')
-			  ],
-			  [ \hidden(repository, default),
-			    \hidden(serialization, rdfxml),
-			    h1(align(center),
-			       [ 'Interactive ',
-				 \query_language,
-				 ' query'
-			       ]),
-			    table(align(center),
-				  [ \store_recall(User, _, 3-2),
-				    tr([ td(colspan(5),
-					    textarea([ name(query),
-						       rows(15),
-						       cols(80)
-						     ],
-						     ''))
-				       ]),
-				    tr([ td([ \small('Result format: '),
-					      \result_format
+	reply_html_page(cliopatria(default),
+			title('Specify a query'),
+			[ form([ name(query),
+				 action(location_by_id(evaluate_query)),
+				 method('GET')
+			       ],
+			       [ \hidden(repository, default),
+				 \hidden(serialization, rdfxml),
+				 h1(align(center),
+				    [ 'Interactive ',
+				      \query_language,
+				      ' query'
+				    ]),
+				 table(align(center),
+				       [ \store_recall(User, _, 3-2),
+					 tr([ td(colspan(5),
+						 textarea([ name(query),
+							    rows(15),
+							    cols(80)
+							  ],
+							  ''))
 					    ]),
-					 td([ \small('Resource: '),
-					      \resource_menu
-					    ]),
-					 td([ \small('Entailment: '),
-					      \entailment
-					    ]),
-					 td(align(right),
-					    [ input([ type(reset),
-						      value('Reset')
-						    ]),
-					      input([ type(submit),
-						      value('Go!')
-						    ])
+					 tr([ td([ \small('Result format: '),
+						   \result_format
+						 ]),
+					      td([ \small('Resource: '),
+						   \resource_menu
+						 ]),
+					      td([ \small('Entailment: '),
+						   \entailment
+						 ]),
+					      td(align(right),
+						 [ input([ type(reset),
+							   value('Reset')
+							 ]),
+						   input([ type(submit),
+							   value('Go!')
+							 ])
+						 ])
 					    ])
-				       ])
-				  ]),
-			    \query_docs
-			  ]),
-		     \script
-		   ]).
+				       ]),
+				 \query_docs
+			       ]),
+			  \script
+			]).
 
 
 query_docs -->
@@ -507,51 +510,52 @@ query_docs -->
 
 select_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
-	serql_page(title('Specify a query'),
-		   [ h1(align(center), 'Interactive SeRQL SELECT query'),
+	reply_html_page(cliopatria(default),
+			title('Specify a query'),
+			[ h1(align(center), 'Interactive SeRQL SELECT query'),
 
-		     p(['A SELECT generates a table']),
+			  p(['A SELECT generates a table']),
 
-		     form([ name(query),
-			    action(location_by_id(evaluate_table_query)),
-			    method('GET')
-			  ],
-			  [ \hidden(repository, default),
-			    \hidden(serialization, rdfxml),
-			    table(align(center),
-				  [ \store_recall(User, select, 3-2),
-				    tr([ td(colspan(6),
-					    textarea([ name(query),
-						       rows(15),
-						       cols(80)
-						     ],
-						     'SELECT '))
-				       ]),
-				    tr([ td([ \small('Result format: '),
-					      \result_format
+			  form([ name(query),
+				 action(location_by_id(evaluate_table_query)),
+				 method('GET')
+			       ],
+			       [ \hidden(repository, default),
+				 \hidden(serialization, rdfxml),
+				 table(align(center),
+				       [ \store_recall(User, select, 3-2),
+					 tr([ td(colspan(6),
+						 textarea([ name(query),
+							    rows(15),
+							    cols(80)
+							  ],
+							  'SELECT '))
 					    ]),
-					 td([ \small('Language: '),
-					      \query_language
-					    ]),
-					 td([ \small('Resource: '),
-					      \resource_menu
-					    ]),
-					 td([ \small('Entailment: '),
-					      \entailment
-					    ]),
-					 td(align(right),
-					    [ input([ type(reset),
-						      value('Reset')
-						    ]),
-					      input([ type(submit),
-						      value('Go!')
-						    ])
+					 tr([ td([ \small('Result format: '),
+						   \result_format
+						 ]),
+					      td([ \small('Language: '),
+						   \query_language
+						 ]),
+					      td([ \small('Resource: '),
+						   \resource_menu
+						 ]),
+					      td([ \small('Entailment: '),
+						   \entailment
+						 ]),
+					      td(align(right),
+						 [ input([ type(reset),
+							   value('Reset')
+							 ]),
+						   input([ type(submit),
+							   value('Go!')
+							 ])
+						 ])
 					    ])
 				       ])
-				  ])
-			  ]),
-		     \script
-		   ]).
+			       ]),
+			  \script
+			]).
 
 
 serialization -->
@@ -606,39 +610,40 @@ small(Text) -->
 %	Provide a form for uploading triples from a local file.
 
 load_file_form(_Request) :-
-	serql_page(title('Upload RDF'),
-		   [ h3(align(center), 'Upload an RDF document'),
+	reply_html_page(cliopatria(default),
+			title('Upload RDF'),
+			[ h3(align(center), 'Upload an RDF document'),
 
-		     p(['Upload a document using POST to /servlets/uploadData. \
-		         Alternatively you can use ',
-			 a(href=loadURL,loadURL), ' to load data from a \
-			 web server.'
-		       ]),
+			  p(['Upload a document using POST to /servlets/uploadData. \
+			  Alternatively you can use ',
+			     a(href=loadURL,loadURL), ' to load data from a \
+			     web server.'
+			    ]),
 
-		     form([ action(location_by_id(upload_data)),
-			    method('POST'),
-			    enctype('multipart/form-data')
-			  ],
-			  [ \hidden(resultFormat, html),
-			    table([tr([ td(align(right), 'File:'),
-					td(input([ name(data),
-						   type(file),
-						   size(50)
-						 ]))
-				      ]),
-				   tr([ td(align(right), 'BaseURI:'),
-					td(input([ name(baseURI),
-						   size(50)
-						 ]))
-				      ]),
-				   tr([ td([align(right), colspan(2)],
-					   input([ type(submit),
-						   value('Upload now')
-						 ]))
-				      ])
-				  ])
-			  ])
-		   ]).
+			  form([ action(location_by_id(upload_data)),
+				 method('POST'),
+				 enctype('multipart/form-data')
+			       ],
+			       [ \hidden(resultFormat, html),
+				 table([tr([ td(align(right), 'File:'),
+					     td(input([ name(data),
+							type(file),
+							size(50)
+						      ]))
+					   ]),
+					tr([ td(align(right), 'BaseURI:'),
+					     td(input([ name(baseURI),
+							size(50)
+						      ]))
+					   ]),
+					tr([ td([align(right), colspan(2)],
+						input([ type(submit),
+							value('Upload now')
+						      ]))
+					   ])
+				       ])
+			       ])
+			]).
 
 
 %%	load_url_form(+Request)
@@ -646,31 +651,32 @@ load_file_form(_Request) :-
 %	Provide a form for uploading triples from a URL.
 
 load_url_form(_Request) :-
-	serql_page(title('Load RDF from HTTP server'),
-		   [ h3(align(center), 'Load RDF from HTTP server'),
-		     form([ action(location_by_id(upload_url)),
-			    method('GET')
-			  ],
-			  [ \hidden(resultFormat, html),
-			    table([tr([ td(align(right), 'URL:'),
-					td(input([ name(url),
-						   value('http://'),
-						   size(50)
-						 ]))
-				      ]),
-				   tr([ td(align(right), 'BaseURI:'),
-					td(input([ name(baseURI),
-						   size(50)
-						 ]))
-				      ]),
-				   tr([ td([align(right), colspan(2)],
-					   input([ type(submit),
-						   value('Upload now')
-						 ]))
-				      ])
-				  ])
-			  ])
-		   ]).
+	reply_html_page(cliopatria(default),
+			title('Load RDF from HTTP server'),
+			[ h3(align(center), 'Load RDF from HTTP server'),
+			  form([ action(location_by_id(upload_url)),
+				 method('GET')
+			       ],
+			       [ \hidden(resultFormat, html),
+				 table([tr([ td(align(right), 'URL:'),
+					     td(input([ name(url),
+							value('http://'),
+							size(50)
+						      ]))
+					   ]),
+					tr([ td(align(right), 'BaseURI:'),
+					     td(input([ name(baseURI),
+							size(50)
+						      ]))
+					   ]),
+					tr([ td([align(right), colspan(2)],
+						input([ type(submit),
+							value('Upload now')
+						      ]))
+					   ])
+				       ])
+			       ])
+			]).
 
 
 %%	load_base_ontology_form(+Request)
@@ -680,13 +686,14 @@ load_url_form(_Request) :-
 load_base_ontology_form(Request) :- !,
 	authorized(read(status, listBaseOntologies)),
 	get_base_ontologies(Request, Ontologies),
-	serql_page(title('Load base ontology'),
-		   [ h3(align(center), 'Load ontology from repository'),
+	reply_html_page(cliopatria(default),
+			title('Load base ontology'),
+			[ h3(align(center), 'Load ontology from repository'),
 
-		     p('Select an ontology from the registered libraries'),
+			  p('Select an ontology from the registered libraries'),
 
-		     \load_base_ontology_form(Ontologies)
-		   ]).
+			  \load_base_ontology_form(Ontologies)
+			]).
 
 %%	load_base_ontology_form(+Ontologies)//
 %
@@ -753,22 +760,23 @@ get_base_ontologies(Request, List) :-
 %	HTTP handle presenting a form to clear the repository.
 
 clear_repository_form(_Request) :-
-	serql_page(title('Load base ontology'),
-		   [ h3(align(center), 'Clear entire repository'),
+	reply_html_page(cliopatria(default),
+			title('Load base ontology'),
+			[ h3(align(center), 'Clear entire repository'),
 
-		     p(['This operation removes ', b(all), ' triples from \
-		         the RDF store.']),
+			  p(['This operation removes ', b(all), ' triples from \
+			  the RDF store.']),
 
-		     form([ action(location_by_id(clear_repository)),
-			    method('GET')
-			  ],
-			  [ \hidden(repository, default),
-			    \hidden(resultFormat, html),
-			    input([ type(submit),
-				    value('Clear repository now')
-				  ])
-			  ])
-		   ]).
+			  form([ action(location_by_id(clear_repository)),
+				 method('GET')
+			       ],
+			       [ \hidden(repository, default),
+				 \hidden(resultFormat, html),
+				 input([ type(submit),
+					 value('Clear repository now')
+				       ])
+			       ])
+			]).
 
 
 %%	remove_statements_form(+Request)
@@ -776,15 +784,16 @@ clear_repository_form(_Request) :-
 %	HTTP handler providing a form to remove RDF statements.
 
 remove_statements_form(_Request) :-
-	serql_page(title('Load base ontology'),
-		   [ h3(align(center), 'Remove statements'),
+	reply_html_page(cliopatria(default),
+			title('Load base ontology'),
+			[ h3(align(center), 'Remove statements'),
 
-		     p('Remove matching triples from the database.  The three \
-		        fields are in ntriples notation.  Omitted fields \
-			match any value.'),
+			  p('Remove matching triples from the database.  The three \
+			  fields are in ntriples notation.  Omitted fields \
+			  match any value.'),
 
-		     \remove_statements_form
-		   ]).
+			  \remove_statements_form
+			]).
 
 remove_statements_form -->
 	html_requires(css('rdfql.css')),
@@ -899,37 +908,3 @@ hidden(Name, Value) -->
 		     name(Name),
 		     value(Value)
 		   ])).
-
-
-		 /*******************************
-		 *		EMIT		*
-		 *******************************/
-
-:- meta_predicate
-	serql_page(:, :).
-
-serql_page(Head, Content) :-
-	reply_html_page(Head,
-			body(class('yui-skin-sam'),
-			     [ div(id(sidebar), \cp_menu),
-			       \rdf_search_form,
-			       br(clear(all)),
-			       div(id(content), Content)
-			     ])).
-
-
-                 /*******************************
-                 *        PCEEMACS SUPPORT      *
-                 *******************************/
-
-:- multifile
-        emacs_prolog_colours:goal_colours/2,
-        prolog:called_by/2.
-
-
-emacs_prolog_colours:goal_colours(serql_page(_, HTML),
-                                  built_in-[classify, Colours]) :-
-        catch(html_write:html_colours(HTML, Colours), _, fail).
-
-prolog:called_by(serql_page(_, HTML), Called) :-
-        catch(phrase(html_write:called_by(HTML), Called), _, fail).
