@@ -96,7 +96,7 @@ qt(right_noun,
    WHERE L like "right"
    USING NAMESPACE
 	 wns = <!http://www.cogsci.princeton.edu/~wn/schema/>').
-        
+
 qt(right_noun_r,
   'SELECT S
    FROM {S} <rdf:type> {<wns:Noun>} ;
@@ -104,7 +104,7 @@ qt(right_noun_r,
    WHERE L like "right"
    USING NAMESPACE
 	 wns = <!http://www.cogsci.princeton.edu/~wn/schema/>').
-        
+
 % Give me a WordNet word that belongs to multiple lexical categories
 qt(multi_lex,
   'SELECT DISTINCT L
@@ -145,9 +145,9 @@ clear :-
 		 *******************************/
 
 %	login
-%	
+%
 %	Read facts from a file secrets.pl holing lines of the format
-%	
+%
 %%		secret(Host:Port, User, Password).
 
 login :-
@@ -170,7 +170,7 @@ logout :-
 		 *******************************/
 
 upload(rdfs) :-
-	sesame_upload_file('Ontologies/Base/rdfs.rdfs',
+	sesame_upload_file('ontologies/base/rdfs.rdfs',
 			   [ base_uri('rdfs.rdfs')
 			   ]).
 upload(wine) :-
@@ -208,4 +208,4 @@ wns :-
 	       (   format(user_error, 'Uploading ~w ...', [File]),
 		   sesame_upload_file(File, []),
 		   format(user_error, 'done~n', []))).
-	
+

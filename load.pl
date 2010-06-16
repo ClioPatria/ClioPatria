@@ -66,14 +66,6 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
        assert(user:file_search_path(cliopatria, Dir))
    ).
 
-user:file_search_path(triple20,      cliopatria('Triple20/src')).
-user:file_search_path(library,	     cliopatria(lib)).
-user:file_search_path(ontology_root, cliopatria('Ontologies')).
-user:file_search_path(css,	     cliopatria('web/css')).
-user:file_search_path(icons,	     cliopatria('web/icons')).
-user:file_search_path(yui,	     cliopatria('web/yui/2.7.0')).
-user:file_search_path(js,	     cliopatria('web/js')).
-
 :- load_files([version], [silent(true), if(not_loaded)]).
 :- check_prolog_version(5111).		% Demand >= 5.11.1
 

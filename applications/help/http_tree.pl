@@ -7,6 +7,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/yui_resources)).
 :- use_module(library(option)).
 :- use_module(library(pairs)).
 

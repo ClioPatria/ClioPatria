@@ -354,7 +354,7 @@ clear_repository(Request) :-
 	authorized(write(Repository, clear)),
 	action(Request,
 	       (  rdf_reset_db,		% must be in seperate transactions
-		  rdf_load(cliopatria('rdfs'))
+		  rdf_load(ontology_root('base/rdfs.rdfs'))
 	       ),
 	       Format,
 	       'Cleared database'-[]).

@@ -29,12 +29,13 @@
 */
 
 :- module(cp_help, []).
-:- use_module(library(doc_http)).       % Load pldoc
-:- use_module(library(pldoc/doc_index)).       % PlDoc Search menu
-:- use_module(library(http/http_hook)).	% Get hook signatures
-:- use_module(library(http/http_dispatch)). % Get hook signatures
+:- use_module(library(doc_http)).       	% Load pldoc
+:- use_module(library(pldoc/doc_index)).	% PlDoc Search menu
+:- use_module(library(http/http_hook)).		% Get hook signatures
+:- use_module(library(http/http_dispatch)).	% Get hook signatures
 :- use_module(library(http/html_write)).
 
+:- use_module('../../parms').		% Get paths
 :- use_module(http_help).		% Help on HTTP server
 :- use_module(ac_predicate).		% Predicate autocompletion
 :- use_module('../../menu').		% ClioPatria Menu
