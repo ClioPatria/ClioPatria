@@ -153,5 +153,5 @@ sparql_decl(entailment,
 	      oneof(Es),
 	      description('Entailment used')
 	    ]) :-
-	findall(E, serql:entailment(E, _), Es).
+	findall(E, cliopatria:entailment(E, _), Es).
 

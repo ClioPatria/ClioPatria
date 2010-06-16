@@ -673,7 +673,7 @@ attribute_decl(entailment,		% cache?
 		 description('Reasoning performed')
 	       ]) :-
 	setting(cliopatria:default_entailment, Default),
-	findall(E, serql:entailment(E, _), Es).
+	findall(E, cliopatria:entailment(E, _), Es).
 attribute_decl(dataFormat,
 	       [ default(rdfxml),
 		 oneof([rdfxml, ntriples]),

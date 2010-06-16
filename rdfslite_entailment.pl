@@ -105,6 +105,6 @@ rdf(S, P, O) :-
 		 *******************************/
 
 :- multifile
-	serql:entailment/2.
+	cliopatria:entailment/2.
 
-serql:entailment(rdfslite, rdfslite_entailment).
+cliopatria:entailment(rdfslite, rdfslite_entailment).

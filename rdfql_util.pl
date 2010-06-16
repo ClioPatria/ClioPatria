@@ -177,10 +177,10 @@ limit(_, _, []).
 %	semantic web language.
 
 entailment_module(Entailment, Module) :-
-	serql:entailment(Entailment, Module), !.
+	cliopatria:entailment(Entailment, Module), !.
 entailment_module(Entailment, _) :-
 	throw(error(existence_error(entailment, Entailment), _)).
 
 :- multifile
-	serql:entailment/2.
+	cliopatria:entailment/2.
 

@@ -449,7 +449,7 @@ resource_menu -->
 		    ])).
 
 entailment -->
-	{ findall(E, serql:entailment(E, _), Es)
+	{ findall(E, cliopatria:entailment(E, _), Es)
 	},
 	html(select(name(entailment),
 		    \entailments(Es))).

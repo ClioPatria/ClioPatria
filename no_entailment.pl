@@ -45,6 +45,6 @@
 		 *******************************/
 
 :- multifile
-	serql:entailment/2.
+	cliopatria:entailment/2.
 
-serql:entailment(none, no_entailment).
+cliopatria:entailment(none, no_entailment).

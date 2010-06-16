@@ -169,6 +169,6 @@ rdfs_has_type(Resource, Class) :-
 		 *******************************/
 
 :- multifile
-	serql:entailment/2.
+	cliopatria:entailment/2.
 
-serql:entailment(rdfs, rdfs_entailment).
+cliopatria:entailment(rdfs, rdfs_entailment).

@@ -81,6 +81,6 @@ rdf(S, serql:directSubPropertyOf, O) :- !,
 		 *******************************/
 
 :- multifile
-	serql:entailment/2.
+	cliopatria:entailment/2.
 
-serql:entailment(rdf, rdf_entailment).
+cliopatria:entailment(rdf, rdf_entailment).
