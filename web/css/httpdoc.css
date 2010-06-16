@@ -1,10 +1,10 @@
-#sidebar
+#http-tree
 { float: left;
-  width: 250px;
+  width: 300px;
 }
 
-#content
-{ margin-left: 250px;
+#http-help
+{ margin-left: 300px;
   padding-top: 5px;
   padding-left: 5px;
   border-style: solid;
@@ -20,12 +20,8 @@
 }
 
 table.http_parameters th
-{ color: #fff;
-  border-color: #000;
-  background-color: #1d64c7;
-  border-style: solid;
-  border-width: 1px;
-  padding: 5px;
+{ color: white;
+  background-color: blue;
 }
 
 table.http_parameters tr.group th
@@ -41,27 +37,24 @@ table.http_parameters td.name
 { font-weight: bold;
 }
 
-table.http_parameters tr.odd
-{ background-color: #ccc;
+table.http_parameters tr.even
+{ background-color: #e0e0e0;
 }
 
 table.http_parameters td
-{ border-style: solid;
-  border-width: 1px;
-  padding: 5px;
+{ border-width: 0 1px 0 1px;
+  border-style: solid;
 }
 
 table.http_parameters
-{ border-width: 1px 1px 1px 1px;
-  border-spacing: 0px;
-  border-style: solid solid solid solid;
-  border-color: gray gray gray gray;
+{ border-width: 1px;
+  border-style: solid;
   border-collapse: collapse;
-  background-color: white;
+  margin-left: 1cm;
 }
 
 table.file_handler
-{ margin-left: 100px;
+{ margin-left: 1cm;
 }
 
 table.file_handler th
@@ -73,7 +66,7 @@ table.file_handler th
 		 *******************************/
 
 #find
-{ margin-left: 250px;
+{ margin-left: 300px;
   padding-left: 5px;
   padding-bottom: 1ex;
   border-style: solid;

@@ -52,6 +52,11 @@ http:location(pldoc, root('help/source'), [priority(10)]).
 
 :- http_handler(root(help/source), cp_help, []).
 
+%%	cp_help(+Request)
+%
+%	HTTP handler that integrates a customised   version of PlDoc for
+%	ClioPatria.  The opening page shows the file RoadMap.txt.
+
 cp_help(Request) :-
 	http_location_by_id(pldoc_doc, Location),
 	absolute_file_name(cliopatria('RoadMap'), HelpFile,

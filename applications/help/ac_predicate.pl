@@ -147,13 +147,17 @@ ac_option(O) -->
 
 %%	ac_predicate(+Request)
 %
-%	HTTP handler to reply autocompletion
+%	HTTP handler for completing a predicate-name.   The  output is a
+%	JSON object that describes possible completions.
 
 ac_predicate(Request) :-
 	max_results_displayed(DefMax),
 	http_parameters(Request,
-			[ query(Query, []),
-			  maxResultsDisplayed(Max, [integer, default(DefMax)])
+			[ query(Query, [ description('Typed string') ]),
+			  maxResultsDisplayed(Max,
+					      [ integer, default(DefMax),
+						description('Max number of results to show')
+					      ])
 			]),
 	autocompletions(Query, Max, Count, Completions),
 	reply_json(json([ query = json([ count=Count

@@ -61,7 +61,8 @@ http_help(Request) :-
 	->  Authority = Host
 	;   format(atom(Authority), '~w:~w', [Host, Port])
 	),
-	reply_html_page(title('Server help'),
+	reply_html_page(cliopatria(http_help),
+			title('Server help'),
 			[ body(class('yui-skin-sam'),
 			       [ h1(class(title), 'Server at ~w'-[Authority]),
 				 \help_page
@@ -70,18 +71,18 @@ http_help(Request) :-
 
 %%	help_page//
 %
-%	Emit the tree and #content for  holding the description. We need
-%	to include the requirements for PlDoc   here  as the scripts are
-%	not loaded through the innerHTML method.
+%	Emit the tree and #http-help  for   holding  the description. We
+%	need to include the requirements for   PlDoc here as the scripts
+%	are not loaded through the innerHTML method.
 
 help_page -->
 	{ tree_view_options(Options) },
 	html([ \html_requires(css('httpdoc.css')),
 	       \html_requires(pldoc),
 	       \html_requires(js('api_test.js')),
-	       div(id(sidebar), \http_tree_view(Options)),
-	       div(id(find), \quick_find_div_content),
-	       div(id(content), []),
+	       div(id('http-tree'), \http_tree_view(Options)),
+	       div(id('http-find'), \quick_find_div_content),
+	       div(id('http-help'), \usage),
 	       \script,
 	       \init_api_tester
 	     ]).
@@ -90,11 +91,22 @@ tree_view_options(
 [ labelClick('function(node) { helpNode(node) }')
 ]).
 
+usage -->
+	html([ h4('Usage'),
+	       p([ 'This page finds HTTP paths (locations) served by this ',
+		   'server.  You can find locations by browsing the hierarchy ',
+		   'at the left or by entering a few characters from the ',
+		   'path in the search box above.  Autocompletion will show ',
+		   'paths that contain the typed string.'
+		 ])
+	     ]).
+
+
 %%	script// is det.
 %
 %	Emit JavScript code that gets  the   help  for the HTTP location
 %	associated  with  _node_  and  displays    this  information  in
-%	#content.
+%	#http-help.
 
 script -->
 	{ http_link_to_id(help_on_handler, [], Handler)
@@ -109,7 +121,7 @@ script -->
 '  var callback =\n',
 '  { success: function(o)\n',
 '             {\n',
-'		var content = document.getElementById("content");\n',
+'		var content = document.getElementById("http-help");\n',
 '		content.innerHTML = o.responseText;\n',
 '             }\n',
 '  }\n',
@@ -126,7 +138,6 @@ script -->
 %
 %	@tbd	Include the output format by scanning for one of the
 %		defined output handlers.
-%	@tbd	Include the test interface as provided in ClioPatria
 
 help_on_handler(Request) :-
 	http_parameters(Request,
@@ -750,8 +761,8 @@ quick_find_div_content -->
 		      [ 'function clearQuickFind()\n',
 			'{',
 			'  document.getElementById("ac_location_input").value = "";\n',
-			'  document.getElementById("content").innerHTML = "";\n',
-			'}',
+			'  document.getElementById("http-help").innerHTML = "";\n',
+			'}\n\n',
 		        'function showLocation()\n',
 			'{ helpHTTP(document.getElementById("ac_location_input").value);\n',
 			'}'
@@ -762,7 +773,7 @@ autocomplete_finder -->
 	{ max_results_displayed(Max)
 	},
 	autocomplete(ac_location,
-		     [ query_delay(0.5),
+		     [ query_delay(0.2),
 		       auto_highlight(false),
 		       max_results_displayed(Max),
 		       width('40ex')
@@ -849,13 +860,16 @@ ac_option(O) -->
 
 %%	ac_location(+Request)
 %
-%	HTTP handler to reply autocompletion
+%	HTTP handler to for autocompletion on HTTP handlers.
 
 ac_location(Request) :-
 	max_results_displayed(DefMax),
 	http_parameters(Request,
-			[ query(Query, []),
-			  maxResultsDisplayed(Max, [integer, default(DefMax)])
+			[ query(Query, [ description('String to find in HTTP path') ]),
+			  maxResultsDisplayed(Max,
+					      [ integer, default(DefMax),
+						description('Max number of results returned')
+					      ])
 			]),
 	autocompletions(Query, Max, Count, Completions),
 	reply_json(json([ query = json([ count=Count

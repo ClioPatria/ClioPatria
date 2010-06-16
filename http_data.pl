@@ -266,11 +266,15 @@ run(sparql, Compiled, Reply) :-
 
 %%	extract_rdf(+Request)
 %
-%	HTTP handler to extract RDF from the database.
+%	HTTP handler to extract RDF  from   the  database.  This handler
+%	separates the data into schema data   and non-schema data, where
+%	schema data are triples  whose  subject   is  an  rdfs:Class  or
+%	rdf:Property. By default both are =off=,   so  one needs to pass
+%	either or both of the =schema= and =data= options as =on=.
 
 extract_rdf(Request) :-
 	http_parameters(Request,
-			[ repository(_Repository),
+			[ repository(Repository),
 			  schema(Schema),
 			  data(Data),
 			  explicitOnly(ExplicitOnly),
@@ -279,6 +283,7 @@ extract_rdf(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
+	authorized(read(Repository, download)),
 	statistics(cputime, CPU0),
 	findall(T, export_triple(Schema, Data, ExplicitOnly, T), Triples),
 	statistics(cputime, CPU1),
@@ -305,7 +310,7 @@ export_triple(on, off, Explicit, RDF) :-
 	schema_triple(RDF).
 
 schema_triple(rdf(S,_P,_O)) :-
-	rdfs_individual_of(S, rdfs:'Property').
+	rdfs_individual_of(S, rdf:'Property').
 schema_triple(rdf(S,_P,_O)) :-
 	rdfs_individual_of(S, rdfs:'Class').
 
@@ -438,7 +443,7 @@ prepare_ontology_dirs :-
 unload_source(Request) :-
 	http_parameters(Request,
 			[ repository(Repository),
-			  source(Source, []),
+			  source(Source),
 			  resultFormat(Format)
 			],
 			[ attribute_declarations(attribute_decl)
@@ -683,11 +688,31 @@ attribute_decl(baseURI,
 	       [ default('http://example.org/'),
 		 description('Base URI for relative resources')
 	       ]).
-attribute_decl(verifyData, Options)   :- bool(off, Options).
-attribute_decl(schema, Options)	      :- bool(off, Options).
-attribute_decl(data, Options)	      :- bool(off, Options).
-attribute_decl(explicitOnly, Options) :- bool(off, Options).
-attribute_decl(niceOutput, Options)   :- bool(off, Options).
+attribute_decl(source,
+	       [ description('Name of the graph')
+	       ]).
+attribute_decl(verifyData, Options) :-
+	bool(off, Options).
+attribute_decl(schema,
+	       [ description('Include schema RDF in downloaded graph')
+	       | Options
+	       ]) :-
+	bool(off, Options).
+attribute_decl(data,
+	       [ description('Include non-schema RDF in downloaded graph')
+	       | Options
+	       ]) :-
+	bool(off, Options).
+attribute_decl(explicitOnly,
+	       [ description('Do not include entailed triples')
+	       | Options
+	       ]) :-
+	bool(off, Options).
+attribute_decl(niceOutput,
+	       [ description('Produce human-readable output (ignored; we always do that)')
+	       | Options
+	       ]) :-
+	bool(off, Options).
 					% Our extensions
 attribute_decl(storeAs,
 	       [ default(''),

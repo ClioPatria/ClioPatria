@@ -158,11 +158,12 @@ graph_link(Graph) -->
 
 %%	list_graph(+Request)
 %
-%	Provide information about an individual RDF graph
+%	HTTP handler that provides information   about an individual RDF
+%	graph. The output is an HTML table.
 
 list_graph(Request) :-
 	http_parameters(Request,
-			[ graph(Graph, [])
+			[ graph(Graph, [description('Name of the graph to describe')])
 			]),
 	(   rdf_graph(Graph)
 	->  true
@@ -285,18 +286,24 @@ dl_format_menu -->
 
 %%	download_graph(+Request)
 %
-%	Download a graph.
+%	Download a named graph in a given serialization.
 
 download_graph(Request) :-
+	authorized(read(default, download(Graph))),
 	http_parameters(Request,
-			[ graph(Graph, []),
+			[ graph(Graph,
+				[ description('Name of the graph')]),
 			  format(Format, [ oneof([turtle,
 						  canonical_turtle,
 						  rdfxml
 						 ]),
-					   default(turtle)
+					   default(turtle),
+					   description('Output serialization')
 					 ]),
-			  mimetype(Mime, [ default(default) ])
+			  mimetype(Mime, [ default(default),
+					   description('MIME-type to use.  If "default", \
+					   		it depends on format')
+					 ])
 			]),
 	send_graph(Graph, Format, Mime).
 
@@ -326,8 +333,11 @@ default_mime_type(rdfxml, application/'rdf+xml').
 
 delete_graph(Request) :-
 	http_parameters(Request,
-			[ graph(Graph, [])
+			[ graph(Graph,
+				[ description('Name of the graph to delete')
+				])
 			]),
+	authorized(write(default, remove_graph(Graph))),
 	rdf_statistics(triples_by_file(Graph, Triples)),
 	rdf_retractall(_,_,_,Graph),
 	reply_html_page(cliopatria(default),
@@ -337,11 +347,13 @@ delete_graph(Request) :-
 
 %%	list_classes(+Request)
 %
-%	List all classes of a graph, sorted by label.
+%	HTTP handler that lists all classes  of all subjects that appear
+%	in the named graph. The  output  is   an  HTML  page holding all
+%	referenced classes sorted by their label.
 
 list_classes(Request) :-
 	http_parameters(Request,
-			[ graph(Graph, [])
+			[ graph(Graph, [description('Name of the graph')])
 			]),
 	findall(Type, type_in_graph(Graph, Type), Types),
 	sort_by_label(Types, Sorted),
@@ -1720,13 +1732,20 @@ ac_option(O) -->
 
 %%	ac_find(+Request)
 %
-%	Perform autocompletion for literals and resources
+%	Perform autocompletion for literals and  resources. The reply is
+%	a JSON object that  is  normally   used  in  a  YUI autocomplete
+%	widget.
 
 ac_find(Request) :-
 	max_results_displayed(DefMax),
 	http_parameters(Request,
-			[ query(Query, []),
-			  maxResultsDisplayed(Max, [integer, default(DefMax)])
+			[ query(Query,
+				[ description('Prefix for literals to find')
+				]),
+			  maxResultsDisplayed(Max,
+					      [ integer, default(DefMax),
+						description('Maximum number of results displayed')
+					      ])
 			]),
 	autocompletions(Query, Max, Count, Completions),
 	reply_json(json([ query = json([ count=Count

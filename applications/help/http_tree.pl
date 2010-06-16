@@ -10,18 +10,18 @@
 :- use_module(library(option)).
 :- use_module(library(pairs)).
 
-:- http_handler(root(tree/http),	         http_tree,        []).
-:- http_handler(root(tree/expand_http_location), expand_http_node, []).
+/** <module> Create YUI tree from HTTP locations
 
-%%	http_tree(Request)
+This module provides the  component   http_tree_view//1  and  associated
+helpers.
+*/
 
-http_tree(_Request) :-
-	reply_html_page(title('Browse HTTP locations'),
-			[ body(class('yui-skin-sam'),
-			       [ h1('Browse HTTP locations'),
-				 \http_tree_view([])
-			       ])
-			]).
+:- http_handler(root(help/expand_http_node), expand_http_node, []).
+
+%%	http_tree_view(+Options)//
+%
+%	Show hierarchy of HTTP locations (paths).  The tree is a YUI
+%	tree that can be expanded dynamically.
 
 http_tree_view(Options) -->
 	tree_view(expand_http_node, Options).
@@ -99,11 +99,11 @@ tree_option(_) -->
 
 %%	expand_http_node(+Request)
 %
-%	Reply the children of an HTTP node
+%	HTTP handler that returns the children of an HTTP node.
 
 expand_http_node(Request) :-
 	http_parameters(Request,
-			[ node(Parent, [])
+			[ node(Parent, [ description('HTTP location to refine')])
 			]),
 	node_children(Parent, Children),
 	reply_json(Children, []).

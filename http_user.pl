@@ -159,7 +159,8 @@ graph_count(Count) :-
 
 %%	construct_form(+Request)
 %
-%	Provide a page for issuing a =CONSTRUCT= query.
+%	Provide a page for issuing a   SeRQL  =CONSTRUCT= query. A SeRQL
+%	=CONSTRUCT= query returns a graph of RDF triples.
 
 construct_form(_Request) :-
 	catch(logged_on(User), _, User=anonymous),
@@ -473,6 +474,7 @@ small(Text) -->
 %	Provide a form for uploading triples from a local file.
 
 load_file_form(_Request) :-
+	authorized(write(default, load(posted))),
 	reply_html_page(cliopatria(default),
 			title('Upload RDF'),
 			[ h3(align(center), 'Upload an RDF document'),

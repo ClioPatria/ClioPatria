@@ -86,9 +86,16 @@ http_openid:openid_hook(trusted(OpenID, Server)) :-
 
 :- http_handler(openid(login), login_page, [priority(10)]).
 
+%%	login_page(+Request)
+%
+%	HTTP Handler that shows both OpenID   login and local login-page
+%	to the user.
+
 login_page(Request) :-
 	http_parameters(Request,
-			[ 'openid.return_to'(ReturnTo, [])
+			[ 'openid.return_to'(ReturnTo,
+					     [ description('Page to visit after login')
+					     ])
 			]),
 	reply_html_page(cliopatria(default),
 			title('Login'),
