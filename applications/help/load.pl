@@ -30,6 +30,7 @@
 
 :- module(cp_help, []).
 :- use_module(library(doc_http)).       % Load pldoc
+:- use_module(library(pldoc/doc_index)).       % PlDoc Search menu
 :- use_module(library(http/http_hook)).	% Get hook signatures
 :- use_module(library(http/http_dispatch)). % Get hook signatures
 :- use_module(library(http/html_write)).
@@ -53,8 +54,8 @@ http:location(pldoc, root('help/source'), [priority(10)]).
 
 cp_help(Request) :-
 	http_location_by_id(pldoc_doc, Location),
-	absolute_file_name(cliopatria('README'), HelpFile,
-			   [ extensions([txt, '']),
+	absolute_file_name(cliopatria('RoadMap'), HelpFile,
+			   [ extensions([txt]),
 			     access(read)
 			   ]),
 	atom_concat(Location, HelpFile, StartPage),
@@ -69,6 +70,20 @@ cliopatria:menu_item(help/cp_help,	'Source code').
 :- multifile
 	user:body//2.
 
+user:body(pldoc(wiki), Content) -->
+	{ absolute_file_name(cliopatria(.), Dir,
+			     [ file_type(directory),
+			       access(read)
+			     ])
+	},
+	html(body(class('yui-skin-sam'),
+		  [ div(id(sidebar),
+			[ \cp_menu,
+			  \doc_links(Dir, [])
+			]),
+		    br(clear(all)),
+		    div(id(content), Content)
+		  ])).
 user:body(pldoc(_), Content) -->
 	html(body(class('yui-skin-sam'),
 		  [ div(id(sidebar), \cp_menu),

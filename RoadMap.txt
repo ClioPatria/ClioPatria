@@ -1,0 +1,5 @@
+---+ ClioPatria source-code roadmap
+
+This interface runs PlDoc, the SWI-Prolog literate-programming interface
+on top of ClioPatria. You can use the top-left menu to browse files in a
+given directory and the top-right menu to search for predicates.
