@@ -30,17 +30,17 @@
     the GNU General Public License.
 */
 
-:- module(serql_server,
-	  [ serql_server/0,
-	    serql_server/1,		% +Options
-	    serql_welcome/0
+:- module(cp_server,
+	  [ cp_server/0,
+	    cp_server/1,		% +Options
+	    cp_welcome/0
 	  ]).
 
-/** <module> SeRQL main module
+/** <module> ClioPatria main module
 
-This module loads the SWI-Prolog SeRQL   server  as a library, providing
-the public predicates defined in the   header. Before loading this file,
-the user should set up a the search path `serql'.  For example:
+This module loads the ClioPatria  server   as  a  library, providing the
+public predicates defined in the header.   Before loading this file, the
+user should set up a the search path =cliopatria=. For example:
 
 ==
 :- dynamic
@@ -48,9 +48,9 @@ the user should set up a the search path `serql'.  For example:
 :- multifile
 	user:file_search_path/2.
 
-user:file_search_path(serql, '/usr/local/serql').
+user:file_search_path(cliopatria, '/usr/local/cliopatria').
 
-:- use_module(serql(load)).
+:- use_module(cliopatria(load)).
 ==
 
 */
@@ -60,19 +60,19 @@ user:file_search_path(serql, '/usr/local/serql').
 :- multifile
 	user:file_search_path/2.
 
-:- (   user:file_search_path(serql, _)
+:- (   user:file_search_path(cliopatria, _)
    ->  true
    ;   prolog_load_context(directory, Dir),
-       assert(user:file_search_path(serql, Dir))
+       assert(user:file_search_path(cliopatria, Dir))
    ).
 
-user:file_search_path(triple20,      serql('Triple20/src')).
-user:file_search_path(library,	     serql(lib)).
-user:file_search_path(ontology_root, serql('Ontologies')).
-user:file_search_path(css,	     serql('web/css')).
-user:file_search_path(icons,	     serql('web/icons')).
-user:file_search_path(yui,	     serql('web/yui/2.7.0')).
-user:file_search_path(js,	     serql('web/js')).
+user:file_search_path(triple20,      cliopatria('Triple20/src')).
+user:file_search_path(library,	     cliopatria(lib)).
+user:file_search_path(ontology_root, cliopatria('Ontologies')).
+user:file_search_path(css,	     cliopatria('web/css')).
+user:file_search_path(icons,	     cliopatria('web/icons')).
+user:file_search_path(yui,	     cliopatria('web/yui/2.7.0')).
+user:file_search_path(js,	     cliopatria('web/js')).
 
 :- load_files([version], [silent(true), if(not_loaded)]).
 :- check_prolog_version(5111).		% Demand >= 5.11.1
@@ -116,12 +116,12 @@ user:file_search_path(js,	     serql('web/js')).
 %		before releasing the server to the public.
 
 :- meta_predicate
-	serql_server(:).
+	cp_server(:).
 
-serql_server :-
-	serql_server([]).
+cp_server :-
+	cp_server([]).
 
-serql_server(Options) :-
+cp_server(Options) :-
 	meta_options(is_meta, Options, QOptions),
 	load_settings('settings.db'),
 	option(after_load(AfterLoad), QOptions, true),
@@ -178,11 +178,11 @@ update_workers(New) :-
 		 *	      BANNER		*
 		 *******************************/
 
-%%	serql_welcome
+%%	cp_welcome
 %
 %	Print welcome banner.
 
-serql_welcome :-
+cp_welcome :-
 	setting(http:port, Port),
 	print_message(informational, serql(welcome(Port))).
 
@@ -198,12 +198,12 @@ prolog:message(serql(server_started(Port))) -->
 	{ gethostname(Host),
 	  http_location_by_id(serql_home, Home)
 	},
-	[ 'Started SeRQL server at port ~w'-[Port], nl,
+	[ 'Started ClioPatria server at port ~w'-[Port], nl,
 	  'You may access the server at http://~w:~w~w'-[Host, Port, Home]
 	].
 prolog:message(serql(welcome(DefaultPort))) -->
 	[ nl,
-	  'Use one of the calls below to start the SeRQL server:', nl, nl,
-	  '  ?- serql_server.               % start at port ~w'-[DefaultPort], nl,
-	  '  ?- serql_server([port(Port)]). % start at Port'
+	  'Use one of the calls below to start the ClioPatria server:', nl, nl,
+	  '  ?- cp_server.               % start at port ~w'-[DefaultPort], nl,
+	  '  ?- cp_server([port(Port)]). % start at Port'
 	].

@@ -30,7 +30,8 @@
 
 :- module(cp_help, []).
 :- use_module(library(doc_http)).       % Load pldoc
-:- use_module(library(http/http_hook)). % Get hook signatures
+:- use_module(library(http/http_hook)).	% Get hook signatures
+:- use_module(library(http/http_dispatch)). % Get hook signatures
 :- use_module(library(http/html_write)).
 
 :- use_module(http_help).		% Help on HTTP server
@@ -48,11 +49,22 @@ Integrates PlDoc from /help/source/
 
 http:location(pldoc, root('help/source'), [priority(10)]).
 
+:- http_handler(root(help/source), cp_help, []).
+
+cp_help(Request) :-
+	http_location_by_id(pldoc_doc, Location),
+	absolute_file_name(cliopatria('README'), HelpFile,
+			   [ extensions([txt, '']),
+			     access(read)
+			   ]),
+	atom_concat(Location, HelpFile, StartPage),
+	http_redirect(see_also, StartPage, Request).
+
 :- multifile
 	cliopatria:menu_item/2.
 
 cliopatria:menu_item(help/http_help,	'HTTP API').
-cliopatria:menu_item(help/pldoc_root,	'Source code').
+cliopatria:menu_item(help/cp_help,	'Source code').
 
 :- multifile
 	user:body//2.
