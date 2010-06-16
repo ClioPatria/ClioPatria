@@ -1,9 +1,24 @@
-#!@PL@ -g serql_welcome -s
+#!@PL@ -g cp_server -s
 
-:- use_module(library(semweb/rdf_db)).
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+This file provides a skeleton startup file.  It can be localized by running
+
+    % ./configure			(Unix)
+    % Double-clicking setup.pl		(Windows)
+
+After that, the created run.pl can be   edited to suit your installation
+requirements.  See comments in the file.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+:- load_files([ library(semweb/rdf_db)
+	      ],
+	      [ silent(true),
+		if(changed)
+	      ]).
 
 :- rdf_register_ns(cornetto, 'http://purl.org/vocabularies/cornetto/').
 
+file_search_path(cliopatria,    '@CLIOPATRIA@').
 file_search_path(ecdemo,        '../econnect/demo').
 file_search_path(ontology_root, ecdemo('ClioPatria/ontologies/base')).
 file_search_path(ontology_root, ecdemo('vocs')).
@@ -15,6 +30,5 @@ file_search_path(ontology_root, ecdemo('vocs')).
 		if(changed)
 	      ]).
 
-:- cp_server.
 :- debug(http(request)).
 

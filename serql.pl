@@ -99,7 +99,7 @@ compile(select(Row0, VarNames, Path, Where, Distinct, Limit, Offset),
 	serql_compile_path(Path, select, Goal),
 	remove_annotations(Annotations, where),
 	projection_functions(Row0, Row, Select),
-	(   setting(serql_parms:optimise_query, Def),
+	(   setting(cliopatria:optimise_query, Def),
 	    option(optimise(Opt), Options, Def),
 	    Opt == true
 	->  rdf_optimise((Goal,Where,Select), Optimised)
@@ -123,7 +123,7 @@ compile(construct(RPath, Path, Where, Distinct, Limit, Offset),
 	remove_annotations(Annotations, where),
 	statements(RPath, Statements),
 	entailment_module(Entailment, Module),
-	(   setting(serql_parms:optimise_query, Def),
+	(   setting(cliopatria:optimise_query, Def),
 	    option(optimise(Opt), Options, Def),
 	    Opt == true
 	->  rdf_optimise((Goal,Where), Optimised)
@@ -683,7 +683,7 @@ expand_uris(I0, Arity, Q0, Map, Q) :-
 %	with the SeRQL store.
 
 ns(NS, URI) :-
-	setting(serql_parms:rdf_db_namespaces, true), !,
+	setting(cliopatria:rdf_db_namespaces, true), !,
 	rdf_db:ns(NS, URI).
 ns(NS, URI) :-
 	serql_ns(NS, URI).

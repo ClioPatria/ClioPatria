@@ -44,23 +44,23 @@
 %
 %	Initialise persistent storage. If the database is empty, load
 %	rdfs.rdfs into it.  Options are passed to rdf_attach_db/2.
-%	
+%
 %	@tbd	Also process options to deal with empty database
 
 rdf_setup_store :-
 	rdf_setup_store([]).
 
 rdf_setup_store(Options) :-
-	setting(serql_parms:persistent_store, Directory),
+	setting(cliopatria:persistent_store, Directory),
 	Directory \== '', !,
         (   exists_directory(Directory)
         ->  rdf_attach_db(Directory, Options)
         ;   rdf_attach_db(Directory, Options),
-	    setting(serql_parms:base_ontologies, Base),
+	    setting(cliopatria:base_ontologies, Base),
             rdf_init_db(Base)
         ).
 rdf_setup_store(_) :-
-	setting(serql_parms:base_ontologies, Base), !,
+	setting(cliopatria:base_ontologies, Base), !,
 	rdf_init_db(Base).
 rdf_setup_store(_) :-
         rdf_init_db(serql(rdfs)).

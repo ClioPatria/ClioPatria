@@ -25,7 +25,7 @@
 :- module(cp_setup,
 	  [ setup/0
 	  ]).
-:- load_files([ '../ClioPatria/util/files',
+:- load_files([ 'lib/files',
 		library(lists)
 	      ],
 	      [ silent(true)
@@ -45,7 +45,7 @@ setup :-
 %
 %	Copy all *.pl.in to *.pl, while replacing @var@ constructs and
 %	make the result executable.
-%	
+%
 %	@tbd	Provide public interface for '$mark_executable'/1.
 
 install_pl_files :-
@@ -62,8 +62,9 @@ install_pl_file(Vars, InFile) :-
 	file_base_name(PlFile, Base),
 	format(user_error, ' (~w)', [Base]).
 
-substitutions(['PL'=PL]) :-
-	prolog_executable(PL).
+substitutions(['PL'=PL, 'CLIOPATRIA'=PWD]) :-
+	prolog_executable(PL),
+	working_directory(PWD, PWD).
 
 %%	prolog_executable(-Path)
 %
@@ -106,7 +107,7 @@ install_ignore_file :-
 ignore_file('.cvsignore') :-
 	exists_directory('CVS'), !.
 ignore_file('.gitignore').
-	
+
 
 		 /*******************************
 		 *	     RUN IT		*

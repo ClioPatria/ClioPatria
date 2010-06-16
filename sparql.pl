@@ -126,7 +126,7 @@ solutions(_, true).
 %	Perform sparql query optimization using rdf_optimise/2.
 
 optimise(Parsed, Optimised, Options) :-
-	setting(serql_parms:optimise_query, Def),
+	setting(cliopatria:optimise_query, Def),
 	option(optimise(true), Options, Def), !,
 	prolog_goal(Parsed, Goal0),
 	rdf_optimise(Goal0, Goal),

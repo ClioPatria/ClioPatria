@@ -349,7 +349,7 @@ clear_repository(Request) :-
 	authorized(write(Repository, clear)),
 	action(Request,
 	       (  rdf_reset_db,		% must be in seperate transactions
-		  rdf_load(serql('rdfs'))
+		  rdf_load(cliopatria('rdfs'))
 	       ),
 	       Format,
 	       'Cleared database'-[]).
@@ -672,7 +672,7 @@ attribute_decl(entailment,		% cache?
 		 oneof(Es),
 		 description('Reasoning performed')
 	       ]) :-
-	setting(serql_parms:default_entailment, Default),
+	setting(cliopatria:default_entailment, Default),
 	findall(E, serql:entailment(E, _), Es).
 attribute_decl(dataFormat,
 	       [ default(rdfxml),
@@ -730,7 +730,7 @@ run(A, Log) :-
 done(html, Message, CPU, Subjects, Triples) :-
 	reply_html_page(cliopatria(default),
 			title('Success'),
-			\result_table(Message, CPU, Subjects, Triples)).
+		   \result_table(Message, CPU, Subjects, Triples)).
 done(xml, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format(string(Message), Fmt, Args),
 	format('Content-type: text/xml~n~n'),

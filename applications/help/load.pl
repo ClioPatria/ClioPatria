@@ -58,7 +58,7 @@ cp_help(Request) :-
 			     access(read)
 			   ]),
 	atom_concat(Location, HelpFile, StartPage),
-	http_redirect(see_also, StartPage, Request).
+	http_redirect(moved, StartPage, Request).
 
 :- multifile
 	cliopatria:menu_item/2.

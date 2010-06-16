@@ -144,10 +144,10 @@ is_meta(after_load).
 %%	attach_account_info
 %
 %	Set   the   registered   user-database     from    the   setting
-%	serql_parms:user_data.
+%	cliopatria:user_data.
 
 attach_account_info :-
-	setting(serql_parms:user_data, File),
+	setting(cliopatria:user_data, File),
 	set_user_database(File).
 
 %%	set_session_options
@@ -196,7 +196,7 @@ cp_welcome :-
 
 prolog:message(serql(server_started(Port))) -->
 	{ gethostname(Host),
-	  http_location_by_id(serql_home, Home)
+	  http_location_by_id(cliopatria_home, Home)
 	},
 	[ 'Started ClioPatria server at port ~w'-[Port], nl,
 	  'You may access the server at http://~w:~w~w'-[Host, Port, Home]

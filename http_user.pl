@@ -57,22 +57,23 @@
 :- use_module(library(pairs)).
 
 :- http_handler(root('.'),
-		http_redirect(moved, location_by_id(serql_home)),
+		http_redirect(moved, location_by_id(cliopatria_home)),
 		[priority(-100)]).
-:- http_handler(serql('home.html'),		welcome,
-		[id(serql_home)]).
-:- http_handler(serql('user/statistics'),	statistics,		 []).
-:- http_handler(serql('user/construct'),	construct_form,		 []).
-:- http_handler(serql('user/query'),		query_form,		 []).
-:- http_handler(serql('user/select'),		select_form,		 []).
-:- http_handler(serql('user/loadFile'),		load_file_form,		 []).
-:- http_handler(serql('user/loadURL'),		load_url_form,		 []).
-:- http_handler(serql('user/loadBaseOntology'),	load_base_ontology_form, []).
-:- http_handler(serql('user/clearRepository'),	clear_repository_form,	 []).
-:- http_handler(serql('user/removeStatements'),	remove_statements_form,	 []).
+:- http_handler(cliopatria('home.html'),	     welcome,
+		[id(cliopatria_home)]).
+:- http_handler(cliopatria('user/statistics'),	     statistics,	      []).
+:- http_handler(cliopatria('user/construct'),	     construct_form,	      []).
+:- http_handler(cliopatria('user/query'),	     query_form,	      []).
+:- http_handler(cliopatria('user/select'),	     select_form,	      []).
+:- http_handler(cliopatria('user/loadFile'),	     load_file_form,	      []).
+:- http_handler(cliopatria('user/loadURL'),	     load_url_form,	      []).
+:- http_handler(cliopatria('user/loadBaseOntology'), load_base_ontology_form, []).
+:- http_handler(cliopatria('user/clearRepository'),  clear_repository_form,   []).
+:- http_handler(cliopatria('user/removeStatements'), remove_statements_form,  []).
 
-:- http_handler(serql('documentation.html'),
-		reply_decorated_file(serql('serql.html')), [id(serql_doc)]).
+:- http_handler(cliopatria('documentation.html'),
+		reply_decorated_file(cliopatria('doc/cliopatria.html')),
+		[id(cliopatria_doc)]).
 
 
 %%	welcome(+Request)
@@ -82,7 +83,7 @@
 
 welcome(Request) :-
 	(   current_user(_)
-	->  reply_decorated_file(serql('welcome.html'), Request)
+	->  reply_decorated_file(cliopatria('welcome.html'), Request)
 	;   http_redirect(moved_temporary,
 			  location_by_id(create_admin),
 			  Request)
@@ -456,7 +457,7 @@ entailment -->
 entailments([]) -->
 	[].
 entailments([E|T]) -->
-	(   { setting(serql_parms:default_entailment, E)
+	(   { setting(cliopatria:default_entailment, E)
 	    }
 	->  html(option([selected], E))
 	;   html(option([], E))

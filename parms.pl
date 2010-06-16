@@ -28,7 +28,7 @@
 */
 
 
-:- module(serql_parms,
+:- module(cp_parms,
 	  [ serql_setting/3
 	  ]).
 :- use_module(library(settings)).
@@ -41,9 +41,10 @@
 		 *	     HTTP PATHS		*
 		 *******************************/
 
-http:location(serql,  root(.),	      []).
-http:location(sesame, root(servlets), []).
-http:location(sparql, root(sparql),   []).
+http:location(cliopatria, root(.),	  []).
+http:location(sesame,	  root(servlets), []).
+http:location(sparql,	  root(sparql),	  []).
+
 
 		 /*******************************
 		 *	       TYPES		*
@@ -138,17 +139,17 @@ serql_setting(Name, Old, New) :-
 		 *	   OTHER SETTINGS	*
 		 *******************************/
 
-:- setting(user_data, atom, 'users.db',
+:- setting(cliopatria:user_data, atom, 'users.db',
 	   'File holding account information').
-:- setting(default_entailment, atom, rdfs,
+:- setting(cliopatria:default_entailment, atom, rdfs,
 	   'Default entailment rules applied').
-:- setting(optimise_query, boolean, true,
+:- setting(cliopatria:optimise_query, boolean, true,
 	   'Optimise queries before execution').
-:- setting(rdf_db_namespaces, boolean, true,
+:- setting(cliopatria:rdf_db_namespaces, boolean, true,
 	   'Allow registered namespaces in queries').
-:- setting(title, atom, 'SWI-Prolog Semantic Web Server',
+:- setting(cliopatria:title, atom, 'ClioPatria Semantic Web Server',
 	   'Title of the web-page').
-:- setting(persistent_store, atom, 'RDF-store',
+:- setting(cliopatria:persistent_store, atom, 'RDF-store',
 	   'Directory for persistent copy of in-memory RDF').
-:- setting(base_ontologies, list(any), [serql(rdfs)],
+:- setting(cliopatria:base_ontologies, list(any), [serql(rdfs)],
 	   'Load these files into a virgin database').

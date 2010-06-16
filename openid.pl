@@ -248,7 +248,7 @@ openid_for_local_user(User, URL) :-
 		 *	       TEST		*
 		 *******************************/
 
-:- http_handler(serql('user/form/login'), login_handler, [priority(10)]).
+:- http_handler(cliopatria('user/form/login'), login_handler, [priority(10)]).
 
 login_handler(_Request) :-
 	ensure_logged_on(User),

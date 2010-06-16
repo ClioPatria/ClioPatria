@@ -43,8 +43,8 @@ This module exports the journal files   defined in rdf_persistency. This
 is will be used to synchronise servers.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-:- http_handler(serql(list_journals), list_journals, []).
-:- http_handler(serql(journal),	      journal,	     []).
+:- http_handler(cliopatria(list_journals), list_journals, []).
+:- http_handler(cliopatria(journal),	   journal,	  []).
 
 %%	list_journals(+Request)
 %
