@@ -35,7 +35,7 @@
 
 :- use_module(http_help).		% Help on HTTP server
 :- use_module(ac_predicate).		% Predicate autocompletion
-:- use_module('../../http_user').	% ClioPatria Menu
+:- use_module('../../menu').		% ClioPatria Menu
 
 /** <module> Support PlDoc
 
@@ -49,10 +49,10 @@ Integrates PlDoc from /help/source/
 http:location(pldoc, root('help/source'), [priority(10)]).
 
 :- multifile
-	http_user:menu_item/2.
+	cliopatria:menu_item/2.
 
-http_user:menu_item(help/http_help,	'HTTP API').
-http_user:menu_item(help/pldoc_root,	'Source code').
+cliopatria:menu_item(help/http_help,	'HTTP API').
+cliopatria:menu_item(help/pldoc_root,	'Source code').
 
 :- multifile
 	user:body//2.
