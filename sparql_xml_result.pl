@@ -3,9 +3,10 @@
     Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2006, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam
+			      Vu University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -30,8 +31,7 @@
 */
 
 :- module(sparql_xml_result,
-	  [ sparql_read_xml_result/2,	% +File, -Result
-	    sparql_write_xml_result/3	% +Stream, +Result
+	  [ sparql_write_xml_result/3	% +Stream, +Result
 	  ]).
 :- use_module(library(sgml)).
 :- use_module(library(assoc)).
@@ -44,129 +44,6 @@ ns(sparql, 'http://www.w3.org/2005/sparql-results#').
 Read/write   the   SPARQL   XML   result     format    as   defined   in
 http://www.w3.org/TR/rdf-sparql-XMLres/, version 6 April 2006.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-		 /*******************************
-		 *	  MACRO HANDLING	*
-		 *******************************/
-
-%	substitute 'sparql' by the namespace   defined  above for better
-%	readability of the remainder of the code.
-
-term_subst(V, _, _, V) :-
-	var(V), !.
-term_subst(F, F, T, T) :- !.
-term_subst(C, F, T, C2) :-
-	compound(C), !,
-	functor(C, Name, Arity),
-	functor(C2, Name, Arity),
-	term_subst(0, Arity, C, F, T, C2).
-term_subst(T, _, _, T).
-
-term_subst(A, A, _, _, _, _) :- !.
-term_subst(I0, Arity, C0, F, T, C) :-
-	I is I0 + 1,
-	arg(I, C0, A0),
-	term_subst(A0, F, T, A),
-	arg(I, C, A),
-	term_subst(I, Arity, C0, F, T, C).
-
-term_expansion(T0, T) :-
-	ns(sparql, NS),
-	term_subst(T0, sparql, NS, T).
-
-
-		 /*******************************
-		 *	     READING		*
-		 *******************************/
-
-%%	sparql_read_xml_result(+Input, -Result)
-%
-%	Specs from http://www.w3.org/TR/rdf-sparql-XMLres/.  The returned
-%	Result term is of the format:
-%
-%		* select(VarNames, Rows)
-%		Where VarNames is a list of atoms denoting the variable
-%		names and Rows is a list of row(....) containg the column
-%		values in the same order as the variable names.
-%
-%		* ask(Bool)
-%		Where Bool is either true or false
-
-sparql_read_xml_result(Input, Result) :-
-	load_structure(Input, DOM,
-		       [ dialect(xmlns),
-			 space(remove)
-		       ]),
-	dom_to_result(DOM, Result).
-
-dom_to_result(DOM, Result) :-
-	sub_element(DOM, sparql:head, _HAtt, Content),
-	variables(Content, Vars),
-	(   Vars == [],
-	    sub_element(DOM, sparql:boolean, _, [TrueFalse])
-	->  Result = ask(TrueFalse)
-	;   Result = select(Vars, Rows),
-	    sub_element(DOM, sparql:results, _RAtt, RContent),
-	    rows(RContent, Vars, Rows)
-	).
-
-%%	variables(+DOM, -Varnames)
-%
-%	Deals with <variable name=Name>.  Head   also  may contain <link
-%	href="..."/>. This points to additional   meta-data.  Not really
-%	clear what we can do with that.
-
-variables([], []).
-variables([element(sparql:variable, Att, [])|T0], [Name|T]) :-
-	memberchk(name=Name, Att),
-	variables(T0, T).
-variables([element(sparql:link, _, _)|T0], T) :-
-	variables(T0, T).
-
-
-rows([], _, []).
-rows([R|T0], Vars, [Row|T]) :-
-	row_values(Vars, R, Values),
-	Row =.. [row|Values],
-	rows(T0, Vars, T).
-
-row_values([], _, []).
-row_values([Var|VarT], DOM, [Value|ValueT]) :-
-	(   sub_element(DOM, sparql:binding, Att, Content),
-	    memberchk(name=Var, Att)
-	->  value(Content, Value)
-	;   Value = '$null$'
-	),
-	row_values(VarT, DOM, ValueT).
-
-value([element(sparql:literal, Att, Content)], literal(Lit)) :-
-	lit_value(Content, Value),
-	(   memberchk(datatype=Type, Att)
-	->  Lit = type(Type, Value)
-	;   memberchk(xml:lang=Lang, Att)
-	->  Lit = lang(Lang, Value)
-	;   Lit = Value
-	).
-value([element(sparql:uri, [], [URI])], URI).
-value([element(sparql:bnode, [], [NodeID])], URI) :-
-	atom_concat('__', NodeID, URI).			% DUBIOUS
-value([element(sparql:unbound, [], [])], '$null$').
-
-
-lit_value([], '').
-lit_value([Value], Value).
-
-
-%%	sub_element(+DOM, +Name, -Atttribs, -Content)
-
-sub_element(element(Name, Att, Content), Name, Att, Content).
-sub_element(element(_, _, List), Name, Att, Content) :-
-	sub_element(List, Name, Att, Content).
-sub_element([H|T], Name, Att, Content) :-
-	(   sub_element(H, Name, Att, Content)
-	;   sub_element(T, Name, Att, Content)
-	).
-
 
 		 /*******************************
 		 *	      WRITING		*
@@ -198,7 +75,8 @@ sparql_write_xml_result(Out, select(VarTerm, Rows), Options) :-
 write_header(Out) :-
 	xml_encoding(Out, Encoding),
 	format(Out, '<?xml version="1.0" encoding="~w"?>~n', [Encoding]),
-	format(Out, '<sparql xmlns="~w">~n', [sparql]).
+	ns(sparql, Prefix),
+	format(Out, '<sparql xmlns="~w">~n', [Prefix]).
 
 xml_encoding(Out, Encoding) :-
 	stream_property(Out, encoding(Enc)),
