@@ -45,12 +45,13 @@
 :- multifile
 	user:file_search_path/2.
 
-user:file_search_path(library,	     cliopatria(lib)).
+user:file_search_path(library,	     cliopatria('lib')).
 user:file_search_path(ontology_root, cliopatria('ontologies')).
 user:file_search_path(css,	     cliopatria('web/css')).
 user:file_search_path(icons,	     cliopatria('web/icons')).
 user:file_search_path(yui,	     cliopatria('web/yui/2.7.0')).
 user:file_search_path(js,	     cliopatria('web/js')).
+user:file_search_path(entailment,    cliopatria('entailment')).
 
 
 		 /*******************************

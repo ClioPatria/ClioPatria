@@ -38,12 +38,11 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library('semweb/rdf_db')).
-:- use_module(no_entailment, []).
-:- use_module(rdfs_entailment, []).
 :- use_module(library(debug)).
 :- use_module(library(settings)).
 :- use_module(rdf_optimise).
 :- use_module(rdfql_util).
+:- include(entailment(load)).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 A Prolog path expression is a conjunction of rdf/3 statements. Parts may

@@ -94,8 +94,8 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 		if(not_loaded)
 	      ]).
 
-%%	serql_server is det.
-%%	serql_server(:Options) is det.
+%%	cp_server is det.
+%%	cp_server(:Options) is det.
 %
 %	Start the HTTP server.  Defined options are:
 %

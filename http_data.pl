@@ -59,11 +59,6 @@
 :- use_module(library(settings)).
 :- use_module(rdf_store).
 
-					% entailment rules
-:- use_module(rdf_entailment, []).
-:- use_module(rdfs_entailment, []).
-:- use_module(rdfslite_entailment, []).
-
 :- http_handler(sesame('login'),	      http_login,	    []).
 :- http_handler(sesame('logout'),	      http_logout,	    []).
 :- http_handler(sesame('evaluateQuery'),      evaluate_query,	    [spawn(sparql_query)]).

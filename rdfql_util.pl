@@ -31,7 +31,7 @@
 
 :- module(rdfql_util,
 	  [ select_results/6,		% +Distinct, +Offset, +Limit,
-					% 	:SortBy, -Result, :Goal
+					% :SortBy, -Result, :Goal
 	    entailment_module/2		% +Entailment, -Module
 	  ]).
 :- use_module(library(nb_set)).

@@ -43,6 +43,7 @@
 :- use_module(sparql_runtime).
 :- use_module(rdf_optimise).
 :- use_module(rdfql_util).
+:- include(entailment(load)).
 
 :- multifile
 	function/2.			% user-defined functions
