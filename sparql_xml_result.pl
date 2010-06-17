@@ -80,15 +80,15 @@ term_expansion(T0, T) :-
 		 *******************************/
 
 %%	sparql_read_xml_result(+Input, -Result)
-%	
+%
 %	Specs from http://www.w3.org/TR/rdf-sparql-XMLres/.  The returned
 %	Result term is of the format:
-%	
+%
 %		* select(VarNames, Rows)
 %		Where VarNames is a list of atoms denoting the variable
 %		names and Rows is a list of row(....) containg the column
 %		values in the same order as the variable names.
-%		
+%
 %		* ask(Bool)
 %		Where Bool is either true or false
 
@@ -111,7 +111,7 @@ dom_to_result(DOM, Result) :-
 	).
 
 %%	variables(+DOM, -Varnames)
-%	
+%
 %	Deals with <variable name=Name>.  Head   also  may contain <link
 %	href="..."/>. This points to additional   meta-data.  Not really
 %	clear what we can do with that.
@@ -138,7 +138,7 @@ row_values([Var|VarT], DOM, [Value|ValueT]) :-
 	;   Value = '$null$'
 	),
 	row_values(VarT, DOM, ValueT).
-	
+
 value([element(sparql:literal, Att, Content)], literal(Lit)) :-
 	lit_value(Content, Value),
 	(   memberchk(datatype=Type, Att)
@@ -173,7 +173,7 @@ sub_element([H|T], Name, Att, Content) :-
 		 *******************************/
 
 %%	sparql_write_xml_result(+Out, +Term, +Options)
-%	
+%
 %	Write SPARQL XML result data.
 
 sparql_write_xml_result(Out, ask(TrueFalse), _Options) :- !,
@@ -181,7 +181,8 @@ sparql_write_xml_result(Out, ask(TrueFalse), _Options) :- !,
 	format(Out, '  <head/>~n', []),
 	format(Out, '  <boolean>~w</boolean>~n', [TrueFalse]),
 	format(Out, '</sparql>~n', []).
-sparql_write_xml_result(Out, select(VarNames, Rows), Options) :-
+sparql_write_xml_result(Out, select(VarTerm, Rows), Options) :-
+	VarTerm =.. [_|VarNames],
 	option(ordered(Ordered), Options, false),
 	option(distinct(Distinct), Options, false),
 	write_header(Out),
