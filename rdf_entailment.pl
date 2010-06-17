@@ -3,9 +3,10 @@
     Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        jan@swi.psy.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2004, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam
+			      Vu University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -33,9 +34,11 @@
 	  [ rdf/3
 	  ]).
 :- use_module(rdfql_runtime).			% runtime tests
-:- use_module(library('semweb/rdf_db'),
+:- use_module(library(semweb/rdf_db),
 	      [ rdf_global_id/2,
 		rdf_subject/1,
+		rdf_current_predicate/1,
+		(rdf_meta)/1,
 		op(_,_,_)
 	      ]).
 
@@ -49,31 +52,20 @@ realising RDFS entailment on top of rdf_db.pl.
 :- rdf_meta
 	rdf(r,r,o).
 
-:- if(\+current_predicate(rdf_db:rdf_meta_specification/3)).
-
-term_expansion((rdf(S0, P0, O0) :- Body0),
-	       (rdf(S,  P,  O)  :- rdf_db:Body)) :-
-	rdf_global_id(S0, S),
-	rdf_global_id(P0, P),
-	rdf_global_id(O0, O),
-	expand_goal(Body0, Body).
-
-:- endif.
-
 rdf(S, P, O) :-
-	rdf(S, P, O).
+	rdf_db:rdf(S, P, O).
 rdf(S, rdf:type, rdf:'Property') :-
-	rdf(_, S, _),
-	\+ rdf(S, rdf:type, rdf:'Property').
+	rdf_current_predicate(S),
+	\+ rdf_db:rdf(S, rdf:type, rdf:'Property').
 rdf(S, rdf:type, rdfs:'Resource') :-
 	rdf_subject(S),
 	\+ rdf(S, rdf:type, rdfs:'Resource').
 rdf(S, serql:directSubClassOf, O) :- !,
-	rdf(S, rdfs:subClassOf, O).
+	rdf_db:rdf(S, rdfs:subClassOf, O).
 rdf(S, serql:directType, O) :- !,
-	rdf(S, rdf:type, O).
+	rdf_db:rdf(S, rdf:type, O).
 rdf(S, serql:directSubPropertyOf, O) :- !,
-	rdf(S, rdfs:subPropertyOf, O).
+	rdf_db:rdf(S, rdfs:subPropertyOf, O).
 
 
 		 /*******************************
