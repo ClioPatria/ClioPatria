@@ -63,7 +63,7 @@ rdf_setup_store(_) :-
 	setting(cliopatria:base_ontologies, Base), !,
 	rdf_init_db(Base).
 rdf_setup_store(_) :-
-        rdf_init_db(serql(rdfs)).
+        rdf_init_db([]).
 
 
 %%      rdf_init_db(+Base) is det.
