@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
-    E-mail:        jan@swi.psy.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2004, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam,
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -17,7 +16,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
@@ -29,10 +28,11 @@
     the GNU General Public License.
 */
 
+
 :- module(rdfs_entailment,
 	  [
 	  ]).
-:- use_module(rdfql_runtime).			% runtime tests
+:- use_module(cliopatria(rdfql_runtime)). 	% runtime tests
 :- use_module(library(nb_set)).
 :- use_module(library('semweb/rdf_db'),
 	      [ rdf_global_id/2,
@@ -40,6 +40,7 @@
 		rdf_has/3,
 		rdf_subject/1,
 		rdf_equal/2,
+		(rdf_meta)/1,
 		op(_,_,_)
 	      ]).
 :- use_module(library('semweb/rdfs'),
@@ -47,26 +48,20 @@
 		rdfs_subproperty_of/2
 	      ]).
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** <module> RDFS-Lite entailment
+
 The function of an entailment module is  to provide an implementation of
 rdf/3 that extends basic triple-lookup using the entailment rules of the
-semantic web sub language of RDF.  This   one  does  (still a lousy) job
-realising RDFS entailment on top of rdf_db.pl.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+semantic web sub language of RDF.
+
+This entailment module does RDFS entailment.
+
+@tbd	Check the completeness
+*/
 
 :- rdf_meta
 	rdf(o,o,o),
 	rdfs_individual_of(r,r).
-
-:- if(\+current_predicate(rdf_db:rdf_meta_specification/3)).
-
-term_expansion((rdf(S0, P0, O0) :- Body),
-	       (rdf(S,  P,  O)  :- Body)) :-
-	rdf_global_id(S0, S),
-	rdf_global_id(P0, P),
-	rdf_global_id(O0, O).
-
-:- endif.
 
 rdf(literal(L), _, _) :-		% should move to compiler
 	nonvar(L), !, fail.

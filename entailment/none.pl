@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
-    E-mail:        jan@swi.psy.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2004, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam,
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -17,7 +16,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
@@ -33,11 +32,16 @@
 	  [ rdf/3,
 	    rdf/4
 	  ]).
-:- use_module(rdfql_runtime).			% runtime tests
+:- use_module(cliopatria(rdfql_runtime)).	% runtime tests
 :- use_module(library('semweb/rdf_db'),
 	      [ rdf/3,
 		rdf/4
 	      ]).
+
+/** <module> Empty RDF entailment module
+
+This module provides only access to the triples in the database.
+*/
 
 
 		 /*******************************
