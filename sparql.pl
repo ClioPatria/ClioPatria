@@ -38,10 +38,10 @@
 :- use_module(library(option)).
 :- use_module(library(assoc)).
 :- use_module(library(semweb/rdf_db), [rdf_is_bnode/1]).
+:- use_module(library(semweb/rdf_optimise)).
 :- use_module(library(settings)).
 :- use_module(sparql_grammar).
 :- use_module(sparql_runtime).
-:- use_module(rdf_optimise).
 :- use_module(rdfql_util).
 :- include(entailment(load)).
 

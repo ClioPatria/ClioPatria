@@ -35,12 +35,12 @@
 	    serql_compile/3,		% +Query, -Compiled, +Options
 	    serql_run/2			% +Compiled, -Reply
 	  ]).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_optimise)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
-:- use_module(library('semweb/rdf_db')).
 :- use_module(library(debug)).
 :- use_module(library(settings)).
-:- use_module(rdf_optimise).
 :- use_module(rdfql_util).
 :- include(entailment(load)).
 
