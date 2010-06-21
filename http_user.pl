@@ -43,7 +43,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_session)).
 :- use_module(library(http/http_host)).
-:- use_module(http_data).
+:- use_module(api(sesame)).
 :- use_module(library(settings)).
 :- use_module(user_db).
 :- use_module(library(debug)).

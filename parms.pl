@@ -54,6 +54,8 @@ user:file_search_path(js,	     cliopatria('web/js')).
 user:file_search_path(entailment,    cliopatria('entailment')).
 user:file_search_path(rdfql,         cliopatria('rdfql')).
 user:file_search_path(components,    cliopatria('components')).
+user:file_search_path(applications,  cliopatria('applications')).
+user:file_search_path(api,	     cliopatria('api')).
 
 
 		 /*******************************

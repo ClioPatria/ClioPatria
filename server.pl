@@ -33,7 +33,7 @@
 	    serql_server_set_property/1	% +Property
 	  ]).
 :- use_module(library(settings)).
-:- use_module(http_data).
+:- use_module(api(sesame)).
 :- use_module(http_sparql).
 :- use_module(http_user).
 :- use_module(http_admin).
@@ -46,9 +46,7 @@
 :- use_module(library(error)).
 :- use_module(library(settings)).
 
-:- if(exists_source(library(http/http_log))).
 :- use_module(library(http/http_log)).
-:- endif.
 
 :- setting(sparql:max_clients, nonneg, 100,
 	   'Maximum number of concurrent requests').
