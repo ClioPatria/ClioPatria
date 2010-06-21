@@ -33,7 +33,7 @@
 :- module(http_user, []).
 
 :- use_module(server).
-:- use_module(serql_xml_result).
+:- use_module(rdfql(serql_xml_result)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/html_write)).

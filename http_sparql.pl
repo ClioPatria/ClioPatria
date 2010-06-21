@@ -38,9 +38,9 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_request_value)).
-:- use_module(sparql).
-:- use_module(sparql_xml_result).
-:- use_module(sparql_json_result).
+:- use_module(rdfql(sparql)).
+:- use_module(rdfql(sparql_xml_result)).
+:- use_module(rdfql(sparql_json_result)).
 
 :- http_handler(sparql(.), sparql_reply, [spawn(sparql_query)]).
 

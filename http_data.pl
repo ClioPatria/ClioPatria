@@ -35,15 +35,15 @@
 	    serql_base_ontology/1	% -Ontology
 	  ]).
 :- use_module(parms).
-:- use_module(serql).
-:- use_module(sparql).
+:- use_module(rdfql(serql)).
+:- use_module(rdfql(sparql)).
+:- use_module(rdfql(serql_xml_result)).
+:- use_module(rdfql(rdf_io)).
 :- use_module(library(http/http_parameters)).
 :- use_module(http_admin).
 :- use_module(http_user).
 :- use_module(user_db).
 :- use_module(rdf_html).
-:- use_module(serql_xml_result).
-:- use_module(rdf_io).
 :- use_module(library(semweb/rdf_edit)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_db)).

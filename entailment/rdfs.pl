@@ -32,7 +32,7 @@
 :- module(rdfs_entailment,
 	  [
 	  ]).
-:- use_module(cliopatria(rdfql_runtime)). 	% runtime tests
+:- use_module(rdfql(rdfql_runtime)). 	% runtime tests
 :- use_module(library(nb_set)).
 :- use_module(library('semweb/rdf_db'),
 	      [ rdf_global_id/2,

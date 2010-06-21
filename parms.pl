@@ -52,6 +52,7 @@ user:file_search_path(icons,	     cliopatria('web/icons')).
 user:file_search_path(yui,	     cliopatria('web/yui/2.7.0')).
 user:file_search_path(js,	     cliopatria('web/js')).
 user:file_search_path(entailment,    cliopatria('entailment')).
+user:file_search_path(rdfql,         cliopatria('rdfql')).
 
 
 		 /*******************************
