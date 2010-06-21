@@ -87,7 +87,7 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 		user_db,			% User database
 		openid,				% OpenID login management
 		rdf_store,			% Setup RDF-store
-		jrn_export,			% export journal information
+		api(journal),			% export journal information
 		http_browse			% Browse the repository
 	      ],
 	      [ silent(true),

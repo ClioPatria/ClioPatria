@@ -29,19 +29,20 @@
     the GNU General Public License.
 */
 
-:- module(rdf_jrn_export, []).
-:- use_module(library('semweb/rdf_persistency')).
-:- use_module(user_db).
-:- use_module(http_admin).
-:- use_module(http_user).
+:- module(api_journal, []).
+:- use_module(library(semweb/rdf_persistency)).
+:- use_module(cliopatria(user_db)).
+:- use_module(cliopatria(http_admin)).
+:- use_module(cliopatria(http_user)).
 :- use_module(library('http/http_parameters')).
 :- use_module(library('http/mimetype')).
 :- use_module(library('http/http_dispatch')).
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** <module> RDF DB journal-API
+
 This module exports the journal files   defined in rdf_persistency. This
 is will be used to synchronise servers.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+*/
 
 :- http_handler(cliopatria(list_journals), list_journals, []).
 :- http_handler(cliopatria(journal),	   journal,	  []).
