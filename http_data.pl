@@ -42,7 +42,7 @@
 :- use_module(http_user).
 :- use_module(user_db).
 :- use_module(rdf_html).
-:- use_module(xml_result).
+:- use_module(serql_xml_result).
 :- use_module(rdf_io).
 :- use_module(library(semweb/rdf_edit)).
 :- use_module(library(semweb/rdfs)).
