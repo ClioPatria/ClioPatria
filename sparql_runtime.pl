@@ -261,7 +261,7 @@ op(X \= Y, boolean(Result)) :-
 op(langmatches(simple_literal(Lang),
 	       simple_literal(Pat)),
    boolean(Result)) :-
-	(langmatches(Lang, Pat) -> Result = true ; Result = false).
+	(lang_matches(Lang, Pat) -> Result = true ; Result = false).
 op(regex(simple_literal(Pat),
 	 simple_literal(String)),
    boolean(Result)) :-
@@ -529,30 +529,6 @@ sparql_or(true,	 _,	true) :- !.
 sparql_or(_,	 true,	true) :- !.
 sparql_or(false, false,	false) :- !.
 sparql_or(_,	 _,	error).
-
-%%	langmatches(+Lang, +Pattern)
-%
-%	Section 11.4.11 function LangMatches.  This   is  slow. Guess we
-%	better move this to the  RDF  library.   Note  that  none of the
-%	functions return a language qualified   literal and we therefore
-%	we only have to consider  the  case   where  the  argument  is a
-%	variable also appearing in the object-field of a rdf/3 call.
-
-langmatches('', _) :- !, fail.
-langmatches(_, *).
-langmatches(Lang, Pattern) :-
-	atom_codes(Lang, LC),
-	atom_codes(Pattern, PC),
-	langmatches_codes(PC, LC).
-
-langmatches_codes([], []) :- !.
-langmatches_codes([], [0'-|_]) :- !.
-langmatches_codes([H|TP], [H|TC]) :- !,
-	langmatches_codes(TP, TC).
-langmatches_codes([HP|TP], [HC|TC]) :- !,
-	code_type(L, to_lower(HP)),
-	code_type(L, to_lower(HC)),
-	langmatches_codes(TP, TC).
 
 %%	isiri(+IRI)
 %
