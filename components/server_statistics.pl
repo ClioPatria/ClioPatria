@@ -1,4 +1,4 @@
-/*  Part of ClioPatria SeRQL and SPARQL server
+/*  Part of ClioPatria
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@uva.nl
@@ -28,7 +28,7 @@
     the GNU General Public License.
 */
 
-:- module(http_stats,
+:- module(server_statistics,
 	  [ rdf_call_stat_table//0,
 	    http_session_table//0,
 	    http_server_statistics//0,
@@ -37,11 +37,15 @@
 :- use_module(library(option)).
 :- use_module(library(pairs)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library('http/http_session')).
-:- use_module(library('http/thread_httpd')).
-:- use_module(library('http/html_write')).
-:- use_module(library('http/html_head')).
-:- use_module(user_db).
+:- use_module(library(http/http_session)).
+:- use_module(library(http/thread_httpd)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
+:- use_module(cliopatria(user_db)).
+
+/** <module> Server statistics components
+
+*/
 
 
 %%	rdf_call_stat_table//
