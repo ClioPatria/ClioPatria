@@ -39,7 +39,7 @@
 :- use_module(library(process)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
-:- use_module(rdf_graphviz).
+:- use_module(library(semweb/rdf_graphviz)).
 
 /** <module> Render RDF-graphs
 
