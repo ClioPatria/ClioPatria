@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE rdf:RDF [
+  <!ENTITY rs 'http://jena.hpl.hp.com/2003/03/result-set#'>
+]>
+
+
+<rdf:RDF
+    xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+    xmlns:rdfs='http://www.w3.org/2000/01/rdf-schema#'
+    xmlns:dc='http://purl.org/dc/elements/1.1/'
+    xmlns:rs='&rs;'>
+
+  <rdf:Description rdf:about='&rs;'>
+    <rdfs:comment>Vocabulary for recording query result set</rdfs:comment>
+    <dc:creator>Andy Seaborne</dc:creator>
+    <dc:subject></dc:subject>
+    <dc:publisher>SWAD-e</dc:publisher>
+    <dc:title></dc:title>
+    <dc:description></dc:description>
+    <dc:date>2003-03-12</dc:date>
+    <dc:format>RDF</dc:format>
+    <dc:identifier rdf:resource='&rs;'/>
+  </rdf:Description>
+
+  <!-- Classes -->
+
+
+  <rdf:Description rdf:about='&rs;ResultSet'>
+    <rdf:type rdf:resource='http://www.w3.org/2000/01/rdf-schema#Class'/>
+    <rdfs:comment>Class of things that represent the result set</rdfs:comment>
+  </rdf:Description>
+
+  <rdf:Description rdf:about='&rs;ResultSolution'>
+    <rdf:type rdf:resource='http://www.w3.org/2000/01/rdf-schema#Class'/>
+    <rdfs:comment>Class of things that represent a row in the result table - one solution to the query</rdfs:comment>
+  </rdf:Description>
+
+  <rdf:Description rdf:about='&rs;ResultBinding'>
+    <rdf:type rdf:resource='http://www.w3.org/2000/01/rdf-schema#Class'/>
+    <rdfs:comment>Class of things that represent a single (variable, value) pairing</rdfs:comment>
+  </rdf:Description>
+
+  <!-- Properties -->
+
+
+  <rdf:Description rdf:about='&rs;solution'>
+    <rdf:type rdf:resource='http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'/>
+    <rdfs:domain rdf:resource='&rs;ResultSet'/>
+    <rdfs:range rdf:resource='&rs;ResultSolution'/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about='&rs;size'>
+    <rdf:type rdf:resource='http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'/>
+    <rdfs:comment>Number of rows in the result table</rdfs:comment>
+    <rdfs:range rdf:resource='http://www.w3.org/2001/XMLSchema#integer'/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about='&rs;resultVariable'>
+    <rdf:type rdf:resource='http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'/>
+    <rdfs:domain rdf:resource='&rs;ResultSet'/>
+    <rdfs:range rdf:resource='http://www.w3.org/2001/XMLSchema#string'/>
+    <rdfs:comment>Name of a variable used in the result set</rdfs:comment>
+    <rdfs:comment>Multivalued</rdfs:comment>
+  </rdf:Description>
+
+  <rdf:Description rdf:about='&rs;binding'>
+    <rdf:type rdf:resource='http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'/>
+    <rdfs:comment>Multi-occurrence property associating a result solution (row) resource to a single (variable, value) binding </rdfs:comment>
+    <rdfs:domain rdf:resource='&rs;ResultSolution'/>
+    <rdfs:range rdf:resource='&rs;ResultBinding'/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about='&rs;variable'>
+    <rdf:type rdf:resource='http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'/>
+    <rdfs:comment>Variable name</rdfs:comment>
+    <rdfs:domain rdf:resource='&rs;ResultBinding'/>
+    <rdfs:range rdf:resource='http://www.w3.org/2000/01/rdf-schema#Literal'/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about='&rs;value'>
+    <rdf:type rdf:resource='http://www.w3.org/1999/02/22-rdf-syntax-ns#Property'/>
+    <rdfs:comment>Variable name</rdfs:comment>
+    <rdfs:domain rdf:resource='&rs;ResultBinding'/>
+  </rdf:Description>
+
+  <!-- Distibuished value for "undefined" -->
+
+  <rdf:Description rdf:about='&rs;undef'>
+    <rdf:type rdf:resource='http://www.w3.org/2000/01/rdf-schema#Resource'/>
+    <rdfs:comment>Resource representing the undefined value</rdfs:comment>
+  </rdf:Description>
+
+</rdf:RDF>

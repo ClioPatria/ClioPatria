@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY rdfns 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY rdfsns 'http://www.w3.org/2000/01/rdf-schema#'>
+    <!ENTITY dcns 'http://purl.org/dc/elements/1.1/'>
+    <!ENTITY dctermsns 'http://purl.org/dc/terms/'>
+    <!ENTITY dctypens 'http://purl.org/dc/dcmitype/'>
+    <!ENTITY dcamns 'http://purl.org/dc/dcam/'>
+]>
+<rdf:RDF xmlns:dcam="http://purl.org/dc/dcam/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+<rdf:Description rdf:about="http://purl.org/dc/dcam/">
+<dcterms:title xml:lang="en-US">DCMI Namespace for metadata terms related to the DCMI Abstract Model</dcterms:title>
+<rdfs:comment>To comment on this schema, please contact dcmifb@dublincore.org.</rdfs:comment>
+<dcterms:publisher xml:lang="en-US">The Dublin Core Metadata Initiative</dcterms:publisher>
+<dcterms:modified>2008-01-14</dcterms:modified>
+</rdf:Description>
+<rdf:Property rdf:about="http://purl.org/dc/dcam/memberOf">
+<rdfs:label xml:lang="en-US">Member Of</rdfs:label>
+<rdfs:comment xml:lang="en-US">A relationship between a resource and a vocabulary encoding scheme which indicates that the resource is a member of a set.</rdfs:comment>
+<rdfs:isDefinedBy rdf:resource="http://purl.org/dc/dcam/"/>
+<dcterms:issued>2008-01-14</dcterms:issued>
+<rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+<dcterms:hasVersion rdf:resource="http://dublincore.org/usage/terms/history/#memberOf-001"/>
+<rdfs:seeAlso rdf:resource="http://dublincore.org/documents/2007/06/04/abstract-model/"/>
+</rdf:Property>
+<rdfs:Class rdf:about="http://purl.org/dc/dcam/VocabularyEncodingScheme">
+<rdfs:label xml:lang="en-US">Vocabulary Encoding Scheme</rdfs:label>
+<rdfs:comment xml:lang="en-US">An enumerated set of resources.</rdfs:comment>
+<rdfs:isDefinedBy rdf:resource="http://purl.org/dc/dcam/"/>
+<dcterms:issued>2008-01-14</dcterms:issued>
+<rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+<dcterms:hasVersion rdf:resource="http://dublincore.org/usage/terms/history/#VocabularyEncodingScheme-001"/>
+<rdfs:seeAlso rdf:resource="http://dublincore.org/documents/2007/06/04/abstract-model/"/>
+</rdfs:Class>
+</rdf:RDF>

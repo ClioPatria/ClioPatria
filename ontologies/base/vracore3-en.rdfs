@@ -1,0 +1,239 @@
+<!DOCTYPE rdf:RDF [
+    <!ENTITY rdf        "http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <!ENTITY rdfs       "http://www.w3.org/2000/01/rdf-schema#">
+    <!ENTITY xsd        "http://www.w3.org/2001/XMLSchema#">
+    <!ENTITY vra        "http://www.vraweb.org/vracore/vracore3#">
+]>
+<rdf:RDF 
+    xml:base            ="http://www.vraweb.org/vracore/vracore3"
+    xmlns               ="&vra;"
+    xmlns:rdf           ="&rdf;"
+    xmlns:rdfs          ="&rdfs;"
+    xmlns:xsd           ="&xsd;"
+    xmlns:vra           ="&vra;">
+
+<rdfs:Class rdf:about="&vra;Work" >
+<rdfs:label xml:lang="en">Work</rdfs:label>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&vra;Image" >
+<rdfs:label xml:lang="en">Image</rdfs:label>
+</rdfs:Class>
+
+<rdfs:Class rdf:about="&vra;VisualResource" >
+<rdfs:label xml:lang="en">VisualResource</rdfs:label>
+</rdfs:Class>
+
+<rdf:Property rdf:about="&vra;type" >
+<rdfs:label xml:lang="en">Type</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;title" >
+<rdfs:label xml:lang="en">Title</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;title.variant" >
+<rdfs:label xml:lang="en">Title.Variant</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;title.translation" >
+<rdfs:label xml:lang="en">Title.Translation</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;title.series" >
+<rdfs:label xml:lang="en">Title.Series</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;title.largerEntity" >
+<rdfs:label xml:lang="en">Title.LargerEntity</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;measurements" >
+<rdfs:label xml:lang="en">Measurements</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;measurements.dimensions" >
+<rdfs:label xml:lang="en">Measurements.Dimensions</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;measurements.format" >
+<rdfs:label xml:lang="en">Measurements.Format</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;measurements.resolution" >
+<rdfs:label xml:lang="en">Measurements.Resolution</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;material" >
+<rdfs:label xml:lang="en">Material</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;material.medium" >
+<rdfs:label xml:lang="en">Material.Medium</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;material.support" >
+<rdfs:label xml:lang="en">Material.Support</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;technique" >
+<rdfs:label xml:lang="en">Technique</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;creator" >
+<rdfs:label xml:lang="en">Creator</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;creator.role" >
+<rdfs:label xml:lang="en">Creator.Role</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;creator.attribution" >
+<rdfs:label xml:lang="en">Creator.Attribution</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;creator.personalName" >
+<rdfs:label xml:lang="en">Creator.Personal name</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;creator.corporateName" >
+<rdfs:label xml:lang="en">Creator.Corporate name</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;date" >
+<rdfs:label xml:lang="en">Date</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;date.creation" >
+<rdfs:label xml:lang="en">Date.Creation</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;date.design" >
+<rdfs:label xml:lang="en">Date.Design</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;date.beginning" >
+<rdfs:label xml:lang="en">Date.Beginning</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;date.completion" >
+<rdfs:label xml:lang="en">Date.Completion</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;date.alteration" >
+<rdfs:label xml:lang="en">Date.Alteration</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;date.restoration" >
+<rdfs:label xml:lang="en">Date.Restoration</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;location" >
+<rdfs:label xml:lang="en">Location</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;location.currentSite" >
+<rdfs:label xml:lang="en">Current Site</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;location.formerSite" >
+<rdfs:label xml:lang="en">Former Site</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;location.creationSite" >
+<rdfs:label xml:lang="en">Creation Site</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;location.discoverySite" >
+<rdfs:label xml:lang="en">Discovery Site</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;location.currentRepository" >
+<rdfs:label xml:lang="en">Current Repository</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;location.formerRepository" >
+<rdfs:label xml:lang="en">Former Repository</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;idNumber" >
+<rdfs:label xml:lang="en">Identifier</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;idNumber.currentRepository" >
+<rdfs:label xml:lang="en">Identifier in Current Repository</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;idNumber.formerRepository" >
+<rdfs:label xml:lang="en">Identifier in Former Repository</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;idNumber.currentAccession" >
+<rdfs:label xml:lang="en">Identifier in Current Accession</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;idNumber.formerAccession" >
+<rdfs:label xml:lang="en">Identifier in Former Accession</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;stylePeriod" >
+<rdfs:label xml:lang="en">Style/Period</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;stylePeriod.style" >
+<rdfs:label xml:lang="en">Style/Period.Style</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;stylePeriod.group" >
+<rdfs:label xml:lang="en">Style/Period.Group</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;stylePeriod.school" >
+<rdfs:label xml:lang="en">Style/Period.School</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;stylePeriod.dynasty" >
+<rdfs:label xml:lang="en">Style/Period.Dynasty</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;stylePeriod.movement" >
+<rdfs:label xml:lang="en">Style/Period.Movement</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;culture" >
+<rdfs:label xml:lang="en">Culture</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;subject" >
+<rdfs:label xml:lang="en">Subject</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;relation" >
+<rdfs:label xml:lang="en">Relation</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;relation.identity" >
+<rdfs:label xml:lang="en">Relation.Identity</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;relation.type" >
+<rdfs:label xml:lang="en">Relation.Type</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;description" >
+<rdfs:label xml:lang="en">Description</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;source" >
+<rdfs:label xml:lang="en">Source</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;rights" >
+<rdfs:label xml:lang="en">Rights</rdfs:label>
+</rdf:Property>
+
+<rdf:Property rdf:about="&vra;relation.depictedBy" >
+<rdfs:label xml:lang="en">Relation.DepictedBy</rdfs:label>
+</rdf:Property>
+
+</rdf:RDF>

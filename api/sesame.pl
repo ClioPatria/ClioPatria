@@ -396,8 +396,9 @@ list_base_ontologies(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	catch(findall(row(O), serql_base_ontology(O), Rows), _,
-	      Rows = []),
+	catch(findall(row(O), serql_base_ontology(O), Rows0), _,
+	      Rows0 = []),
+	sort(Rows0, Rows),
 	write_table(Rows,
 		    [ result_format(Format),
 		      serialization(Serialization),

@@ -601,7 +601,8 @@ emit_base_ontologies([H|T]) -->
 
 
 get_base_ontologies(_Request, List) :-
-	catch(findall(O, serql_base_ontology(O), List), _, fail), !.
+	catch(findall(O, serql_base_ontology(O), List0), _, fail), !,
+	sort(List0, List).
 get_base_ontologies(Request, List) :-
 	http_current_host(Request, Host, Port, []),
 	http_location_by_id(list_base_ontologies, ListBaseOntos),
