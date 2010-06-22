@@ -129,10 +129,17 @@ create_pools :-
 	setting(sparql:stack_size, MB),
 	Global is MB * 1024,
 	Trail is MB * 1024,
-	thread_pool_create(sparql_query, Count,
-			   [ global(Global),
-			     trail(Trail)
-			   ]).
+	update_pool(sparql_query, Count,
+		    [ global(Global),
+		      trail(Trail)
+		    ]).
+
+update_pool(Name, Size, Options) :-
+	(   current_thread_pool(Name)
+	->  thread_pool_destroy(Name)
+	;   true
+	),
+	thread_pool_create(Name, Size, Options).
 
 
 		 /*******************************
