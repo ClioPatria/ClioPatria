@@ -1,9 +1,10 @@
 /*  $Id$
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2008, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -29,7 +30,6 @@
 
 :- module(serql_http,
 	  [ serql_server/2,		% +Port, +Options
-	    serql_server_property/1,	% -Property
 	    serql_server_set_property/1	% +Property
 	  ]).
 :- use_module(library(settings)).
@@ -55,7 +55,6 @@
 
 
 :- dynamic
-	start_time/1,			% Stamp
 	loading/0,
 	loading_done/2.			% Graphs, Total
 
@@ -71,9 +70,7 @@ serql_server(Port, Options) :-
                       timeout(60),
 		      keep_alive_timeout(1)
                     | Options
-                    ]),
-	get_time(Time),
-	assert(start_time(Time)).
+                    ]).
 
 serql_reply(_Request) :-
 	loading, !,
@@ -90,22 +87,6 @@ serql_reply(_Request) :-
 	throw(http_reply(unavailable(HTML))).
 serql_reply(Request) :-
 	http_dispatch(Request).
-
-%%	serql_server_property(?Property)
-%
-%	Query status and attributes of the server. Defined properties
-%	are:
-%
-%		* port(-Port)
-%		Port on which the server is running.
-%
-%		* start_time(-Time)
-%		TimeStamp when the server was started.
-
-serql_server_property(port(Port)) :-
-	http_current_server(serql_reply, Port).
-serql_server_property(started(Time)) :-
-	start_time(Time).
 
 %%	serql_server_set_property(+Term) is det.
 %
