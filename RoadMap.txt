@@ -3,3 +3,51 @@
 This interface runs PlDoc, the SWI-Prolog literate-programming interface
 on top of ClioPatria. You can use the top-left menu to browse files in a
 given directory and the top-right menu to search for predicates.
+
+The main directories in ClioPatria are listed below. Note that you can
+get an overview of the Prolog files in them by selecting a directory
+from the top-left menu.
+
+    $ api :
+    Provides HTTP handlers that return JSON or XML that is typically
+    not for human consumption.
+
+    $ applications :
+    Provides HTTP handlers for (typically) HTML pages for human
+    consumption.
+
+    $ client :
+    Provides (Sesame compatible) client code.  This is not part
+    of ClioPatria, but is often used in similar contexts.  Note
+    that a SPARQL client is part of the SWI-Prolog semweb package.
+
+    $ components :
+    DCG-rules that produce HTML.  These are reusable components to
+    build _applications_.
+
+    $ doc :
+    Generate the documentation.
+
+    $ lib :
+    Reusable code which we envision might become part of the SWI-Prolog
+    libraries.  This directory is made available through the alias
+    =library= and files in it can thus be loaded using e.g.,
+
+        ==
+	:- use_module(library(semweb/rdf_abstract)).
+	==
+
+    $ ontologies :
+    Some core-ontologies that are used in nearly many domains where
+    ClioPatria is being deployed.  Note that you can load these ontologies
+    using the menu-item *|File/Load base ontology|*.
+
+    $ rdfql :
+    Implementation for RDF query languages: SPARQL and SeRQL. The
+    provided functionality is typically only used through the HTTP-API.
+
+    $ test :
+    Test-framework, notably to verify SPARQL compliance.
+
+    $ web :
+    Web-pages used by the server: CSS, Icons, JavaScript and YUI files.
