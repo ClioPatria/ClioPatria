@@ -157,7 +157,7 @@ serql_setting(Name, Old, New) :-
 
 
 		 /*******************************
-		 *	   OTHER SETTINGS	*
+		 *      CLIOPATRIA SETTINGS	*
 		 *******************************/
 
 :- setting(cliopatria:user_data, atom, 'users.db',
@@ -174,3 +174,13 @@ serql_setting(Name, Old, New) :-
 	   'Directory for persistent copy of in-memory RDF').
 :- setting(cliopatria:base_ontologies, list(any), [],
 	   'Load these files into a virgin database').
+
+
+		 /*******************************
+		 *	  QUERY-SETTINGS	*
+		 *******************************/
+
+:- setting(sparql:max_clients, nonneg, 100,
+	   'Maximum number of concurrent requests').
+:- setting(sparql:stack_size, nonneg, 1000,
+	   'Size of the global stack in mega-bytes').

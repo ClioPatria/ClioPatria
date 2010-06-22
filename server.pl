@@ -29,7 +29,7 @@
 */
 
 :- module(serql_http,
-	  [ serql_server/2		% +Port, +Options
+	  [
 	  ]).
 :- use_module(library(settings)).
 :- use_module(api(sesame)).
@@ -46,46 +46,3 @@
 :- use_module(library(settings)).
 
 :- use_module(library(http/http_log)).
-
-:- setting(sparql:max_clients, nonneg, 100,
-	   'Maximum number of concurrent requests').
-:- setting(sparql:stack_size, nonneg, 1000,
-	   'Size of the global stack in mega-bytes').
-
-
-%%	serql_server(?Port, +Options)
-%
-%	Start Semantic Web Query server at Port.  Options are passed to
-%	http_server/2.
-
-serql_server(Port, Options) :-
-	create_pools,
-	http_server(http_dispatch,
-                    [ port(Port),
-                      timeout(60),
-		      keep_alive_timeout(1)
-                    | Options
-                    ]).
-
-
-%%	create_pools
-%
-%	Create required thread-pools
-
-create_pools :-
-	setting(sparql:max_clients, Count),
-	setting(sparql:stack_size, MB),
-	Global is MB * 1024,
-	Trail is MB * 1024,
-	update_pool(sparql_query, Count,
-		    [ global(Global),
-		      trail(Trail)
-		    ]).
-
-update_pool(Name, Size, Options) :-
-	(   current_thread_pool(Name)
-	->  thread_pool_destroy(Name)
-	;   true
-	),
-	thread_pool_create(Name, Size, Options).
-

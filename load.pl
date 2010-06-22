@@ -77,6 +77,7 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 		library(settings),
 		library(error),
 		library(broadcast),
+		library(thread_pool),
 		server,
 		library(semweb/rdf_db),
 		library(semweb/rdf_persistency),
@@ -124,7 +125,10 @@ cp_server(Options) :-
 	setting(http:worker_options, Settings),
 	merge_options([workers(Workers)|QOptions], Settings, HTTPOptions),
 	option(port(Port), QOptions, DefPort),
-	serql_server(Port, HTTPOptions),
+	http_server(http_dispatch,
+		    [ port(Port),
+		      HTTPOptions
+		    ]),
 	print_message(informational, serql(server_started(Port))),
 	setup_call_cleanup(http_handler(root(.), busy_loading,
 					[ priority(1000),
@@ -140,6 +144,11 @@ cp_server(Options) :-
 is_meta(after_load).
 
 %%	busy_loading(+Request)
+%
+%	This HTTP handler is  pushed  to   overrule  all  actions of the
+%	server while the server is restoring   its  persistent state. It
+%	replies with the 503  (unavailable)   response,  indicating  the
+%	progress of restoring the repository.
 
 :- dynamic
 	loading_done/2.
@@ -201,6 +210,30 @@ update_workers(New) :-
 cp_welcome :-
 	setting(http:port, Port),
 	print_message(informational, serql(welcome(Port))).
+
+
+		 /*******************************
+		 *	       POOLS		*
+		 *******************************/
+
+:- multifile
+	http:create_pool/1.
+
+%%	http:create_pool(+Pool) is semidet.
+%
+%	Create a thread-pool on-demand.
+
+http:create_pool(sparql_query) :-
+	debug(http(pool), 'Demand-creating pool ~q', [sparql_query]),
+	setting(sparql:max_clients, Count),
+	setting(sparql:stack_size, MB),
+	Global is MB * 1024,
+	Trail is MB * 1024,
+	thread_pool_create(sparql_query,
+			   Count,
+			   [ global(Global),
+			     trail(Trail)
+			   ]).
 
 
 		 /*******************************
