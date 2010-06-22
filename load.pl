@@ -126,12 +126,36 @@ cp_server(Options) :-
 	option(port(Port), QOptions, DefPort),
 	serql_server(Port, HTTPOptions),
 	print_message(informational, serql(server_started(Port))),
-	serql_server_set_property(loading(true)),
-	rdf_setup_store(QOptions),
-	call(AfterLoad),
-	serql_server_set_property(loading(false)).
+	setup_call_cleanup(http_handler(root(.), busy_loading,
+					[ priority(1000),
+					  hide_children(true),
+					  id(busy_loading),
+					  prefix
+					]),
+			   (   rdf_setup_store(QOptions),
+			       call(AfterLoad)
+			   ),
+			   http_delete_handler(id(busy_loading))).
 
 is_meta(after_load).
+
+%%	busy_loading(+Request)
+
+:- dynamic
+	loading_done/2.
+
+busy_loading(_Request) :-
+	rdf_statistics(triples(Triples)),
+	(   loading_done(Nth, Total)
+	->  Extra = [ '; ~D of ~D graphs.'-[Nth, Total] ]
+	;   Extra = [ '.' ]
+	),
+	HTML = p([ 'This service is currently restoring its ',
+		   'persistent database.', br([]),
+		   'Loaded ~D triples'-[Triples]
+		 | Extra
+		 ]),
+	throw(http_reply(unavailable(HTML))).
 
 %%	attach_account_info
 %
@@ -199,3 +223,16 @@ prolog:message(serql(welcome(DefaultPort))) -->
 	  '  ?- cp_server.               % start at port ~w'-[DefaultPort], nl,
 	  '  ?- cp_server([port(Port)]). % start at Port'
 	].
+
+
+		 /*******************************
+		 *	        HOOKS		*
+		 *******************************/
+
+:- multifile
+	user:message_hook/3.
+
+user:message_hook(rdf(restore(_, done(_DB, _T, _Count, Nth, Total))),
+		  _Kind, _Lines) :-
+	retractall(loading_done(_,_)),
+	assert(loading_done(Nth, Total)).

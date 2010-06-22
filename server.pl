@@ -29,8 +29,7 @@
 */
 
 :- module(serql_http,
-	  [ serql_server/2,		% +Port, +Options
-	    serql_server_set_property/1	% +Property
+	  [ serql_server/2		% +Port, +Options
 	  ]).
 :- use_module(library(settings)).
 :- use_module(api(sesame)).
@@ -54,10 +53,6 @@
 	   'Size of the global stack in mega-bytes').
 
 
-:- dynamic
-	loading/0,
-	loading_done/2.			% Graphs, Total
-
 %%	serql_server(?Port, +Options)
 %
 %	Start Semantic Web Query server at Port.  Options are passed to
@@ -65,41 +60,13 @@
 
 serql_server(Port, Options) :-
 	create_pools,
-	http_server(serql_reply,
+	http_server(http_dispatch,
                     [ port(Port),
                       timeout(60),
 		      keep_alive_timeout(1)
                     | Options
                     ]).
 
-serql_reply(_Request) :-
-	loading, !,
-	rdf_statistics(triples(Triples)),
-	(   loading_done(Nth, Total)
-	->  Extra = [ '; ~D of ~D graphs.'-[Nth, Total] ]
-	;   Extra = [ '.' ]
-	),
-	HTML = p([ 'This service is currently restoring its ',
-		   'persistent database.', br([]),
-		   'Loaded ~D triples'-[Triples]
-		 | Extra
-		 ]),
-	throw(http_reply(unavailable(HTML))).
-serql_reply(Request) :-
-	http_dispatch(Request).
-
-%%	serql_server_set_property(+Term) is det.
-%
-%	Set server properties.  Currently only supports loading(Bool).
-
-serql_server_set_property(loading(Bool)) :- !,
-	must_be(boolean, Bool),
-	(   Bool == true
-	->  assert(loading)
-	;   retractall(loading)
-	).
-serql_server_set_property(P) :-
-	domain_error(serql_server_property, P).
 
 %%	create_pools
 %
@@ -121,17 +88,4 @@ update_pool(Name, Size, Options) :-
 	;   true
 	),
 	thread_pool_create(Name, Size, Options).
-
-
-		 /*******************************
-		 *	     MESSAGES		*
-		 *******************************/
-
-:- multifile
-	user:message_hook/3.
-
-user:message_hook(rdf(restore(_, done(_DB, _T, _Count, Nth, Total))),
-		  _Kind, _Lines) :-
-	retractall(loading_done(_,_)),
-	assert(loading_done(Nth, Total)).
 
