@@ -51,10 +51,10 @@
 	lib:mnemonic "eor" ;
 	lib:namespace eor: .
 
-#:skos
-#	a lib:Namespace ;
-#	lib:mnemonic "skos" ;
-#	lib:namespace skos: .
+:skos
+	a lib:Namespace ;
+	lib:mnemonic "skos" ;
+	lib:namespace skos: .
 
 #	RDFS
 
@@ -86,12 +86,14 @@
 	a lib:Virtual ;
 	dcterms:title "Web Ontology Language (Full)" ;
 	owl:imports
-		<owl.owl> ,
+		<owl> ,
 		<owlfull.owl> ;
 	lib:providesNamespace :owl ;
 	lib:usesNamespace :xsd ;
 	lib:usesNamespace :rdfs .
 
+
+# Dublin core
 
 <dc>
 	a lib:Schema ;
@@ -105,7 +107,7 @@
 	a lib:Schema ;
 	a lib:Virtual ;
 	dcterms:title "Dublin Core Terms Namespace" ;
-	owl:imports <dcterms.rdf>;
+	owl:imports <dcterms.rdf>, <rdfs>;
 	lib:source dcterms: ;
 	lib:providesNamespace dcterms: ;
 	lib:usesNamespace :rdfs .
@@ -114,7 +116,7 @@
 	a lib:Schema ;
 	a lib:Virtual ;
 	dcterms:title "DCMI Types namespace" ;
-	owl:imports <dctype.rdf>;
+	owl:imports <dctype.rdf>, <rdfs>;
 	lib:source dctypes: ;
 	lib:providesNamespace dctypes: ;
 	lib:usesNamespace :rdfs .
@@ -123,7 +125,7 @@
 	a lib:Schema ;
 	a lib:Virtual ;
 	dcterms:title "Dublin Core Abstract Model Namespace" ;
-	owl:imports <dcam.rdf>;
+	owl:imports <dcam.rdf>, <rdfs>;
 	lib:source dcam: ;
 	lib:providesNamespace dcam: ;
 	lib:usesNamespace :rdfs .
@@ -132,7 +134,7 @@
 	a lib:Schema ;
 	a lib:Virtual ;
 	dcterms:title "(Old) Dublin Core 1.1 Elements Model Namespace" ;
-	owl:imports <dcelements.rdf>;
+	owl:imports <dcelements.rdf>, <rdfs>;
 	lib:source dc: ;
 	lib:providesNamespace dc: ;
 	lib:usesNamespace :rdfs .
@@ -150,7 +152,7 @@
 	dcterms:title "SKOS Simple Knowledge Organization System RDF Schema" ;
 	owl:versionInfo "18 August 2009 REC Edition" ;
 	lib:source skos: ;
-	owl:imports <skos.rdf> ;
+	owl:imports <skos.rdf>, <dcterms>, <owl> ;
 	lib:providesNamespace :skos .
 
 <foaf>
@@ -160,7 +162,7 @@
 	lib:source <http://xmlns.com/foaf/spec/index.rdf> ;
 	lib:usesNamespace :owl ;
 	owl:imports
-		<foaf.owl> .
+		<foaf.owl>, <owl> .
 
 <vra>
 	a lib:Schema ;
@@ -168,6 +170,7 @@
 	dcterms:title "Visual Resource Annotation" ;
 	owl:versionInfo "3" ;
 	lib:source <http://e-culture.multimedian.nl/vocabularies/vra/> ;
+	owl:imports <rdfs> ;
 	lib:schema
 		<vracore3.rdfs> ,
 		<vracore3-en.rdfs> ,
