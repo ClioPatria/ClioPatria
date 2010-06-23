@@ -38,6 +38,20 @@
 :- use_module(library(apply)).
 :- use_module(library(ctypes)).
 :- use_module(auth(user_db)).
+:- use_module(hooks).
+
+/** <module> ClioPatria menu-bar
+
+*/
+
+%%	cp_menu//
+%
+%	Emit the ClioPatria menu.  The menu is built from three hooks in
+%	the =cliopatria= namespace:
+%
+%	    * cliopatria:menu_item/2
+%	    * cliopatria:menu_label/2
+%	    * cliopatria:menu_popup_order/2
 
 cp_menu -->
 	{ findall(Key-Item, current_menu_item(Key, Item), Pairs0),
@@ -85,12 +99,6 @@ current_menu_item(Key, item(Location, Label)) :-
 	    menu_label(Location, DefLabel, Label)
 	).
 
-
-:- multifile
-	cliopatria:menu_label/2,	% +Id, -Label
-	cliopatria:menu_item/2,		% +Action, +Label
-	cliopatria:menu_popup_order/2.
-
 %%	menu_item(?Id, ?Label) is nondet.
 %
 %	True if Id/Label must appear in the side-menu.  Id is one of
@@ -132,8 +140,12 @@ popup_order(Key-Members, Order-(Key-Members)) :-
 	;   Order = 10000
 	).
 
+%%	menu_popup_order(+Item, -Location)
+%
+%	Provide numeric locations for the popup-items.
+
 menu_popup_order(Popup, Order) :-
-	cliopatria:menu_popup_order(Popup, Order).
+	cliopatria:menu_popup_order(Popup, Order), !.
 menu_popup_order(file,	       1000).
 menu_popup_order(query,	       2000).
 menu_popup_order(view,	       3000).
@@ -158,10 +170,11 @@ menu_label(current_user, _Default, Label) :-
 	;   Label = i(RealName)
 	).
 menu_label(_, Default, Label) :-
-	capitalize(Default, Label).
+	id_to_label(Default, Label).
 
-capitalize(Atom, Capital) :-
-	atom_codes(Atom, Codes),
+id_to_label(Atom, Capital) :-
+	atom_codes(Atom, Codes0),
+	maplist(underscore_to_space, Codes0, Codes),
 	(   maplist(is_upper, Codes)
 	->  Capital = Atom
 	;   Codes = [First|Rest]
@@ -170,6 +183,9 @@ capitalize(Atom, Capital) :-
 	    atom_codes(Capital, UpCodes)
 	;   Capital = Atom
 	).
+
+underscore_to_space(0'_, 32) :- !.
+underscore_to_space(X, X).
 
 someone_logged_on :-
 	logged_on(User, X),
