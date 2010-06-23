@@ -32,7 +32,6 @@
 
 :- module(http_user, []).
 
-:- use_module(server).
 :- use_module(rdfql(serql_xml_result)).
 :- use_module(library(http/http_open)).
 :- use_module(library(http/thread_httpd)).
@@ -45,7 +44,7 @@
 :- use_module(library(http/http_host)).
 :- use_module(api(sesame)).
 :- use_module(library(settings)).
-:- use_module(user_db).
+:- use_module(auth(user_db)).
 :- use_module(library(debug)).
 :- use_module(http_admin).
 :- use_module(components(server_statistics)).

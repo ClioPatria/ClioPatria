@@ -32,7 +32,7 @@
 :- module(http_admin,
 	  [ change_password_form//1
 	  ]).
-:- use_module(user_db).
+:- use_module(auth(user_db)).
 :- use_module(http_user).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_session)).

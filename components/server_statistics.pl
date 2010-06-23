@@ -41,7 +41,7 @@
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
-:- use_module(cliopatria(user_db)).
+:- use_module(auth(user_db)).
 
 /** <module> Server statistics components
 

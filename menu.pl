@@ -37,7 +37,7 @@
 :- use_module(library(pairs)).
 :- use_module(library(apply)).
 :- use_module(library(ctypes)).
-:- use_module(user_db).
+:- use_module(auth(user_db)).
 
 cp_menu -->
 	{ findall(Key-Item, current_menu_item(Key, Item), Pairs0),

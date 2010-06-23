@@ -42,7 +42,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(http_admin).
 :- use_module(http_user).
-:- use_module(user_db).
+:- use_module(auth(user_db)).
 :- use_module(rdf_html).
 :- use_module(library(semweb/rdf_edit)).
 :- use_module(library(semweb/rdfs)).

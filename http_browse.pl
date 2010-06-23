@@ -52,7 +52,7 @@
 :- use_module(library(semweb/rdf_abstract)).
 
 :- use_module(http_user).
-:- use_module(user_db).
+:- use_module(auth(user_db)).
 
 
 		 /*******************************

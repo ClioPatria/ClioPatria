@@ -56,6 +56,7 @@ user:file_search_path(rdfql,         cliopatria('rdfql')).
 user:file_search_path(components,    cliopatria('components')).
 user:file_search_path(applications,  cliopatria('applications')).
 user:file_search_path(api,	     cliopatria('api')).
+user:file_search_path(auth,	     cliopatria('auth')).
 
 
 		 /*******************************

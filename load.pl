@@ -86,15 +86,15 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 		library(http/http_dispatch),
 		library(http/thread_httpd),
 
+		auth(user_db),
+		auth(openid),
+
 		api(sesame),
 		api(journal),			% export journal information
 		http_sparql,
 		http_user,
 		http_admin,
-		user_db,
 
-		user_db,			% User database
-		openid,				% OpenID login management
 		rdf_store,			% Setup RDF-store
 		http_browse			% Browse the repository
 	      ],

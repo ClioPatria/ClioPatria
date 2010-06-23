@@ -16,6 +16,9 @@ from the top-left menu.
     Provides HTTP handlers for (typically) HTML pages for human
     consumption.
 
+    $ auth :
+    Authorization code: manage users and OpenID services.
+
     $ client :
     Provides (Sesame compatible) client code.  This is not part
     of ClioPatria, but is often used in similar contexts.  Note
