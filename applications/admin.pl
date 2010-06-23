@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2007, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam,
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -17,7 +16,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
@@ -49,10 +48,14 @@
 /** <module> ClioPatria administrative interface
 
 This module provides HTTP services to perform administrative actions.
+
+@tbd	Ideally, this module should be split into an api-part, a
+	component-part and the actual pages.  This also implies that
+	the current `action'-operations must (optionally) return
+	machine-friendly results.
 */
 
 
-:- http_handler(cliopatria('admin/tasks'),		   tasks,		    []).
 :- http_handler(cliopatria('admin/listUsers'),		   list_users,		    []).
 :- http_handler(cliopatria('admin/form/createAdmin'),	   create_admin,	    []).
 :- http_handler(cliopatria('admin/form/addUser'),	   add_user_form,	    []).
@@ -72,20 +75,6 @@ This module provides HTTP services to perform administrative actions.
 :- http_handler(cliopatria('user/logout'),		   user_logout,		    []).
 :- http_handler(cliopatria('admin/settings'),		   settings,		    []).
 :- http_handler(cliopatria('admin/save_settings'),	   save_settings,	    []).
-
-%%	tasks(+Request)
-%
-%	Present menu with administrative tasks.
-
-tasks(_Request) :-
-	reply_html_page(cliopatria(default),
-			title('Administrative tasks'),
-			[ \action(location_by_id(list_users), 'List users')
-			]).
-
-
-action(URL, Label) -->
-	html([a([target(main), href(URL)], Label), br([])]).
 
 %%	list_users(+Request)
 %
@@ -968,3 +957,6 @@ hidden(Name, Value) -->
 		     name(Name),
 		     value(Value)
 		   ])).
+
+action(URL, Label) -->
+	html([a([href(URL)], Label), br([])]).
