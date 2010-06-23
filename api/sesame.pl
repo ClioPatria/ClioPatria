@@ -40,7 +40,6 @@
 :- use_module(rdfql(serql_xml_result)).
 :- use_module(rdfql(rdf_io)).
 :- use_module(library(http/http_parameters)).
-:- use_module(http_admin).
 :- use_module(http_user).
 :- use_module(auth(user_db)).
 :- use_module(rdf_html).

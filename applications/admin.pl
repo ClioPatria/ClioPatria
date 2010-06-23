@@ -29,7 +29,7 @@
     the GNU General Public License.
 */
 
-:- module(http_admin,
+:- module(cp_admin,
 	  [ change_password_form//1
 	  ]).
 :- use_module(auth(user_db)).
@@ -45,6 +45,11 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(http_settings)).
+
+/** <module> ClioPatria administrative interface
+
+This module provides HTTP services to perform administrative actions.
+*/
 
 
 :- http_handler(cliopatria('admin/tasks'),		   tasks,		    []).

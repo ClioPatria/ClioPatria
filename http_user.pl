@@ -46,7 +46,6 @@
 :- use_module(library(settings)).
 :- use_module(auth(user_db)).
 :- use_module(library(debug)).
-:- use_module(http_admin).
 :- use_module(components(server_statistics)).
 :- use_module(http_browse).
 :- use_module(library(semweb/rdf_db)).

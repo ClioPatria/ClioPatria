@@ -48,7 +48,6 @@
 :- use_module(library(socket)).
 :- use_module(library(debug)).
 :- use_module(library(settings)).
-:- use_module(http_admin).
 :- use_module(user_db).
 
 

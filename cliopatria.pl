@@ -93,7 +93,7 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 		api(journal),			% export journal information
 		http_sparql,
 		http_user,
-		http_admin,
+		applications(admin),
 
 		rdf_store,			% Setup RDF-store
 		http_browse			% Browse the repository
