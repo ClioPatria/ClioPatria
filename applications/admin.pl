@@ -260,7 +260,7 @@ input(Name, Label, Options) -->
 %%	add_user(+Request)
 %
 %	API  to  register  a  new  user.  The  current  user  must  have
-%	administrative rights.
+%	administrative rights or the user-database must be empty.
 
 add_user(Request) :-
 	(   \+ current_user(_)
@@ -268,10 +268,10 @@ add_user(Request) :-
 	;   authorized(admin(add_user))
 	),
 	http_parameters(Request,
-			[ user(User, 	     [ length > 2 ]),
-			  realname(RealName, [ length > 2 ]),
-			  pwd1(Password,     [ length > 5 ]),
-			  pwd2(Retype,       [ length > 5 ]),
+			[ user(User),
+			  realname(RealName),
+			  pwd1(Password),
+			  pwd2(Retype),
 			  read(Read),
 			  write(Write),
 			  admin(Admin)
@@ -310,7 +310,7 @@ add_user(Request) :-
 edit_user_form(Request) :-
 	authorized(admin(user(edit))),
 	http_parameters(Request,
-			[ user(User, [])
+			[ user(User)
 			]),
 
 	reply_html_page(cliopatria(default),
@@ -401,10 +401,11 @@ def_user_permissions(admin, [read, write, admin]).
 edit_user(Request) :-
 	authorized(admin(user(edit))),
 	http_parameters(Request,
-			[ user(User, []),
+			[ user(User),
 			  realname(RealName,
 				   [ optional(true),
-				     length > 2
+				     length > 2,
+				     description('Comment on user identifier-name')
 				   ]),
 			  read(Read),
 			  write(Write),
@@ -455,7 +456,9 @@ pterm(admin, admin(_Action)).
 del_user(Request) :- !,
 	authorized(admin(del_user)),
 	http_parameters(Request,
-			[ user(User, [])
+			[ user(User)
+			],
+			[ attribute_declarations(attribute_decl)
 			]),
 	(   User == admin
 	->  throw(error(permission_error(delete, user, User), _))
@@ -520,10 +523,16 @@ user_or_old(_) -->
 change_password(Request) :-
 	logged_on(Login),
 	http_parameters(Request,
-			[ user(User,     [ optional(true) ]),
-			  pwd0(Password, [ optional(true) ]),
-			  pwd1(New,      [ length > 5 ]),
-			  pwd2(Retype,   [ length > 5 ])
+			[ user(User,     [ optional(true),
+					   description('User identifier-name')
+					 ]),
+			  pwd0(Password, [ optional(true),
+					   description('Current password')
+					 ]),
+			  pwd1(New),
+			  pwd2(Retype)
+			],
+			[ attribute_declarations(attribute_decl)
 			]),
 	(   Login == admin
 	->  (   current_user(User)
@@ -589,8 +598,8 @@ login_form(_Request) :-
 
 user_login(Request) :- !,
 	http_parameters(Request,
-			[ user(User, []),
-			  password(Password, []),
+			[ user(User),
+			  password(Password),
 			  'openid.return_to'(ReturnTo, [optional(true)]),
 			  'return_to'(ReturnTo, [optional(true)])
 			]),
@@ -633,6 +642,31 @@ user_logout(_Request) :-
 			title('Logout'),
 			h1(align(center), ['Logged out ', User])).
 
+attribute_decl(user,
+	       [ description('User identifier-name'),
+		 length > 1
+	       ]).
+attribute_decl(realname,
+	       [ description('Comment on user identifier-name')
+	       ]).
+attribute_decl(description,
+	       [ optional(true),
+		 description('Descriptive text')
+	       ]).
+attribute_decl(password,
+	       [ description('Password')
+	       ]).
+attribute_decl(pwd1,
+	       [ length > 5,
+		 description('Password')
+	       ]).
+attribute_decl(pwd2,
+	       [ length > 5,
+		 description('Re-typed password')
+	       ]).
+attribute_decl(openid_server,
+	       [ description('URL of an OpenID server')
+	       ]).
 attribute_decl(read,
 	       [ description('Provide read-only access to the RDF store')
 	       | Options])   :- bool(off, Options).
@@ -751,7 +785,9 @@ canonical_url(URL0, URL) :-
 edit_openid_server_form(Request) :-
 	authorized(admin(openid(edit))),
 	http_parameters(Request,
-			[ openid_server(Server, [])
+			[ openid_server(Server)
+			],
+			[ attribute_declarations(attribute_decl)
 			]),
 
 	reply_html_page(cliopatria(default),
@@ -859,11 +895,8 @@ openid_field(_, _) -->
 edit_openid_server(Request) :-
 	authorized(admin(openid(edit))),
 	http_parameters(Request,
-			[ openid_server(Server, []),
-			  description(Description,
-				      [ optional(true),
-					length > 2
-				      ]),
+			[ openid_server(Server),
+			  description(Description),
 			  read(Read),
 			  write(Write),
 			  admin(Admin)
@@ -897,7 +930,9 @@ openid_modify_permissions(Server, Read, Write, Admin) :-
 del_openid_server(Request) :- !,
 	authorized(admin(openid(delete))),
 	http_parameters(Request,
-			[ openid_server(Server, [])
+			[ openid_server(Server)
+			],
+			[ attribute_declarations(attribute_decl)
 			]),
 	openid_del_server(Server),
 	list_users(Request).
@@ -909,8 +944,8 @@ del_openid_server(Request) :- !,
 
 %%	settings(+Request)
 %
-%	Show current settings. Is user is =admin=, allow editing the
-%	settings.
+%	Show current settings. Is user  has administrative rights, allow
+%	editing the settings.
 
 settings(_Request) :-
 	(   catch(authorized(admin(edit_settings)), _, fail)
