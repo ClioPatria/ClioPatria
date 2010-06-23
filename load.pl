@@ -78,17 +78,24 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 		library(error),
 		library(broadcast),
 		library(thread_pool),
-		server,
+
 		library(semweb/rdf_db),
 		library(semweb/rdf_persistency),
-		library(semweb/rdf_portray),
+
 		library(http/http_session),
 		library(http/http_dispatch),
 		library(http/thread_httpd),
+
+		api(sesame),
+		api(journal),			% export journal information
+		http_sparql,
+		http_user,
+		http_admin,
+		user_db,
+
 		user_db,			% User database
 		openid,				% OpenID login management
 		rdf_store,			% Setup RDF-store
-		api(journal),			% export journal information
 		http_browse			% Browse the repository
 	      ],
 	      [ silent(true),

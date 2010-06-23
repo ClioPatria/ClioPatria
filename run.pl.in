@@ -23,6 +23,8 @@ file_search_path(ecdemo,        '../econnect/demo').
 file_search_path(ontology_root, ecdemo('vocs')).
 
 :- load_files([ cliopatria('applications/help/load'),
+		library(http/http_log),
+		library(semweb/rdf_portray),
 		cliopatria(load)
 	      ],
 	      [ silent(true),
