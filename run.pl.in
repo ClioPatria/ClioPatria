@@ -20,7 +20,6 @@ requirements.  See comments in the file.
 
 file_search_path(cliopatria,    '@CLIOPATRIA@').
 file_search_path(ecdemo,        '../econnect/demo').
-file_search_path(ontology_root, ecdemo('ClioPatria/ontologies/base')).
 file_search_path(ontology_root, ecdemo('vocs')).
 
 :- load_files([ cliopatria('applications/help/load'),
