@@ -77,7 +77,6 @@
 :- http_handler(rdf_browser(list_triples),    list_triples,    []).
 :- http_handler(rdf_browser(list_triples_with_object),
 					      list_triples_with_object,	[]).
-:- http_handler(rdf_browser(download_graph),  download_graph,  []).
 
 :- http_handler(rdf_browser(ac_find),         ac_find,	       []).
 :- http_handler(rdf_browser(search),          search,	       []).
@@ -242,8 +241,8 @@ type_in_graph2(Graph, Class) :-
 
 graph_actions(Graph) -->
 	html(ul(class(graph_actions),
-		[ \li_download_graph(Graph, show),
-		  \li_download_graph(Graph, download),
+		[ \li_export_graph(Graph, show),
+		  \li_export_graph(Graph, download),
 		  \li_delete_graph(Graph)
 		])).
 
@@ -261,8 +260,8 @@ li_delete_graph(Graph) -->
 		     ]))).
 li_delete_graph(_) --> [].
 
-li_download_graph(Graph, How) -->
-	{ http_link_to_id(download_graph, [], Action),
+li_export_graph(Graph, How) -->
+	{ http_link_to_id(export_graph, [], Action),
 	  download_options(How, Label, MimeType)
 	},
 	html(li(form(action(Action),
@@ -282,50 +281,6 @@ dl_format_menu -->
 		      option([value(canonical_turtle)], 'Canonical Turtle'),
 		      option([value(rdfxml)],           'RDF/XML')
 		    ])).
-
-
-%%	download_graph(+Request)
-%
-%	Download a named graph in a given serialization.
-
-download_graph(Request) :-
-	authorized(read(default, download(Graph))),
-	http_parameters(Request,
-			[ graph(Graph,
-				[ description('Name of the graph')]),
-			  format(Format, [ oneof([turtle,
-						  canonical_turtle,
-						  rdfxml
-						 ]),
-					   default(turtle),
-					   description('Output serialization')
-					 ]),
-			  mimetype(Mime, [ default(default),
-					   description('MIME-type to use. \
-					                If "default", \
-					   		it depends on format')
-					 ])
-			]),
-	send_graph(Graph, Format, Mime).
-
-send_graph(Graph, Format, default) :- !,
-	default_mime_type(Format, MimeType),
-	send_graph(Graph, Format, MimeType).
-send_graph(Graph, Format, MimeType) :- !,
-	format('Transfer-Encoding: chunked~n'),
-	format('Content-type: ~w; charset=UTF8~n~n', [MimeType]),
-	send_graph(Graph, Format).
-
-send_graph(Graph, turtle) :- !,
-	rdf_save_turtle(stream(current_output), [graph(Graph)]).
-send_graph(Graph, canonical_turtle) :- !,
-	rdf_save_canonical_turtle(stream(current_output), [graph(Graph)]).
-send_graph(Graph, rdfxml) :- !,
-	rdf_save(stream(current_output), [graph(Graph)]).
-
-default_mime_type(turtle, text/turtle).
-default_mime_type(canonical_turtle, text/turtle).
-default_mime_type(rdfxml, application/'rdf+xml').
 
 
 %%	list_classes(+Request)
