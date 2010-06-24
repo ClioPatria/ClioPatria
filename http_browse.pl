@@ -390,7 +390,9 @@ property_count(Graph, S, Count) :-
 
 %%	list_instances(+Request)
 %
-%	List instances of a given class
+%	List instances.
+
+
 
 list_instances(Request) :-
 	http_parameters(Request,
@@ -404,7 +406,6 @@ list_instances(Request) :-
 			  sortBy(Sort, [ oneof([label,properties]),
 					 default(label)
 				       ])
-
 			]),
 	findall(I-PC, instance_in_graph(Graph, Class, Type, I, PC), IPairs),
 	sort_pairs_by_label(IPairs, TableByName),
@@ -1152,7 +1153,9 @@ context(skos:related).
 
 list_triples(Request) :-
 	http_parameters(Request,
-			[ graph(Graph, [ optional(true),
+			[ predicate(Pred,
+				    [ description('Predicate to list triples for')]),
+			  graph(Graph, [ optional(true),
 					 description('Limit triples to this predicate')
 				       ]),
 			  domain(Dom,  [ optional(true),
@@ -1160,8 +1163,7 @@ list_triples(Request) :-
 				       ]),
 			  range(Range, [ optional(true),
 					 description('Restrict to objects of this class')
-				       ]),
-			  predicate(Pred, [])
+				       ])
 			]),
 	(   atom(Dom)
 	->  findall(S-O, rdf_in_domain(S,Pred,O,Dom,Graph), Pairs0)
@@ -1557,3 +1559,12 @@ delete_list_prefix(_, [], []) :- !.
 delete_list_prefix(N, [_|T], List) :-
 	N2 is N - 1,
 	delete_list_prefix(N2, T, List).
+
+
+		 /*******************************
+		 *    PARAMETER DECLARATIONS	*
+		 *******************************/
+
+parameter_decl(class,
+	       [ description('URI of a class')
+	       ]).

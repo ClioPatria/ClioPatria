@@ -44,7 +44,7 @@
 
 :- use_module(label).
 
-:- http_handler(rdf_browser(ac_find),         ac_find,	       []).
+:- http_handler(api(ac_find_literal), ac_find_literal, []).
 
 /** <module> Simple literal search
 */
@@ -70,8 +70,8 @@ max_results_displayed(100).
 search_box(Options) -->
 	{ max_results_displayed(Max)
 	},
-	autocomplete(ac_find,
-		     [ query_delay(0.5),
+	autocomplete(ac_find_literal,
+		     [ query_delay(0.2),
 		       auto_highlight(false),
 		       max_results_displayed(Max),
 		       width('30ex')
@@ -183,13 +183,13 @@ ac_option(max_results_displayed(Max)) -->
 ac_option(O) -->
 	{ domain_error(yui_autocomplete_option, O) }.
 
-%%	ac_find(+Request)
+%%	ac_find_literal(+Request)
 %
 %	Perform autocompletion for literals and  resources. The reply is
 %	a JSON object that  is  normally   used  in  a  YUI autocomplete
 %	widget.
 
-ac_find(Request) :-
+ac_find_literal(Request) :-
 	max_results_displayed(DefMax),
 	http_parameters(Request,
 			[ query(Query,
