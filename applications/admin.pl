@@ -602,6 +602,8 @@ user_login(Request) :- !,
 			  password(Password),
 			  'openid.return_to'(ReturnTo, [optional(true)]),
 			  'return_to'(ReturnTo, [optional(true)])
+			],
+			[ attribute_declarations(attribute_decl)
 			]),
 	(   var(ReturnTo)
 	->  Extra = []
