@@ -63,9 +63,10 @@ user:file_search_path(auth,	     cliopatria('auth')).
 		 *	     HTTP PATHS		*
 		 *******************************/
 
-http:location(cliopatria, root(.),	  []).
-http:location(sesame,	  root(servlets), []).
-http:location(sparql,	  root(sparql),	  []).
+http:location(cliopatria,  root(.),	       []).
+http:location(sesame,	   root(servlets),     []).
+http:location(sparql,	   root(sparql),       []).
+http:location(rdf_browser, cliopatria(browse), []).
 
 
 		 /*******************************

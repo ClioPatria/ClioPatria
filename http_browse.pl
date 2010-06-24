@@ -1,24 +1,30 @@
-/*  This file is part of ClioPatria.
+/*  Part of ClioPatria SeRQL and SPARQL server
 
-    Author:	Jan Wielemaker,,, <janw@hppc323.few.vu.nl>
-    HTTP:	http://e-culture.multimedian.nl/software/ClioPatria.shtml
-    GITWEB:	http://eculture.cs.vu.nl/git/ClioPatria.git
-    GIT:	git://eculture.cs.vu.nl/home/git/eculture/ClioPatria.git
-    GIT:	http://eculture.cs.vu.nl/home/git/eculture/ClioPatria.git
-    Copyright:  2005-2009, E-Culture/MultimediaN
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2009-2010, VU University Amsterdam
 
-    ClioPatria is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
 
-    ClioPatria is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with ClioPatria.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
 */
 
 :- module(browse_named_graphs,
@@ -59,11 +65,6 @@
 		 *	      PATHS		*
 		 *******************************/
 
-:- multifile http:location/3.
-:- dynamic   http:location/3.
-
-http:location(rdf_browser, root(browse), []).
-
 :- http_handler(rdf_browser(.),		      welcome,         [prefix]).
 :- http_handler(rdf_browser(list_graphs),     list_graphs,     []).
 :- http_handler(rdf_browser(list_graph),      list_graph,      []).
@@ -76,7 +77,6 @@ http:location(rdf_browser, root(browse), []).
 :- http_handler(rdf_browser(list_triples),    list_triples,    []).
 :- http_handler(rdf_browser(list_triples_with_object),
 					      list_triples_with_object,	[]).
-:- http_handler(rdf_browser(delete_graph),    delete_graph,    []).
 :- http_handler(rdf_browser(download_graph),  download_graph,  []).
 
 :- http_handler(rdf_browser(ac_find),         ac_find,	       []).
@@ -95,7 +95,7 @@ welcome(_Request) :-
 	reply_html_page(cliopatria(default),
 			title('RDF Explorer'),
 			[ h4('Welcome to the SWI-Prolog RDF Explorer'),
-			  p([ 'This web-application allows the user to get an ',
+			  p([ 'This web-application provides an ',
 			      'overview of an RDF database.'
 			    ])
 			]).
@@ -301,7 +301,8 @@ download_graph(Request) :-
 					   description('Output serialization')
 					 ]),
 			  mimetype(Mime, [ default(default),
-					   description('MIME-type to use.  If "default", \
+					   description('MIME-type to use. \
+					                If "default", \
 					   		it depends on format')
 					 ])
 			]),
@@ -325,24 +326,6 @@ send_graph(Graph, rdfxml) :- !,
 default_mime_type(turtle, text/turtle).
 default_mime_type(canonical_turtle, text/turtle).
 default_mime_type(rdfxml, application/'rdf+xml').
-
-
-%%	delete_graph(+Request)
-%
-%	Delete all triples from the given graph.
-
-delete_graph(Request) :-
-	http_parameters(Request,
-			[ graph(Graph,
-				[ description('Name of the graph to delete')
-				])
-			]),
-	authorized(write(default, remove_graph(Graph))),
-	rdf_statistics(triples_by_file(Graph, Triples)),
-	rdf_retractall(_,_,_,Graph),
-	reply_html_page(cliopatria(default),
-			title('Deleted graph ~w'-[Graph]),
-			p('Deleted graph ~w (~D triples)'-[Graph, Triples])).
 
 
 %%	list_classes(+Request)
