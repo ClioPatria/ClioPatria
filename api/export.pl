@@ -34,7 +34,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(auth(user_db)).
 
-:- http_handler(rdf_browser(export_graph),  export_graph,  []).
+:- http_handler(api(export_graph),  export_graph,  []).
 
 %%	export_graph(+Request)
 %
