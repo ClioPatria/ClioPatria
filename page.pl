@@ -31,7 +31,7 @@
 :- module(cp_page, []).
 :- use_module(library(http/html_write)).
 :- use_module(menu).
-:- use_module(http_browse).
+:- use_module(components(simple_search)).
 
 :- multifile
 	user:body//2.
@@ -39,7 +39,7 @@
 user:body(cliopatria(_), Body) -->
 	html(body(class('yui-skin-sam'),
 		  [ div(id(sidebar), \cp_menu),
-		    \rdf_search_form,
+		    \simple_search_form,
 		    br(clear(all)),
 		    div(id(content), Body)
 		  ])).

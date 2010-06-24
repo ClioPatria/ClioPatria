@@ -37,7 +37,9 @@
 :- multifile
 	menu_item/2,
 	menu_label/2,
-	menu_popup_order/2.
+	menu_popup_order/2,
+
+	label_property/1.
 
 
 		 /*******************************
@@ -65,3 +67,14 @@
 %
 %	This hook controls the order of the popup-item of ClioPatria's
 %	menu.
+
+
+		 /*******************************
+		 *		LABELS		*
+		 *******************************/
+
+%%	label_property(?Property)
+%
+%	True if the value of  Property   can  be  used to (non-uniquely)
+%	describe an object to the user.   This  hook provides additional
+%	facts to cp_label:label_property/1.

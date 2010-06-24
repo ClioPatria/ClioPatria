@@ -28,8 +28,7 @@
 */
 
 :- module(browse_named_graphs,
-	  [ rdf_search_form//0,
-	    resource_link//2		% +ResourceOrLiteral, +Options
+	  [ resource_link//2		% +ResourceOrLiteral, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
@@ -54,6 +53,8 @@
 :- use_module(library(option)).
 :- use_module(library(apply)).
 
+:- use_module(components(label)).
+:- use_module(components(simple_search)).
 :- use_module(components(canviz)).
 :- use_module(library(semweb/rdf_abstract)).
 
@@ -78,7 +79,6 @@
 :- http_handler(rdf_browser(list_triples_with_object),
 					      list_triples_with_object,	[]).
 
-:- http_handler(rdf_browser(ac_find),         ac_find,	       []).
 :- http_handler(rdf_browser(search),          search,	       []).
 
 
@@ -789,15 +789,15 @@ resource_link(Literal, Options) -->
 		 href(HREF),
 		 title(Title)
 	       ],
-	       \literal_label(Literal))).
+	       \turtle_label(Literal))).
 resource_link(Literal, _) -->
-	literal_label(Literal).
+	turtle_label(Literal).
 
 resource_label(R, Options) -->
 	{ option(resource_format(Format), Options) }, !,
 	resource_flabel(Format, R).
 resource_label(R, _) -->
-	label(R).
+	turtle_label(R).
 
 resource_flabel(plain, R) --> !,
 	html(R).
@@ -808,11 +808,11 @@ resource_flabel(nslabel, R) --> !,
 	      text_of_literal(Value, Label)
 	    }
 	->  html([span(class(ns),NS),':',span(class(rlabel),Label)])
-	;   label(R)
+	;   turtle_label(R)
 	).
 
 resource_flabel(_, R) -->
-	label(R).
+	turtle_label(R).
 
 flip_pairs([], []).
 flip_pairs([Key-Val|Pairs], [Val-Key|Flipped]) :-
@@ -1352,75 +1352,6 @@ literal_label(type(_, Value), Value) :- !.
 literal_label(lang(_, Value), Value) :- !.
 literal_label(Value, Value).
 
-%%	label(+Value)// is det.
-%
-%	Produce an HTML friendly representation for Value.
-%
-%	@tbd	Probe Linked Open data?
-%	@tbd	Deal with blank nodes
-
-label(R) -->
-	{ atom(R),
-	  rdf_global_id(NS:Local, R), !
-	},
-	html(['<', span(class(ns), NS), ':', span(class(local), Local), '>']).
-label(R) -->
-	{ atom(R),
-	  label_property(P),
-	  rdf_has(R, P, Value),
-	  text_of_literal(Value, Label), !
-	},
-	html(Label).
-label(R) -->
-	{ rdf_is_bnode(R) },
-	bnode_label(R), !.
-label(R) -->
-	{ atom(R) }, !,
-	html(R).
-label(literal(Lit)) -->
-	literal_label(Lit).
-
-%%	bnode_label(+Resource)// is semidet.
-
-bnode_label(R) -->
-	{ rdf(R, rdf:value, Value),
-	  (   Value = literal(_)
-	  ;   \+ rdf_is_bnode(Value)
-	  )
-	}, !,
-	html(['[', \label(Value), '...]']).
-
-%%	literal_label(+Literal)// is det.
-%
-%	Emit a literal as a double-quoted string.
-%
-%	@tbd	Implement possibility for a summary.
-
-literal_label(literal(Lit)) --> !,
-	literal_label(Lit).
-literal_label(type(Type, Value)) --> !,
-	html(span(class(literal),
-		  ['"', span(class(ltext), Value), '"', span(class(tqual), '^^'), \label(Type)])).
-literal_label(lang(Lang, Value)) --> !,
-	html(span(class(literal),
-		  ['"', span(class(ltext), Value), '"',
-		   span(class(lqual), '@'), span(class(lang), Lang)])).
-literal_label(Value) -->
-	html(span(class(literal),
-		  ['"', span(class(ltext), Value), '"'])).
-
-label_property(P) :- rdf_equal(P, rdfs:label).
-label_property(P) :- rdf_equal(P, skos:prefLabel).
-label_property(P) :- rdf_equal(P, skos:altLabel).
-label_property(P) :- rdf_equal(P, dc:title).
-
-text_of_literal(literal(L), Text) :- !,
-	text_of_literal(L, Text).
-text_of_literal(type(_, Text), Text) :- !.
-text_of_literal(lang(_, Text), Text) :- !.
-text_of_literal(Text, Text).
-
-
 		 /*******************************
 		 *	  CUSTOMIZATION		*
 		 *******************************/
@@ -1532,229 +1463,6 @@ triple(rdf(S,P,O)) -->
 	       td(class(predicate), \resource_link(P)),
 	       td(class(object),    \resource_link(O))
 	     ]).
-
-
-%%	rdf_search_form//
-%
-%	Provide a search form to find labels in the database.
-
-rdf_search_form -->
-	html_requires(css('rdf_browse.css')),
-	html(form([ id(search_form),
-		    action(location_by_id(search))
-		  ],
-		  [ div([ \search_box([ name(q) ]),
-			  input([ type(submit),
-				  value('Search')
-				])
-			])
-		  ])).
-
-max_results_displayed(100).
-
-search_box(Options) -->
-	{ max_results_displayed(Max)
-	},
-	autocomplete(ac_find,
-		     [ query_delay(0.5),
-		       auto_highlight(false),
-		       max_results_displayed(Max),
-		       width('30ex')
-		     | Options
-		     ]).
-
-%%	autocomplete(+HandlerID, +Options)// is det.
-%
-%	Insert a YUI autocomplete widget that obtains its alternatives
-%	from HandlerID.  The following Options are supported:
-%
-%	    * width(+Width)
-%	    Specify the width of the box.  Width must satisfy the CSS
-%	    length syntax.
-%
-%	    * query_delay(+Seconds)
-%	    Wait until no more keys are typed for Seconds before sending
-%	    the query to the server.
-
-autocomplete(Handler, Options) -->
-	{ http_location_by_id(Handler, Path),
-	  atom_concat(Handler, '_complete', CompleteID),
-	  atom_concat(Handler, '_input', InputID),
-	  atom_concat(Handler, '_container', ContainerID),
-	  select_option(width(Width), Options, Options1, '25em'),
-	  select_option(name(Name), Options1, Options2, predicate),
-	  select_option(value(Value), Options2, Options3, '')
-	},
-	html([ \html_requires(yui('autocomplete/autocomplete.js')),
-	       \html_requires(yui('autocomplete/assets/skins/sam/autocomplete.css')),
-	       div(id(CompleteID),
-		   [ input([ id(InputID),
-			     name(Name),
-			     value(Value),
-			     type(text)
-			   ]),
-		     div(id(ContainerID), [])
-		   ]),
-	       style(type('text/css'),
-		     [ '#', CompleteID, '\n',
-		       '{ width:~w; padding-bottom:0em; display:inline-block; vertical-align:top}'-[Width]
-		     ]),
-	       \autocomplete_script(Path, InputID, ContainerID, Options3)
-	     ]).
-
-highlight -->
-	html(script(type('text/javascript'),
-\[
-  'function highlighMatches(str, query, cls)\n',
-  '{ var pat = new RegExp(query, "gi");
-     var sa = str.split(pat);
-     var ma = str.match(pat);
-     var i;
-     var out = sa[0];\n',
-
-  '  if ( !ma )
-     { return str;
-     }\n',
-
-  '  for(i=0; i<ma.length; )
-     { out += "<span class=\'"+cls+"\'>"+ma[i++]+"</span>";
-       out += sa[i];
-     }\n',
-
-  'return out;
-   }\n'
- ])).
-
-autocomplete_script(HandlerID, Input, Container, Options) -->
-	{ http_absolute_location(HandlerID, Path, [])
-	},
-	highlight,
-	html(script(type('text/javascript'), \[
-'{ \n',
-'  var oDS = new YAHOO.util.XHRDataSource("~w");\n'-[Path],
-'  oDS.responseType = YAHOO.util.XHRDataSource.TYPE_JSON;\n',
-'  oDS.responseSchema = { resultsList:"results",
-			  fields:["label","count","href"]
-			};\n',
-'  oDS.maxCacheEntries = 5;\n',
-'  var oAC = new YAHOO.widget.AutoComplete("~w", "~w", oDS);\n'-[Input, Container],
-'  oAC.resultTypeList = false;\n',
-'  oAC.formatResult = function(oResultData, sQuery, sResultMatch) {
-     var sLabel = highlighMatches(oResultData.label, sQuery, "acmatch");
-     if ( oResultData.count > 1 ) {
-       sLabel += " <span class=\\"account\\">("+oResultData.count+")</span>";
-     }
-     return sLabel;
-   };\n',
-'  oAC.itemSelectEvent.subscribe(function(sType, aArgs) {
-     var oData = aArgs[2];
-     window.location.href = oData.href;
-   });\n',
-\ac_options(Options),
-'}\n'
-					     ])).
-ac_options([]) -->
-	[].
-ac_options([H|T]) -->
-	ac_option(H),
-	ac_options(T).
-
-ac_option(query_delay(Time)) --> !,
-	html([ '  oAC.queryDelay = ~w;\n'-[Time] ]).
-ac_option(auto_highlight(Bool)) --> !,
-	html([ '  oAC.autoHighlight = ~w;\n'-[Bool] ]).
-ac_option(max_results_displayed(Max)) -->
-	html([ '  oAC.maxResultsDisplayed = ~w;\n'-[Max] ]).
-ac_option(O) -->
-	{ domain_error(yui_autocomplete_option, O) }.
-
-%%	ac_find(+Request)
-%
-%	Perform autocompletion for literals and  resources. The reply is
-%	a JSON object that  is  normally   used  in  a  YUI autocomplete
-%	widget.
-
-ac_find(Request) :-
-	max_results_displayed(DefMax),
-	http_parameters(Request,
-			[ query(Query,
-				[ description('Prefix for literals to find')
-				]),
-			  maxResultsDisplayed(Max,
-					      [ integer, default(DefMax),
-						description('Maximum number of results displayed')
-					      ])
-			]),
-	autocompletions(Query, Max, Count, Completions),
-	reply_json(json([ query = json([ count=Count
-				       ]),
-			  results = Completions
-			])).
-
-autocompletions(Query, Max, Count, Completions)  :-
-	autocompletions(prefix(label), Query, Max, BNC, ByName),
-	(   BNC > Max
-	->  Completions = ByName,
-	    Count = BNC
-	;   TMax is Max-BNC,
-	    autocompletions(prefix(other), Query, TMax, BTC, ByToken),
-	    append(ByName, ByToken, Completions),
-	    Count is BNC+BTC
-	).
-
-autocompletions(How, Query, Max, Count, Completions) :-
-	ac_objects(How, Query, Completions0),
-	length(Completions0, Count),
-	first_n(Max, Completions0, Completions1),
-	maplist(obj_result, Completions1, Completions).
-
-obj_result(Text-Count,
-	   json([ label=Text,
-		  count=Count,
-		  href=Href
-		])) :-
-	object_href(Text, Href).
-
-object_href(Text, Link) :- !,
-	term_to_atom(literal(Text), Atom),
-	http_link_to_id(list_triples_with_object, [ l=Atom ], Link).
-
-first_n(0, _, []) :- !.
-first_n(_, [], []) :- !.
-first_n(N, [H|T0], [H|T]) :-
-	N2 is N - 1,
-	first_n(N2, T0, T).
-
-
-%%	ac_objects(+How, +Query, -Objects)
-%
-%	@param Objects is a list of Text-Count pairs
-
-ac_objects(How, Query, Objects) :-
-	findall(Pair, ac_object(How, Query, Pair), Pairs),
-	keysort(Pairs, KSorted),
-	group_pairs_by_key(KSorted, Grouped),
-	maplist(hit_count, Grouped, Objects).
-
-hit_count(Text-Resources, Text-Count) :-
-	length(Resources, Count).	% duplicates?
-
-
-%%	ac_object(+How, +Query, -Object)
-
-ac_object(prefix(label), Query, Text-Resource) :-
-	rdf(Resource, P, literal(prefix(Query), Literal)),
-	(   label_property(LP),
-	    rdfs_subproperty_of(P, LP)
-	->  text_of_literal(Literal, Text)
-	).
-ac_object(prefix(other), Query, Text-Resource) :-
-	rdf(Resource, P, literal(prefix(Query), Literal)),
-	(   label_property(LP),
-	    rdfs_subproperty_of(P, LP)
-	->  fail
-	;   text_of_literal(Literal, Text)
-	).
 
 
 		 /*******************************
