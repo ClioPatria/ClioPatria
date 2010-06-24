@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2006, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam,
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -17,7 +16,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
@@ -29,7 +28,7 @@
     the GNU General Public License.
 */
 
-:- module(http_sparql,
+:- module(api_sparql,
 	  [ sparql_reply/1
 	  ]).
 :- use_module(auth(user_db)).
@@ -46,8 +45,9 @@
 
 %%	sparql_reply(+Request)
 %
-%	HTTP handler for SPARQL requests.  Typically mounted on
-%	=|/sparql/|=
+%	HTTP  handler  for  SPARQL  requests.    Mounted  the  http-path
+%	sparql(.)       (by       default        =|/sparql/|=,       see
+%	library(http/http_path)).
 
 sparql_reply(Request) :-
 	http_parameters(Request,

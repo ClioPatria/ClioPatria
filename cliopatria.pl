@@ -91,7 +91,7 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 
 		api(sesame),
 		api(journal),			% export journal information
-		http_sparql,
+		api(sparql),
 		http_user,
 		applications(admin),
 
