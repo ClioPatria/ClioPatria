@@ -28,7 +28,7 @@
     the GNU General Public License.
 */
 
-:- module(http_canviz,
+:- module(cp_canviz,
 	  [ canviz_graph//2		% :Closure, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).

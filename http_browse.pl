@@ -48,7 +48,7 @@
 :- use_module(library(option)).
 :- use_module(library(apply)).
 
-:- use_module(components(http_canviz)).
+:- use_module(components(canviz)).
 :- use_module(library(semweb/rdf_abstract)).
 
 :- use_module(http_user).
