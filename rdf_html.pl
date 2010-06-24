@@ -39,7 +39,7 @@
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(http_user).
-:- use_module(http_browse).
+:- use_module(components(label)).
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -102,7 +102,7 @@ rows([H|T], Options) -->
 cells([], _) -->
 	[].
 cells([H|T], Options) -->
-	html(td(\resource_link(H, Options))),
+	html(td(\rdf_link(H, Options))),
 	cells(T, Options).
 
 
@@ -136,9 +136,9 @@ triples([H|T], Options) -->
 	triples(T, Options).
 
 triple(rdf(S,P,O), Options) -->
-	html(tr([ td(\resource_link(S, Options)),
-		  td(\resource_link(P, Options)),
-		  td(\resource_link(O, Options))])).
+	html(tr([ td(\rdf_link(S, Options)),
+		  td(\rdf_link(P, Options)),
+		  td(\rdf_link(O, Options))])).
 
 
 %%	query_statistics(+Options, +Units)// is det.
@@ -148,11 +148,9 @@ triple(rdf(S,P,O), Options) -->
 
 query_statistics(Options, Units) -->
 	{ memberchk(cputime(CPU), Options),
-	  sformat(T, '~2f', CPU),
-	  memberchk(count(Count), Options),
-	  sformat(C, '~D', Count)
+	  memberchk(count(Count), Options)
 	}, !,
-	html(center(blockquote(i(['Query completed in ', T, ' seconds, ',
-				  C, ' ', Units])))).
+	html(div(class(query_stats),
+		 'Query completed in ~3f seconds ~D ~w'-[CPU, Count, Units])).
 query_statistics(_, _) -->
 	[].

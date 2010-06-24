@@ -28,7 +28,7 @@
 */
 
 :- module(browse_named_graphs,
-	  [ resource_link//2		% +ResourceOrLiteral, +Options
+	  [
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
@@ -325,7 +325,7 @@ class_row(Graph, Class) -->
 	  ),
 	  http_link_to_id(list_instances, Params, ILink)
 	},
-	html([ td(\resource_link(Class)),
+	html([ td(\rdf_link(Class)),
 	       td(class(int), a(href(ILink), InstanceCount)),
 	       td(class(int), \float_or_minus(PropCount))
 	     ]).
@@ -442,7 +442,7 @@ html_instance_table_title(Graph, Class, Sort) -->
 of_class(Class) -->
 	{ var(Class) }, !.
 of_class(Class) -->
-	html([' of class ', \resource_link(Class)]).
+	html([' of class ', \rdf_link(Class)]).
 
 in_graph(Graph) -->
 	{ var(Graph) }, !.
@@ -469,7 +469,7 @@ instance_table_header -->
 		])).
 
 instance_row(R-C) -->
-	html([ td(\resource_link(R)),
+	html([ td(\rdf_link(R)),
 	       td(class(int), C)
 	     ]).
 
@@ -524,7 +524,7 @@ predicate_row(Graph, Pred) -->
 	  ),
 	  http_link_to_id(list_triples,   Params, PLink)
 	},
-	html([ td(\resource_link(Pred)),
+	html([ td(\rdf_link(Pred)),
 	       td(class(int), a(href(PLink), Triples)),
 	       \resources(Subjects, subject, Params, []),
 	       \resources(Objects, object, Params, []),
@@ -535,7 +535,7 @@ predicate_row(Graph, Pred) -->
 resources([], _, _, _) --> !,
 	html(td(class(empty), -)).
 resources([One], _, _, Options) --> !,
-	html(td(\resource_link(One, Options))).
+	html(td(\rdf_link(One, Options))).
 resources(Many, What, Params, _) --> !,
 	{ length(Many, Count),
 	  http_link_to_id(list_predicate_resources, [side(What)|Params], Link)
@@ -652,7 +652,7 @@ html_resource_table_title(Graph, Pred, Which, Sort, SkosMap) -->
 for_predicate(Pred) -->
 	{ var(Pred) }, !.
 for_predicate(Pred) -->
-	html([' for predicate ', \resource_link(Pred, [])]).
+	html([' for predicate ', \rdf_link(Pred, [])]).
 
 showing_skosmap(true) --> !,
 	html(' with mapping to SKOS').
@@ -700,7 +700,7 @@ resource_row(Pred, object, Options, R-C) --> !,
 		 Param
 	       ], HREF)
 	},
-	html([ td(\resource_link(R, Options)),
+	html([ td(\rdf_link(R, Options)),
 	       td(class(int), a(href(HREF), C)),
 	       \skosmap(R, Options)
 	     ]).
@@ -711,12 +711,12 @@ resource_row(Pred, Side, Options, R-C) -->
 		 Param
 	       ], HREF)
 	},
-	html([ td(\resource_link(R, Options)),
+	html([ td(\rdf_link(R, Options)),
 	       td(class(int), a(href(HREF), C)),
 	       \skosmap(R, Options)
 	     ]).
 resource_row(_, _, Options, R-C) -->
-	html([ td(\resource_link(R, Options)),
+	html([ td(\rdf_link(R, Options)),
 	       td(class(int), C),
 	       \skosmap(R, Options)
 	     ]).
@@ -755,62 +755,8 @@ skos_references([H|T]) -->
 	).
 
 skos_reference(Concept-Scheme) -->
-	html([\resource_link(Concept), ' in ', \resource_link(Scheme)]).
+	html([\rdf_link(Concept), ' in ', \rdf_link(Scheme)]).
 
-
-%%	resource_link(+URI) is det.
-%
-%	Make a link to an arbitrary resource
-
-resource_link(R) -->
-	resource_link(R, []).
-
-resource_link(R, Options) -->
-	{ atom(R), !,
-	  http_link_to_id(list_resource, [r=R], HREF),
-	  (   rdf(R, _, _)
-	  ->  Class = lres
-	  ;   Class = undef
-	  )
-	},
-	html(a([class(Class), href(HREF)], \resource_label(R, Options))).
-resource_link(Literal, Options) -->
-	{ (   option(graph(Graph), Options)
-	  ->  aggregate_all(count, rdf(_,_,Literal, Graph), Count)
-	  ;   aggregate_all(count, rdf(_,_,Literal), Count)
-	  ),
-	  Count > 1, !,
-	  format(string(Title), 'Used ~D times', [Count]),
-	  term_to_atom(Literal, Atom),
-	  http_link_to_id(list_triples_with_object, [l=Atom], HREF)
-	},
-	html(a([ class(llobject),
-		 href(HREF),
-		 title(Title)
-	       ],
-	       \turtle_label(Literal))).
-resource_link(Literal, _) -->
-	turtle_label(Literal).
-
-resource_label(R, Options) -->
-	{ option(resource_format(Format), Options) }, !,
-	resource_flabel(Format, R).
-resource_label(R, _) -->
-	turtle_label(R).
-
-resource_flabel(plain, R) --> !,
-	html(R).
-resource_flabel(nslabel, R) --> !,
-	(   { rdf_global_id(NS:_Local, R), !,
-	      label_property(P),
-	      rdf_has(R, P, Value),
-	      text_of_literal(Value, Label)
-	    }
-	->  html([span(class(ns),NS),':',span(class(rlabel),Label)])
-	;   turtle_label(R)
-	).
-resource_flabel(_, R) -->
-	turtle_label(R).
 
 flip_pairs([], []).
 flip_pairs([Key-Val|Pairs], [Val-Key|Flipped]) :-
@@ -896,20 +842,20 @@ location(URI, _) -->
 	html(URI).
 
 bnode_location([P-URI]) --> !,
-	html([ '[', \resource_link(P, []), ' ',
-	            \resource_link(URI),
+	html([ '[', \rdf_link(P, []), ' ',
+	            \rdf_link(URI),
 	       ']'
 	     ]).
 bnode_location([P-URI|More]) --> !,
 	html([ '[', div(class(bnode_attr),
-			[ div(\resource_link(P, [])),
-			  div(\resource_link(URI))
+			[ div(\rdf_link(P, [])),
+			  div(\rdf_link(URI))
 			]), ' ',
 	       \bnode_location(More),
 	       ']'
 	     ]).
 bnode_location([URI|More]) --> !,
-	resource_link(URI),
+	rdf_link(URI),
 	html(' '),
 	bnode_location(More).
 bnode_location([]) -->
@@ -952,9 +898,9 @@ as_object_locations([S-P], URI, _) --> !,
 	html([ 'The resource appears as object in one triple:',
 	       div(class(triple),
 		   [ '{ ',
-		     \resource_link(S), ', ',
-		     \resource_link(P, []), ', ',
-		     \resource_link(URI)
+		     \rdf_link(S), ', ',
+		     \rdf_link(P, []), ', ',
+		     \rdf_link(URI)
 		   , ' }'
 		   ])
 	     ]).
@@ -997,13 +943,13 @@ alt_sorted(none, default).
 
 
 lview_row(P-OList) -->
-	html([ td(class(predicate), \resource_link(P, [])),
+	html([ td(class(predicate), \rdf_link(P, [])),
 	       td(class(object), \object_list(OList))
 	     ]).
 
 object_list([]) --> [].
 object_list([H|T]) -->
-	html(div(class(obj), \resource_link(H))),
+	html(div(class(obj), \rdf_link(H))),
 	object_list(T).
 
 
@@ -1085,14 +1031,14 @@ uri_predicate_info(_, _) --> [].
 context_graph(URI) -->
 	html([ h4('Context graph'),
 	       \canviz_graph(context_graph(URI),
-			     [ wrap_url(resource_link),
+			     [ wrap_url(rdf_link),
 			       graph_attributes([ rankdir('RL')
 						]),
 			       shape_hook(shape(URI))
 			     ])
 	     ]).
 
-resource_link(URI, HREF) :-
+rdf_link(URI, HREF) :-
 	http_link_to_id(list_resource, [r(URI)], HREF).
 
 shape(Start, Start, [style(filled), fillcolor('#00ff00')]).
@@ -1206,12 +1152,12 @@ triple_header(Count, Pred, Dom, Range, Graph) -->
 with_domain(Dom) -->
 	{ var(Dom) }, !.
 with_domain(Dom) -->
-	html([' with domain ', \resource_link(Dom, [])]).
+	html([' with domain ', \rdf_link(Dom, [])]).
 
 with_range(Range) -->
 	{ var(Range) }, !.
 with_range(Range) -->
-	html([' with range ', \resource_link(Range, [])]).
+	html([' with range ', \rdf_link(Range, [])]).
 
 
 triple_table(SOList, Pred, Options) -->
@@ -1230,8 +1176,8 @@ so_header(_) -->
 		])).
 
 so_row(_P, S-O) -->
-	html([ td(class(subject), \resource_link(S)),
-	       td(class(object),  \resource_link(O))
+	html([ td(class(subject), \rdf_link(S)),
+	       td(class(object),  \rdf_link(O))
 	     ]).
 
 
@@ -1274,12 +1220,12 @@ otriple_header(Count, Object, Pred, Graph) -->
 with_object(Obj) -->
 	{ var(Obj)}, !.
 with_object(Obj) -->
-	html([' with object ', \resource_link(Obj)]).
+	html([' with object ', \rdf_link(Obj)]).
 
 on_predicate(P) -->
 	{ var(P) }, !.
 on_predicate(P) -->
-	html([' on predicate ', \resource_link(P, [])]).
+	html([' on predicate ', \rdf_link(P, [])]).
 
 
 otriple_table(SPList, Object, Options) -->
@@ -1298,8 +1244,8 @@ sp_header(_) -->
 		])).
 
 sp_row(_O, S-P) -->
-	html([ td(class(subject),   \resource_link(S)),
-	       td(class(predicate), \resource_link(P, []))
+	html([ td(class(subject),   \rdf_link(S)),
+	       td(class(predicate), \rdf_link(P, []))
 	     ]).
 
 
@@ -1458,9 +1404,9 @@ rdf_table(Triples, Options) -->
 		   ])).
 
 triple(rdf(S,P,O)) -->
-	html([ td(class(subject),   \resource_link(S)),
-	       td(class(predicate), \resource_link(P)),
-	       td(class(object),    \resource_link(O))
+	html([ td(class(subject),   \rdf_link(S)),
+	       td(class(predicate), \rdf_link(P)),
+	       td(class(object),    \rdf_link(O))
 	     ]).
 
 
