@@ -528,8 +528,8 @@ predicate_row(Graph, Pred) -->
 	       td(class(int), a(href(PLink), Triples)),
 	       \resources(Subjects, subject, Params, []),
 	       \resources(Objects, object, Params, []),
-	       \resources(Doms, domain, Params, [force(true)]),
-	       \resources(Ranges, range, Params, [force(true)])
+	       \resources(Doms, domain, Params, []),
+	       \resources(Ranges, range, Params, [])
 	     ]).
 
 resources([], _, _, _) --> !,
@@ -619,8 +619,8 @@ list_predicate_resources(Request) :-
 						    ])
 			]).
 
-pred_resource_options(_, domain, [label('Class'), force(true)]) :- !.
-pred_resource_options(_, range, [label('Class'), force(true)]) :- !.
+pred_resource_options(_, domain, [label('Class')]) :- !.
+pred_resource_options(_, range, [label('Class')]) :- !.
 pred_resource_options(_, _, []).
 
 do_skos(SkosMap, _, _) :-
@@ -652,7 +652,7 @@ html_resource_table_title(Graph, Pred, Which, Sort, SkosMap) -->
 for_predicate(Pred) -->
 	{ var(Pred) }, !.
 for_predicate(Pred) -->
-	html([' for predicate ', \resource_link(Pred, [force(true)])]).
+	html([' for predicate ', \resource_link(Pred, [])]).
 
 showing_skosmap(true) --> !,
 	html(' with mapping to SKOS').
@@ -766,16 +766,14 @@ resource_link(R) -->
 	resource_link(R, []).
 
 resource_link(R, Options) -->
-	{ (   rdf(R, _, _)
-	  ->  true
-	  ;   option(force(true), Options)
-	  ), !,
-	  http_link_to_id(list_resource, [r=R], HREF)
+	{ atom(R), !,
+	  http_link_to_id(list_resource, [r=R], HREF),
+	  (   rdf(R, _, _)
+	  ->  Class = lres
+	  ;   Class = undef
+	  )
 	},
-	html(a(href(HREF), \resource_label(R, Options))).
-resource_link(R, Options) -->
-	{ atom(R) }, !,
-	html(span(class(undef), \resource_label(R, Options))).
+	html(a([class(Class), href(HREF)], \resource_label(R, Options))).
 resource_link(Literal, Options) -->
 	{ (   option(graph(Graph), Options)
 	  ->  aggregate_all(count, rdf(_,_,Literal, Graph), Count)
@@ -811,7 +809,6 @@ resource_flabel(nslabel, R) --> !,
 	->  html([span(class(ns),NS),':',span(class(rlabel),Label)])
 	;   turtle_label(R)
 	).
-
 resource_flabel(_, R) -->
 	turtle_label(R).
 
@@ -899,13 +896,13 @@ location(URI, _) -->
 	html(URI).
 
 bnode_location([P-URI]) --> !,
-	html([ '[', \resource_link(P, [force(true)]), ' ',
+	html([ '[', \resource_link(P, []), ' ',
 	            \resource_link(URI),
 	       ']'
 	     ]).
 bnode_location([P-URI|More]) --> !,
 	html([ '[', div(class(bnode_attr),
-			[ div(\resource_link(P, [force(true)])),
+			[ div(\resource_link(P, [])),
 			  div(\resource_link(URI))
 			]), ' ',
 	       \bnode_location(More),
@@ -956,7 +953,7 @@ as_object_locations([S-P], URI, _) --> !,
 	       div(class(triple),
 		   [ '{ ',
 		     \resource_link(S), ', ',
-		     \resource_link(P, [force(true)]), ', ',
+		     \resource_link(P, []), ', ',
 		     \resource_link(URI)
 		   , ' }'
 		   ])
@@ -1000,7 +997,7 @@ alt_sorted(none, default).
 
 
 lview_row(P-OList) -->
-	html([ td(class(predicate), \resource_link(P, [force(true)])),
+	html([ td(class(predicate), \resource_link(P, [])),
 	       td(class(object), \object_list(OList))
 	     ]).
 
@@ -1209,12 +1206,12 @@ triple_header(Count, Pred, Dom, Range, Graph) -->
 with_domain(Dom) -->
 	{ var(Dom) }, !.
 with_domain(Dom) -->
-	html([' with domain ', \resource_link(Dom, [force(true)])]).
+	html([' with domain ', \resource_link(Dom, [])]).
 
 with_range(Range) -->
 	{ var(Range) }, !.
 with_range(Range) -->
-	html([' with range ', \resource_link(Range, [force(true)])]).
+	html([' with range ', \resource_link(Range, [])]).
 
 
 triple_table(SOList, Pred, Options) -->
@@ -1282,7 +1279,7 @@ with_object(Obj) -->
 on_predicate(P) -->
 	{ var(P) }, !.
 on_predicate(P) -->
-	html([' on predicate ', \resource_link(P, [force(true)])]).
+	html([' on predicate ', \resource_link(P, [])]).
 
 
 otriple_table(SPList, Object, Options) -->
@@ -1302,7 +1299,7 @@ sp_header(_) -->
 
 sp_row(_O, S-P) -->
 	html([ td(class(subject),   \resource_link(S)),
-	       td(class(predicate), \resource_link(P, [force(true)]))
+	       td(class(predicate), \resource_link(P, []))
 	     ]).
 
 
