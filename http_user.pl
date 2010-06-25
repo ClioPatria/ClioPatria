@@ -61,9 +61,7 @@
 :- http_handler(cliopatria('home.html'),	     welcome,
 		[id(cliopatria_home)]).
 :- http_handler(cliopatria('user/statistics'),	     statistics,	      []).
-:- http_handler(cliopatria('user/construct'),	     construct_form,	      []).
 :- http_handler(cliopatria('user/query'),	     query_form,	      []).
-:- http_handler(cliopatria('user/select'),	     select_form,	      []).
 :- http_handler(cliopatria('user/loadFile'),	     load_file_form,	      []).
 :- http_handler(cliopatria('user/loadURL'),	     load_url_form,	      []).
 :- http_handler(cliopatria('user/loadBaseOntology'), load_base_ontology_form, []).
@@ -155,63 +153,6 @@ triple_statistics -->
 graph_count(Count) :-
 	aggregate_all(count, rdf_graph(_), Count).
 
-
-%%	construct_form(+Request)
-%
-%	Provide a page for issuing a   SeRQL  =CONSTRUCT= query. A SeRQL
-%	=CONSTRUCT= query returns a graph of RDF triples.
-
-construct_form(_Request) :-
-	reply_html_page(cliopatria(default),
-			title('Specify a query'),
-			[ h1(align(center), 'Interactive SeRQL CONSTRUCT query'),
-
-			  p(['A CONSTRUCT generates an RDF graph']),
-
-			  form([ name(query),
-				 action(location_by_id(evaluate_graph_query)),
-				 method('GET')
-			       ],
-			       [ \hidden(repository, default),
-				 table(align(center),
-				       [ \store_recall(construct, 3-2),
-					 tr([ td(colspan(6),
-						 textarea([ name(query),
-							    rows(15),
-							    cols(80)
-							  ],
-							  'CONSTRUCT '))
-					    ]),
-					 tr([ td([ \small('QLang: '),
-						   \query_language
-						 ]),
-					      td([ \small('Format: '),
-						   \result_format
-						 ]),
-					      td([ \small('Serial.: '),
-						   \serialization
-						 ]),
-					      td([ \small('Res.: '),
-						   \resource_menu
-						 ]),
-					      td([ \small('Entail.: '),
-						   \entailment
-						 ]),
-					      td(align(right),
-						 [ input([ type(reset),
-							   value('Reset')
-							 ]),
-						   input([ type(submit),
-							   value('Go!')
-							 ])
-						 ])
-					    ])
-				       ])
-			       ]),
-			  \query_script
-			]).
-
-
 %%	query_form(+Request)
 %
 %	Provide a page for issuing a =SELECT= query.
@@ -271,72 +212,10 @@ query_docs -->
 		       'Sesame and SeRQL site'))
 		])).
 
-
-%%	select_form(+Request)
-%
-%	Provide a page for issuing a =SELECT= query
-
-select_form(_Request) :-
-	reply_html_page(cliopatria(default),
-			title('Specify a query'),
-			[ h1(align(center), 'Interactive SeRQL SELECT query'),
-
-			  p(['A SELECT generates a table']),
-
-			  form([ name(query),
-				 action(location_by_id(evaluate_table_query)),
-				 method('GET')
-			       ],
-			       [ \hidden(repository, default),
-				 \hidden(serialization, rdfxml),
-				 table(align(center),
-				       [ \store_recall(select, 3-2),
-					 tr([ td(colspan(6),
-						 textarea([ name(query),
-							    rows(15),
-							    cols(80)
-							  ],
-							  'SELECT '))
-					    ]),
-					 tr([ td([ \small('Result format: '),
-						   \result_format
-						 ]),
-					      td([ \small('Language: '),
-						   \query_language
-						 ]),
-					      td([ \small('Resource: '),
-						   \resource_menu
-						 ]),
-					      td([ \small('Entailment: '),
-						   \entailment
-						 ]),
-					      td(align(right),
-						 [ input([ type(reset),
-							   value('Reset')
-							 ]),
-						   input([ type(submit),
-							   value('Go!')
-							 ])
-						 ])
-					    ])
-				       ])
-			       ]),
-			  \query_script
-			]).
-
-
-serialization -->
-	html(select(name(serialization),
-		    [ option([selected], rdfxml),
-		      option([], ntriples),
-		      option([], n3)
-		    ])).
-
 result_format -->
 	html(select(name(resultFormat),
 		    [ option([], xml),
-		      option([selected], html)/*,
-		      option([], rdf)*/
+		      option([selected], html)
 		    ])).
 
 query_language -->
@@ -599,73 +478,6 @@ remove_statements_form -->
 			       ])
 			  ])
 		  ])).
-
-
-		 /*******************************
-		 *		UTIL		*
-		 *******************************/
-
-actions([]) -->
-	[].
-actions([Path-Label|T]) -->
-	action(Path, Label),
-	actions(T).
-
-%%	action(+Action, +Label)// is det
-%
-%	Add an action to the sidebar.  Action is one of
-%
-%		$ =-= :
-%		Add a horizontal rule (<hr>)
-%		$ Atom :
-%		ID of an HTTP handler. For backward compatibility we
-%		also accept an HTTP url with a warning.  The location
-%		is opened in the window named =main=.
-%		$ HTML DOM :
-%		Insert given HTML
-
-action(-, -) --> !,
-	html(hr([])).
-action(-, Label) --> !,
-	html([ hr([]),
-	       center(b(Label)),
-	       hr([])
-	     ]).
-action(Spec, Label) -->
-	{ atom(Spec) }, !,
-	{ (   \+ sub_atom(Spec, 0, _, _, 'http://'),
-	      catch(http_location_by_id(Spec, Location), E,
-		    (   print_message(informational, E),
-			fail))
-	  ->  true
-	  ;   Location = Spec
-	  )
-	},
-	html([a([href(Location)], Label), br([])]).
-action(Action, _) -->
-	html(Action),
-	html(br([])).
-
-action_by_id(ID, Label) -->
-	{ http_location_by_id(ID, Location) },
-	html([a([href(Location)], Label), br([])]).
-
-%%	nc(+Format, +Value)// is det.
-%
-%	Numeric  cell.  The  value  is    formatted   using  Format  and
-%	right-aligned in a table cell (td).
-
-nc(Fmt, Value) -->
-	nc(Fmt, Value, []).
-
-nc(Fmt, Value, Options) -->
-	{ format(string(Txt), Fmt, [Value]),
-	  (   memberchk(align(_), Options)
-	  ->  Opts = Options
-	  ;   Opts = [align(right)|Options]
-	  )
-	},
-	html(td(Opts, Txt)).
 
 
 %%	hidden(+Name, +Value)// is det.

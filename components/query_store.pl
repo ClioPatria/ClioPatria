@@ -37,9 +37,19 @@
 :- use_module(library(http/html_write)).
 
 /** <module> Store/Recall SPARQL queries
+
+This  module  implements   a   simple    query-history   mechanism   for
+user-submitted SPARQL queries.
 */
 
+
 %%	store_recall(+Type, +ColsSpec)// is det.
+%
+%	Creates a table-row  (=tr=)  holding   a  `store'  and  `recall'
+%	element. ColsSpec is a term   SpanLeft-SpanRight, containing the
+%	colspan-attribute for both created table-cells. Note that a page
+%	including this must also  include   query_script//0  at  a place
+%	later in the page where a script is allowed.
 
 store_recall(Type, SL-SR) -->
 	{ next_query_id(Id)
@@ -100,6 +110,8 @@ stored_queries([Name-Query|T], I) -->
 %
 %	Inserts the <script> holding JavaScript functions that restore
 %	the queries.
+%
+%	@tbd	This must be rewritten to use the post/receive mechanism.
 
 query_script -->
 	{ findall(S, retract(script_fragment(S)), Fragments),
