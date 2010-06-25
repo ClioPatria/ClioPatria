@@ -56,7 +56,7 @@
 :- use_module(library(debug)).
 :- use_module(library(settings)).
 :- use_module(rdf_store).
-:- use_module(components(query_store)).
+:- use_module(components(query)).
 
 :- http_handler(sesame('login'),	      http_login,	    []).
 :- http_handler(sesame('logout'),	      http_logout,	    []).
