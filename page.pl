@@ -30,8 +30,10 @@
 
 :- module(cp_page, []).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
 :- use_module(components(menu)).
 :- use_module(components(simple_search)).
+:- use_module(version).
 
 :- multifile
 	user:body//2.
@@ -41,5 +43,14 @@ user:body(cliopatria(_), Body) -->
 		  [ div(id(sidebar), \cp_menu),
 		    \simple_search_form,
 		    br(clear(all)),
-		    div(id(content), Body)
+		    div(id(content), Body),
+		    div(id(address), \address)
 		  ])).
+
+address -->
+	{ git_version(CP_Version)
+	},
+	html_requires(css('cliopatria.css')),
+	html([ address(class(cliopatria),
+		       'ClioPatria ~w'-[CP_Version])
+	     ]).

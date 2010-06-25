@@ -1,0 +1,11 @@
+/* General ClioPatria page layout
+*/
+
+address.cliopatria
+{ margin-top: 1ex;
+  border-width: 1px 0 0 0;
+  border-style: solid;
+  border-color: #A0A0A0;
+  font-size: smaller;
+  text-align: right;
+}
