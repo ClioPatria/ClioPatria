@@ -160,7 +160,10 @@ graph_count(Count) :-
 query_form(_Request) :-
 	reply_html_page(cliopatria(default),
 			title('Specify a query'),
-			\query_form).
+			[ \query_form,
+			  \query_docs,
+			  \warn_interactive
+			]).
 
 query_form -->
 	html_requires(css('rdfql.css')),
@@ -181,37 +184,29 @@ query_form -->
 			      tr([ td(colspan(5),
 				      textarea(name(query), ''))
 				 ]),
-			      tr([ td([ \small('Result format: '),
+			      tr([ td([ span(class(label), 'Result format: '),
 					\result_format
 				      ]),
-				   td([ \small('Resource: '),
+				   td([ span(class(label), 'Resource: '),
 					\resource_menu
 				      ]),
-				   td([ \small('Entailment: '),
+				   td([ span(class(label), 'Entailment: '),
 					\entailment
 				      ]),
 				   td(align(right),
 				      [ input([ type(reset),
-						value('Reset')
+						value('Clear')
 					      ]),
 					input([ type(submit),
 						value('Go!')
 					      ])
 				      ])
 				 ])
-			    ]),
-		      \query_docs
+			    ])
 		    ]),
 	       \query_script
 	     ]).
 
-
-query_docs -->
-	html(ul([ li(a(href('http://www.w3.org/TR/rdf-sparql-query/'),
-		       'SPARQL Documentation')),
-		  li(a(href('http://www.openrdf.org/'),
-		       'Sesame and SeRQL site'))
-		])).
 
 result_format -->
 	html(select(name(resultFormat),
@@ -248,9 +243,26 @@ entailments([E|T]) -->
 	),
 	entailments(T).
 
-small(Text) -->
-	html(font(size(-1), Text)).
 
+warn_interactive -->
+	{ http_location_by_id(sparql_reply, HREF),
+	  SparqlAPI = 'http://www.w3.org/TR/rdf-sparql-protocol/'
+	},
+	html([ br(clear(all)),
+	       p(class('warn-interactive'),
+		 [ 'This form is to test SPARQL queries ', i(interactively), '. ',
+		   'Machines should use ', b([HREF,'?query=...']),
+		   ', which provides a ',
+		   a(href(SparqlAPI), 'SPARQL compliant HTTP API'), '.'
+		 ])
+	     ]).
+
+query_docs -->
+	html(ul([ li(a(href('http://www.w3.org/TR/rdf-sparql-query/'),
+		       'SPARQL Documentation')),
+		  li(a(href('http://www.openrdf.org/'),
+		       'Sesame and SeRQL site'))
+		])).
 
 %%	load_file_form(+Request)
 %

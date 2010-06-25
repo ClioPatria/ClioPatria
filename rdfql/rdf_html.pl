@@ -34,6 +34,7 @@
 	  [
 	  ]).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_head)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -42,10 +43,11 @@
 :- use_module(components(label)).
 
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-This library provides primitives based on the html_write library dealing
-with emitting RDF related material in HTML human-readable format.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/** <module> Write query-results as HTML table.
+
+This module writes a SPARQL-table as an HTML   table.  It acts as a hook
+into rdf_io.pl.
+*/
 
 		 /*******************************
 		 *	  RESULT TABLES		*
@@ -66,7 +68,8 @@ rdf_io:write_table(html, _Serialization, Rows, Options) :- !,
 	reply_html_page(cliopatria(default),
 			title('Query result'),
 			[ \query_statistics([count(Count)|Options], rows),
-			  \select_result_table(Rows, Options)
+			  \select_result_table(Rows, Options),
+			  \new_query
 			]).
 
 select_result_table(Rows, Options) -->
@@ -154,3 +157,12 @@ query_statistics(Options, Units) -->
 		 'Query completed in ~3f seconds ~D ~w'-[CPU, Count, Units])).
 query_statistics(_, _) -->
 	[].
+
+%%	new_query//
+
+new_query -->
+	{ http_link_to_id(query_form, [], QueryForm)
+	},
+	html([ br(clear(all)),
+	       a([class('new-query'), href(QueryForm)], 'New query')
+	     ]).

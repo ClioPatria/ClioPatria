@@ -27,7 +27,6 @@ div.local-login form
 div.query_stats
 { margin-top: 1em;
   margin-bottom: 0.5em;
-  text-align: center;
   font-style: italic;
 }
 
@@ -81,9 +80,31 @@ tr.buttons td
 { background-color: #b9daff;
 }
 
+a.new-query
+{ margin-top: 4ex;
+}
+
+p.warn-interactive
+{ margin-top: 1ex;
+  border-width: 1px 0 0 0;
+  border-style: solid;
+  border-color: #A0A0A0;
+  font-size: smaller;
+  text-align: right;
+}
+
 		 /*******************************
 		 *	     QUERY FORM		*
 		 *******************************/
+
+form.query
+{ margin-top: 4ex;
+}
+
+form.query h3
+{ padding-left: 5%;
+  background-color: #b9daff;
+}
 
 table.query
 { margin-top: 1ex;
@@ -94,4 +115,8 @@ table.query
 table.query textarea
 { width: 100%;
   height: 30ex;
+}
+
+table.query span.label
+{ font-size: smaller;
 }

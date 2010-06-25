@@ -79,7 +79,7 @@ recall(Type) -->
 	html([ b('Recall: '),
 	       select(name(recall),
 		      [ option([selected], '')
-		      | \stored_queries(Pairs, 1)
+		      | \stored_queries(Pairs)
 		      ])
 	     ]).
 recall(_) -->
@@ -87,6 +87,11 @@ recall(_) -->
 
 :- thread_local
 	script_fragment/1.
+
+stored_queries([]) --> !.
+stored_queries(List) -->
+	stored_queries(List, 1),
+	{ assert(script_fragment('\nf1();\n')) }.
 
 stored_queries([], _) -->
 	[].
