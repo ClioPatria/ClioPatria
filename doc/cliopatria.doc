@@ -10,8 +10,6 @@
 \bodycolor{white}				% Page colour
 \sloppy
 
-\renewcommand{\runningtitle}{SWI-Prolog Semantic Web Server}
-
 \begin{document}
 
 \title{SWI-Prolog Semantic Web Server}
