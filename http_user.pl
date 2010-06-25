@@ -48,6 +48,7 @@
 :- use_module(library(debug)).
 :- use_module(components(server_statistics)).
 :- use_module(components(query_store)).
+:- use_module(components(basics)).
 :- use_module(http_browse).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_library)).
@@ -160,88 +161,11 @@ graph_count(Count) :-
 query_form(_Request) :-
 	reply_html_page(cliopatria(default),
 			title('Specify a query'),
-			[ \query_form,
+			[ \query_form([]),
 			  \query_docs,
 			  \warn_interactive
 			]).
 
-query_form -->
-	html_requires(css('rdfql.css')),
-	html([ form([ class(query),
-		      name(query),
-		      action(location_by_id(evaluate_query)),
-		      method('GET')
-		    ],
-		    [ \hidden(repository, default),
-		      \hidden(serialization, rdfxml),
-		      h3([ 'Interactive ',
-			   \query_language,
-			   ' query'
-			 ]),
-		      table([ class(query)
-			    ],
-			    [ \store_recall(_, 3-2),
-			      tr([ td(colspan(5),
-				      textarea(name(query), ''))
-				 ]),
-			      tr([ td([ span(class(label), 'Result format: '),
-					\result_format
-				      ]),
-				   td([ span(class(label), 'Resource: '),
-					\resource_menu
-				      ]),
-				   td([ span(class(label), 'Entailment: '),
-					\entailment
-				      ]),
-				   td(align(right),
-				      [ input([ type(reset),
-						value('Clear')
-					      ]),
-					input([ type(submit),
-						value('Go!')
-					      ])
-				      ])
-				 ])
-			    ])
-		    ]),
-	       \query_script
-	     ]).
-
-
-result_format -->
-	html(select(name(resultFormat),
-		    [ option([], xml),
-		      option([selected], html)
-		    ])).
-
-query_language -->
-	html(select(name(queryLanguage),
-		    [ option([selected], 'SPARQL'),
-		      option([],         'SeRQL')
-		    ])).
-
-resource_menu -->
-	html(select(name(resourceFormat),
-		    [ option([value(plain)], 		plain),
-		      option([value(ns), selected],	'ns:local'),
-		      option([value(nslabel)], 	'ns:label')
-		    ])).
-
-entailment -->
-	{ findall(E, cliopatria:entailment(E, _), Es)
-	},
-	html(select(name(entailment),
-		    \entailments(Es))).
-
-entailments([]) -->
-	[].
-entailments([E|T]) -->
-	(   { setting(cliopatria:default_entailment, E)
-	    }
-	->  html(option([selected], E))
-	;   html(option([], E))
-	),
-	entailments(T).
 
 
 warn_interactive -->
@@ -491,14 +415,3 @@ remove_statements_form -->
 			       ])
 			  ])
 		  ])).
-
-
-%%	hidden(+Name, +Value)// is det.
-%
-%	Create a hidden input field with given name and value
-
-hidden(Name, Value) -->
-	html(input([ type(hidden),
-		     name(Name),
-		     value(Value)
-		   ])).

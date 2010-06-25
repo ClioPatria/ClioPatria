@@ -28,19 +28,125 @@
     the GNU General Public License.
 */
 
-:- module(query_store,
-	  [ store_recall//2,		% +Type, +ColsStore-CollsRecall
+:- module(rdfql_queries,
+	  [ query_form//1,		% +Options
+	    store_recall//2,		% +Type, +ColsStore-CollsRecall
 	    query_script//0,		%
 	    store_query/3		% +Type, +Id, +Query
 	  ]).
 :- use_module(library(http/http_session)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
+:- use_module(basics).
 
-/** <module> Store/Recall SPARQL queries
+/** <module> Forms for entering SPARQL and SeRQL queries.
 
-This  module  implements   a   simple    query-history   mechanism   for
-user-submitted SPARQL queries.
+This module implements the forms for   entering SPARQL and SeRQL queries
+with a simple query-history mechanism for user-submitted SPARQL queries.
 */
+
+%%	query_form(+Options)//
+%
+%	HTMP component for an  interactive   (SPARQL)  query-form.  This
+%	calls to the handler with  id   =evaluate_query=.  Options is an
+%	option list:
+%
+%	    * query_languages(+List)
+%	    Query languages supported.  Default is ['SPARQL', 'SeRQL'].
+%	    Specifying only one removes the query-language menu.
+
+query_form(Options) -->
+	html_requires(css('rdfql.css')),
+	html([ form([ class(query),
+		      name(query),
+		      action(location_by_id(evaluate_query)),
+		      method('GET')
+		    ],
+		    [ \hidden(repository, default),
+		      \hidden(serialization, rdfxml),
+		      h3([ 'Interactive ',
+			   \query_language(Options, Hidden),
+			   ' query'
+			 ]),
+		      Hidden,
+		      table([ class(query)
+			    ],
+			    [ \store_recall(_, 3-2),
+			      tr([ td(colspan(5),
+				      textarea(name(query), ''))
+				 ]),
+			      tr([ td([ span(class(label), 'Result format: '),
+					\result_format
+				      ]),
+				   td([ span(class(label), 'Resource: '),
+					\resource_menu
+				      ]),
+				   td([ span(class(label), 'Entailment: '),
+					\entailment
+				      ]),
+				   td(align(right),
+				      [ input([ type(reset),
+						value('Clear')
+					      ]),
+					input([ type(submit),
+						value('Go!')
+					      ])
+				      ])
+				 ])
+			    ])
+		    ]),
+	       \query_script
+	     ]).
+
+
+result_format -->
+	html(select(name(resultFormat),
+		    [ option([], xml),
+		      option([selected], html)
+		    ])).
+
+query_language(Options, Hidden) -->
+	{ option(query_languages(LangList), Options, ['SPARQL', 'SeRQL'])
+	},
+	(   { LangList = [Lang] }
+	->  html([Lang]),
+	    { Hidden = \hidden(queryLanguage, Lang) }
+	;   { LangList = [DefLang|More] },
+	    html(select(name(queryLanguage),
+			[ option([selected], DefLang)
+			| \options(More)
+			])),
+	    { Hidden = [] }
+	).
+
+options([]) --> [].
+options([Value|T]) -->
+	html(option([], Value)),
+	options(T).
+
+
+resource_menu -->
+	html(select(name(resourceFormat),
+		    [ option([value(plain)], 		plain),
+		      option([value(ns), selected],	'ns:local'),
+		      option([value(nslabel)], 	'ns:label')
+		    ])).
+
+entailment -->
+	{ findall(E, cliopatria:entailment(E, _), Es)
+	},
+	html(select(name(entailment),
+		    \entailments(Es))).
+
+entailments([]) -->
+	[].
+entailments([E|T]) -->
+	(   { setting(cliopatria:default_entailment, E)
+	    }
+	->  html(option([selected], E))
+	;   html(option([], E))
+	),
+	entailments(T).
 
 
 %%	store_recall(+Type, +ColsSpec)// is det.
