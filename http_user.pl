@@ -47,6 +47,7 @@
 :- use_module(auth(user_db)).
 :- use_module(library(debug)).
 :- use_module(components(server_statistics)).
+:- use_module(components(query_store)).
 :- use_module(http_browse).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_library)).
@@ -161,7 +162,6 @@ graph_count(Count) :-
 %	=CONSTRUCT= query returns a graph of RDF triples.
 
 construct_form(_Request) :-
-	catch(logged_on(User), _, User=anonymous),
 	reply_html_page(cliopatria(default),
 			title('Specify a query'),
 			[ h1(align(center), 'Interactive SeRQL CONSTRUCT query'),
@@ -174,7 +174,7 @@ construct_form(_Request) :-
 			       ],
 			       [ \hidden(repository, default),
 				 table(align(center),
-				       [ \store_recall(User, construct, 3-2),
+				       [ \store_recall(construct, 3-2),
 					 tr([ td(colspan(6),
 						 textarea([ name(query),
 							    rows(15),
@@ -208,109 +208,15 @@ construct_form(_Request) :-
 					    ])
 				       ])
 			       ]),
-			  \script
+			  \query_script
 			]).
 
-store_recall(anonymous, _, _) -->
-	[].
-store_recall(User, Type, SL-SR) -->
-	html(tr([ td(colspan(SL),
-		     [ b('Store as: '),
-		       input([ name(storeAs),
-			       size(40)
-			     ])
-		     ]),
-		  td([ colspan(SR),
-		       align(right)
-		     ],
-		     \recall(User, Type))
-		])).
-
-
-recall(User, Type) -->
-	{ findall(Name-Query, stored_query(Name, User, Type, Query), Pairs),
-	  Pairs \== []
-	},
-	html([ b('Recall: '),
-	       select(name(recall),
-		      [ option([selected], '')
-		      | \stored_queries(Pairs, 1)
-		      ])
-	     ]).
-recall(_, _) -->
-	[].
-
-stored_queries([], _) -->
-	[].
-stored_queries([Name-Query|T], I) -->
-	{ I2 is I + 1,
-	  atom_concat(f, I, FName),
-	  js_quoted(Query, QuotedQuery),
-	  format(atom(Script),
-		 'function ~w()\n\
-		 { document.query.query.value=\'~w\';\n\
-		 }\n',
-		 [ FName, QuotedQuery ]),
-	  assert(script_fragment(Script)),
-	  format(atom(Call), '~w()', [FName])
-	},
-	html(option([onClick(Call)], Name)),
-	stored_queries(T, I2).
-
-
-:- thread_local
-	script_fragment/1.
-
-script -->
-	{ findall(S, retract(script_fragment(S)), Fragments),
-	  Fragments \== []
-	}, !,
-	[ '\n<script language="JavaScript">\n'
-	],
-	Fragments,
-	[ '\n</script>\n'
-	].
-script -->
-	[].
-
-%%	js_quoted(+Raw, -Quoted)
-%
-%	Quote text for use in JavaScript. Quoted does _not_ include the
-%	leading and trailing quotes.
-
-js_quoted(Raw, Quoted) :-
-	atom_codes(Raw, Codes),
-	phrase(js_quote_codes(Codes), QuotedCodes),
-	atom_codes(Quoted, QuotedCodes).
-
-js_quote_codes([]) -->
-	[].
-js_quote_codes([0'\r,0'\n|T]) --> !,
-	"\\n",
-	js_quote_codes(T).
-js_quote_codes([H|T]) -->
-	js_quote_code(H),
-	js_quote_codes(T).
-
-js_quote_code(0'') --> !,
-	"\\'".
-js_quote_code(0'\\) --> !,
-	"\\\\".
-js_quote_code(0'\n) --> !,
-	"\\n".
-js_quote_code(0'\r) --> !,
-	"\\r".
-js_quote_code(0'\t) --> !,
-	"\\t".
-js_quote_code(C) -->
-	[C].
 
 %%	query_form(+Request)
 %
 %	Provide a page for issuing a =SELECT= query.
 
 query_form(_Request) :-
-	catch(logged_on(User), _, User=anonymous),
 	reply_html_page(cliopatria(default),
 			title('Specify a query'),
 			[ form([ name(query),
@@ -325,7 +231,7 @@ query_form(_Request) :-
 				      ' query'
 				    ]),
 				 table(align(center),
-				       [ \store_recall(User, _, 3-2),
+				       [ \store_recall(_, 3-2),
 					 tr([ td(colspan(5),
 						 textarea([ name(query),
 							    rows(15),
@@ -354,7 +260,7 @@ query_form(_Request) :-
 				       ]),
 				 \query_docs
 			       ]),
-			  \script
+			  \query_script
 			]).
 
 
@@ -371,7 +277,6 @@ query_docs -->
 %	Provide a page for issuing a =SELECT= query
 
 select_form(_Request) :-
-	catch(logged_on(User), _, User=anonymous),
 	reply_html_page(cliopatria(default),
 			title('Specify a query'),
 			[ h1(align(center), 'Interactive SeRQL SELECT query'),
@@ -385,7 +290,7 @@ select_form(_Request) :-
 			       [ \hidden(repository, default),
 				 \hidden(serialization, rdfxml),
 				 table(align(center),
-				       [ \store_recall(User, select, 3-2),
+				       [ \store_recall(select, 3-2),
 					 tr([ td(colspan(6),
 						 textarea([ name(query),
 							    rows(15),
@@ -416,7 +321,7 @@ select_form(_Request) :-
 					    ])
 				       ])
 			       ]),
-			  \script
+			  \query_script
 			]).
 
 

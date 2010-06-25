@@ -31,8 +31,7 @@
 
 
 :- module(sesame_http_body,
-	  [ stored_query/4,		% Name, User, Type, Query
-	    serql_base_ontology/1	% -Ontology
+	  [ serql_base_ontology/1	% -Ontology
 	  ]).
 :- use_module(parms).
 :- use_module(rdfql(serql)).
@@ -57,6 +56,7 @@
 :- use_module(library(debug)).
 :- use_module(library(settings)).
 :- use_module(rdf_store).
+:- use_module(components(query_store)).
 
 :- http_handler(sesame('login'),	      http_login,	    []).
 :- http_handler(sesame('logout'),	      http_logout,	    []).
@@ -805,16 +805,3 @@ nc(Fmt, Value, Options) -->
 	  )
 	},
 	html(td(Opts, Fmt-[Value])).
-
-		 /*******************************
-		 *	   SAVED QUERIES	*
-		 *******************************/
-
-:- dynamic
-	stored_query/4.			% Name, User, Type, Query
-
-store_query(_, '', _) :- !.
-store_query(Type, As, Query) :-
-	logged_on(User),
-	retractall(stored_query(As, User, Type, _)),
-	assert(stored_query(As, User, Type, Query)).
