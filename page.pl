@@ -30,7 +30,7 @@
 
 :- module(cp_page, []).
 :- use_module(library(http/html_write)).
-:- use_module(menu).
+:- use_module(components(menu)).
 :- use_module(components(simple_search)).
 
 :- multifile

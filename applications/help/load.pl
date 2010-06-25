@@ -38,7 +38,7 @@
 :- use_module('../../parms').		% Get paths
 :- use_module(http_help).		% Help on HTTP server
 :- use_module(ac_predicate).		% Predicate autocompletion
-:- use_module('../../menu').		% ClioPatria Menu
+:- use_module(components(menu)).	% ClioPatria Menu
 
 /** <module> Support PlDoc
 
