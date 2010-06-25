@@ -163,7 +163,7 @@ store_recall(Type, SL-SR) -->
 	html(tr([ td([ class(qstore),
 		       colspan(SL)
 		     ],
-		     [ b('Store as: '),
+		     [ b('Remember as: '),
 		       input([ id(qid),
 			       name(storeAs),
 			       size(30),
