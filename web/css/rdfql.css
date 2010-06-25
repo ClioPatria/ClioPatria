@@ -80,3 +80,18 @@ tr.buttons td
 #rdf-statistics h4
 { background-color: #b9daff;
 }
+
+		 /*******************************
+		 *	     QUERY FORM		*
+		 *******************************/
+
+table.query
+{ margin-top: 1ex;
+  margin-left: 5%;
+  width: 90%;
+}
+
+table.query textarea
+{ width: 100%;
+  height: 30ex;
+}

@@ -160,49 +160,50 @@ graph_count(Count) :-
 query_form(_Request) :-
 	reply_html_page(cliopatria(default),
 			title('Specify a query'),
-			[ form([ name(query),
-				 action(location_by_id(evaluate_query)),
-				 method('GET')
-			       ],
-			       [ \hidden(repository, default),
-				 \hidden(serialization, rdfxml),
-				 h1(align(center),
-				    [ 'Interactive ',
-				      \query_language,
-				      ' query'
-				    ]),
-				 table(align(center),
-				       [ \store_recall(_, 3-2),
-					 tr([ td(colspan(5),
-						 textarea([ name(query),
-							    rows(15),
-							    cols(80)
-							  ],
-							  ''))
-					    ]),
-					 tr([ td([ \small('Result format: '),
-						   \result_format
-						 ]),
-					      td([ \small('Resource: '),
-						   \resource_menu
-						 ]),
-					      td([ \small('Entailment: '),
-						   \entailment
-						 ]),
-					      td(align(right),
-						 [ input([ type(reset),
-							   value('Reset')
-							 ]),
-						   input([ type(submit),
-							   value('Go!')
-							 ])
-						 ])
-					    ])
-				       ]),
-				 \query_docs
-			       ]),
-			  \query_script
-			]).
+			\query_form).
+
+query_form -->
+	html_requires(css('rdfql.css')),
+	html([ form([ class(query),
+		      name(query),
+		      action(location_by_id(evaluate_query)),
+		      method('GET')
+		    ],
+		    [ \hidden(repository, default),
+		      \hidden(serialization, rdfxml),
+		      h3([ 'Interactive ',
+			   \query_language,
+			   ' query'
+			 ]),
+		      table([ class(query)
+			    ],
+			    [ \store_recall(_, 3-2),
+			      tr([ td(colspan(5),
+				      textarea(name(query), ''))
+				 ]),
+			      tr([ td([ \small('Result format: '),
+					\result_format
+				      ]),
+				   td([ \small('Resource: '),
+					\resource_menu
+				      ]),
+				   td([ \small('Entailment: '),
+					\entailment
+				      ]),
+				   td(align(right),
+				      [ input([ type(reset),
+						value('Reset')
+					      ]),
+					input([ type(submit),
+						value('Go!')
+					      ])
+				      ])
+				 ])
+			    ]),
+		      \query_docs
+		    ]),
+	       \query_script
+	     ]).
 
 
 query_docs -->
