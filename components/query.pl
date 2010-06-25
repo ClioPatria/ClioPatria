@@ -116,7 +116,7 @@ query_language(Options, Hidden) -->
 			[ option([selected], DefLang)
 			| \options(More)
 			])),
-	    { Hidden = [] }
+	    { Hidden = '' }
 	).
 
 options([]) --> [].
