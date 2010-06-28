@@ -96,9 +96,9 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 
 		applications(admin),
 		applications(user),
+		applications(browse),
 
-		rdf_store,			% Setup RDF-store
-		http_browse			% Browse the repository
+		rdf_store			% Setup RDF-store
 	      ],
 	      [ silent(true),
 		if(not_loaded)

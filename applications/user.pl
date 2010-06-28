@@ -47,7 +47,6 @@
 :- use_module(components(server_statistics)).
 :- use_module(components(query)).
 :- use_module(components(basics)).
-:- use_module(http_browse).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_library)).
 :- use_module(library(url)).
