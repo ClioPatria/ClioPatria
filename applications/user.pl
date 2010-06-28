@@ -28,7 +28,7 @@
     the GNU General Public License.
 */
 
-:- module(appl_user, []).
+:- module(cpa_user, []).
 
 :- use_module(rdfql(serql_xml_result)).
 :- use_module(library(http/http_open)).

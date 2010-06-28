@@ -27,7 +27,7 @@
     the GNU General Public License.
 */
 
-:- module(browse_named_graphs,
+:- module(cpa_browse,
 	  [
 	  ]).
 :- use_module(library(http/http_dispatch)).
@@ -61,11 +61,18 @@
 :- use_module(auth(user_db)).
 
 
+/** <module> ClioPatria RDF data browser
+
+This module implements basic browsing of an RDF repository.  This is not
+intended to be used as an end-user application, but for the developer to
+gain insight in the data in the RDF store.
+*/
+
+
 		 /*******************************
 		 *	      PATHS		*
 		 *******************************/
 
-:- http_handler(rdf_browser(.),		      welcome,         [prefix]).
 :- http_handler(rdf_browser(list_graphs),     list_graphs,     []).
 :- http_handler(rdf_browser(list_graph),      list_graph,      []).
 :- http_handler(rdf_browser(list_classes),    list_classes,    []).
@@ -79,24 +86,6 @@
 					      list_triples_with_object,	[]).
 
 :- http_handler(rdf_browser(search),          search,	       []).
-
-
-		 /*******************************
-		 *	     HANDLERS		*
-		 *******************************/
-
-%%	welcome(Request)
-%
-%	Entry page
-
-welcome(_Request) :-
-	reply_html_page(cliopatria(default),
-			title('RDF Explorer'),
-			[ h4('Welcome to the SWI-Prolog RDF Explorer'),
-			  p([ 'This web-application provides an ',
-			      'overview of an RDF database.'
-			    ])
-			]).
 
 
 %%	list_graphs(+Request)

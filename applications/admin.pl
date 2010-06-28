@@ -28,7 +28,7 @@
     the GNU General Public License.
 */
 
-:- module(cp_admin,
+:- module(cpa_admin,
 	  [ change_password_form//1
 	  ]).
 :- use_module(auth(user_db)).
