@@ -39,7 +39,6 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
-:- use_module(http_user).
 :- use_module(components(label)).
 
 

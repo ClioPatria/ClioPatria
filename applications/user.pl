@@ -30,7 +30,7 @@
     the GNU General Public License.
 */
 
-:- module(http_user, []).
+:- module(appl_user, []).
 
 :- use_module(rdfql(serql_xml_result)).
 :- use_module(library(http/http_open)).

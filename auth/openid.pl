@@ -40,7 +40,6 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_hook)).
-:- use_module(http_user).
 :- use_module(library(lists)).
 :- use_module(library(error)).
 :- use_module(library(option)).

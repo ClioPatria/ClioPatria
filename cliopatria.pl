@@ -94,8 +94,8 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 		api(sparql),
 		api(export),
 
-		http_user,
 		applications(admin),
+		applications(user),
 
 		rdf_store,			% Setup RDF-store
 		http_browse			% Browse the repository
