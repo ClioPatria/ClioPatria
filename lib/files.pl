@@ -57,7 +57,7 @@ copy_file_with_vars(File, DirOrFile, Bindings) :-
 
 destination_file(Dir, File, Dest) :-
 	exists_directory(Dir), !,
-	concat_atom([Dir, File], /, Dest).
+	atomic_list_concat([Dir, File], /, Dest).
 destination_file(Dest, _, Dest).
 
 
@@ -66,7 +66,7 @@ destination_file(Dest, _, Dest).
 %
 %	Copy all data from In to Out, while replacing =|@var@|=
 %	with a binding from Bindings.
-%	
+%
 %	@param Bindings	List of Var=Name
 
 copy_stream_with_vars(In, Out, []) :- !,

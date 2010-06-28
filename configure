@@ -3,12 +3,12 @@
 # Prepare running ClioPatria by localizing the install scripts. The real
 # work is done by the  Prolog   script  setup.pl to maintain portability
 # with Windows.  Windows users should simply double-click setup.pl.
-# 
+#
 # Running (2nd variation to select a specific SWI-Prolog version)
-# 
+#
 # 	$ ./configure
-# 	$ PL=swipl ./configure
-# 	
+# 	$ SWIPL=swi-prolog ./configure
+#
 # Author: Jan Wielemaker
 # Copyright: Public Domain
 
@@ -25,17 +25,17 @@ findexe()
   return 1
 }
 
-if [ -z "$PL" ]; then
-  for f in swi-prolog swipl pl; do
-    if [ -z "$PL" ] && findexe $f; then
-       PL=$f
+if [ -z "$SWIPL" ]; then
+  for f in swi-prolog swipl; do
+    if [ -z "$SWIPL" ] && findexe $f; then
+       SWIPL=$f
     fi
   done
 fi
 
-if [ -z "$PL" ]; then
+if [ -z "$SWIPL" ]; then
   echo "ERROR: Cannot find SWI-Prolog."
   exit 1
 fi
 
-$PL -q -f none -g '[setup],setup'
+$SWIPL -q -f none -g '[setup],setup'

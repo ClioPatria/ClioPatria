@@ -1,4 +1,4 @@
-#!@PL@ -g cp_server -s
+#!@SWIPL@ -g cp_server -s
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 This file provides a skeleton startup file.  It can be localized by running
@@ -10,26 +10,66 @@ After that, the created run.pl can be   edited to suit your installation
 requirements.  See comments in the file.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-:- load_files([ library(semweb/rdf_db)
-	      ],
-	      [ silent(true),
-		if(changed)
-	      ]).
+% Setup search paths.  Adding cliopatria allows using this script from
+% any directory and adding ontology_root makes RDF files visible in the
+% interface.
+
+file_search_path(cliopatria,    '@CLIOPATRIA@').		% (*)
+file_search_path(ontology_root, '../econnect/demo/vocs').
+
+% Make loading files silent.
+
+:- set_prolog_flag(verbose, silent).
+
+		 /*******************************
+		 *	      LOAD CODE		*
+		 *******************************/
+
+% Use the ClioPatria help system.  If used, it must be loaded first!
+
+:- use_module(cliopatria('applications/help/load')).
+
+% Load ClioPatria itself.  Better keep this line.
+
+:- use_module(cliopatria(cliopatria)).				% (*)
+
+% Log HTTP traffic to httpd.log.
+
+:- use_module(library(http/http_log)).
+
+% Turn uncaught exceptions into a 500 error-page that includes a stack-dump.
+
+:- use_module(library(http/http_error)).
+
+% Make the toplevel and debugger print RDF resources as prefix:local.
+
+:- use_module(library(semweb/rdf_portray)).
+
+% Load the core RDF store.  Needed to register namespaces and to allow for
+% ?- rdf(Subject, Predicate, Object). from the toplevel.
+
+:- use_module(library(semweb/rdf_db)).
+
+% Register additional namespaces that we want to be able to use in code
+% and from the toplevel.  If you do this, you also need the line above.
 
 :- rdf_register_ns(cornetto, 'http://purl.org/vocabularies/cornetto/').
 
-file_search_path(cliopatria,    '@CLIOPATRIA@').
-file_search_path(ecdemo,        '../econnect/demo').
-file_search_path(ontology_root, ecdemo('vocs')).
+		 /*******************************
+		 *     LOAD YOUR CODE BELOW	*
+		 *******************************/
 
-:- load_files([ cliopatria('applications/help/load'),
-		library(http/http_log),
-		library(semweb/rdf_portray),
-		cliopatria(cliopatria)
-	      ],
-	      [ silent(true),
-		if(changed)
-	      ]).
+% :- use_module(...).
+
+
+		 /*******************************
+		 *     SET CONSOLE VERBOSITY	*
+		 *******************************/
+
+% Print HTTP requests to the console
 
 :- debug(http(request)).
 
+% Get back normal verbosity of the toplevel.
+
+:- set_prolog_flag(verbose, normal).

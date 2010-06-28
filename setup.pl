@@ -37,7 +37,6 @@
 
 setup :-
 	install_pl_files,
-	install_ignore_file,
 	goodbye.
 
 
@@ -62,7 +61,7 @@ install_pl_file(Vars, InFile) :-
 	file_base_name(PlFile, Base),
 	format(user_error, ' (~w)', [Base]).
 
-substitutions(['PL'=PL, 'CLIOPATRIA'=PWD]) :-
+substitutions(['SWIPL'=PL, 'CLIOPATRIA'=PWD]) :-
 	prolog_executable(PL),
 	working_directory(PWD, PWD).
 
@@ -73,8 +72,8 @@ substitutions(['PL'=PL, 'CLIOPATRIA'=PWD]) :-
 %	location.
 
 prolog_executable(PL) :-
-	catch(getenv('PL', PL), _, fail), !.
-prolog_executable('/usr/bin/pl') :-
+	catch(getenv('SWIPL', PL), _, fail), !.
+prolog_executable('/usr/bin/swipl') :-
 	current_prolog_flag(windows, true), !.
 prolog_executable(PL) :-
 	current_prolog_flag(executable, Exe),
@@ -90,23 +89,6 @@ which(File, Path) :-
 	member(Dir, Parts),
 	concat_atom([Dir, File], /, Path),
 	access_file(Path, execute).
-
-%%	install_ignore_file
-%
-%	Install an ignore file
-
-install_ignore_file :-
-	ignore_file(File),
-	(   exists_file(File)
-	->  true
-	;   format(user_error, 'Installing ~w ...', [File]),
-	    copy_file_with_vars('gitignore.in', File, []),
-	    format(user_error, ' done~n', [])
-	).
-
-ignore_file('.cvsignore') :-
-	exists_directory('CVS'), !.
-ignore_file('.gitignore').
 
 
 		 /*******************************
