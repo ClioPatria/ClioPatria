@@ -44,6 +44,7 @@ user:body(cliopatria(_), Body) -->
 		    \simple_search_form,
 		    br(clear(all)),
 		    div(id(content), Body),
+		    br(clear(all)),
 		    div(id(address), \address)
 		  ])).
 
