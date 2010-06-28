@@ -1,27 +1,51 @@
----+ SWI-Prolog SPARQL/SeRQL Engine
+---+ The ClioPatria Semantic Web Toolkit
 
 ---++ About
 
-This directory provides an implementation  of   RDF  query languages. It
-started as an implementation of SeRQL   (www.openrdf.org)  and has later
-been extended to include SPARQL.
+ClioPatria is an extension of the SWI-Prolog RDF infratructure (`semweb'
+package) that provides you with a   ready-to-run  web-server that can be
+extended into a  full-fledged  Semantic   Web  application.  The  semweb
+package provides reading and writing RDF   (XML and Turtle), storage and
+querying by means of rdf(Subject,   Predicate,  Object). ClioPatria adds
+the following:
 
-Query languages are compiled into  a   Prolog  query, then optimised and
-executed in the context of the SWI-Prolog   RDF store and runtime module
-for the query language.  The engine is packaged as an HTTP service based
-on standard HTTP access methods.
+    * A SPARQL server
+    This processes HTTP SPARQL requests.  The server also includes
+    support for SeRQL and the Sesame (www.openrdf.org) HTTP protocol.
+
+    * Reasoning libraries
+    Called entailment modules.  See entailment/README.txt
+
+    * User adminstration
+    Create users, provide OpenID services, use external OpenID
+    authorization and connect users to right-tokens.
+
+    * A web-based developers front-end
+    This provides provides browsing the RDF, loading and unloading
+    graphs, testing queries interactively, browsing the documentation of
+    HTTP services and source-code.
+
+    * Web-page generation components
+    Server-side components to render an RDF resource or literals with
+    a link to the development UI, render simple graphs, etc.
+
+    * Additional libraries
+    These are additional components to the http and semweb libraries
+    that may become part of SWI-Prolog in the future.  Examples are
+    rdf_optimise.pl to optimise rdf-control-structures and
+    rdf_abstract.pl to transform graphs represented as rdf(S,P,O) terms.
 
 ---++ Installation
 
-The  configure  and  make  are   only    required   to  build  the  HTML
-documentation. Further documentation is in serql.html
+ClioPatria can be used as a   library  by loading cliopatria.pl together
+with any other  relevant  code  into   SWI-Prolog.  The  file  run.pl.in
+provides a skeleton  startup  script   for  loading  a  ClioPatria-based
+application.  Please check the comments in the file.
+
 
 ---++ Downloading
 
-The server is distributed as  part   of  the  ClioPatria semantic search
-web-server.     See     the      ClioPatria       home      page      at
-http://e-culture.multimedian.nl/software/ClioPatria.shtml            for
-downloading instructions.
+TBD
 
 ---++ Further reading
 
@@ -31,5 +55,7 @@ downloaded from
 
 	http://www.swi-prolog.org/download/publications/jan-phd.pdf
 
-@author	Jan Wielemaker, J.Wielemaker@cs.vu.nl
+@author	Jan Wielemaker
+@author Jacco van Ossenbruggen
+@author Michiel Michiel Hildebrand
 

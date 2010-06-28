@@ -38,7 +38,7 @@
 :- use_module(library(apply)).
 :- use_module(library(ctypes)).
 :- use_module(auth(user_db)).
-:- use_module(hooks).
+:- use_module(cliopatria(hooks)).
 
 /** <module> ClioPatria menu-bar
 

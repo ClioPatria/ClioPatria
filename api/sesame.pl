@@ -33,7 +33,6 @@
 :- module(sesame_http_body,
 	  [ serql_base_ontology/1	% -Ontology
 	  ]).
-:- use_module(parms).
 :- use_module(rdfql(serql)).
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(serql_xml_result)).
@@ -54,7 +53,6 @@
 :- use_module(library(rdf_ntriples)).
 :- use_module(library(debug)).
 :- use_module(library(settings)).
-:- use_module(rdf_store).
 :- use_module(components(query)).
 
 :- http_handler(sesame('login'),	      http_login,	    []).

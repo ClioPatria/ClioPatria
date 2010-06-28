@@ -38,6 +38,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
 :- use_module(library(option)).
