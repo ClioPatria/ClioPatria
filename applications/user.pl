@@ -1,11 +1,9 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2010, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam,
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -18,7 +16,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
@@ -55,6 +53,13 @@
 :- use_module(library(url)).
 :- use_module(library(occurs)).
 :- use_module(library(pairs)).
+
+/** <Module> Basic user (developer) interaction
+
+This module contains the main front-end of ClioPatria.
+
+@tbd	Further modularization in components and (sub-)applications
+*/
 
 :- http_handler(root('.'),
 		http_redirect(moved, location_by_id(cliopatria_home)),
