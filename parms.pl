@@ -175,8 +175,6 @@ serql_setting(Name, Old, New) :-
 	   'Title of the web-page').
 :- setting(cliopatria:persistent_store, atom, 'RDF-store',
 	   'Directory for persistent copy of in-memory RDF').
-:- setting(cliopatria:base_ontologies, list(any), [],
-	   'Load these files into a virgin database').
 
 
 		 /*******************************

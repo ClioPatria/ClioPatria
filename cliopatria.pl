@@ -96,9 +96,7 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 
 		applications(admin),
 		applications(user),
-		applications(browse),
-
-		rdf_store			% Setup RDF-store
+		applications(browse)
 	      ],
 	      [ silent(true),
 		if(not_loaded)
@@ -145,12 +143,18 @@ cp_server(Options) :-
 					  id(busy_loading),
 					  prefix
 					]),
-			   (   rdf_setup_store(QOptions),
+			   (   rdf_attach_store(QOptions),
 			       call(AfterLoad)
 			   ),
 			   http_delete_handler(id(busy_loading))).
 
 is_meta(after_load).
+
+rdf_attach_store(Options) :-
+	setting(cliopatria:persistent_store, Directory),
+	Directory \== '', !,
+        rdf_attach_db(Directory, Options).
+
 
 %%	busy_loading(+Request)
 %
