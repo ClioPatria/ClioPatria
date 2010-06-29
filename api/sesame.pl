@@ -28,9 +28,7 @@
     the GNU General Public License.
 */
 
-:- module(api_sesame,
-	  [ serql_base_ontology/1	% -Ontology
-	  ]).
+:- module(api_sesame, [action/4]).
 :- use_module(rdfql(serql)).
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(serql_xml_result)).
@@ -41,7 +39,6 @@
 :- use_module(library(semweb/rdf_edit)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdf_library)).
 :- use_module(library(semweb/rdf_turtle)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
@@ -61,8 +58,6 @@
 :- http_handler(sesame('extractRDF'),	      extract_rdf,	    []).
 :- http_handler(sesame('listRepositories'),   list_repositories,    []).
 :- http_handler(sesame('clearRepository'),    clear_repository,	    []).
-:- http_handler(sesame('loadLibraryOntology'),   load_library_ontology,   []).
-:- http_handler(sesame('listLibraryOntologies'), list_library_ontologies, []).
 :- http_handler(sesame('unloadSource'),	      unload_source,
 		[ time_limit(infinite) ]).
 :- http_handler(sesame('unloadGraph'),	      unload_graph,
@@ -347,84 +342,6 @@ clear_repository(Request) :-
 	       ),
 	       Format,
 	       'Cleared database'-[]).
-
-%%	load_library_ontology(+Request)
-%
-%	Load a named ontology from the ontology library.
-%
-%	@tbd	Cannot use concurrent loading as the load as a whole is
-%		inside an rdf transaction.
-
-load_library_ontology(Request) :-
-	http_parameters(Request,
-			[ repository(Repository),
-			  ontology(Ontology, []),
-			  resultFormat(Format)
-			],
-			[ attribute_declarations(attribute_decl)
-			]),
-	authorized(write(Repository, load(library_ontology(Ontology)))),
-	prepare_ontology_dirs,
-	action(Request,
-	       rdf_load_library(Ontology, [concurrent(1)]),
-	       Format,
-	       \loaded_library_ontology(Ontology)).
-
-loaded_library_ontology(Id) -->
-	html('Loaded base ontology '),
-	(   { rdf_library_index(Id, title(Title)) }
-	->  html([Id, ' -- ', Title])
-	;   html(Id)
-	).
-
-
-%%	list_library_ontologies(+Request)
-%
-%	Reply with a list of available base ontologies
-
-list_library_ontologies(Request) :-
-	authorized(read(status, listBaseOntologies)),
-	http_parameters(Request,
-			[ resultFormat(Format),
-			  serialization(Serialization)
-			],
-			[ attribute_declarations(attribute_decl)
-			]),
-	catch(findall(row(O), serql_base_ontology(O), Rows0), _,
-	      Rows0 = []),
-	sort(Rows0, Rows),
-	write_table(Rows,
-		    [ result_format(Format),
-		      serialization(Serialization),
-		      variables(varnames(ontology))
-		    ]).
-
-
-%%	serql_base_ontology(-Name) is nondet.
-%
-%	True if Name is the name of an ontology from the library.
-%
-%	@deprecated	Use rdf_library_index/2.
-
-serql_base_ontology(O) :-
-	prepare_ontology_dirs,
-	rdf_library_index(O, title(_Title)).
-
-
-%%	prepare_ontology_dirs is det.
-%
-%	Load RDF library manifests from   directories  defined using the
-%	file_search_path/2 =ontology_root= alias.
-
-prepare_ontology_dirs :-
-	(   absolute_file_name(ontology_root(.), Dir,
-			       [ file_type(directory),
-				 solutions(all)
-			       ]),
-	    rdf_attach_library(Dir),
-	    fail
-	;   true
-	).
 
 %%	unload_source(+Request)
 %
@@ -726,7 +643,7 @@ action(_Request, G, Format, Message) :-
 	statistics(cputime, CPU0),
 	rdf_statistics(triples(Triples0)),
 	rdf_statistics(subjects(Subjects0)),
-	run(G, serql(User, T)),
+	run(G, sesame(User, T)),
 	rdf_statistics(subjects(Subjects1)),
 	rdf_statistics(triples(Triples1)),
 	statistics(cputime, CPU1),
@@ -745,7 +662,7 @@ run(A, Log) :-
 done(html, Message, CPU, Subjects, Triples) :-
 	reply_html_page(cliopatria(default),
 			title('Success'),
-		   \result_table(Message, CPU, Subjects, Triples)).
+			\result_table(Message, CPU, Subjects, Triples)).
 done(xml, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format(string(Message), Fmt, Args),
 	format('Content-type: text/xml~n~n'),

@@ -41,6 +41,7 @@
 :- use_module(library(http/http_session)).
 :- use_module(library(http/http_host)).
 :- use_module(api(sesame)).
+:- use_module(api(ontolib)).
 :- use_module(library(settings)).
 :- use_module(auth(user_db)).
 :- use_module(library(debug)).
@@ -267,11 +268,11 @@ load_url_form(_Request) :-
 			]).
 
 
-%%	load_base_ontology_form(+Request)
+%%	load_library_ontology_form(+Request)
 %
 %	Provide a form for loading an ontology from the archive.
 
-load_base_ontology_form(Request) :- !,
+load_library_ontology_form(Request) :- !,
 	authorized(read(status, listBaseOntologies)),
 	get_base_ontologies(Request, Ontologies),
 	reply_html_page(cliopatria(default),
@@ -291,7 +292,7 @@ load_base_ontology_form(Request) :- !,
 
 load_base_ontology_form(Ontologies) -->
 	html_requires(css('rdfql.css')),
-	html(form([ action(location_by_id(load_base_ontology)),
+	html(form([ action(location_by_id(load_library_ontology)),
 		    method('GET')
 		  ],
 		  [ \hidden(resultFormat, html),
@@ -324,7 +325,7 @@ emit_base_ontologies([H|T]) -->
 
 
 get_base_ontologies(_Request, List) :-
-	catch(findall(O, serql_base_ontology(O), List0), _, fail), !,
+	catch(findall(O, library_ontology(O), List0), _, fail), !,
 	sort(List0, List).
 get_base_ontologies(Request, List) :-
 	http_current_host(Request, Host, Port, []),
