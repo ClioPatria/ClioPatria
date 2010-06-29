@@ -448,13 +448,13 @@ var Canviz = Class.create({
 		// excanvas can't init the element if we use new Element()
 		this.canvas = document.createElement('canvas');
 		Element.setStyle(this.canvas, {
-			position: 'absolute'
+// (JW)			position: 'absolute'
 		});
 		if (!Canviz.canvasCounter) Canviz.canvasCounter = 0;
 		this.canvas.id = 'canviz_canvas_' + ++Canviz.canvasCounter;
 		this.elements = new Element('div');
 		this.elements.setStyle({
-			position: 'absolute'
+// (JW)			position: 'absolute'
 		});
 		this.container = $(container);
 		this.container.setStyle({
