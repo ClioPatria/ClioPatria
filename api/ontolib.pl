@@ -38,6 +38,7 @@
 :- use_module(library(semweb/rdf_library)).
 :- use_module(rdfql(rdf_io)).
 :- use_module(sesame).
+:- use_module(components(messages)).
 
 /** <module> Provide access to the ontology library
 
@@ -64,10 +65,13 @@ load_library_ontology(Request) :-
 			]),
 	authorized(write(Repository, load(library_ontology(Ontology)))),
 	prepare_ontology_library,
-	action(Request,
-	       rdf_load_library(Ontology, [concurrent(1)]),
-	       Format,
-	       \loaded_library_ontology(Ontology)).
+	(   Format == html
+	->  call_showing_messages(rdf_load_library(Ontology, [concurrent(1)]), [])
+	;   action(Request,
+		   rdf_load_library(Ontology, [concurrent(1)]),
+		   Format,
+		   \loaded_library_ontology(Ontology))
+	).
 
 loaded_library_ontology(Id) -->
 	html('Loaded base ontology '),
