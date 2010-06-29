@@ -9,3 +9,27 @@ address.cliopatria
   font-size: smaller;
   text-align: right;
 }
+
+div.messages
+{ border-width: 1px;
+  border-style: dotted;
+  border-color: #A0A0A0;
+  padding: 5px;
+  margin-top: 2ex;
+  margin-left: 5%;
+  width: 90%;
+}
+
+div.informational
+{ text-color: #007f00;
+}
+
+div.warning
+{ text-color: #ca0000;
+}
+
+div.warning
+{ background-color: #ca0000;
+  text-color: blue;
+}
+

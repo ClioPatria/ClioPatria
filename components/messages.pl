@@ -47,16 +47,17 @@ call_showing_messages(Goal, Options) :-
 	option(head(Head), Options, title('ClioPatria')),
 	format('Content-Type: text/html~n'),
 	format('Transfer-Encoding: chunked~n~n'),
-	header(Style, Head),
+	header(Style, Head, Footer),
 	thread_self(Me),
 	setup_call_cleanup(asserta((user:message_hook(_Term, Level, Lines) :-
 				   	send_message(Me, Level, Lines)), Ref),
 			   Goal,
 			   erase(Ref)), !,
-	footer.
+	footer(Footer).
 
 send_message(Me, Level, Lines) :-
 	thread_self(Me),
+	Level \== silent,
 	phrase(html(div(class(Level), \html_message_lines(Lines))), Tokens),
 	print_html(Tokens),
 	flush_output,
@@ -81,17 +82,23 @@ html_message_lines([Fmt|T]) --> !,
 	html_message_lines(T).
 
 
-%%	header(+Style, +Head)
+%%	header(+Style, +Head, Footer)
 %
 %
 
-header(Style, Head) :-
-	phrase(html_write:(doctype,
-			   html_begin(html),
-			   pagehead(Style, Head)), Tokens),
-	print_html(Tokens),
-	flush_output.
+header(Style, Head, Footer) :-
+	Magic = '$$$MAGIC$$$',
+	Body = [ h4('Messages ...'),
+		 div(class(messages), Magic),
+		 h4('Done')
+	       ],
+	phrase(html_write:page(Style, Head, Body), Tokens),
+	html_write:mailman(Tokens),
+	append(Header, [Magic|Footer], Tokens), !,
+	current_output(Out),
+	html_write:write_html(Header, Out),
+	flush_output(Out).
 
-footer :-
-	phrase(html_write:html_end(html), Tokens),
-	print_html(Tokens).
+footer(Footer) :-
+	current_output(Out),
+	html_write:write_html(Footer, Out).
