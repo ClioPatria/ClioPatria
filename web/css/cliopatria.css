@@ -21,15 +21,15 @@ div.messages
 }
 
 div.informational
-{ text-color: #007f00;
+{ color: #007f00;
 }
 
 div.warning
-{ text-color: #ca0000;
+{ color: #ca0000;
 }
 
 div.warning
 { background-color: #ca0000;
-  text-color: blue;
+  color: blue;
 }
 
