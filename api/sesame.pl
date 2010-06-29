@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2007, University of Amsterdam
+    Copyright (C): 2004-2010, University of Amsterdam,
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -17,7 +16,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
+    You should have received a copy of the GNU General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
@@ -28,7 +27,6 @@
     invalidate any other reasons why the executable file might be covered by
     the GNU General Public License.
 */
-
 
 :- module(api_sesame,
 	  [ serql_base_ontology/1	% -Ontology
@@ -761,9 +759,6 @@ done(rdf, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format('resultFormat=~w not yet supported~n~n'),
 	format(Fmt, Args).
 
-
-right(V) -->
-	html(td(align(right), V)).
 
 result_table(Message, CPU, Subjects, Triples) -->
 	{ rdf_statistics(triples(TriplesNow)),
