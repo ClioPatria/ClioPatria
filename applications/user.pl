@@ -69,7 +69,7 @@ This module contains the main front-end of ClioPatria.
 :- http_handler(cliopatria('user/query'),	     query_form,	      []).
 :- http_handler(cliopatria('user/loadFile'),	     load_file_form,	      []).
 :- http_handler(cliopatria('user/loadURL'),	     load_url_form,	      []).
-:- http_handler(cliopatria('user/loadBaseOntology'), load_base_ontology_form, []).
+:- http_handler(cliopatria('user/loadLibraryOntology'), load_library_ontology_form, []).
 :- http_handler(cliopatria('user/clearRepository'),  clear_repository_form,   []).
 :- http_handler(cliopatria('user/removeStatements'), remove_statements_form,  []).
 

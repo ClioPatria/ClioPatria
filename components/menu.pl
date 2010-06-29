@@ -110,7 +110,7 @@ menu_item(Item, Label) :-
 	cliopatria:menu_item(Item, Label).
 menu_item(file/load_file_form,	 	'Load local file').
 menu_item(file/load_url_form,		'Load from HTTP').
-menu_item(file/load_base_ontology_form, 'Load base ontology').
+menu_item(file/load_library_ontology_form, 'Load ontology from library').
 menu_item(file/remove_statements_form,  'Remove statements').
 menu_item(file/clear_repository_form,	'Clear the repository').
 menu_item(query/query_form,		'Query').

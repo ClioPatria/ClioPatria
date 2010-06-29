@@ -63,8 +63,8 @@
 :- http_handler(sesame('extractRDF'),	      extract_rdf,	    []).
 :- http_handler(sesame('listRepositories'),   list_repositories,    []).
 :- http_handler(sesame('clearRepository'),    clear_repository,	    []).
-:- http_handler(sesame('loadBaseOntology'),   load_base_ontology,   []).
-:- http_handler(sesame('listBaseOntologies'), list_base_ontologies, []).
+:- http_handler(sesame('loadLibraryOntology'),   load_library_ontology,   []).
+:- http_handler(sesame('listLibraryOntologies'), list_library_ontologies, []).
 :- http_handler(sesame('unloadSource'),	      unload_source,
 		[ time_limit(infinite) ]).
 :- http_handler(sesame('unloadGraph'),	      unload_graph,
@@ -350,14 +350,14 @@ clear_repository(Request) :-
 	       Format,
 	       'Cleared database'-[]).
 
-%%	load_base_ontology(+Request)
+%%	load_library_ontology(+Request)
 %
 %	Load a named ontology from the ontology library.
 %
 %	@tbd	Cannot use concurrent loading as the load as a whole is
 %		inside an rdf transaction.
 
-load_base_ontology(Request) :-
+load_library_ontology(Request) :-
 	http_parameters(Request,
 			[ repository(Repository),
 			  ontology(Ontology, []),
@@ -365,14 +365,14 @@ load_base_ontology(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized(write(Repository, load(base_ontology(Ontology)))),
+	authorized(write(Repository, load(library_ontology(Ontology)))),
 	prepare_ontology_dirs,
 	action(Request,
 	       rdf_load_library(Ontology, [concurrent(1)]),
 	       Format,
-	       \loaded_base_ontology(Ontology)).
+	       \loaded_library_ontology(Ontology)).
 
-loaded_base_ontology(Id) -->
+loaded_library_ontology(Id) -->
 	html('Loaded base ontology '),
 	(   { rdf_library_index(Id, title(Title)) }
 	->  html([Id, ' -- ', Title])
@@ -380,11 +380,11 @@ loaded_base_ontology(Id) -->
 	).
 
 
-%%	list_base_ontologies(+Request)
+%%	list_library_ontologies(+Request)
 %
 %	Reply with a list of available base ontologies
 
-list_base_ontologies(Request) :-
+list_library_ontologies(Request) :-
 	authorized(read(status, listBaseOntologies)),
 	http_parameters(Request,
 			[ resultFormat(Format),
