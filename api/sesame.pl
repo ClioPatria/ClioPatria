@@ -30,7 +30,7 @@
 */
 
 
-:- module(sesame_http_body,
+:- module(api_sesame,
 	  [ serql_base_ontology/1	% -Ontology
 	  ]).
 :- use_module(rdfql(serql)).
