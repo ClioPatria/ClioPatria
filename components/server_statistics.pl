@@ -53,12 +53,17 @@
 %	Display table with RDF-call statistics
 
 rdf_call_stat_table -->
-	{ rdf_call_stats(Lookup) },
+	{ rdf_call_stats(Lookup),
+	  (   Lookup = [rdf(_,_,_)-_|_]
+	  ->  Cols = 3
+	  ;   Cols = 4
+	  )
+	},
 	html_requires(css('rdfql.css')),
 	html(table([ id('rdf-call-stats'),
 		     class(rdfql)
 		   ],
-		   [ tr([ th(colspan(3), 'Indexed'),
+		   [ tr([ th(colspan(Cols), 'Indexed (SOPG)'),
 			  th('Calls')
 			]),
 		     \lookup_statistics(Lookup)
@@ -72,8 +77,14 @@ rdf_call_stats(Lookup) :-
 lookup_statistics([]) -->
 	[].
 lookup_statistics([rdf(S,P,O)-Count|T]) -->
-	html(tr([ td(S), td(P), td(O), \nc('~D', Count)])),
+	html(tr([ \i(S), \i(P), \i(O), \nc('~D', Count)])),
 	lookup_statistics(T).
+lookup_statistics([rdf(S,P,O,G)-Count|T]) -->
+	html(tr([ \i(S), \i(P), \i(O), \i(G), \nc('~D', Count)])),
+	lookup_statistics(T).
+
+i(I) -->
+	html(td(class(instantiated), I)).
 
 
 %%	http_session_table//

@@ -88,6 +88,10 @@ p.warn-interactive
 { font-size: smaller;
 }
 
+td.instantiated
+{ text-align: center;
+}
+
 		 /*******************************
 		 *	     QUERY FORM		*
 		 *******************************/
