@@ -26,12 +26,9 @@ Semantic Web documents. Internally, the query language is `Prolog',
 building on top of an efficient implementation of a predicate rdf/3
 expressing the content of the triple store.
 
-Emerging dedicated Semantic Web query languages change this view.
-Supporting such languages provides a comfortable infrastructure for
-distributed Semantic Web processing systems.  This document describes
-the SWI-Prolog Semantic Web Server.  The server provides access to the
-Prolog triple store using either SeRQL or SPARQL.  At the same time it
-is an extensible platform for realising Semantic Web based applications.
+ClioPatria provides a ready-ro-run web-server on top of this
+infrastructure. The web-server contains a SPARQL endpoint, user
+management and various web-based development tools.
 \end{abstract}
 
 \vfill
@@ -50,28 +47,24 @@ is an extensible platform for realising Semantic Web based applications.
 The SWI-Prolog Semantic Web Server unifies the SWI-Prolog general Web
 support and Semantic Web support, providing both a starting point for
 dedicated applications and a platform for exchange of RDF-based data
-using a standardised language and protocol. An overview of the
-SWI-Prolog Web support libraries can be found in \url[SWI-Prolog and the
-Web]{http://hcs.science.uva.nl/projects/SWI-Prolog/articles/TPLP-plweb.pdf},%
-	\footnote{Submitted to Theory and Practice of Logic Programming}
+using a standardised language and protocol.
 
 
 \section{Query Languages}
 
 The current server supports two query languages:
-\url[SeRQL]{http://www.openrdf.org} and
-\url[SPARQL]{http://www.w3.org/TR/rdf-sparql-query/}.
+\url[SPARQL]{http://www.w3.org/TR/rdf-sparql-query/} and
+\url[SeRQL]{http://www.openrdf.org}.
 For both languages we provide an interactive service that presents
 the results as a human-readable HTML table, a service presenting its
 result as RDF/XML or XML that follows the HTTP protocol definition for
-the query language, the possibility to query the local database using
-a query language in Prolog and a Prolog client that can be used to
-query remote services supporting the query language and HTTP service.
+the query language and the possibility to query the local database using
+a query language in Prolog.
 
 For both query languages, queries are translated to a complex Prolog
 goal calling rdf/3 to resolve edges in the graph and calls to predicates
-from rdfql_runtime.pl that realise constraints imposed by the SeRQL
-\const{WHERE} clause and SPARQL \const{FILTER} clauses.
+from rdfql/rdfql_runtime.pl that realise constraints imposed by the
+SeRQL \const{WHERE} clause and SPARQL \const{FILTER} clauses.
 
 
 \subsection{SPARQL Support}
@@ -83,7 +76,7 @@ SPARQL support is based on the SPARQL specification, versioned April 6,
     \item No optimization of literal operations.  Because many SPARQL
 	  operations require type-translations that depend on the
 	  literal found, many of these operations are slow.  The engine
-	  does optimize grpah expressions.
+	  does optimize graph expressions.
     \item Incomplete value-testing, notably on xsd:dateTime
     \item Incomplete ORDER BY support.  Only ascending and all values
           are compared lexically.
@@ -104,21 +97,19 @@ Sesame documentation.
 
 \subsection{Getting started}
 
-On Unix-like systems, edit \file{run.pl} to adjust the location of
-SWI-Prolog on the \verb$!#$ line. Next, start \file{run.pl}. On Window,
-\file{run.pl} can be opened from the explorer. Now launch the server
-using the command below (do not forget the terminating full-stop (.)):
+Create run.pl from run.pl.in. On Unix system, run =|./configure|= to
+accompish this. On Windows, double click setup.pl. The created file
+run.pl loads and starts the server. There are several configuration
+options that may be selected by editing run.pl according to the comments
+in this file.
 
-\begin{code}
-?- serql_server.
-\end{code}
-
-Now direct your browser to the server, using the default setup this
-is \url{http://localhost:3020}.  If no users are defined the browser
-will prompt to enter the administrative password.  After that the
-admin and anonymous users are created.  Accounts can be created and
-modified by users with administrative rights through the
-\emph{List users ...} link on the sidebar.
+Next, start the server by running =|./run.pl|= (Unix) or double-clicking
+run.pl (Windows). Now direct your browser to the server, using the
+default setup this is \url{http://localhost:3020}. If no users are
+defined the browser will prompt to enter the administrative password.
+After that the admin and anonymous users are created. Accounts can be
+created and modified by users with administrative rights through the
+\emph{List users ...} link in the menu.
 
 \subsection{Configuring the server}
 
@@ -131,8 +122,7 @@ act without restarting}.
 
 \subsection{Restarting from scratch: where is the data kept?}
 
-Data is kept on the following three places.  Each of these can be
-removed.
+Data is kept on the following places. Each of these can be removed.
 
 \begin{itemize}
     \item \file{settings.db}
@@ -148,8 +138,8 @@ are stored as MD5-hashes.
     \item \file{RDF-store}
 This directory holds backup of the RDF data. Each named-graph is
 represented by two (optional) files. The base of this file is an encoded
-version of the graph-name. The extensions are \fileex{trp} for
-quick-load snapshots and \fileex{jrn} for \jargon{journal} files. See
+version of the graph-name. The extensions are \fileext{trp} for
+quick-load snapshots and \fileext{jrn} for \jargon{journal} files. See
 the SWI-Prolog \url[Semantic Web
 package]{http://www.swi-prolog.org/packages/semweb.html} for details.
 You can freely remove a graph by removing both files if the server is
@@ -166,308 +156,6 @@ violation.
 \end{itemize}
 
 
-\section{Roadmap}
-
-\subsection{Query processing and entailment}
-\label{sec:entailment}
-
-The kernel of the system is formed by \file{serql.pl} and \file{sparql},
-that implement the DCG parsers for the respective query languages as
-well as a compiler that translates this into a Prolog goal executing the
-query op top of the SWI-Prolog SemWeb package. The file
-\file{rdfql_runtime.pl} contains predicates that implement the
-constraints (SeRQL WHERE or SPARQL FILTER) and other constructs
-generated by the query-compiler.
-
-Entailment reasoning is defined by \file{rdf_entailment.pl}.  Specific
-entailments are in seperate files:
-
-\begin{description}
-    \item [\file{no_entailment.pl}]
-Defines entailment \const{none}.  Query explicitely stored triples only.
-
-    \item [\file{rdf_entailment.pl}]
-Defines entailment \const{rdf}. Any resource appearing in a
-predicate position is of type \const{rdf:Property}. Any subject is an
-instance of \const{rdf:Resource}
-
-    \item [\file{rdfs_entailment.pl}]
-Defines entailment \const{rdfs}. Adds class- and property-hierarchy
-reasoning to RDF reasoning, as well as reasoning on the basis of
-property domain and range.
-
-    \item [\file{rdfslite_entailment.pl}]
-Defines entailment \const{rdfslite}. Only considers the class- and
-property-hierarchy. Using a backward chaining solver this is much
-faster, while normally keeping the intended meaning.
-\end{description}
-
-The query compiler and execution system can be called directly from
-Prolog.
-
-\begin{description}
-    \predicate{serql_compile}{3}{+Query, -Compiled, +Options}
-Compile \arg{Query}, which is either an atom or a list of character
-codes and unify \arg{Compiled} with an opaque term representing the
-query and suitable for passing to serql_run/2.  Defined
-\arg{Options} are:
-
-\begin{description}
-    \termitem{entailment}{Entailment}
-Entailment to use.  Default is \const{rdfs}.  See \secref{entailment}.
-
-    \termitem{type}{-Type}
-Extract the type of query compiled and generally useful information on
-it. SeRQL defines the types \const{construct} and
-\term{select}{VarNames}, where \arg{VarNames} is a list of variables
-appearing in the projection.
-
-    \termitem{optimise}{Bool}
-Whether or not to optimise the query.  Default is defined by the setting
-\const{optimise_query}.
-\end{description}
-
-    \predicate{sparql_compile}{3}{+Query, -Compiled, +Options}
-Similar to to serql_compile/3.  Defined types are extended with
-\const{describe} and \const{ask}.  Addional options are:
-
-\begin{description}
-    \termitem{base_uri}{-URI}
-Base URI used to compile the query if not specified as part of the
-query.
-
-    \termitem{ordered}{-Bool}
-Unify \arg{Bool} with true if query contains an \const{ORDER BY} clause.
-
-    \termitem{distinct}{-Bool}
-Unify \arg{Bool} with true if query contains a \const{DISTINCT}
-modifier.
-\end{description}
-
-    \predicate{serql_run}{2}{+Compiled, -Answer}
-Run a query compiled by serql_compile/3, returning terms \term{row}{Arg
-...} for select queries and terms \term{rdf}{Subject, Predicate, Object}
-for construct queries.	Subsequent results are returned on backtracking.
-
-    \predicate{sparql_run}{2}{+Compiled, -Answer}
-Similar to serql_run/2. Queries of type \const{describe} return
-rdf-terms like \const{construct}.  Queries of type \const{ask} return
-either \const{true} or \const{false}.
-
-    \predicate{serql_query}{3}{+Query, -Answer, +Options}
-Utility combining of serql_compile/3 and serql_run/2. Note this gives no
-access to the column-names.
-
-    \predicate{sparql_query}{3}{+Query, -Answer, +Options}
-Similar to serql_query/3.
-\end{description}
-
-
-\subsection{Query optimisation}
-
-By default, but under control of the setting/1 option
-\term{optimise_query}{Bool}, and the option \term{optimise}{Bool}, the
-query compiler optimises initial goal obtained from naive translation of
-the query text. The optimiser is defined in \file{rdf_optimise.pl}. The
-optimiser is described in detail in \url[An optimised Semantic Web query
-language implementation in
-Prolog]{http://hcs.science.uva.nl/projects/SWI-Prolog/articles/ICLP05-SeRQL.pdf}.
-The optimiser reorders goals in the generated conjunction and prepares
-for independent execution of independent parts of the generated goal.
-With the optimiser enabled (default), the provided order of
-path-expressions on the query text is completely ignored and constraints
-are inserted at the earliest possible point.
-
-The SeRQL \const{LIKE} operator applies to both resources and literals,
-while the SWI-Prolog RDF-DB module can only handle \const{LIKE}
-efficiently on literals. The optimiser can be made aware of this using
-\exam{WHERE label(X) LIKE "joe*"}. Taking the label informs the
-optimiser that it only needs to consider literals. Likewise, equivalence
-tests where one of the arguments is used as subject or predicate or has
-the isResource(X) constraint tell the system it can do straight
-identifier comparison rather then the much more expensive general
-comparison.
-
-\subsection{Webserver}
-
-The webserver is realised by \file{server.pl}, merely loading both
-components: \file{http_data.pl} providing the Sesame HTTP API using
-the same paths and parameters and \file{http_user.pl} providing a
-browser-friendly frontend.  Error messages are still very crude
-and almost all errors return a 500 server error page with a
-transcription of the Prolog exception.
-
-The Sesame HTTP API deals with a large number of data formats, only part
-of which are realised by the current system. This realisation is
-achieved through \file{rdf_result}, providing an extensible API for
-reading and writing in different formats.  \file{rdf_html},
-\file{rdf_write} and \file{xml_result} provide some implementations
-thereof.
-
-
-\section{The Sesame client}
-
-The file \file{sesame_client.pl}, created by \url[Maarten
-Menken]{mailto:mrmenken@cs.vu.nl} provides an API to remote
-Sesame servers.  Below is a brief documentation of the available
-primitives.  All predicates take an option list.  To simplify
-applications that communicate with a single server defauls for
-the server and reposititory locations can be specified using
-set_sesame_default/1.
-
-\begin{description}
-    \predicate{set_sesame_default}{1}{+DefaultOrList}
-This predicate can be used to specify defaults for the options
-available to the other Sesame interface predicates.  A default
-is a term \term{Option}{Value}.  If a list of such options is
-provided all options are set in the order of appearance in the
-list.  This implies options later in the list may overrule
-already set options.  Defined options are:
-
-\begin{description}
-    \termitem{host}{Host}
-Hostname running the Sesame server.
-    \termitem{port}{Port}
-Por the sesame server listens on.
-    \termitem{path}{Path}
-Path from the root to the Sesame server.  For the SWI-Prolog
-Sesame client, this is normally the empty atom (\verb$''$).
-For thte Java based Sesame this is normally \verb$'/sesame'$.
-    \termitem{repository}{Repository}
-Name of the repository to connect to. See also
-sesame_current_repository/3.
-\end{description}
-
-Below is a typical call to connect to a sesame server:
-
-\begin{code}
-...,
-set_sesame_default([ host(localhost),
-		     port(8080),
-		     path('/sesame'),
-		     repository('mem-rdfs-db')
-		   ]).
-\end{code}
-
-    \predicate{sesame_current_repository}{3}{-Id, -Properties, +Options}
-Enumerate the currently available Sesame repositories.  \arg{Id} is
-unified to the name of the repository.  \arg{Properties} is a
-list of \term{Name}{Value} terms providing title and access details.
-\arg{Options} specifies the host, port and path of the server.
-
-    \predicate{sesame_clear_repository}{1}{+Options}
-Remove all content from the repository. \arg{Options} specifies the
-host, port and path of the server as well as the target repository.
-
-    \predicate{sesame_login}{3}{+User, +Password, +Options}
-Login to a Sesame server. On success the returned cookie is stored and
-transmitted with each query on the same server. \arg{Options} specifies
-the host, port and path of the server.
-
-    \predicate{sesame_logout}{1}{+Options}
-\arg{Options} specifies the host, port and path of the server.
-
-    \predicate{sesame_graph_query}{3}{+Query, -Triple, +Options}
-Execute \arg{Query} on the given server and return the resulting
-triples on backtracking.  \arg{Options} specifies the
-host, port and path of the server as well as the target repository.
-The example below extracts all type relations from the default server.
-
-\begin{code}
-...,
-sesame_graph_query('construct * from {s} <rdf:type> {o}',
-		   rdf(S,P,O),
-		   []),
-\end{code}
-
-    \predicate{sesame_table_query}{3}{+Query, -Row, +Options}
-Execute \arg{Query} on the given server and return the resulting
-rows on backtracking.  Each \arg{Row} is a term of the format
-\term{row}{Col1, Col2, ... ColN}. \arg{Options} specifies the
-host, port and path of the server as well as the target repository.
-
-    \predicate{sesame_extract_rdf}{2}{-Triple, +Options}
-Extract all content from an RDF repository.  In addition to the
-server and repository options the following options are defined:
-    \begin{description}
-	\termitem{schema}{OnOff}
-Extract the schema information.
-	\termitem{data}{OnOff}
-Extract the plain data
-	\termitem{explicit_only}{OnOff}
-Determine whether or not entailed triples are returned.  Default
-is \const{off}, returning both explicit and inferred triples.
-    \end{description}
-
-    \predicate{sesame_upload_file}{+File, +Options}
-Add the content of \arg{File} to the repository.  In addition to the
-server and repository options the following options are defined:
-
-    \begin{description}
-        \termitem{data_format}{+Format}
-Format of the input file.  Default is \const{rdfxml}.
-	\termitem{base_uri}{+BaseURI}
-URI for resolving local names.  Default is \const{foo:bar}.
-	\termitem{verify_data}{OnOff}
-Do/do not verify the input.  Default is \const{off}.
-    \end{description}
-
-    \predicate{sesame_assert}{2}{+TripleOrList, +Options}
-Assert a single \term{rdf}{Subject, Predicate, Object} or a list
-of such terms.   In addition to the
-server and repository options the following options are defined:
-
-    \begin{description}
-	\termitem{base_uri}{+BaseURI}
-URI for resolving local names.  Default is \const{foo:bar}.
-    \end{description}
-
-    \predicate{sesame_retract}{2}{+Triple, +Options}
-Remove a triple from the repository.  Variables in Triple match all
-values for that field.
-\end{description}
-
-
-\section{Sesame interoperability}
-
-The SWI-Prolog SeRQL engine provides a (still incomplete) drop-in
-replacement for the Sesame HTTP access protocol.  Sesame's remote
-server class can be used to access the SWI-Prolog SeRQL engine
-through the Sesame Java API. Likewise the Prolog client realised by
-\file{sesame_client.pl} provides a Prolog API that can be used to access
-both Sesame and the SWI-Prolog SeRQL engine.
-
-
-\section{The SPARQL client}
-
-The file \file{sparql_client.pl} provides a client to the SPARQL HTTP
-protocol. The protocol defines how a SPARQL query is asked over HTTP
-and how the results are presented.  It is possible to use the SeRQL
-protocol on the same server to perform tasks such as modifying the
-triple store.
-
-The structure of the SPARQL client API is closely based on the SeRQL
-client.
-
-\begin{description}
-    \predicate{sparql_query}{3}{+Query, -Row, +Options}
-Run a SPARQL query on a remote server, retrieving the results one-by-one
-on backtracking.  \arg{Options} provide the host, port and path of the
-server.  sparql_set_server/1 can be used to define default locations.
-
-    \predicate{sparql_set_server}{1}{+Options}
-List of options that act as defaults for sparql_query/3.  Commonly set
-to specify the server location.  For example:
-
-\begin{code}
-?- sparql_set_server([ host(localhost),
-		       port(3020),
-		       path('/sparql/')
-		     ]).
-\end{code}
-\end{description}
-
-
 \section{Security issues}
 
 HTTP Communication with the server, including usernames and passwords,
@@ -479,13 +167,13 @@ the user database file.
 
 \section{Downloading}
 
-The SWI-Prolog SeRQL engine is available from its
+ClioPatria is available from its
 \url[GIT]{http://git-scm.com/}
-\url[repository]{http://eculture.cs.vu.nl/git/eculture/SeRQL.git} using
-the following commands:
+\url[repository]{http://eculture.cs.vu.nl/git/ClioPatria.git}
+using the following commands:
 
 \begin{code}
-% git clone git://eculture.cs.vu.nl/home/git/eculture/SeRQL.git
+% git clone git://eculture.cs.vu.nl/home/git/ClioPatria.git
 \end{code}
 
 
@@ -495,8 +183,9 @@ The SeRQL server has been realised as part of the \url[HOPS
 project]{http://www.hops-fp6.org} and could not have been done without
 Sesame and feedback from Jeen Broekstra and Maarten Menken from the Free
 University of Amsterdam (VU). Adding SPARQL support has been realised as
-part of the E-culture sub-project of Dutch MultiMedia project.  Various
-extensions and cleanup has been realised with \url[Europeana]{http://www.europeana.eu/portal/}.
+part of the E-culture sub-project of Dutch MultiMedia project. Various
+extensions and cleanup has been realised within
+\url[Europeana]{http://www.europeana.eu/portal/}.
 
 \printindex
 
