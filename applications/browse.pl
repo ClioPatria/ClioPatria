@@ -192,13 +192,29 @@ predicate_in_graph(Graph, P) :-
 %	that we get distinct subjects for free.
 
 subject_in_graph(Graph, S) :-
+	rdf_statistics(triples_by_file(Graph, Count)),
+	rdf_statistics(triples(Total)),
+	Count * 10 > Total, !,		% Graph has more than 10% of triples
 	rdf_subject(S),
 	once(rdf(S, _, _, Graph)).
+subject_in_graph(Graph, S) :-
+	findall(S, rdf(S,_,_,Graph), List),
+	sort(List, Subjects),
+	member(S, Subjects).
 
 bnode_in_graph(Graph, S) :-
+	rdf_statistics(triples_by_file(Graph, Count)),
+	rdf_statistics(triples(Total)),
+	Count * 10 > Total, !,
 	rdf_subject(S),
 	rdf_is_bnode(S),
 	once(rdf(S, _, _, Graph)).
+bnode_in_graph(Graph, S) :-
+	findall(S, (rdf(S,_,_,Graph), rdf_is_bnode(S)), List),
+	sort(List, Subjects),
+	member(S, Subjects).
+
+
 
 %%	type_in_graph(+Graph, -Class)
 %
