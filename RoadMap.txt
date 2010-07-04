@@ -31,6 +31,11 @@ from the top-left menu.
     $ doc :
     Generate the documentation.
 
+    $ entailment :
+    Entailment modules provide an alternative definition of rdf/3 that
+    included triples entailed by reasoning.  The various entailment
+    modules provide a different amount of reasoning.
+
     $ lib :
     Reusable code which we envision might become part of the SWI-Prolog
     libraries.  This directory is made available through the alias
@@ -54,3 +59,53 @@ from the top-left menu.
 
     $ web :
     Web-pages used by the server: CSS, Icons, JavaScript and YUI files.
+
+---++ Source files in the top-directory
+
+    $ cliopatria.pl :
+    Loads the required components of the system. This notably excludes
+    development features.  See run.pl.
+
+    $ hooks.pl :
+    Provides declarations for hooks into ClioPatria. Hooks are multifile
+    predicates that can be defined to change the behaviour of some part
+    of ClioPatria.
+
+    $ parms.pl :
+    Central definition of file-paths, web-paths and settings. Should
+    normally not be changed.  Application-specific settings go into
+    settings.db.
+
+    $ run.pl[.in] :
+    Demo startup-file.  Copy and edit to build your application.
+
+    $ setup.pl / configure :
+    Localization script to create <file> from <file>.in.  Used to create
+    run.pl from run.pl.in.  Can be used to localise your new application
+    startup.
+
+    $ skin.pl :
+    Defines the overall page-layout for ClioPatria development pages.
+
+    $ version.pl :
+    Test Prolog version and create a version-stamp from GIT.
+
+---++ Other toplevel files
+
+The files below are located in the directory from which ClioPatria is
+started.  They are initially absent and may be deleted to restore the
+initial state.
+
+    $ users.db :
+    The user-database.  It is formatted in Prolog.  Passwords are hashed
+    using crypt/2.  The default is to use (portable) Unix MD5-hashes.
+    Administration is done through the web-interface.
+
+    $ settings.db :
+    Contains settings that do not have their default value. The settings
+    can be changed through the web-interface when logged-in with
+    administrative privileges. The file run.pl[.in] shows how
+    application defaults can be changed.
+
+    $ RDF-store :
+    Directory that holds the persistent RDF store.

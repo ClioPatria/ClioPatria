@@ -16,7 +16,7 @@ the following:
     * Reasoning libraries
     Called entailment modules.  See entailment/README.txt
 
-    * User adminstration
+    * User administration
     Create users, provide OpenID services, use external OpenID
     authorization and connect users to right-tokens.
 

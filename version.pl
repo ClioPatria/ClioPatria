@@ -38,6 +38,10 @@
 
 /** <module> Manage software versions
 
+The module deals with software  versions.   It  currently implements two
+features:  test  whether   SWI-Prolog   is    sufficiently   new   using
+check_prolog_version/1 and find a GIT version  signature for the running
+ClioPatria system.
 */
 
 
@@ -95,7 +99,11 @@ git_version_pattern('*').
 %	Options:
 %
 %	    * match(+Pattern)
+%	    Only use tags that match Pattern (a Unix glob-pattern; e.g.
+%	    =|V*|=)
 %	    * directory(Dir)
+%	    Provide the version-info for a directory that is part of
+%	    a GIT-repository.
 %
 %	@see git describe
 
@@ -160,7 +168,8 @@ update_version(Dir) :-
 
 %%	git_version(-Version)
 %
-%	Provides the version of the first valid directory.
+%	Provides the version of the first valid directory.  The provided
+%	version is updated by make/0.
 %
 %	@see git_version/2.
 

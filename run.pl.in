@@ -56,6 +56,18 @@ file_search_path(ontology_root, '../econnect/demo/vocs').
 :- rdf_register_ns(cornetto, 'http://purl.org/vocabularies/cornetto/').
 
 		 /*******************************
+		 *	  CHANGE SETTINGS	*
+		 *******************************/
+
+% Change defaults for settings for your application.  To see what settings
+% are available, use the web-interface or ?- list_settings.
+
+:- use_module(library(settings)).
+
+% :- set_setting_default(http:port, 8080).
+
+
+		 /*******************************
 		 *     LOAD YOUR CODE BELOW	*
 		 *******************************/
 

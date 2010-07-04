@@ -1,9 +1,10 @@
 /*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@uva.nl
+    E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2008, University of Amsterdam
+    Copyright (C): 2008-2010, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -29,7 +30,7 @@
 
 
 :- module(cp_parms,
-	  [ serql_setting/3
+	  [
 	  ]).
 :- use_module(library(settings)).
 :- use_module(library(error)).
@@ -37,6 +38,19 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_hook)).
 
+/** <module> ClioPatria parameters
+
+This file contains the locations of file-directories and web-directories
+in addition to settings that can be   managed by the end-user. It should
+not be necessary to modify this file:
+
+    * Web-locations can be modified externally using http:location/3
+    with an option priority(N), where N > 0. See http_absolute_path/3.
+
+    * Settings can be changed using set_setting_default/2.
+
+@see run.pl[.in] contains an example startup script.
+*/
 
 		 /*******************************
 		 *	    FILE PATHS		*
@@ -125,21 +139,6 @@ identifier_code(C) :-
 http_settings:input_item(uri, Value, Name) -->
 	html(input([name(Name), size(40), value(Value)])).
 
-
-		 /*******************************
-		 *	      SETTINGS		*
-		 *******************************/
-
-%%	serql_setting(+Name, -Old, +New)
-%
-%	Change a setting.  Not  all   settings  are  changeable  without
-%	restarting the server.
-%
-%	@tbd	Handle setting broadcasts to update server statistics
-
-serql_setting(Name, Old, New) :-
-	setting(Name, Old),
-	set_setting(Name, New).
 
 		 /*******************************
 		 *	       HTTP		*
