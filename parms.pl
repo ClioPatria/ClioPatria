@@ -59,20 +59,20 @@ not be necessary to modify this file:
 :- multifile
 	user:file_search_path/2.
 
-user:file_search_path(library,	     cliopatria('lib')).
-user:file_search_path(ontology_root, cliopatria('ontologies')).
-user:file_search_path(entailment,    cliopatria('entailment')).
-user:file_search_path(rdfql,         cliopatria('rdfql')).
-user:file_search_path(components,    cliopatria('components')).
-user:file_search_path(applications,  cliopatria('applications')).
-user:file_search_path(api,	     cliopatria('api')).
-user:file_search_path(auth,	     cliopatria('auth')).
-user:file_search_path(web,	     cliopatria(web)).
-user:file_search_path(css,	     web(css)).
-user:file_search_path(icons,	     web(icons)).
-user:file_search_path(yui,	     web('yui/2.7.0')).
-user:file_search_path(js,	     web(js)).
-user:file_search_path(html,	     web(html)).
+user:file_search_path(library,	    cliopatria('lib')).
+user:file_search_path(ontology,	    cliopatria('ontologies')).
+user:file_search_path(entailment,   cliopatria('entailment')).
+user:file_search_path(rdfql,	    cliopatria('rdfql')).
+user:file_search_path(components,   cliopatria('components')).
+user:file_search_path(applications, cliopatria('applications')).
+user:file_search_path(api,	    cliopatria('api')).
+user:file_search_path(auth,	    cliopatria('auth')).
+user:file_search_path(web,	    cliopatria(web)).
+user:file_search_path(css,	    web(css)).
+user:file_search_path(icons,	    web(icons)).
+user:file_search_path(yui,	    web('yui/2.7.0')).
+user:file_search_path(js,	    web(js)).
+user:file_search_path(html,	    web(html)).
 
 
 		 /*******************************

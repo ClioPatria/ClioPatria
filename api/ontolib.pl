@@ -115,10 +115,10 @@ library_ontology(O) :-
 %%	prepare_ontology_library is det.
 %
 %	Load RDF library manifests from   directories  defined using the
-%	file_search_path/2 =ontology_root= alias.
+%	file_search_path/2 =ontology= alias.
 
 prepare_ontology_library :-
-	(   absolute_file_name(ontology_root(.), Dir,
+	(   absolute_file_name(ontology(.), Dir,
 			       [ file_type(directory),
 				 solutions(all)
 			       ]),
