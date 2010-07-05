@@ -258,10 +258,10 @@ http:create_pool(sparql_query) :-
 
 prolog:message(serql(server_started(Port))) -->
 	{ gethostname(Host),
-	  http_location_by_id(cliopatria_home, Home)
+	  http_location_by_id(root, Root)
 	},
 	[ 'Started ClioPatria server at port ~w'-[Port], nl,
-	  'You may access the server at http://~w:~w~w'-[Host, Port, Home]
+	  'You may access the server at http://~w:~w~w'-[Host, Port, Root]
 	].
 prolog:message(serql(welcome(DefaultPort))) -->
 	[ nl,

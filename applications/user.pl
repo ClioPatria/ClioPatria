@@ -56,16 +56,45 @@
 
 /** <Module> Basic user (developer) interaction
 
-This module contains the main front-end of ClioPatria.
+This module contains the main front-end of ClioPatria. It notably
+provides the HTTP-handlers for / and /home:
 
-@tbd	Further modularization in components and (sub-)applications
+    $ / :
+    This handler, with id=root, redirects either to /home (id=home) or
+    to id=create_admin. The latter is issued if there is no initialised
+    user-db.
+
+    $ /home :
+    Provides the default welcome page of ClioPatria.
+
+If one develops an application on top   of  ClioPatria, it is adviced to
+redefine the handler for =home=, as in:
+
+    ==
+    :- http_handler('/welcome', home, []).
+
+    home(Request) :-
+	...
+    ==
+
+If the application wants to provide  a   link  to the generic ClioPatria
+administrative interface, it can do so by   linking  to the id=admin, as
+in:
+
+    ==
+	...,
+	{ http_link_to_id(admin, [], AdminRef) },
+	html(a(href(AdminRef), admin)),
+	...
+    ==
 */
 
-:- http_handler(root('.'),
-		http_redirect(moved, location_by_id(cliopatria_home)),
-		[priority(-100)]).
-:- http_handler(cliopatria('home.html'),	     welcome,
-		[id(cliopatria_home)]).
+:- http_handler(root('.'),			     root,
+		[ priority(-100) ]).
+:- http_handler(cliopatria(home),		     home,
+		[ priority(-100) ]).
+:- http_handler(cliopatria(admin),		     home,
+		[ id(admin) ]).
 :- http_handler(cliopatria('user/statistics'),	     statistics,	      []).
 :- http_handler(cliopatria('user/query'),	     query_form,	      []).
 :- http_handler(cliopatria('user/loadFile'),	     load_file_form,	      []).
@@ -79,18 +108,30 @@ This module contains the main front-end of ClioPatria.
 		[id(cliopatria_doc)]).
 
 
-%%	welcome(+Request)
+%%	root(+Request)
 %
-%	Reply with the normal welcome page.  If there is no user we
-%	reply with the `create admin user' page.
+%	Default ClioPatria handler for /.  The default handler redirects
+%	to id=home, unless the use-info is not initialised. in that case
+%	it redirects to id=create_admin.
 
-welcome(Request) :-
+root(Request) :-
 	(   current_user(_)
-	->  reply_decorated_file(cliopatria('welcome.html'), Request)
+	->  http_redirect(moved_temporary,
+			  location_by_id(home),
+			  Request)
 	;   http_redirect(moved_temporary,
 			  location_by_id(create_admin),
 			  Request)
 	).
+
+
+%%	home(+Request)
+%
+%	Reply with the normal  welcome  page.   The  welcome  page  is a
+%	decorated version of html('welcome.html').
+
+home(Request) :-
+	reply_decorated_file(html('welcome.html'), Request).
 
 
 %%	reply_decorated_file(+Alias, +Request) is det.

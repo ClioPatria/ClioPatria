@@ -61,16 +61,18 @@ not be necessary to modify this file:
 
 user:file_search_path(library,	     cliopatria('lib')).
 user:file_search_path(ontology_root, cliopatria('ontologies')).
-user:file_search_path(css,	     cliopatria('web/css')).
-user:file_search_path(icons,	     cliopatria('web/icons')).
-user:file_search_path(yui,	     cliopatria('web/yui/2.7.0')).
-user:file_search_path(js,	     cliopatria('web/js')).
 user:file_search_path(entailment,    cliopatria('entailment')).
 user:file_search_path(rdfql,         cliopatria('rdfql')).
 user:file_search_path(components,    cliopatria('components')).
 user:file_search_path(applications,  cliopatria('applications')).
 user:file_search_path(api,	     cliopatria('api')).
 user:file_search_path(auth,	     cliopatria('auth')).
+user:file_search_path(web,	     cliopatria(web)).
+user:file_search_path(css,	     web(css)).
+user:file_search_path(icons,	     web(icons)).
+user:file_search_path(yui,	     web('yui/2.7.0')).
+user:file_search_path(js,	     web(js)).
+user:file_search_path(html,	     web(html)).
 
 
 		 /*******************************
@@ -170,8 +172,6 @@ http_settings:input_item(uri, Value, Name) -->
 	   'Optimise queries before execution').
 :- setting(cliopatria:rdf_db_namespaces, boolean, true,
 	   'Allow registered namespaces in queries').
-:- setting(cliopatria:title, atom, 'ClioPatria Semantic Web Server',
-	   'Title of the web-page').
 :- setting(cliopatria:persistent_store, atom, 'RDF-store',
 	   'Directory for persistent copy of in-memory RDF').
 

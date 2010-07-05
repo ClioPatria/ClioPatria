@@ -119,7 +119,7 @@ menu_item(view/statistics,		'Statistics').
 menu_item(admin/list_users,		'Users').
 menu_item(admin/settings,		'Settings').
 % Home location
-menu_item(help/cliopatria_home,		'Home').
+menu_item(help/home,			'Home').
 menu_item(help/cliopatria_doc,		'Documentation').
 % Keep users at the end
 menu_item(user/login_form,		'Login') :-
@@ -157,7 +157,6 @@ menu_popup_order(current_user, 8000).
 
 menu_label(Item, _Default, Label) :-
 	cliopatria:menu_label(Item, Label), !.
-menu_label(cliopatria_home, _Default, 'Home') :- !.
 menu_label(current_user, _Default, Label) :-
 	logged_on(User, X),
 	X \== User, !,
