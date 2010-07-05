@@ -219,11 +219,11 @@ the user database file.
 
 ClioPatria is available from its
 \url[GIT]{http://git-scm.com/}
-\url[repository]{http://www.swi-prolog.org/home/pl/git/ClioPatria.git}
+\url[repository]{http://www.swi-prolog.org/git/ClioPatria.git}
 using the following commands:
 
 \begin{code}
-% git clone http://www.swi-prolog.org/home/pl/git/ClioPatria.git
+% git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
 \end{code}
 
 
