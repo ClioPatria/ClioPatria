@@ -1,3 +1,9 @@
 configure
 autom4te.cache
 cliopatria.pdf
+cliopatria.aux
+cliopatria.idx
+cliopatria.log
+cliopatria.out
+cliopatria.tex
+cliopatria.toc
