@@ -12,7 +12,7 @@
 
 \begin{document}
 
-\title{SWI-Prolog Semantic Web Server}
+\title{ClioPatria: the SWI-Prolog Semantic Web Server}
 \author{Jan Wielemaker \\
 	University of Amsterdam, VU University of Amsterdam \\
 	The Netherlands \\
@@ -22,13 +22,16 @@
 
 \begin{abstract}
 SWI-Prolog offers an extensive library for loading, saving and querying
-Semantic Web documents. Internally, the query language is `Prolog',
-building on top of an efficient implementation of a predicate rdf/3
-expressing the content of the triple store.
+Semantic Web documents called the
+`\url[semweb]{http://www.swi-prolog.org/pldoc/package/semweb.html}'
+package. Internally, the query language is `Prolog', building on top of
+an efficient implementation of a predicate rdf/3 expressing the content
+of the triple store.
 
 ClioPatria provides a ready-ro-run web-server on top of this
 infrastructure. The web-server contains a SPARQL endpoint, user
-management and various web-based development tools.
+management and web-based tools to help the developer analysing the
+loaded RDF.
 \end{abstract}
 
 \vfill
@@ -44,24 +47,67 @@ management and various web-based development tools.
 
 \section{Introduction}
 
-The SWI-Prolog Semantic Web Server unifies the SWI-Prolog general Web
-support and Semantic Web support, providing both a starting point for
-dedicated applications and a platform for exchange of RDF-based data
-using a standardised language and protocol.
+ClioPatria unifies the SWI-Prolog general Web support and Semantic Web
+support, providing both a starting point for dedicated applications and
+a platform for exchange of RDF-based data using a standardised language
+and protocol.
+
+`Out of the box', ClioPatria can be used to load and study RDF data. RDF
+data can be studied using the interactive SPARQL interface, a graph
+browser or the Prolog toplevel.
+
+ClioPatria is first of all intended as a base-level infrastructure for
+building RDF-based applications. This is achieved by loading additional
+Prolog code that implements the required application logic on top of
+the SWI-Prolog semweb package and optionally ClioPatria extensions
+thereof.  Next, there are several options to make this application
+logic available:
+
+\begin{itemize}
+    \item Define `APIs': HTTP handlers that emit JSON or XML that is
+    handled by a presentation layer that resides either in the browser
+    (using AJAX technology) or in another web-server.
+
+    \item Define HTTP handlers that emit HTML pages, possibly enriched
+    with AJAX components.  This technique is used by the development
+    tools that are part of ClioPatria.  More information on providing
+    web-services from Prolog can be found on the SWI-Prolog
+    \url[HOWTO pages]{http://www.swi-prolog.org/howto/http/}
+\end{itemize}
+
+The choice between these two options depends on external requirements,
+such as skills of the involved developers, integration with other
+software and the amount of interaction. Serving HTML pages from Prolog
+requires knowledge of HTML and CSS and the SWI-Prolog HTML-writer
+library. It provides good modularity and reuse. Alternatively, the UI
+can be programmed in e.g., flash or a generic JavaScript library such as
+YUI. This approach makes the UI independent from the server, but
+requires programming in two languages: Prolog to define the APIs and
+flash/JavaScript/... to program the UI.
 
 
 \section{Query Languages}
 
-The current server supports two query languages:
+ClioPatria supports two query languages:
 \url[SPARQL]{http://www.w3.org/TR/rdf-sparql-query/} and
-\url[SeRQL]{http://www.openrdf.org}.
-For both languages we provide an interactive service that presents
-the results as a human-readable HTML table, a service presenting its
-result as RDF/XML or XML that follows the HTTP protocol definition for
-the query language and the possibility to query the local database using
-a query language in Prolog.
+\url[SeRQL]{http://www.openrdf.org}. For both languages we provide an
+interactive service that presents the results as a human-readable HTML
+table and an API that presents its result as RDF/XML or XML according to
+the HTTP protocol definition for the query language.
 
-For both query languages, queries are translated to a complex Prolog
+ClioPatria's SPARQL endpoint is intended to support clients that are
+designed for to work with a SPARQL endpoint. E.g., if an application
+requires a vocabulary browser and such a browser is available as a
+JavaScript library that formulates SPARQL queries, ClioPatria's SPARQL
+endpoints allow reuse of this component. In our experience, SPARQL often
+needs additional application logic that is located near the data to
+provide a task-specific API that drives the user interface. Locating
+this logic near the data is required to avoid protocol and latency
+overhead.  RDF-based application logic is a perfect match for Prolog and
+the RDF data is much easier queried through the Prolog RDF libraries
+than through SPARQL.
+
+For both SPARQL and SeRQL, queries are translated to a complex Prolog
 goal calling rdf/3 to resolve edges in the graph and calls to predicates
 from rdfql/rdfql_runtime.pl that realise constraints imposed by the
 SeRQL \const{WHERE} clause and SPARQL \const{FILTER} clauses.
@@ -109,20 +155,20 @@ default setup this is \url{http://localhost:3020}. If no users are
 defined the browser will prompt to enter the administrative password.
 After that the admin and anonymous users are created. Accounts can be
 created and modified by users with administrative rights through the
-\emph{List users ...} link in the menu.
+\emph{Admin/Users} link in the menu.
 
 \subsection{Configuring the server}
 
 To configure the server, login as \const{admin} and click
-\textsf{Settings...}. Edit settings and hit \textsf{Apply} to save them.
-In most cases you will have to restart the server before the new
+\textsf{Admin/Settings}. Edit settings and hit \textsf{Apply} to save
+them. In most cases you will have to restart the server before the new
 settings take effect.\footnote{BUG: indicate when and make more settings
 act without restarting}.
 
 
 \subsection{Restarting from scratch: where is the data kept?}
 
-Data is kept on the following places. Each of these can be removed.
+Data is kept in the following files. Each of these can be removed.
 
 \begin{itemize}
     \item \file{settings.db}
@@ -143,16 +189,20 @@ quick-load snapshots and \fileext{jrn} for \jargon{journal} files. See
 the SWI-Prolog \url[Semantic Web
 package]{http://www.swi-prolog.org/packages/semweb.html} for details.
 You can freely remove a graph by removing both files if the server is
-not running.
+not running.  Similar, you can remove the journal to restore a graph
+to its initial state after loading it from the source-data.
 
     \item \file{httpd.log}
-Keeps a log of HTTP interactions.  Note that on heavily loaded servers
-this can be a significant slow-down and the file can become very big.
-Clear \textit{File in which to log HTTP requests} to stop logging.
+Keeps a log of HTTP interactions. Note that on heavily loaded servers
+this can be a significant slow-down and the file can become huge.
+Logging can be disabled either by not loading library(http/http_log) in
+the startup script (see run.pl) or by clearing \textit{File in which to
+log HTTP requests} in the settings-page.
 
 On Unix systems, this file can be moved or removed at any time.  The
-system will start a new log-file. On Windows this will give a sharing
-violation.
+server will start a new log-file. On Windows this will give a sharing
+violation.\footnote{The HTTP log library needs a portable mechanism to
+deal with growing logfiles.}
 \end{itemize}
 
 
@@ -169,11 +219,11 @@ the user database file.
 
 ClioPatria is available from its
 \url[GIT]{http://git-scm.com/}
-\url[repository]{http://eculture.cs.vu.nl/git/ClioPatria.git}
+\url[repository]{http://www.swi-prolog.org/home/pl/git/ClioPatria.git}
 using the following commands:
 
 \begin{code}
-% git clone git://eculture.cs.vu.nl/home/git/ClioPatria.git
+% git clone http://www.swi-prolog.org/home/pl/git/ClioPatria.git
 \end{code}
 
 
@@ -183,9 +233,9 @@ The SeRQL server has been realised as part of the \url[HOPS
 project]{http://www.hops-fp6.org} and could not have been done without
 Sesame and feedback from Jeen Broekstra and Maarten Menken from the Free
 University of Amsterdam (VU). Adding SPARQL support has been realised as
-part of the E-culture sub-project of Dutch MultiMedia project. Various
-extensions and cleanup has been realised within
-\url[Europeana]{http://www.europeana.eu/portal/}.
+part of the E-culture sub-project of Dutch MultiMedia project. Overall
+cleanup and documentation is realised within the
+\url[Europeana]{http://www.europeana.eu/portal/} project.
 
 \printindex
 
