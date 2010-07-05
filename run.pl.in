@@ -12,10 +12,15 @@ requirements.  See comments in the file.
 
 % Setup search paths.  Adding cliopatria allows using this script from
 % any directory and adding ontology makes RDF files visible in the
-% interface.
+% interface.  Vizualization of graphs requires graphviz in the search
+% path.  This is default on Unix systems.  On Windows, either add the
+% folder holding dot.exe to %PATH% or uncomment and localise the path-line
+% below.
 
 file_search_path(cliopatria, '@CLIOPATRIA@').		% (*)
 file_search_path(ontology,   '../econnect/demo/vocs').
+% file_search_path(path,       'C:/Program Files/Graphviz2.26.3/bin').
+% file_search_path(path,       'C:/Program Files (x86)/Graphviz2.26.3/bin').
 
 % Make loading files silent.
 
