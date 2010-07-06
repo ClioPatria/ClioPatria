@@ -281,4 +281,5 @@ prolog:message(serql(welcome(DefaultPort))) -->
 user:message_hook(rdf(restore(_, done(_DB, _T, _Count, Nth, Total))),
 		  _Kind, _Lines) :-
 	retractall(loading_done(_,_)),
-	assert(loading_done(Nth, Total)).
+	assert(loading_done(Nth, Total)),
+	fail.
