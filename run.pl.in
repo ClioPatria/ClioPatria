@@ -20,7 +20,9 @@ requirements.  See comments in the file.
 file_search_path(cliopatria, '@CLIOPATRIA@').		% (*)
 file_search_path(ontology,   '../econnect/demo/vocs').
 % file_search_path(path,       'C:/Program Files/Graphviz2.26.3/bin').
+% file_search_path(path,       'C:/Program Files/Git/bin').
 % file_search_path(path,       'C:/Program Files (x86)/Graphviz2.26.3/bin').
+% file_search_path(path,       'C:/Program Files (x86)/Git/bin').
 
 % Make loading files silent.
 
