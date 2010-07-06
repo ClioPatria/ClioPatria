@@ -86,8 +86,8 @@ canviz_graph(_Closure, Options) -->
 	},
 	\+ { process:exe_options(ExeOptions),
 	     absolute_file_name(path(Renderer), _,
-				[ file_errors(fail),
-				  ExeOptions
+				[ file_errors(fail)
+				| ExeOptions
 				])
 	   }, !,
 	no_graph_viz(Renderer).
