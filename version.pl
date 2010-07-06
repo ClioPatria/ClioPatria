@@ -74,6 +74,8 @@ prolog:message(required_prolog_version(Required)) -->
 	  'Please visit http://www.swi-prolog.org and', nl,
 	  'upgrade your version of SWI-Prolog.'
 	].
+prolog:message(git(no_version)) -->
+	[ 'Sorry, cannot retrieve version stamp from GIT.' ].
 
 
 user_version(N, Version) :-
@@ -189,4 +191,5 @@ user:message_hook(make(done(_)), _, _) :-
 	fail.
 
 :- initialization
-	catch(git_update_versions, _, fail).
+	catch(git_update_versions, _,
+	      print_message(informational, git(no_version))).
