@@ -105,11 +105,11 @@ write_result(json, Type, Rows, Options) :-
 	write_json_result(Type, Rows, Options).
 
 write_xml_result(ask, [True], Options) :- !,
-	format('Content-type: application/sparql-result+xml; charset=UTF-8~n~n'),
+	format('Content-type: application/sparql-results+xml; charset=UTF-8~n~n'),
 	sparql_write_xml_result(current_output, ask(True), Options).
 write_xml_result(select(VarNames), Rows, Options) :- !,
 	format('Transfer-encoding: chunked~n'),
-	format('Content-type: application/sparql-result+xml; charset=UTF-8~n~n'),
+	format('Content-type: application/sparql-results+xml; charset=UTF-8~n~n'),
 	sparql_write_xml_result(current_output, select(VarNames, Rows), Options).
 write_xml_result(_, RDF, _Options) :-
 	format('Content-type: application/rdf+xml; charset=UTF-8~n~n'),
