@@ -96,7 +96,7 @@ find_media([media(Type, _, _, _)|T], Format) :-
 	;   find_media(T, Format)
 	).
 
-sparql_media(application/'sparql-result+xml',   xml).
+sparql_media(application/'sparql-results+xml',   xml).
 sparql_media(application/'sparql-results+json', json).
 
 write_result(xml, Type, Rows, Options) :-
