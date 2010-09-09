@@ -50,7 +50,8 @@ sparql_json_mime_type(application/'sparql-results; charset=UTF-8').
 %
 %	@see http://www.w3.org/TR/rdf-sparql-json-res/
 
-sparql_write_json_result(Out, select(VarNames, Rows), Options) :-
+sparql_write_json_result(Out, select(VarTerm, Rows), Options) :-
+	VarTerm =.. [_|VarNames],
 	JSON = json([ head    = json([vars=VarNames]),
 		      results = json([bindings=Bindings])
 		    ]),
