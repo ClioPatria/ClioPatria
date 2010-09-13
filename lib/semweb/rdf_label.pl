@@ -57,13 +57,13 @@ issues.
 	rdf_html_label(r, ?, ?),
 	label_property(r).
 
-label_property(rdfs:label).
 label_property(skos:prefLabel).
 label_property(dc:title).
 label_property(skos:altLabel).
+label_property(rdfs:label).
 
 
-%%	rdf_label(+R, -Label:literal) is multi.
+%%	rdf_label(+R, -Label:literal) is nondet.
 %
 %	Label is a label for R.
 
