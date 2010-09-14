@@ -56,9 +56,13 @@ install_pl_file(Vars, InFile) :-
 	file_base_name(PlFile, Base),
 	format(user_error, ' (~w)', [Base]).
 
-substitutions(['SWIPL'=PL, 'CLIOPATRIA'=PWD]) :-
+substitutions([ 'SWIPL'=PL,		% Prolog executable (for
+		'CWD'=PWD,		% This directory
+		'PARENTDIR'=Parent	% The parent
+	      ]) :-
 	prolog_executable(PL),
-	working_directory(PWD, PWD).
+	working_directory(PWD, PWD),
+	file_directory_name(PWD, Parent).
 
 %%	prolog_executable(-Path)
 %

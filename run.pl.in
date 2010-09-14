@@ -17,7 +17,7 @@ requirements.  See comments in the file.
 % folder holding dot.exe to %PATH% or uncomment and localise the path-line
 % below.
 
-file_search_path(cliopatria, '@CLIOPATRIA@').		% (*)
+file_search_path(cliopatria, '@CWD@').
 file_search_path(ontology,   '../econnect/demo/vocs').
 % file_search_path(path,       'C:/Program Files/Graphviz2.26.3/bin').
 % file_search_path(path,       'C:/Program Files/Git/bin').
