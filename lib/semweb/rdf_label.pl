@@ -29,7 +29,8 @@
 */
 
 :- module(rdf_label,
-	  [ rdf_label/2,
+	  [ rdf_label/2,		% +Resource, -Literal
+	    rdf_display_label/3,	% +Resource, +Lang, -RDFOject
 	    literal_text/2,		% +Literal, -Text
 	    truncate_atom/3		% +Atom, -MaxLen -Text
 	  ]).
@@ -50,11 +51,13 @@ issues.
 */
 
 :- multifile
-	label_property/1.		% ?Resource
+	label_property/1,		% ?Resource
+	label_hook/2,			% +Resource, -Literal
+	display_label_hook/3.		% +Resource, ?Lang, -Label
 
 :- rdf_meta
-	rdf_label(r, -),
-	rdf_html_label(r, ?, ?),
+	rdf_label(r,-),
+	rdf_display_label(r,?,-),
 	label_property(r).
 
 label_property(skos:prefLabel).
@@ -65,13 +68,62 @@ label_property(rdfs:label).
 
 %%	rdf_label(+R, -Label:literal) is nondet.
 %
-%	Label is a label for R.
+%	Label is a label for R.  This   predicate  first  calls the hook
+%	label_hook/2. If this hook fails it produces all property-values
+%	for the properties  defined  by   label_property/1  that  have a
+%	literal value.
 
 rdf_label(R, Label) :-
-	label_property(P),
-	rdf_has(R, P, Label),
-	rdf_is_literal(Label).
+	(   label_hook(R, Label)
+	*-> true
+	;   label_property(P),
+	    rdf_has(R, P, Label),
+	    rdf_is_literal(Label)
+	).
 
+
+%%	rdf_display_label(+R, ?Lang, -Label:atom) is det.
+%
+%	Label is the preferred label to display the resource R in
+%	the language Lang.
+
+rdf_display_label(R, Lang, Label) :-
+	display_label_hook(R, Lang, Label), !.
+rdf_display_label(R, Lang, Label) :-
+	nonvar(Lang),
+	rdf_label(R, Literal),
+	Literal = literal(L, _),
+	lang_matches(L, Lang), !,
+	literal_text(Literal, Label).
+rdf_display_label(R, Lang, Label) :-
+	rdf_label(R, Literal),
+	literal_lang(Literal, Lang),
+	literal_text(Literal, Label).
+rdf_display_label(BNode, Lang, Label) :-
+	rdf_is_bnode(BNode),
+	rdf_has(BNode, rdf:value, Value), !,
+	rdf_display_label(Value, Lang, Label0),
+	format(atom(Label), '[~a..]', Label0).
+rdf_display_label(Resource, _, Label) :-
+	(   after_char(Resource, '#', Local)
+	->  Label = Local
+	;   after_char(Resource, '/', Local)
+	->  Label = Local
+	;   Label = Resource
+	).
+
+after_char(Atom, Char, Rest) :-
+	State = last(-),
+	(   sub_atom(Atom, _, _, L, Char),
+	    nb_setarg(1, State, L),
+	    fail
+	;   arg(1, State, L),
+	    L \== (-)
+	),
+	sub_atom(Atom, _, L, 0, Rest).
+
+literal_lang(literal(Lang, _), Lang) :- !.
+literal_lang(_, _).
 
 %%	literal_text(+Object, -Text:atom) is semidet.
 %
@@ -109,7 +161,7 @@ plain_text(X, Text) :-
 %%	truncate_atom(+Atom, +MaxLen, -Truncated) is det.
 %
 %	If Atom is longer than MaxLen, truncate  it. If MaxLen is =inf=,
-%	Truncated is simply unified with Atom.
+%	Truncated is unified with Atom.
 
 truncate_atom(Atom, inf, All) :- !,
 	All = Atom.
