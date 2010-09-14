@@ -31,7 +31,7 @@
 :- module(api_sparql,
 	  [ sparql_reply/1
 	  ]).
-:- use_module(auth(user_db)).
+:- use_module(user(user_db)).
 :- use_module(library(lists)).
 :- use_module(library(rdf_write)).
 :- use_module(library(http/http_parameters)).

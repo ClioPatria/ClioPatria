@@ -86,8 +86,9 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 		library(http/http_dispatch),
 		library(http/thread_httpd),
 
-		auth(user_db),
-		auth(openid),
+		user(user_db),
+		user(openid),
+		user(preferences),
 
 		api(sesame),
 		api(journal),			% export journal information

@@ -39,7 +39,10 @@
 	menu_label/2,
 	menu_popup_order/2,
 
-	label_property/1.
+	label_property/1,
+
+	user_preference_db/2,		% ?Property, ?Value
+	user_preference_default/2.	% ?Property, ?Value
 
 
 		 /*******************************
@@ -78,3 +81,22 @@
 %	True if the value of  Property   can  be  used to (non-uniquely)
 %	describe an object to the user.   This  hook provides additional
 %	facts to cp_label:label_property/1.
+
+
+		 /*******************************
+		 *   USER/SESSION PREFERENCES	*
+		 *******************************/
+
+%%	user_preference_db(?Property:atom, ?Value:rdf_object) is nondet.
+%
+%	Query properties for the current   user/session.  This mechanism
+%	allows code to access information about the user/session without
+%	committing to a particular  implementation.   The  predicate and
+%	values are compatible with RDF to   allow  implementing the user
+%	database in RDF, typically using the OpenID as subject.
+
+%%	user_preference_default(?Property:atom, ?Value:rdf_object) is nondet.
+%
+%	Provides defaults for the user_preference/2.
+%
+%	@see user_preference_db/2

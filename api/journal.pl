@@ -31,7 +31,7 @@
 
 :- module(api_journal, []).
 :- use_module(library(semweb/rdf_persistency)).
-:- use_module(auth(user_db)).
+:- use_module(user(user_db)).
 :- use_module(library('http/http_parameters')).
 :- use_module(library('http/mimetype')).
 :- use_module(library('http/http_dispatch')).

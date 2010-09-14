@@ -32,7 +32,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(auth(user_db)).
+:- use_module(user(user_db)).
 
 :- http_handler(api(export_graph),  export_graph,  []).
 

@@ -1,4 +1,4 @@
-/*  Part of ClioPatria SeRQL and SPARQL server
+/*  Part of ClioPatria semantic web server
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
@@ -66,7 +66,7 @@ user:file_search_path(rdfql,	    cliopatria('rdfql')).
 user:file_search_path(components,   cliopatria('components')).
 user:file_search_path(applications, cliopatria('applications')).
 user:file_search_path(api,	    cliopatria('api')).
-user:file_search_path(auth,	    cliopatria('auth')).
+user:file_search_path(user,	    cliopatria('user')).
 user:file_search_path(web,	    cliopatria(web)).
 user:file_search_path(css,	    web(css)).
 user:file_search_path(icons,	    web(icons)).
@@ -148,7 +148,7 @@ http_settings:input_item(uri, Value, Name) -->
 
 :- setting(http:port, nonneg, env('PORT', 3020),
 	   'Port the http server listens to').
-:- setting(http:workers, between(1, 20), env('SERQL_WORKERS', 5),
+:- setting(http:workers, between(1, 20), env('PROLOG_HTTP_WORKERS', 5),
 	   'Number of server threads').
 :- setting(http:worker_options, list(any), [],
 	   'Additional options to pass to the HTTP server').

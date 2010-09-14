@@ -43,7 +43,7 @@
 :- use_module(api(sesame)).
 :- use_module(api(ontolib)).
 :- use_module(library(settings)).
-:- use_module(auth(user_db)).
+:- use_module(user(user_db)).
 :- use_module(library(debug)).
 :- use_module(components(server_statistics)).
 :- use_module(components(query)).

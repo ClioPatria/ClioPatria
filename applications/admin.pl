@@ -31,7 +31,7 @@
 :- module(cpa_admin,
 	  [ change_password_form//1
 	  ]).
-:- use_module(auth(user_db)).
+:- use_module(user(user_db)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_session)).
 :- use_module(library(http/html_write)).

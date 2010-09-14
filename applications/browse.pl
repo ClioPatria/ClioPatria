@@ -58,7 +58,7 @@
 :- use_module(components(canviz)).
 :- use_module(library(semweb/rdf_abstract)).
 
-:- use_module(auth(user_db)).
+:- use_module(user(user_db)).
 
 
 /** <module> ClioPatria RDF data browser
