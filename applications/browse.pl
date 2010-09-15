@@ -989,8 +989,8 @@ po_key(P-_, Key) :-
 po_key(P-_, Key) :-
 	label_sort_key(P, Key).
 
-term_expansion(order(NS:Local, K), order(P, K)) :-
-	rdf_global_id(NS:Local, P).
+:- rdf_meta
+	order(r,?).
 
 order(P, 1000) :-
 	label_property(P).
