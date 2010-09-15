@@ -938,7 +938,8 @@ as_object_locations(List, URI, Graph) --> !,
 local_view(URI, Graph, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(bottom_max(BottomMax), Options, 500),
-	  po_pairs(URI, Graph, Pairs, Options)
+	  po_pairs(URI, Graph, Pairs, Options),
+	  lview_graphs(URI, Graph, Graphs)
 	},
 	html(table(class(rdf_browse),
 		   [ \lview_header(Options)
@@ -946,7 +947,6 @@ local_view(URI, Graph, Options) -->
 					    Pairs,
 					    TopMax, BottomMax)
 		   ])),
-	{ append(Graphs, [], _) -> true },
 	graph_footnotes(Graphs, Options).
 
 lview_header(Options) -->
@@ -971,10 +971,13 @@ object_list([], _, _, _, _) --> [].
 object_list([H|T], S, P, Graphs, Options) -->
 	html(div(class(obj),
 		 [ \rdf_link(H, Options),
-		   sup(class(graph), \graphs(S, P, H, Graphs))
+		   \graph_marks(S, P, H, Graphs)
 		 ])),
 	object_list(T, Options, S, P, Graphs).
 
+graph_marks(_,_,_,[_]) --> !.
+graph_marks(S,P,O,Graphs) -->
+	html(sup(class(graph), \graphs(S,P,O,Graphs))).
 
 graphs(S, P, O, Graphs) -->
 	{ findall(G, rdf(S,P,O,G:_), GL) },
@@ -991,6 +994,11 @@ graphs([H|T], Graphs) -->
 	).
 
 
+graph_footnotes([Graph], _Options) --> !,
+	html(p(class('graphs-used'),
+	       [ 'All properties reside in the graph ',
+		 \graph_link(Graph)
+	       ])).
 graph_footnotes(Graphs, Options) -->
 	html(p(class('graphs-used'),
 	       'Named graphs describing this resource:')),
@@ -1000,11 +1008,19 @@ graph_footnotes([], _, _) --> [].
 graph_footnotes([H|T], N, Options) -->
 	html(div(class('graph-fn'),
 		 [ sup(class(graph), N),
-		   \rdf_link(H, [link(list_graph(graph=H))|Options])
+		   \graph_link(H)
 		 ])),
 	{ N2 is N + 1 },
 	graph_footnotes(T, N2, Options).
 
+%%	lview_graphs(+Subject, ?Graph, -Graphs) is det.
+
+lview_graphs(_Subject, Graph, Graphs) :-
+	nonvar(Graph), !,
+	Graphs = [Graph].
+lview_graphs(Subject, Graph, Graphs) :-
+	findall(Graph, rdf(Subject, _, _, Graph:_), Graphs0),
+	sort(Graphs0, Graphs).
 
 %%	po_pairs(+Subject, ?Graph, -Pairs, +Options) is det.
 %
