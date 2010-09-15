@@ -10,12 +10,17 @@ After that, the created run.pl can be   edited to suit your installation
 requirements.  See comments in the file.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-% Setup search paths.  Adding cliopatria allows using this script from
-% any directory and adding ontology makes RDF files visible in the
-% interface.  Vizualization of graphs requires graphviz in the search
-% path.  This is default on Unix systems.  On Windows, either add the
-% folder holding dot.exe to %PATH% or uncomment and localise the path-line
-% below.
+% Setup search paths. Adding cliopatria allows   using  this script from
+% any directory and adding  ontology  makes   RDF  files  visible in the
+% interface.
+%
+% Vizualization of graphs requires graphviz in  the search path. This is
+% default on Unix systems. On  Windows,   either  add the folder holding
+% dot.exe to %PATH% or uncomment and localise the path-line below.
+%
+% By default. ClioPatria adds GIT version  information to the address of
+% the page. Similar to graphviz, this  typically requires setting %PATH%
+% or adding the GIT path to file_search_path below.
 
 file_search_path(cliopatria, '@CWD@').
 file_search_path(ontology,   '../econnect/demo/vocs').
@@ -24,7 +29,8 @@ file_search_path(ontology,   '../econnect/demo/vocs').
 % file_search_path(path,       'C:/Program Files (x86)/Graphviz2.26.3/bin').
 % file_search_path(path,       'C:/Program Files (x86)/Git/bin').
 
-% Make loading files silent.
+% Make loading files silent. Comment if you  want to see all files being
+% loaded.
 
 :- set_prolog_flag(verbose, silent).
 
@@ -40,11 +46,14 @@ file_search_path(ontology,   '../econnect/demo/vocs').
 
 :- use_module(cliopatria(cliopatria)).				% (*)
 
-% Log HTTP traffic to httpd.log.
+% Log  HTTP  traffic  to  httpd.log.    Logging   may  seriously  affect
+% performance on heavilly loaded servers.
 
 :- use_module(library(http/http_log)).
 
-% Turn uncaught exceptions into a 500 error-page that includes a stack-dump.
+% Turn uncaught exceptions  into  a  500   error-page  that  includes  a
+% stack-dump. Handy for debugging, but of  course also handy for someone
+% trying to hack your server :-(
 
 :- use_module(library(http/http_error)).
 
@@ -73,6 +82,17 @@ file_search_path(ontology,   '../econnect/demo/vocs').
 
 % :- set_setting_default(http:port, 8080).
 
+% If you login, the system will  redirect   you  to  its public address.
+% I.e., if you connected to http://localhost:3020/  it will redirect you
+% do http://my.domain.org:3020/ This  can  be   undesirable  on  e.g., a
+% notebook that is not  always  connected   to  the  internet and/or may
+% change address and/or may  be  behind   a  firewall.  You  can disable
+% redirection using the settings  below.  These   settings  may  also be
+% necessary if the server is behind a proxy.
+
+% :- set_setting_default(http:public_host, localhost).
+% :- set_setting_default(http:public_port, setting(http:port)).
+
 
 		 /*******************************
 		 *     LOAD YOUR CODE BELOW	*
@@ -85,7 +105,8 @@ file_search_path(ontology,   '../econnect/demo/vocs').
 		 *     SET CONSOLE VERBOSITY	*
 		 *******************************/
 
-% Print HTTP requests to the console
+% Print HTTP requests to the console (handy for debugging. Typically you
+% want to disable this on an operational server.
 
 :- debug(http(request)).
 
