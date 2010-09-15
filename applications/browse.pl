@@ -57,6 +57,7 @@
 :- use_module(components(simple_search)).
 :- use_module(components(canviz)).
 :- use_module(library(semweb/rdf_abstract)).
+:- use_module(library(semweb/rdf_label)).
 
 :- use_module(user(user_db)).
 

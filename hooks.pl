@@ -32,6 +32,33 @@
 
 /** <module> ClioPatria hooks
 
+This module declares the _hooks_ an application  may define to extend or
+modify some of ClioPatria's  behaviour.   Hooks  are =multifile= defined
+predicates that -typically- have no default   definition. Code using the
+hook typically first calls the hook. If   the  hook succeeds the task is
+considered  done.  Otherwise  some  default  action  is  performed.  For
+example, a property myprefix:componentName can be   added  as a property
+that provides a label using this code:
+
+    ==
+    :- use_module(cliopatria(hooks)).
+
+    rdf_label:label_property(myprefix:componentName).
+    ==
+
+The example below adds an item to =Help= popup of ClioPatria:
+
+    ==
+    :- use_module(cliopatria(hooks)).
+    :- use_module(library(http/http_dispatch)).
+
+    cliopatria:menu_item(help/about, 'About').
+
+    :- http_handler(root(about), about, []).
+
+    about(Request) :-
+	<generate the about page>
+    ==
 */
 
 :- multifile
@@ -39,7 +66,7 @@
 	menu_label/2,
 	menu_popup_order/2,
 
-	label_property/1,
+	rdf_label:label_property/1,
 
 	user_preference_db/2,		% ?Property, ?Value
 	user_preference_default/2.	% ?Property, ?Value
@@ -76,7 +103,7 @@
 		 *		LABELS		*
 		 *******************************/
 
-%%	label_property(?Property)
+%%	rdf_label:label_property(?Property)
 %
 %	True if the value of  Property   can  be  used to (non-uniquely)
 %	describe an object to the user.   This  hook provides additional

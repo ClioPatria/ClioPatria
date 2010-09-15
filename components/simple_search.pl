@@ -40,10 +40,10 @@
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_label)).
 
 :- use_module(library(option)).
 
-:- use_module(label).
 
 :- http_handler(api(ac_find_literal), ac_find_literal, []).
 
@@ -262,14 +262,14 @@ ac_object(prefix(label), Query, Text-Resource) :-
 	rdf(Resource, P, literal(prefix(Query), Literal)),
 	(   label_property(LP),
 	    rdfs_subproperty_of(P, LP)
-	->  text_of_literal(Literal, Text)
+	->  literal_text(Literal, Text)
 	).
 ac_object(prefix(other), Query, Text-Resource) :-
 	rdf(Resource, P, literal(prefix(Query), Literal)),
 	(   label_property(LP),
 	    rdfs_subproperty_of(P, LP)
 	->  fail
-	;   text_of_literal(Literal, Text)
+	;   literal_text(Literal, Text)
 	).
 
 

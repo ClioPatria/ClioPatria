@@ -31,9 +31,7 @@
 :- module(cp_label,
 	  [ turtle_label//1,		% +Literal
 	    rdf_link//1,		% +RDFTerm
-	    rdf_link//2,		% +RDFTerm, +Options
-	    label_property/1,		% ?Property
-	    text_of_literal/2		% +Literal, -Atom
+	    rdf_link//2			% +RDFTerm, +Options
 	  ]).
 :- use_module(library(error)).
 :- use_module(library(option)).
@@ -41,6 +39,7 @@
 :- use_module(library(sgml_write)).
 :- use_module(library(aggregate)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
 
@@ -66,7 +65,7 @@ turtle_label(R) -->
 	{ atom(R),
 	  label_property(P),
 	  rdf_has(R, P, Value),
-	  text_of_literal(Value, Label), !
+	  literal_text(Value, Label), !
 	},
 	html(Label).
 turtle_label(R) -->
@@ -171,9 +170,8 @@ resource_label(R, _) -->
 resource_flabel(plain, R) --> !,
 	html(R).
 resource_flabel(label, R) --> !,
-	(   { label_property(P),
-	      rdf_has(R, P, Value),
-	      text_of_literal(Value, Label)
+	(   { rdf_label(R, Literal), !,
+	      literal_text(Literal, Label)
 	    }
 	->  html([span(class(rlabel),Label)])
 	;   turtle_label(R)
@@ -182,57 +180,10 @@ resource_flabel(nslabel, R) --> !,
 	(   { rdf_global_id(NS:_Local, R), !,
 	      label_property(P),
 	      rdf_has(R, P, Value),
-	      text_of_literal(Value, Label)
+	      literal_text(Value, Label)
 	    }
 	->  html([span(class(ns),NS),':',span(class(rlabel),Label)])
 	;   turtle_label(R)
 	).
 resource_flabel(_, R) -->
 	turtle_label(R).
-
-
-%%	label_property(?Property) is nondet.
-%
-%	True if the value of  Property   can  be  used to (non-uniquely)
-%	describe an object to the user.
-
-:- rdf_meta
-	label_property(r).
-
-label_property(P) :-
-	cliopatria:label_property(P).
-label_property(rdfs:label).
-label_property(skos:prefLabel).
-label_property(skos:altLabel).
-label_property(dc:title).
-
-%%	text_of_literal(+Literal, -Text:atom) is det.
-%
-%	Extract the plain text from a literal.
-
-text_of_literal(X, _) :-
-	var(X), !,
-	instantiation_error(X).
-text_of_literal(literal(L), Text) :- !,
-	text_of_literal(L, Text).
-text_of_literal(type(Type, Value), Text) :- !,
-	typed_text(Type, Value, Text).
-text_of_literal(lang(_, Text), Text) :- !.
-text_of_literal(Text, Text).
-
-:- rdf_meta
-	typed_text(r, +, -).
-
-typed_text(_, Value, Text) :-
-	atom(Value), !,
-	Text = Value.
-typed_text(rdfs:'XMLLiteral', Value, Text) :-
-	xml_is_dom(Value), !,
-	with_output_to(atom(Text),
-		       xml_write(current_output, Value,
-				 [ header(false),
-				   layout(false)
-				 ])).
-typed_text(_, Value, Text) :-
-	format(atom(Text), '~w', [Value]).
-

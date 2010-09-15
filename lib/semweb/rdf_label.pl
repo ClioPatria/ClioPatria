@@ -32,7 +32,8 @@
 	  [ rdf_label/2,		% +Resource, -Literal
 	    rdf_display_label/3,	% +Resource, +Lang, -RDFOject
 	    literal_text/2,		% +Literal, -Text
-	    truncate_atom/3		% +Atom, -MaxLen -Text
+	    truncate_atom/3,		% +Atom, -MaxLen -Text
+	    label_property/1		% ?Property
 	  ]).
 :- use_module(library(error)).
 :- use_module(library(sgml_write)).
@@ -59,6 +60,12 @@ issues.
 	rdf_label(r,-),
 	rdf_display_label(r,?,-),
 	label_property(r).
+
+%%	label_property(?Property) is nondet.
+%
+%	True if Property is  used  to   represent  labels.  The  default
+%	definition defines SKOS (prefLabel,  altLabel,   DC  (title) and
+%	rdfs:label. This predicate is defined as =multifile=.
 
 label_property(skos:prefLabel).
 label_property(dc:title).
@@ -129,34 +136,35 @@ literal_lang(_, _).
 %
 %	Text is the textual content of Object. Fails if Object is not an
 %	RDF literal (term literal(Value)). If   Object is an XMLLiteral,
-%	Text is bound to the XML-text.
+%	Text is unified with the XML-text.
 %
 %	@error instantiation_error if Object is not ground
 
-literal_text(X,_) :-
-	\+ ground(X), !,
+literal_text(X, _) :-
+	\+ ground(X), !, !,
 	instantiation_error(X).
-literal_text(literal(X), Text) :- !,
-	plain_text(X, Text).
+literal_text(literal(L), Text) :- !,
+	literal_text(L, Text).
+literal_text(type(Type, Value), Text) :- !,
+	typed_text(Type, Value, Text).
+literal_text(lang(_, Text), Text) :- !.
+literal_text(Text, Text).
 
-plain_text(type(Type, X), Text) :- !,
-	(   rdf_equal(Type, rdf:'XMLLiteral')
-	->  with_output_to(atom(Text),
-			   xml_write(current_output, X,
-				     [ header(false),
-				       layout(false)
-				     ]))
-	;   atomic(X)
-	->  Text = X
-	;   format(atom(Text), '~q', [X])
-	).
-plain_text(lang(_, Text), Text) :- !.
-plain_text(X, Text) :-
-	(   atomic(X)
-	->  Text = X
-	;   format(atom(Text), '~q', [X])
-	).
+:- rdf_meta
+	typed_text(r, +, -).
 
+typed_text(_, Value, Text) :-
+	atom(Value), !,
+	Text = Value.
+typed_text(rdfs:'XMLLiteral', Value, Text) :-
+	xml_is_dom(Value), !,
+	with_output_to(atom(Text),
+		       xml_write(current_output, Value,
+				 [ header(false),
+				   layout(false)
+				 ])).
+typed_text(_, Value, Text) :-
+	format(atom(Text), '~w', [Value]).
 
 %%	truncate_atom(+Atom, +MaxLen, -Truncated) is det.
 %
