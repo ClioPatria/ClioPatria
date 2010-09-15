@@ -136,9 +136,11 @@ rdf_link(R) -->
 
 rdf_link(R, Options) -->
 	{ atom(R), !,
-	  http_link_to_id(list_resource, [r=R], HREF),
+	  resource_link(R, Options, HREF),
 	  (   rdf(R, _, _)
 	  ->  Class = lres
+	  ;   rdf_graph(R)
+	  ->  Class = graph
 	  ;   Class = undef
 	  )
 	},
@@ -160,6 +162,14 @@ rdf_link(Literal, Options) -->
 	       \turtle_label(Literal))).
 rdf_link(Literal, _) -->
 	turtle_label(Literal).
+
+resource_link(_, Options, HREF) :-
+	option(link(To), Options), !,
+	To =.. [ID|Parms],
+	http_link_to_id(ID, Parms, HREF).
+resource_link(R, _, HREF) :-
+	http_link_to_id(list_resource, [r=R], HREF).
+
 
 resource_label(R, Options) -->
 	{ option(resource_format(Format), Options) }, !,

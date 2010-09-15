@@ -94,7 +94,7 @@ a.undef
 { color: red;
 }
 
-div.triple
+div.triple, div.graph-fn
 { margin-left: 1cm;
 }
 

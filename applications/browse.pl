@@ -905,8 +905,8 @@ as_object_locations([S-P], URI, _) --> !,
 		   [ '{ ',
 		     \rdf_link(S), ', ',
 		     \rdf_link(P, []), ', ',
-		     \rdf_link(URI)
-		   , ' }'
+		     \rdf_link(URI),
+		     ' }'
 		   ])
 	     ]).
 as_object_locations(List, URI, Graph) --> !,
@@ -931,6 +931,7 @@ as_object_locations(List, URI, Graph) --> !,
 %	    * sorted(+How)
 %	    Defines the order of the predicates. One of =none=
 %	    (database order) or =default=
+%	    * show_graph(+Bool)
 %
 %	In addition, Options are passed to rdf_link//2.
 
@@ -941,9 +942,12 @@ local_view(URI, Graph, Options) -->
 	},
 	html(table(class(rdf_browse),
 		   [ \lview_header(Options)
-		   | \table_rows_top_bottom(lview_row(Options), Pairs,
+		   | \table_rows_top_bottom(lview_row(Options, URI, Graphs),
+					    Pairs,
 					    TopMax, BottomMax)
-		   ])).
+		   ])),
+	{ append(Graphs, [], _) -> true },
+	graph_footnotes(Graphs, Options).
 
 lview_header(Options) -->
 	{ option(sorted(Sorted), Options, default),
@@ -958,16 +962,55 @@ alt_sorted(default, none).
 alt_sorted(none, default).
 
 
-lview_row(Options, P-OList) -->
+lview_row(Options, S, Graphs, P-OList) -->
 	html([ td(class(predicate), \rdf_link(P, Options)),
-	       td(class(object), \object_list(OList, Options))
+	       td(class(object), \object_list(OList, S, P, Graphs, Options))
 	     ]).
 
-object_list([], _) --> [].
-object_list([H|T], Options) -->
-	html(div(class(obj), \rdf_link(H, Options))),
-	object_list(T, Options).
+object_list([], _, _, _, _) --> [].
+object_list([H|T], S, P, Graphs, Options) -->
+	html(div(class(obj),
+		 [ \rdf_link(H, Options),
+		   sup(class(graph), \graphs(S, P, H, Graphs))
+		 ])),
+	object_list(T, Options, S, P, Graphs).
 
+
+graphs(S, P, O, Graphs) -->
+	{ findall(G, rdf(S,P,O,G:_), GL) },
+	graphs(GL, Graphs).
+
+graphs([], _) --> [].
+graphs([H|T], Graphs) -->
+	{ nth1(N, Graphs, H) -> true },
+	html(N),
+	(   { T == [] }
+	->  []
+	;   html(','),
+	    graphs(T, Graphs)
+	).
+
+
+graph_footnotes(Graphs, Options) -->
+	html(p(class('graphs-used'),
+	       'Named graphs describing this resource:')),
+	graph_footnotes(Graphs, 1, Options).
+
+graph_footnotes([], _, _) --> [].
+graph_footnotes([H|T], N, Options) -->
+	html(div(class('graph-fn'),
+		 [ sup(class(graph), N),
+		   \rdf_link(H, [link(list_graph(graph=H))|Options])
+		 ])),
+	{ N2 is N + 1 },
+	graph_footnotes(T, N2, Options).
+
+
+%%	po_pairs(+Subject, ?Graph, -Pairs, +Options) is det.
+%
+%	Pairs is a  list  of  P-ObjectList   for  the  S,P,O  triples on
+%	Subject. The list is normally sorted  by predicate as defined by
+%	order/2 below.
 
 po_pairs(S, Graph, Pairs, Options) :-
 	option(sorted(none), Options), !,
@@ -999,6 +1042,12 @@ po_key(P-_, Key) :-
 	order(P, Key), !.
 po_key(P-_, Key) :-
 	label_sort_key(P, Key).
+
+%%	order(+P, -SortKey) is semidet.
+%
+%	SortKey is the key used for sorting the predicate P.
+%
+%	@tbd	Make this hookable.
 
 :- rdf_meta
 	order(r,?).
