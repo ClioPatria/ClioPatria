@@ -310,6 +310,8 @@ edit_user_form(Request) :-
 	authorized(admin(user(edit))),
 	http_parameters(Request,
 			[ user(User)
+			],
+			[ attribute_declarations(attribute_decl)
 			]),
 
 	reply_html_page(cliopatria(default),
