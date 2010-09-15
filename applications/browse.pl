@@ -924,13 +924,15 @@ as_object_locations(List, URI, Graph) --> !,
 %%	local_view(+URI, ?Graph, +Options) is det.
 %
 %	Show the local-view table for URI.  If Graph is given, only show
-%	triples from the given graph.  Options includes:
+%	triples from the given graph.  Options processed:
 %
 %	    * top_max(+Count)
 %	    * bottom_max(+Count)
 %	    * sorted(+How)
 %	    Defines the order of the predicates. One of =none=
 %	    (database order) or =default=
+%
+%	In addition, Options are passed to rdf_link//2.
 
 local_view(URI, Graph, Options) -->
 	{ option(top_max(TopMax), Options, 500),
@@ -939,7 +941,7 @@ local_view(URI, Graph, Options) -->
 	},
 	html(table(class(rdf_browse),
 		   [ \lview_header(Options)
-		   | \table_rows_top_bottom(lview_row, Pairs,
+		   | \table_rows_top_bottom(lview_row(Options), Pairs,
 					    TopMax, BottomMax)
 		   ])).
 
@@ -956,15 +958,15 @@ alt_sorted(default, none).
 alt_sorted(none, default).
 
 
-lview_row(P-OList) -->
-	html([ td(class(predicate), \rdf_link(P, [])),
-	       td(class(object), \object_list(OList))
+lview_row(Options, P-OList) -->
+	html([ td(class(predicate), \rdf_link(P, Options)),
+	       td(class(object), \object_list(OList, Options))
 	     ]).
 
-object_list([]) --> [].
-object_list([H|T]) -->
-	html(div(class(obj), \rdf_link(H))),
-	object_list(T).
+object_list([], _) --> [].
+object_list([H|T], Options) -->
+	html(div(class(obj), \rdf_link(H, Options))),
+	object_list(T, Options).
 
 
 po_pairs(S, Graph, Pairs, Options) :-
