@@ -921,11 +921,20 @@ as_object_locations(List, URI, Graph) --> !,
 	       a(href(Link), [Len, ' triples'])
 	     ]).
 
-%%	local_view(+URI, +Graph, +Options) is det.
+%%	local_view(+URI, ?Graph, +Options) is det.
+%
+%	Show the local-view table for URI.  If Graph is given, only show
+%	triples from the given graph.  Options includes:
+%
+%	    * top_max(+Count)
+%	    * bottom_max(+Count)
+%	    * sorted(+How)
+%	    Defines the order of the predicates. One of =none=
+%	    (database order) or =default=
 
 local_view(URI, Graph, Options) -->
 	{ option(top_max(TopMax), Options, 500),
-	  option(top_max(BottomMax), Options, 500),
+	  option(bottom_max(BottomMax), Options, 500),
 	  po_pairs(URI, Graph, Pairs, Options)
 	},
 	html(table(class(rdf_browse),
@@ -1325,6 +1334,10 @@ label(type_count(G),
 
 
 %%	re_link(+NewParams, -HREF) is det.
+%
+%	HREF is a link to the  location   that  is  handling the current
+%	request. NewParams is used to modify  or extend the current list
+%	of parameters.
 
 re_link(NewParams, HREF) :-
 	http_current_request(Request),
