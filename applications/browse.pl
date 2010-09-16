@@ -973,7 +973,7 @@ object_list([H|T], S, P, Graphs, Options) -->
 		 [ \rdf_link(H, Options),
 		   \graph_marks(S, P, H, Graphs)
 		 ])),
-	object_list(T, Options, S, P, Graphs).
+	object_list(T, S, P, Graphs, Options).
 
 graph_marks(_,_,_,[_]) --> !.
 graph_marks(S,P,O,Graphs) -->
