@@ -93,17 +93,58 @@ literal_label(Value) -->
 
 %%	bnode_label(+Resource)// is semidet.
 %
-%	Display a bnode in a sensible way.
+%	Display an HTML label for an  RDF   blank  node.  This DCG rules
+%	first  calls  the  hook  cliopatria:bnode_label//1.  On  failure
+%	performs its default task:
 %
-%	@tbd Provide a hook to customise this.
+%	    * If the bnode has an rdf:value, display the label thereof
+%	    with [<label>...]
+%
+%	    * If the bnode is an RDF collection, display its first 5
+%	    members as (<member-1>, <member-2, ...)
 
+bnode_label(R) -->
+	cliopatria:bnode_label(R), !.
 bnode_label(R) -->
 	{ rdf(R, rdf:value, Value),
 	  (   Value = literal(_)
 	  ;   \+ rdf_is_bnode(Value)
 	  )
 	}, !,
-	html(['[', \turtle_label(Value), '...]']).
+	html(span([ class('rdf-bnode'),
+		    title('RDF bnode using rdf:value')
+		  ],
+		  ['[', \turtle_label(Value), '...]'])).
+bnode_label(R) -->
+	{ rdf_collection_list(R, List), !,
+	  length(List, Len),
+	  format(string(Title), 'RDF collection with ~D members', Len)
+	},
+	html(span([ class('rdf-list'),
+		    title(Title)
+		  ],
+		  ['(', \collection_members(List, 0, Len, 5), ')'])).
+
+collection_members([], _, _, _) --> [].
+collection_members(_, Max, Total, Max) --> !,
+	{ Left is Total - Max },
+	html('... ~D more'-[Left]).
+collection_members([H|T], I, Total, Max) -->
+	turtle_label(H),
+	(   { T == [] }
+	->  []
+	;   html(','),
+	    { I2 is I + 1 },
+	    collection_members(T, I2, Total, Max)
+	).
+
+
+rdf_collection_list(R, []) :-
+	rdf_equal(rdf:nil, R), !.
+rdf_collection_list(R, [H|T]) :-
+	rdf_has(R, rdf:first, H),
+	rdf_has(R, rdf:rest, RT),
+	rdf_collection_list(RT, T).
 
 
 %%	rdf_link(+URI) is det.

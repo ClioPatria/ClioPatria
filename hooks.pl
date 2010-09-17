@@ -109,6 +109,11 @@ The example below adds an item to =Help= popup of ClioPatria:
 %	describe an object to the user.   This  hook provides additional
 %	facts to cp_label:label_property/1.
 
+%%	bnode_label(+Resource)//
+%
+%	HTML-write DCG rule that produces an HTML description for the
+%	given RDF blank node.  See cp_label:bnode_label//1.
+
 
 		 /*******************************
 		 *   USER/SESSION PREFERENCES	*

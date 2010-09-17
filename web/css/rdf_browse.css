@@ -115,6 +115,20 @@ a.llobject				/* linked literal */
 { color: black;
 }
 
+span.rdf-list				/* (values...) */
+{ border: 1px;
+  border-style: outset;
+  padding: 1px;
+  background-color: #c0c0c0;
+}
+
+span.rdf-bnode				/* [rdf:value...] */
+{ border: 1px;
+  border-style: outset;
+  padding: 1px;
+  background-color: #c0c0c0;
+}
+
 /*****************************************************************/
 
 span.account
