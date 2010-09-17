@@ -267,18 +267,24 @@ li_delete_graph(_) --> [].
 
 li_export_graph(Graph, How) -->
 	{ http_link_to_id(export_graph, [], Action),
-	  download_options(How, Label, MimeType)
+	  download_options(How, Label, MimeType, Title)
 	},
 	html(li(form(action(Action),
 		     [ input([type(hidden), name(graph), value(Graph)]),
 		       input([type(hidden), name(mimetype), value(MimeType)]),
-		       input([class(gaction), type(submit), value(Label)]),
+		       input([class(gaction), type(submit), value(Label),
+			      title(Title)
+			     ]),
 		       ' this graph as ',
 		       \dl_format_menu
 		     ]))).
 
-download_options(show,     'Show',     'text/plain').
-download_options(download, 'Download', default).
+download_options(show,     'Show',     'text/plain',
+		 'Returns graph with MIME-type text/plain, \n\
+		  so it will be displayed in your browser').
+download_options(download, 'Download', default,
+		 'Return graph with its RDF MIME-type, \n\
+		  so most browsers will save it').
 
 dl_format_menu -->
 	html(select(name(format),
