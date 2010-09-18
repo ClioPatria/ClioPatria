@@ -67,6 +67,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 	menu_popup_order/2,
 
 	rdf_label:label_property/1,
+	bnode_label//1,			% +Resource
 
 	user_preference_db/2,		% ?Property, ?Value
 	user_preference_default/2.	% ?Property, ?Value
