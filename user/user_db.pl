@@ -80,10 +80,8 @@ following:
 	* A dynamic fact logged_in/3
 	* Session management
 
-@tbd	Consider using the RDF database for login.  Maybe requires
-	multiple RDF databases?
-
-@author	Jan Wielemaker
+@see	preferences.pl implements user preferences
+@see	openid.pl implements OpenID server and client
 */
 
 :- dynamic
@@ -193,7 +191,7 @@ openid_current_server(Server) :-
 %%	openid_server_properties(+Server, -Properties) is semidet.
 %
 %	Try find properties for the given server. Note that we generally
-%	refer to a server using its domain.  The actjual server may be a
+%	refer to a server using its domain.   The actual server may be a
 %	path on the server or a machine in the domain.
 
 :- dynamic
@@ -226,6 +224,13 @@ uri_host(URI, Host) :-
 	uri_data(authority, CL, Authority),
 	uri_authority_components(Authority, AC),
 	uri_authority_data(host, AC, Host).
+
+%%	openid_server_property(+Server, +Property) is semidet.
+%%	openid_server_property(+Server, -Property) is nondet.
+%
+%	True if OpenID Server has Property.
+%
+%	@see openid_server_properties/2.
 
 openid_server_property(Server, Property) :-
 	openid_server_properties(Server, Properties),

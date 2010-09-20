@@ -57,9 +57,21 @@ expands to:
 	user_preference(r,o),
 	builtin_default(r,o).
 
-%%	user_preference(?Preference, ?Value)
+%%	user_preference(?Preference:resource, ?Value:object) is nondet.
 %
-%	Access user preferences
+%	True if Preference has Value.  Preference and Value use the RDF
+%	data-representation.  E.g.,
+%
+%	    ==
+%	    ?- user_preference(user:lang, literal(Lang))
+%
+%	    Lang = en
+%	    ==
+%
+%	@see cliopatria:user_preference_db/2 provides the storage hook
+%	@see cliopatria:user_preference_default/2 provides a hook for
+%	defaults
+%	@see builtin_default/2 provides built-in defaults
 
 user_preference(Pref, Value) :-
 	nonvar(Pref), !,

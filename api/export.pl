@@ -36,9 +36,17 @@
 
 :- http_handler(api(export_graph),  export_graph,  []).
 
+/** <module> Export data from the server
+
+*/
+
 %%	export_graph(+Request)
 %
-%	Export a named graph in a given serialization.
+%	Export a named graph in a   given  serialization. Whether or not
+%	exporting of a named graph is  defined by authorized/1 using the
+%	term:
+%
+%		* read(default, download(Graph))
 
 export_graph(Request) :-
 	authorized(read(default, download(Graph))),
