@@ -97,15 +97,15 @@ rdf_label(R, Label) :-
 rdf_display_label(R, Lang, Label) :-
 	display_label_hook(R, Lang, Label), !.
 rdf_display_label(R, Lang, Label) :-
-	nonvar(Lang),
-	rdf_label(R, Literal),
-	Literal = literal(L, _),
-	lang_matches(L, Lang), !,
-	literal_text(Literal, Label).
-rdf_display_label(R, Lang, Label) :-
-	rdf_label(R, Literal),
-	literal_lang(Literal, Lang),
-	literal_text(Literal, Label).
+	(   nonvar(Lang)
+	->  rdf_label(R, Literal),
+	    Literal = literal(lang(L, _)),
+	    lang_matches(L, Lang), !,
+	    literal_text(Literal, Label)
+	;   rdf_label(R, Literal),
+	    literal_lang(Literal, Lang),
+	    literal_text(Literal, Label), !
+	).
 rdf_display_label(BNode, Lang, Label) :-
 	rdf_is_bnode(BNode),
 	rdf_has(BNode, rdf:value, Value), !,
