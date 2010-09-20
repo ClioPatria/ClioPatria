@@ -410,7 +410,6 @@ graps_as_resource(Graph) -->
 		  ]),
 	       \local_view(Graph, _, [])
 	     ]).
-
 graps_as_resource(_) --> [].
 
 
