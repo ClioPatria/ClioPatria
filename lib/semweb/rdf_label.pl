@@ -30,7 +30,8 @@
 
 :- module(rdf_label,
 	  [ rdf_label/2,		% +Resource, -Literal
-	    rdf_display_label/3,	% +Resource, +Lang, -RDFOject
+	    rdf_display_label/2,	% +Resource, -Text
+	    rdf_display_label/3,	% +Resource, +Lang, -Text
 	    literal_text/2,		% +Literal, -Text
 	    truncate_atom/3,		% +Atom, -MaxLen -Text
 	    label_property/1		% ?Property
@@ -38,6 +39,7 @@
 :- use_module(library(error)).
 :- use_module(library(sgml_write)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(user(preferences)).
 
 
 /** <module> Generate labels for RDF objects
@@ -58,6 +60,7 @@ issues.
 
 :- rdf_meta
 	rdf_label(r,-),
+	rdf_display_label(r,-),
 	rdf_display_label(r,?,-),
 	label_property(r).
 
@@ -89,6 +92,17 @@ rdf_label(R, Label) :-
 	).
 
 
+%%	rdf_display_label(+R, -Label:atom) is det.
+%
+%	Provide a label for R in the   user's  default language. This is
+%	the same as rdf_display_label(R, _, Label).
+%
+%	@see user_preference/2
+
+rdf_display_label(R, Label) :-
+	rdf_display_label(R, _, Label).
+
+
 %%	rdf_display_label(+R, ?Lang, -Label:atom) is det.
 %
 %	Label is the preferred label to display the resource R in
@@ -100,12 +114,18 @@ rdf_display_label(R, Lang, Label) :-
 	(   nonvar(Lang)
 	->  rdf_label(R, Literal),
 	    Literal = literal(lang(L, _)),
-	    lang_matches(L, Lang), !,
-	    literal_text(Literal, Label)
+	    lang_matches(L, Lang)
+	->  true
+	;   user_preference(user:lang, literal(Lang)),
+	    rdf_label(R, Literal),
+	    Literal = literal(lang(L, _)),
+	    lang_matches(L, Lang)
+	->  true
 	;   rdf_label(R, Literal),
-	    literal_lang(Literal, Lang),
-	    literal_text(Literal, Label), !
-	).
+	    literal_lang(Literal, Lang)
+	->  true
+	), !,
+	literal_text(Literal, Label).
 rdf_display_label(BNode, Lang, Label) :-
 	rdf_is_bnode(BNode),
 	rdf_has(BNode, rdf:value, Value), !,
