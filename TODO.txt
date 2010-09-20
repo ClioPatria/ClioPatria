@@ -1,0 +1,12 @@
+---+ ClioPatria wishlist
+
+---++ Tools
+
+  * Compute labels from resources (per graph)
+
+---+++ Quality Assurance
+
+---+++ LOD Support
+
+  * Serving the repository as LOD
+  * Load unresolved resources through LOD (per graph)
