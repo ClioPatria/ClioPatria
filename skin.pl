@@ -28,7 +28,10 @@
     the GNU General Public License.
 */
 
-:- module(cp_page, []).
+:- module(cp_skin,
+	  [ server_address//0,
+	    current_page_doc_link//0
+	  ]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_wrapper)).
@@ -36,9 +39,39 @@
 :- use_module(components(simple_search)).
 :- use_module(version).
 
+/** <module> ClioPatria skin
+
+This page defines the overall layout of  ClioPatria pages. All pages are
+returned using html_reply_page/3, using the   page class cliopatria(Id),
+where Id is currently  always  =default=.   Pages  can  be  redefined by
+providing a rule for user:body//2, where   the first argument must unify
+with the page class.
+
+The default skin provides the overall menu,   a  simple search form, the
+content and the `server-address'. Because the   search-form uses the YUI
+autocomplete widgets, the body must be of class =|yui-skin-sam|=.
+
+This library supports two hooks:
+
+	* cliopatria:page_body(+Body)//
+	Emit a page.  This hook can modify the overall page layout.
+	* cliopatria:server_address//
+	Write the address of the server.
+
+This library also provides some building blocks:
+
+	* server_address//0
+	Presents the version info and a link to ClioPatria
+	* current_page_doc_link//0
+	Presents a link to the documentation of a page if the
+	self-documentation facilities are loaded.  See run.pl.in.
+*/
+
 :- multifile
 	user:body//2.
 
+user:body(cliopatria(_), Body) -->
+	cliopatria:page_body(Body), !.
 user:body(cliopatria(_), Body) -->
 	html(body(class('yui-skin-sam'),
 		  [ div(id(sidebar), \cp_menu),
@@ -49,24 +82,45 @@ user:body(cliopatria(_), Body) -->
 		    div(id(address), \address)
 		  ])).
 
+
+%%	address//
+%
+%	Emit an element =address= with   class  =cliopatria=. This first
+%	class the hook cliopatria:server_address//0.
+%
+%	@see version.pl
+
 address -->
-	{ git_version(CP_Version)
+	cliopatria:server_address, !.
+address -->
+	server_address.
+
+
+%%	server_address//
+%
+%	Emit the default ClioPatria address link.   This provides a link
+%	to the ClioPatria home page and the (GIT) version information.
+
+server_address -->
+	{ git_version(CP_Version),
+	  Home = 'http://www.swi-prolog.org/web/ClioPatria.html'
 	},
 	html_requires(css('cliopatria.css')),
 	html([ address(class(cliopatria),
-		       [ 'ClioPatria ~w'-[CP_Version],
-			 \doc_link
+		       [ a(href(Home), 'ClioPatria ~w'-[CP_Version]),
+			 \current_page_doc_link
 		       ])
 	     ]).
 
-%%	doc_link//
+%%	current_page_doc_link//
 %
 %	Create a link to  the  documentation   (and  from  there  to the
-%	implementation) of this page.
+%	implementation) of this page. This link   is created only if the
+%	library applications(help/http_help) is loaded.
 
-doc_link -->
+current_page_doc_link -->
 	{ current_predicate(http_help:page_documentation_link//1), !,
 	  http_current_request(Request)
 	},
 	http_help:page_documentation_link(Request).
-doc_link --> [].
+current_page_doc_link --> [].

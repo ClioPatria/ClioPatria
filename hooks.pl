@@ -70,7 +70,10 @@ The example below adds an item to =Help= popup of ClioPatria:
 	bnode_label//1,			% +Resource
 
 	user_preference_db/2,		% ?Property, ?Value
-	user_preference_default/2.	% ?Property, ?Value
+	user_preference_default/2,	% ?Property, ?Value
+
+	page_body//1,			% +Body
+	server_address//0.
 
 
 		 /*******************************
@@ -133,3 +136,20 @@ The example below adds an item to =Help= popup of ClioPatria:
 %	Provides defaults for the user_preference/2.
 %
 %	@see user_preference_db/2
+
+
+		 /*******************************
+		 *	       SKINS		*
+		 *******************************/
+
+%%	page_body(+Body)//
+%
+%	Emit the body of  the  page.  This   can  be  used  to provide a
+%	different skin for ClioPatria.
+
+%%	server_address//
+%
+%	HTML-write DCG rule that writes the   address  of the server. If
+%	you want to maintain its  normal   position  in the page layout,
+%	this should create an element of class =address= using the class
+%	=cliopatria=.
