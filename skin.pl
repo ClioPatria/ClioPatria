@@ -31,6 +31,7 @@
 :- module(cp_page, []).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(components(menu)).
 :- use_module(components(simple_search)).
 :- use_module(version).
@@ -53,5 +54,19 @@ address -->
 	},
 	html_requires(css('cliopatria.css')),
 	html([ address(class(cliopatria),
-		       'ClioPatria ~w'-[CP_Version])
+		       [ 'ClioPatria ~w'-[CP_Version],
+			 \doc_link
+		       ])
 	     ]).
+
+%%	doc_link//
+%
+%	Create a link to  the  documentation   (and  from  there  to the
+%	implementation) of this page.
+
+doc_link -->
+	{ current_predicate(http_help:page_documentation_link//1), !,
+	  http_current_request(Request)
+	},
+	http_help:page_documentation_link(Request).
+doc_link --> [].

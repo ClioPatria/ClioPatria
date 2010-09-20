@@ -10,6 +10,13 @@ address.cliopatria
   text-align: right;
 }
 
+address.cliopatria img
+{ padding-left: 5px;
+  border: 0;
+  height: 1.2em;
+  vertical-align: top;
+}
+
 div.messages
 { border-width: 1px;
   border-style: dotted;
