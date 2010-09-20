@@ -22,7 +22,7 @@
 */
 
 :- module(http_help,
-	  [
+	  [ page_documentation_link//1	% +Request
 	  ]).
 :- use_module(http_tree).
 :- use_module(doc_components,
@@ -50,6 +50,18 @@
 :- http_handler(root(help/http),	     http_help,	      []).
 :- http_handler(root(help/http_handler),     help_on_handler, []).
 :- http_handler(root(help/http_ac_location), ac_location,     []).
+
+%%	page_documentation_link(+Request)// is det.
+%
+%	Show a link to the documentation of the current page.
+
+page_documentation_link(Request) -->
+	{ memberchk(path(Path), Request),
+	  http_link_to_id(help_on_handler, [location=Path], HREF),
+	  http_absolute_location(icons('doc.png'), IMG, [])
+	},
+	html(a([id('dev-help'), href(HREF)],
+	       img(src(IMG)))).
 
 %%	http_help(Request)
 %

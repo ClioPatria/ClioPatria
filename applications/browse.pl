@@ -161,6 +161,7 @@ list_graph(Request) :-
 			title('RDF Graph ~w'-[Graph]),
 			[ h4('Summary information for graph "~w"'-[Graph]),
 			  \graph_info(Graph),
+			  \graps_as_resource(Graph),
 			  \graph_actions(Graph)
 			]).
 
@@ -393,6 +394,24 @@ instance_in_graph(Graph, Class, S, C) :-
 
 property_count(Graph, S, Count) :-
 	aggregate_all(count, rdf(S, _, _, Graph), Count).
+
+%%	graps_as_resource(+Graph)// is det.
+%
+%	Show resource info for a graph if it is described.
+
+graps_as_resource(Graph) -->
+	{ (   rdf(Graph, _, _)
+	  ;   rdf(_, Graph, _)
+	  ;   rdf(_, _, Graph)
+	  ), !
+	},
+	html([ h4([ 'Local view for "',
+		    \location(Graph, _), '"'
+		  ]),
+	       \local_view(Graph, _, [])
+	     ]).
+
+graps_as_resource(_) --> [].
 
 
 		 /*******************************
@@ -825,13 +844,20 @@ list_resource(Request) :-
 	label_of(URI, Label),
 	reply_html_page(cliopatria(default),
 			title('Resource ~w'-[Label]),
-			[ h4([ 'Local view for ',
-			       \location(URI, Graph)
-			     ]),
-			  \local_view(URI, Graph, [sorted(Sorted)]),
-			  p(\as_object(URI, Graph)),
-			  \uri_info(URI, Graph)
-			]).
+			\list_resource(URI, Graph, Sorted)).
+
+%%	list_resource(+URI, ?Graph, +Sorted)// is det.
+%
+%	Component that shows the properties of a resource.
+
+list_resource(URI, Graph, Sorted) -->
+	html([ h4([ 'Local view for "',
+		    \location(URI, Graph), '"'
+		  ]),
+	       \local_view(URI, Graph, [sorted(Sorted)]),
+	       p(\as_object(URI, Graph)),
+	       \uri_info(URI, Graph)
+	     ]).
 
 %%	location(+URI, ?Graph) is det.
 %
