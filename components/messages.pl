@@ -45,15 +45,17 @@ messages appear in the browser.
 call_showing_messages(Goal, Options) :-
 	option(style(Style), Options, cliopatria(default)),
 	option(head(Head), Options, title('ClioPatria')),
+	option(header(Header), Options, h4('Messages ...')),
+	option(footer(Footer), Options, h4('Done')),
 	format('Content-Type: text/html~n'),
 	format('Transfer-Encoding: chunked~n~n'),
-	header(Style, Head, Footer),
+	header(Style, Head, Header, Footer, FooterTokens),
 	thread_self(Me),
 	setup_call_cleanup(asserta((user:message_hook(_Term, Level, Lines) :-
 				   	send_message(Me, Level, Lines)), Ref),
 			   Goal,
 			   erase(Ref)), !,
-	footer(Footer).
+	footer(FooterTokens).
 
 send_message(Me, Level, Lines) :-
 	thread_self(Me),
@@ -86,15 +88,15 @@ html_message_lines([Fmt|T]) --> !,
 %
 %
 
-header(Style, Head, Footer) :-
+header(Style, Head, Header, Footer, FooterTokens) :-
 	Magic = '$$$MAGIC$$$',
-	Body = [ h4('Messages ...'),
+	Body = [ Header,
 		 div(class(messages), Magic),
-		 h4('Done')
+		 Footer
 	       ],
 	phrase(html_write:page(Style, Head, Body), Tokens),
 	html_write:mailman(Tokens),
-	append(Header, [Magic|Footer], Tokens), !,
+	append(Header, [Magic|FooterTokens], Tokens), !,
 	current_output(Out),
 	html_write:write_html(Header, Out),
 	flush_output(Out).
