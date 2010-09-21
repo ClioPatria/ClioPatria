@@ -115,14 +115,16 @@ git_version(Version, Options) :-
 	;   git_version_pattern(Pattern)
 	),
 	option(directory(Dir), Options, .),
-	process_create(path(git), ['describe', '--match', Pattern],
-		       [ stdout(pipe(Out)),
-			 stderr(null),
-			 process(PID),
-			 cwd(Dir)
-		       ]),
-	read_stream_to_codes(Out, V0, []),
-	process_wait(PID, Status),
+	setup_call_cleanup(process_create(path(git), ['describe', '--match', Pattern],
+					  [ stdout(pipe(Out)),
+					    stderr(null),
+					    process(PID),
+					    cwd(Dir)
+					  ]),
+			   (   read_stream_to_codes(Out, V0, []),
+			       process_wait(PID, Status)
+			   ),
+			   close(Out)),
 	Status = exit(0),
 	atom_codes(V1, V0),
 	normalize_space(atom(Plain), V1),
@@ -132,18 +134,29 @@ git_version(Version, Options) :-
 	).
 
 
+%%	git_is_clean(+Dir) is semidet.
+%
+%	True if the given directory is in   a git module and this module
+%	is clean. To us, clean only   implies that =|git diff|= produces
+%	no output.
+
 git_is_clean(Dir) :-
-	process_create(path(git), ['diff'],
-		       [ stdout(pipe(Out)),
-			 stderr(null),
-			 cwd(Dir)
-		       ]),
+	setup_call_cleanup(process_create(path(git), ['diff'],
+					  [ stdout(pipe(Out)),
+					    stderr(null),
+					    cwd(Dir)
+					  ]),
+			   stream_char_count(Out, Count),
+			   close(Out)),
+	Count == 0.
+
+stream_char_count(Out, Count) :-
 	setup_call_cleanup(open_null_stream(Null),
 			   (   copy_stream_data(Out, Null),
 			       character_count(Null, Count)
 			   ),
-			   close(Null)),
-	Count == 0.
+			   close(Null)).
+
 
 
 		 /*******************************

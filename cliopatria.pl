@@ -66,7 +66,7 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
        assert(user:file_search_path(cliopatria, Dir))
    ).
 
-:- load_files([version], [silent(true), if(not_loaded)]).
+:- load_files([lib/version], [silent(true), if(not_loaded)]).
 :- check_prolog_version(5111).		% Demand >= 5.11.1
 
 :- load_files([ parms,
