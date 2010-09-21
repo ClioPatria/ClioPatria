@@ -42,6 +42,12 @@ messages appear in the browser.
 :- meta_predicate
 	call_showing_messages(0, +).
 
+%%	call_showing_messages(:Goal, +Options) is det.
+%
+%
+
+
+
 call_showing_messages(Goal, Options) :-
 	option(style(Style), Options, cliopatria(default)),
 	option(head(Head), Options, title('ClioPatria')),
@@ -84,9 +90,11 @@ html_message_lines([Fmt|T]) --> !,
 	html_message_lines(T).
 
 
-%%	header(+Style, +Head, Footer)
+%%	header(+Style, +Head, +Header, +Footer, -FooterTokens)
 %
-%
+%	Emit all tokens upto the placeholder for the actual messages and
+%	return the remaining page-tokens in FooterTokens. Style and Head
+%	are passed
 
 header(Style, Head, Header, Footer, FooterTokens) :-
 	Magic = '$$$MAGIC$$$',
@@ -96,9 +104,9 @@ header(Style, Head, Header, Footer, FooterTokens) :-
 	       ],
 	phrase(html_write:page(Style, Head, Body), Tokens),
 	html_write:mailman(Tokens),
-	append(Header, [Magic|FooterTokens], Tokens), !,
+	append(HeaderTokens, [Magic|FooterTokens], Tokens), !,
 	current_output(Out),
-	html_write:write_html(Header, Out),
+	html_write:write_html(HeaderTokens, Out),
 	flush_output(Out).
 
 footer(Footer) :-
