@@ -44,9 +44,20 @@ messages appear in the browser.
 
 %%	call_showing_messages(:Goal, +Options) is det.
 %
+%	Execute  Goal,  showing  the  feedback   in  the  browser.  This
+%	predicate builds a default application   page with a placeholder
+%	for the messages. It then sends   all  HTML upto the placeholder
+%	and flushes the output to  the   browser.  During execution, all
+%	output from Goal emitted through   print_message/2  is caught in
+%	the message-box. After completion of Goal the page is completed.
 %
-
-
+%	This predicate is intended for action such as loading RDF files,
+%	while providing feedback on  files   loaded  and  possible error
+%	messages. Note that this call creates a complete page.
+%
+%	@bug	This call uses =chunked= transfer encoding to send the
+%		page in parts.  Not all browsers support this and not
+%		all browsers update the page incrementally.
 
 call_showing_messages(Goal, Options) :-
 	option(style(Style), Options, cliopatria(default)),
