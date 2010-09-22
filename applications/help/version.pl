@@ -55,7 +55,7 @@ version_info(_Request) :-
 			  \git_components,
 			  h4('Server implementation language'),
 			  p(\prolog_version),
-			  \about_git_versions
+			  div(class(textbox), \about_git_versions)
 			]).
 
 %%	git_components//

@@ -17,7 +17,7 @@ address.cliopatria img
   vertical-align: top;
 }
 
-div.messages
+div.messages, div.textbox
 { border-width: 1px;
   border-style: dotted;
   border-color: #A0A0A0;
