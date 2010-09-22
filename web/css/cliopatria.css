@@ -1,6 +1,10 @@
 /* General ClioPatria page layout
 */
 
+#content
+{ margin-top: 10px;
+}
+
 address.cliopatria
 { margin-top: 1ex;
   border-width: 1px 0 0 0;

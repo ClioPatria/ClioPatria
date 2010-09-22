@@ -76,7 +76,7 @@ user:body(cliopatria(_), Body) -->
 	cliopatria:page_body(Body), !.
 user:body(cliopatria(_), Body) -->
 	html(body(class('yui-skin-sam'),
-		  [ div(id(sidebar), \cp_menu),
+		  [ div(id(menu), \cp_menu),
 		    \simple_search_form,
 		    br(clear(all)),
 		    div(id(content), Body),

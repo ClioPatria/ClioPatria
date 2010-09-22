@@ -35,7 +35,8 @@
 :- use_module(library(http/http_dispatch)).	% Get hook signatures
 :- use_module(library(http/html_write)).
 
-:- use_module('../../parms').		% Get paths
+:- use_module(cliopatria(parms)).	% Get paths
+:- use_module(cliopatria(skin)).	% Skinning primitives
 :- use_module(http_help).		% Help on HTTP server
 :- use_module(ac_predicate).		% Predicate autocompletion
 :- use_module(components(menu)).	% ClioPatria Menu
@@ -83,16 +84,18 @@ user:body(pldoc(wiki), Content) -->
 			     ])
 	},
 	html(body(class('yui-skin-sam'),
-		  [ div(id(sidebar),
-			[ \cp_menu,
-			  \doc_links(Dir, [])
-			]),
+		  [ div(id(menu), \cp_menu),
 		    br(clear(all)),
-		    div(id(content), Content)
+		    div(id(content),
+			[ \doc_links(Dir, [])
+			| Content
+			]),
+		    \server_address('ClioPatria')
 		  ])).
 user:body(pldoc(_), Content) -->
 	html(body(class('yui-skin-sam'),
-		  [ div(id(sidebar), \cp_menu),
+		  [ div(id(menu), \cp_menu),
 		    br(clear(all)),
-		    div(id(content), Content)
+		    div(id(content), Content),
+		    \server_address('ClioPatria')
 		  ])).

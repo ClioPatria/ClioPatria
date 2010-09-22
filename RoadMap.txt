@@ -87,9 +87,6 @@ from the top-left menu.
     $ skin.pl :
     Defines the overall page-layout for ClioPatria development pages.
 
-    $ version.pl :
-    Test Prolog version and create a version-stamp from GIT.
-
 ---++ Other toplevel files
 
 The files below are located in the directory from which ClioPatria is
