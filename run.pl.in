@@ -14,6 +14,9 @@ requirements.  See comments in the file.
 % any directory and adding  ontology  makes   RDF  files  visible in the
 % interface.
 %
+% Adding path(s) for ontology makes  the   system  look for Manifest.ttl
+% files in the target directory and any subdirectory thereof.
+%
 % Vizualization of graphs requires graphviz in  the search path. This is
 % default on Unix systems. On  Windows,   either  add the folder holding
 % dot.exe to %PATH% or uncomment and localise the path-line below.
@@ -23,7 +26,7 @@ requirements.  See comments in the file.
 % or adding the GIT path to file_search_path below.
 
 file_search_path(cliopatria, '@CWD@').
-file_search_path(ontology,   '../econnect/demo/vocs').
+% file_search_path(ontology,   '../econnect/demo/vocs').
 % file_search_path(path,       'C:/Program Files/Graphviz2.26.3/bin').
 % file_search_path(path,       'C:/Program Files/Git/bin').
 % file_search_path(path,       'C:/Program Files (x86)/Graphviz2.26.3/bin').
