@@ -274,6 +274,10 @@ completion_target(Name/_,   Name).
 completion_target(M:Name/A, Name) :-
 	functor(Head, Name, A),
 	predicate_property(M:Head, exported).
+completion_target(M:Name//A0, Name) :-
+	integer(A0), A is A0+2,
+	functor(Head, Name, A),
+	predicate_property(M:Head, exported).
 completion_target(c(Name),  Name).
 
 start_inside_token(Token, Inside) :-
