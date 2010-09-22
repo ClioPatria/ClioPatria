@@ -278,7 +278,7 @@ completion_target(M:Name//A0, Name) :-
 	integer(A0), A is A0+2,
 	functor(Head, Name, A),
 	predicate_property(M:Head, exported).
-completion_target(c(Name),  Name).
+%completion_target(c(Name),  Name).
 
 start_inside_token(Token, Inside) :-
 	sub_atom(Token, _, _, L, '_'),
