@@ -127,7 +127,7 @@ cliopatria_address -->
 %	Give verion information and link to detailed version info
 
 version_summary -->
-	{ (   catch(git_version(CP_Version), _, fail)
+	{ (   catch(git_version('ClioPatria', CP_Version), _, fail)
 	  ->  true
 	  ;   CP_Version = 'no GIT'
 	  ),

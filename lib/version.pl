@@ -30,11 +30,13 @@
 
 :- module(prolog_version,
 	  [ check_prolog_version/1,	% +NumericVersion
-	    git_version/2,		% -VersionID, +TagPattern
-	    git_version/1		% -VersionID
+	    register_git_component/2,	% +Name, +Options
+	    git_version/2		% +Name, -VersionID
 	  ]).
 :- use_module(library(process)).
+:- use_module(library(option)).
 :- use_module(library(readutil)).
+
 
 /** <module> Manage software versions
 
@@ -95,7 +97,7 @@ user_version(N, Version) :-
 git_version_pattern('V*').
 git_version_pattern('*').
 
-%%	git_version(-Version, +Options) is semidet.
+%%	git_describe(-Version, +Options) is semidet.
 %
 %	Describe the running version  based  on   GIT  tags  and hashes.
 %	Options:
@@ -109,7 +111,7 @@ git_version_pattern('*').
 %
 %	@see git describe
 
-git_version(Version, Options) :-
+git_describe(Version, Options) :-
 	(   option(match(Pattern), Options)
 	->  true
 	;   git_version_pattern(Pattern)
@@ -160,36 +162,53 @@ stream_char_count(Out, Count) :-
 
 
 		 /*******************************
-		 *	      UPDATE		*
+		 *	   REGISTRATION		*
 		 *******************************/
 
-:- multifile
-	version_dir/1.
 :- dynamic
-	version_dir/1,
-	version_dir/2.
+	git_component/3,		% Name, Dir, Options
+	git_component_version/2.	% Name, Version
 
-:- prolog_load_context(directory, Dir),
-   assert(version_dir(Dir)).
-
-git_update_versions :-
-	forall(version_dir(Dir),
-	       update_version(Dir)).
-
-update_version(Dir) :-
-	git_version(GitVersion, [directory(Dir)]),
-	retractall(version_dir(Dir, _)),
-	assert(version_dir(Dir, GitVersion)).
-
-%%	git_version(-Version)
+%%	register_git_component(+Name, +Options)
 %
-%	Provides the version of the first valid directory.  The provided
-%	version is updated by make/0.
-%
-%	@see git_version/2.
+%	Register the directory from which the  Prolog file was loaded as
+%	a GIT component about which to  report version information. This
+%	should be used as a directive.
 
-git_version(Version) :-
-	version_dir(_, Version).
+register_git_component(Name, Options) :-
+	(   prolog_load_context(directory, BaseDir)
+	->  true
+	;   working_directory(BaseDir, BaseDir)
+	),
+	select_option(directory(Dir), Options, RestOptions, '.'),
+	absolute_file_name(Dir, AbsDir,
+			   [ file_type(directory),
+			     relative_to(BaseDir),
+			     access(read)
+			   ]),
+	retractall(git_component(Name, _, _)),
+	assert(git_component(Name, AbsDir, RestOptions)),
+	git_update_versions(Name).
+
+git_update_versions(Name) :-
+	catch(forall(git_component(Name, _, _),
+		     update_version(Name)),
+	      _,
+	      print_message(warning, git(no_version))).
+
+update_version(Name) :-
+	git_component(Name, Dir, Options),
+	git_describe(GitVersion, [directory(Dir)|Options]),
+	retractall(git_component_version(Name, _)),
+	assert(git_component_version(Name, GitVersion)).
+
+%%	git_version(?Name, -Version) is nondet.
+%
+%	Version is a description of the   GIT  version for the component
+%	Name. The provided version is updated by make/0.
+
+git_version(Name, Version) :-
+	git_component_version(Name, Version).
 
 
 		 /*******************************
@@ -200,9 +219,8 @@ git_version(Version) :-
 	user:message_hook/3.
 
 user:message_hook(make(done(_)), _, _) :-
-	catch(git_update_versions, _, fail),
+	git_update_versions(_),
 	fail.
 
 :- initialization
-	catch(git_update_versions, _,
-	      print_message(informational, git(no_version))).
+	git_update_versions(_).
