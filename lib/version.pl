@@ -42,8 +42,9 @@
 
 The module deals with software  versions.   It  currently implements two
 features:  test  whether   SWI-Prolog   is    sufficiently   new   using
-check_prolog_version/1 and find a GIT version  signature for the running
-ClioPatria system.
+check_prolog_version/1 and find GIT version   signatures for the running
+server. Modules that want  their  version   info  available  through the
+web-page can do so using a call to register_git_component/2.
 */
 
 
@@ -173,7 +174,16 @@ stream_char_count(Out, Count) :-
 %
 %	Register the directory from which the  Prolog file was loaded as
 %	a GIT component about which to  report version information. This
-%	should be used as a directive.
+%	should be used as a directive.  Defined options:
+%
+%	    * directory(Dir)
+%	    Use Dir as the location of the GIT repository instead of the
+%	    directory of the file from which this directive was called.
+%	    If Dir is not absolute, it is taken relative to the
+%	    directory holding the file from which this directive was called.
+%
+%	    * home_url(URL)
+%	    Used to create a link to the components home-page.
 
 register_git_component(Name, Options) :-
 	(   prolog_load_context(directory, BaseDir)
@@ -222,6 +232,9 @@ git_component_property(Name, version(Version)) :-
 	git_component_version(Name, Version).
 git_component_property(Name, directory(Dir)) :-
 	git_component(Name, Dir, _).
+git_component_property(Name, Term) :-
+	git_component(Name, _, Options),
+	member(Term, Options).
 
 
 

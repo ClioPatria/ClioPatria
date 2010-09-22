@@ -29,7 +29,7 @@
 */
 
 :- module(cp_skin,
-	  [ server_address//0,
+	  [ server_address//1,		% +Component
 	    current_page_doc_link//0
 	  ]).
 :- use_module(library(http/html_write)).
@@ -95,45 +95,48 @@ user:body(cliopatria(_), Body) -->
 address -->
 	cliopatria:server_address, !.
 address -->
-	server_address.
+	server_address('ClioPatria').
 
 
-%%	server_address//
+%%	server_address(+Component)//
 %
 %	Emit the default ClioPatria address link.   This provides a link
 %	to the ClioPatria home page and the (GIT) version information.
 
-server_address -->
+server_address(Component) -->
 	html_requires(css('cliopatria.css')),
 	html([ address(class(cliopatria),
-		       [ \cliopatria_address, ' ',
-			 '(version ', \version_summary, ')',
+		       [ \component_address(Component),
 			 \current_page_doc_link
 		       ])
 	     ]).
 
-%%	cliopatria_address//
+%%	component_address(+Name)//
 %
 %	The label ClioPatria as a link to its home-page on the web.
 
-cliopatria_address -->
-	{ Home = 'http://www.swi-prolog.org/web/ClioPatria.html'
-	},
-	html(a([class(home), href(Home)], 'ClioPatria')).
+component_address(Component) -->
+	(   { git_component_property(Component, home_url(Home)) }
+	->  html(a([class(home), href(Home)], Component))
+	;   html(span(class(home), Component))
+	),
+	html(' (version '),
+	component_version(Component),
+	html(')').
 
 
-%%	version_summary//
+%%	component_version(+Name)//
 %
 %	Give verion information and link to detailed version info
 
-version_summary -->
-	{ (   catch(git_component_property('ClioPatria', version(CP_Version)), _, fail)
+component_version(Component) -->
+	{ (   git_component_property(Component, version(Version))
 	  ->  true
-	  ;   CP_Version = 'no GIT'
+	  ;   Version = 'no GIT?'
 	  ),
 	  http_link_to_id(version_info, [], VREF)
 	},
-	html(a([class(version), href(VREF)], CP_Version)).
+	html(a([class(version), href(VREF)], Version)).
 
 
 

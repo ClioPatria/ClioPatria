@@ -78,7 +78,14 @@ git_components([H|T]) -->
 
 git_component(Name-Version) -->
 	{ git_component_property(Name, directory(Dir)) },
-	html(tr([td(Name), td(Version), td(Dir)])).
+	html(tr([td(\home_link(Name)), td(Version), td(Dir)])).
+
+home_link(Component) -->
+	{ git_component_property(Component, home_url(Home)) }, !,
+	html(a(href(Home), Component)).
+home_link(Component) -->
+	html(Component).
+
 
 %%	prolog_version//
 %
@@ -95,6 +102,10 @@ prolog_version -->
 	).
 
 %%	about_git_versions//
+%
+%	Component    that    emits    the    both      of    the    file
+%	html('git-versions.html'), explaining the background  behind git
+%	stamped versions.
 
 
 about_git_versions -->
