@@ -96,3 +96,20 @@ span.acmatch
   overflow-x:hidden; /* set scrolling */
   _height:30em; /* ie6 */
 }
+
+span.ac-builtin
+{ color: blue;
+}
+
+span.ac-module
+{ color: #888;
+}
+
+span.ac-exported
+{ color: dark-green;
+}
+
+span.ac-private
+{ color: red;
+}
+

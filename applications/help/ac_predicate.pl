@@ -121,7 +121,7 @@ autocomplete_script(HandlerID, Input, Container, Options) -->
 '  oAC.formatResult = function(oResultData, sQuery, sResultMatch) {
      var into = "<span class=\\"acmatch\\">"+sQuery+"</span>";
      var sLabel = oResultData.label.replace(sQuery, into);
-     return sLabel;
+     return "<span class=\\"" + oResultData.type + "\\">" + sLabel + "</span>";
    };\n',
 '  oAC.itemSelectEvent.subscribe(function(sType, aArgs) {
      var oData = aArgs[2];
@@ -192,10 +192,20 @@ obj_result(_Name-Obj, json([ label=Label,
 
 obj_name(c(Function), Name, cfunc) :- !,
 	atom_concat(Function, '()', Name).
-obj_name((_:Term), Name, pred) :- !,
+obj_name(M:Term, Name, Class) :- !,
+	predicate_class(M:Term, Class),
+	format(atom(Name), '<span class="ac-module">~w</span>:~w', [M,Term]).
+obj_name(Term, Name, 'ac-builtin') :-
 	format(atom(Name), '~w', [Term]).
-obj_name(Term, Name, pred) :-
-	format(atom(Name), '~w', [Term]).
+
+predicate_class(Head, built_in) :-
+	predicate_property(Head, 'ac-builtin'), !.
+predicate_class(Head, exported) :-
+	predicate_property(Head, 'ac-exported'), !.
+predicate_class(Head, hook) :-
+	predicate_property(Head, 'ac-multifile'), !.
+predicate_class(_, 'ac-private').
+
 
 first_n(0, _, []) :- !.
 first_n(_, [], []) :- !.
@@ -270,14 +280,10 @@ better_category(manual, _) :- !.
 better_category(packages, _) :- !.
 
 
-completion_target(Name/_,   Name).
-completion_target(M:Name/A, Name) :-
-	functor(Head, Name, A),
-	predicate_property(M:Head, exported).
-completion_target(M:Name//A0, Name) :-
-	integer(A0), A is A0+2,
-	functor(Head, Name, A),
-	predicate_property(M:Head, exported).
+completion_target(Name/_,    Name).
+completion_target(Name//_,   Name).
+completion_target(_:Name/_,  Name).
+completion_target(_:Name//_, Name).
 %completion_target(c(Name),  Name).
 
 start_inside_token(Token, Inside) :-
