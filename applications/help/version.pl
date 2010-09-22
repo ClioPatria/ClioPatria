@@ -33,11 +33,81 @@
 	  ]).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(version)).
+:- use_module(library(occurs)).
+:- use_module(library(sgml)).
+:- use_module(library(lists)).
+
+/** <module> Provide detailed version information
+*/
 
 :- http_handler(root(help/versions), version_info, []).
 
+%%	version_info(+Request)
+%
+%	HTTP handler that provides detailed   information  on the loaded
+%	(and registered) GIT modules.
+
 version_info(_Request) :-
 	reply_html_page(cliopatria(default),
-			[ title('About versions') ],
-			[ h4('About versions')
+			[ title('Version details') ],
+			[ h4('GIT components'),
+			  \git_components,
+			  h4('Server implementation language'),
+			  p(\prolog_version),
+			  \about_git_versions
 			]).
+
+%%	git_components//
+%
+%	Component that creates a table of registered GIT modules.
+%
+%	@see register_git_component/2
+
+git_components -->
+	{ findall(C-V, git_component_property(C, version(V)), Pairs) },
+	html(table(class('cliopatria'),
+		   [ tr([ th('GIT component'), th('Version'), th('Directory') ]),
+		     \git_components(Pairs)
+		   ])).
+
+git_components([]) --> [].
+git_components([H|T]) -->
+	git_component(H),
+	git_components(T).
+
+git_component(Name-Version) -->
+	{ git_component_property(Name, directory(Dir)) },
+	html(tr([td(Name), td(Version), td(Dir)])).
+
+%%	prolog_version//
+%
+%	Component that emits the current version of SWI-Prolog
+
+prolog_version -->
+	{ current_prolog_flag(version_data, swi(Major, Minor, Patch, _)) },
+	html([ a(href('http://www.swi-prolog.org'), 'SWI-Prolog'), ' ',
+	       'version ~w.~w.~w'-[Major, Minor, Patch]
+	     ]),
+	(   { current_prolog_flag(version_git, GitVersion) }
+	->  html([' (GIT version ', GitVersion, ')'])
+	;   []
+	).
+
+%%	about_git_versions//
+
+
+about_git_versions -->
+	insert_html(html('git-versions.html')).
+
+insert_html(Alias) -->
+	{ absolute_file_name(Alias, Page, [access(read)]),
+	  load_html_file(Page, DOM),
+	  contains_term(element(body, _, Body), DOM),
+	  Style = element(style, _, _),
+	  findall(Style, sub_term(Style, DOM), Styles),
+	  append(Styles, Body, Content)
+	},
+	html(Content).
+
+

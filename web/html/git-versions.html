@@ -1,0 +1,29 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+
+<html>
+  <head>
+    <title>About GIT versions</title>
+  </head>
+<body>
+<h4>About GIT versions</h4>
+
+<p>Components are maintained using the <a href="http://git-scm.com/">GIT</a> SCM
+(Source Code Management) system. Instead of assigning versions by hand,
+something which developers tend to forget, we leave this task to GIT.  GIT's
+versions are generated using the command <code>git describe</code>, which
+describes a version with four components, separated with <b>"-"</b>:
+
+ <ul>
+    <li>The last contained <em>tag</em>.  A tag is a label that the
+    programmer gave to a version.
+    <li>The number of changes (<i>commits</i>) since the last tag.  If
+    there are no commits after the tag, this is omitted.
+    <li>If there are changes after the tag it also gives the GIT <em>hash</em>
+    of the version.  This number uniquely describes the version of the component.
+    <li>Finally, the text <b>DIRTY</b> is added if the actual files of the
+    component do not match the files in the (local) repository.  This means
+    that one or more of the files has been edited locally.
+ </ul>
+
+</body>
+</html>

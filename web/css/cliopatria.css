@@ -40,3 +40,40 @@ div.warning
   color: blue;
 }
 
+		 /*******************************
+		 *	       TABLES		*
+		 *******************************/
+
+table.cliopatria
+{ border-width: 1px;
+  border-style: solid;
+  border-collapse: collapse;
+  margin-left: 1cm;
+}
+
+table.cliopatria td
+{ border-width: 0 1px 0 1px;
+  border-style: solid;
+}
+
+tr.even td
+{ background-color: #e0e0e0;
+}
+
+table.cliopatria tr.even th
+{ background-color: #e0e0e0;
+}
+
+td.int
+{ text-align:right;
+  padding-right:5px;
+}
+
+td.empty, td.cint
+{ text-align:center;
+}
+
+table.cliopatria th
+{ color: white;
+  background-color: blue;
+}

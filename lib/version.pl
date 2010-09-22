@@ -31,7 +31,7 @@
 :- module(prolog_version,
 	  [ check_prolog_version/1,	% +NumericVersion
 	    register_git_component/2,	% +Name, +Options
-	    git_version/2		% +Name, -VersionID
+	    git_component_property/2	% ?Name, ?Property
 	  ]).
 :- use_module(library(process)).
 :- use_module(library(option)).
@@ -202,13 +202,27 @@ update_version(Name) :-
 	retractall(git_component_version(Name, _)),
 	assert(git_component_version(Name, GitVersion)).
 
-%%	git_version(?Name, -Version) is nondet.
+%%	git_component_property(?Name, ?Property) is nondet.
 %
-%	Version is a description of the   GIT  version for the component
-%	Name. The provided version is updated by make/0.
+%	Property is a property of the named git-component. Defined
+%	properties are:
+%
+%	    * version(Version)
+%	    git-describe like version information
+%	    * directory(Dir)
+%	    Base directory of the component
+%
+%	@tbd Extend with more detailed version (e.g., _remote_)
 
-git_version(Name, Version) :-
+git_component_property(Name, Property) :-
+	var(Name), !,
+	git_component(Name, _, _),
+	git_component_property(Name, Property).
+git_component_property(Name, version(Version)) :-
 	git_component_version(Name, Version).
+git_component_property(Name, directory(Dir)) :-
+	git_component(Name, Dir, _).
+
 
 
 		 /*******************************
