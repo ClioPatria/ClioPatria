@@ -74,7 +74,9 @@ The example below adds an item to =Help= popup of ClioPatria:
 	user_preference_default/2,	% ?Property, ?Value
 
 	page_body//1,			% +Body
-	server_address//0.
+	server_address//0,
+
+	context_graph/2.		% +R, -RDF
 
 
 		 /*******************************
@@ -161,3 +163,18 @@ The example below adds an item to =Help= popup of ClioPatria:
 %	you want to maintain its  normal   position  in the page layout,
 %	this should create an element of class =address= using the class
 %	=cliopatria=.
+
+		 /*******************************
+		 *	    RDF BROWSING	*
+		 *******************************/
+
+%%	context_graph(+R, -RDF) is semidet.
+%
+%	This hook redefines the context graph   shown by the RDF browser
+%	for the resource R. RDF is  a   list  of rdf(S,P,O) triples that
+%	describe the context. Typically only   object-triples  are used,
+%	although that is not a requirement.
+%
+%	@see	This predicate hooks cpa_browse:context_graph/2.  Please
+%		visit the soure to learn about available building
+%		blocks.

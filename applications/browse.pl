@@ -1162,7 +1162,11 @@ shape(Start, Start, [style(filled), fillcolor('#00ff00')]).
 %
 %	    * skos:related properties (using 1 step)
 %	    * Transitive properties (using upto 3 steps).
+%
+%	This predicate can be hooked using cliopatria:context_graph/2.
 
+context_graph(URI, RDF) :-
+	cliopatria:context_graph(URI, RDF), !.
 context_graph(URI, RDF) :-
 	findall(T, context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
