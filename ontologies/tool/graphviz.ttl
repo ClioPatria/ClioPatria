@@ -1,0 +1,21 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.graphviz.org/> .
+
+# Define style-parameters to control the representation of resources
+# in the context-graph.
+#
+# see library(semweb/rdf_graphviz)
+
+<styleParameter>
+	a rdf:Property .
+
+<shape> a rdf:Property ;
+	rdfs:label "shape" ;
+	rdfs:subPropertyOf <styleParameter> .
+<style> a rdf:Property ;
+	rdfs:label "style" ;
+	rdfs:subPropertyOf <styleParameter> .
+<fillcolor> a rdf:Property ;
+	rdfs:label "fillcolor" ;
+	rdfs:subPropertyOf <styleParameter> .

@@ -40,6 +40,7 @@
 :- use_module(library(lists)).
 :- use_module(library(semweb/rdf_label)).
 
+:- rdf_register_ns(graphviz, 'http://www.graphviz.org/').
 
 /** <module> Interface to graphviz for RDF graphs
 
@@ -88,15 +89,14 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %	    If present, URLs of the graph are replaced with the
 %	    result of call(Goal, URL0, URL)
 
-:- module_transparent
-	gviz_write_rdf/3.
+:- meta_predicate
+	gviz_write_rdf(+,+,:).
 
 gviz_write_rdf(Stream, Graph, Options0) :-
-	meta_options(rdf_graphviz:is_meta, Options0, Options),
+	meta_options(is_meta, Options0, Options),
 	format(Stream, 'digraph G~n{ ', []),
 	option(graph_attributes(Attrs), Options, []),
 	write_graph_attributes(Attrs, Stream),
-%	write_graph_attributes([fontname('Verdana:style=Regular')], Stream), % Doesn't apper to work?
 	combine_bags(Graph, Triples, Bags, Options),
 	gv_write_edges(Triples, Done, Stream, Options),
 	assoc_to_list(Done, Nodes),
@@ -371,14 +371,28 @@ wrap_url(URL0, URL, Options) :-
 wrap_url(URL, URL, _).
 
 
-%%	shape(+Term, -Attributes, +Options) is det.
+%%	shape(+Resource, -Attributes, +Options) is det.
 %
-%	Shape is the shape of the node to use for Resource.  Processes the
-%	option =shape_hook= using call(ShapeHook, Obj, Shape).
+%	Shape is the shape of the node to use for Resource.  Shapes
+%	can be modified in two ways:
+%
+%	    * through the option shape_hook(Closure), which must
+%	    return a valid Attributes list for GraphViz
+%	    * By addings sub-properties of graphviz:styleParameter
+%	    to the class of the resource.  The value of this property
+%	    defines the attribute value, while the label defines the
+%	    attribute-name.
 
-shape(Obj, Shape, Options) :-
+shape(Resource, Shape, Options) :-
 	option(shape_hook(Hook), Options),
-	call(Hook, Obj, Shape), !.
-shape(Literal, [shape(box)], _) :-
-	rdf_is_literal(Literal), !.
+	call(Hook, Resource, Shape), !.
+shape(Resource, Attrs, _Options) :-
+        findall(A-V, ( rdfs_individual_of(Resource, Class),
+                       rdf_has(Class, graphviz:styleParameter, literal(V), P),
+                       rdf_has(P, rdfs:label, literal(A)) ),
+                Pairs),
+        maplist(v_term, Pairs, Attrs).
 shape(_, [], _).
+
+v_term(A-V, T) :-
+        T =.. [A,V].
