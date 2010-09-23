@@ -113,3 +113,10 @@ span.ac-private
 { color: red;
 }
 
+		 /*******************************
+		 *	       LINKS		*
+		 *******************************/
+
+a.img img
+{ border-width: 0px;
+}
