@@ -68,6 +68,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 
 	rdf_label:label_property/1,
 	bnode_label//1,			% +Resource
+	display_link//2,		% +RDFObject, +Options
 
 	user_preference_db/2,		% ?Property, ?Value
 	user_preference_default/2,	% ?Property, ?Value
@@ -117,6 +118,13 @@ The example below adds an item to =Help= popup of ClioPatria:
 %
 %	HTML-write DCG rule that produces an HTML description for the
 %	given RDF blank node.  See cp_label:bnode_label//1.
+
+%%	display_link(+RDFObject)//
+%
+%	HTML-write DCG rule that produces an   HTML  description for the
+%	given RDFObject (a resource  or   literal)  with  an appropriate
+%	link. This predicate is called by the RDF browser to present RDF
+%	triples.
 
 
 		 /*******************************

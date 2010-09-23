@@ -169,12 +169,16 @@ rdf_collection_list(R, [H|T]) :-
 %	=list_triples_with_object= using a Prolog  representation of the
 %	literal.
 %
+%	This predicate can be hooked using cliopatria:display_link//2.
+%
 %	@tbd	Make it easier to determine the format of the label
 %	@tbd	Allow linking to different handlers.
 
 rdf_link(R) -->
 	rdf_link(R, []).
 
+rdf_link(R, Options) -->
+	cliopatria:display_link(R, Options), !.
 rdf_link(R, Options) -->
 	{ atom(R), !,
 	  resource_link(R, Options, HREF),
