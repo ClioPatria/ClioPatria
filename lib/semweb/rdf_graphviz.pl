@@ -239,7 +239,10 @@ write_node_attributes(R, Stream, Options) :-
 	wrap_url(R, URL, Options),
 	resource_label(R, Label, Options),
 	target_option([href(URL), label(Label)|Shape], Attrs, Options),
-	write_attributes(Attrs, Stream).
+	(   select(img(IMGOptions), Attrs, RAttrs)
+	->  write_image_node(IMGOptions, RAttrs, Stream, Options)
+	;   write_attributes(Attrs, Stream)
+	).
 write_node_attributes(Lit, Stream, Options) :-
 	shape(Lit, Shape, Options),
 	option(max_label_length(MaxLen), Options, 25),
@@ -288,6 +291,18 @@ html_resource_label(Resource, Options) -->
 	},
 	html(Label).
 
+%%	write_image_node(+ImgAttrs, +Attrs, +Stream, +Options) is det.
+%
+%	Render a node using an image.
+
+write_image_node(ImgAttrs, Attrs, Stream, _Options) :-
+	filter_attributes(Attrs, td, TDAttrs, _Attrs1),
+	phrase(html(table(border(0),
+			  tr(td(TDAttrs, img(ImgAttrs))))),
+	       Tokens),
+	with_output_to(string(HTML), print_html(Tokens)),
+	write_attributes([label(HTML)], Stream).
+
 
 %%	resource_label(+Resource, -Label:Atom, +Options) is det.
 %
@@ -296,6 +311,8 @@ html_resource_label(Resource, Options) -->
 %
 %	    * lang(+Lang)
 %	    * max_label_length(+Len)
+%
+%	@tbd Use rdf_label.pl facilities.
 
 resource_label(Resource, Label, Options) :-
 	(   option(lang(Lang), Options),
@@ -364,6 +381,73 @@ html_attribute(html(_), label).
 c_escape(Atom, String) :-
 	atom_codes(Atom, Codes),
 	phrase(cstring(Codes), String).
+
+%%	filter_attributes(+AllAttrs, +Element,
+%			  -ForElement, -Rest) is det.
+
+filter_attributes([], _, [], []).
+filter_attributes([H|T], E, ForE, Rest) :-
+	(   H =.. [Name,Value],
+	    gv_attr(Name, E, Type),
+	    is_of_type(Type, Value)
+	->  ForE = [H|R],
+	    filter_attributes(T, E, R, Rest)
+	;   Rest = [H|R],
+	    filter_attributes(T, E, ForE, R)
+	).
+
+%%	gv_attr(?AttrName, ?Element, ?Type) is nondet.
+%
+%	Name and type-declarations for GraphViz   attributes.  Types are
+%	defined my must_be/2.
+%
+%	@see http://www.graphviz.org/doc/info/shapes.html
+
+gv_attr(align,	      table, oneof([center,left,right])).
+gv_attr(bgcolor,      table, atom).
+gv_attr(border,	      table, atom).
+gv_attr(cellborder,   table, atom).
+gv_attr(cellpadding,  table, atom).
+gv_attr(cellspacing,  table, atom).
+gv_attr(color,	      table, atom).
+gv_attr(fixedsize,    table, boolean).
+gv_attr(height,	      table, atom).
+gv_attr(href,	      table, atom).
+gv_attr(port,	      table, atom).
+gv_attr(target,	      table, atom).
+gv_attr(title,	      table, atom).
+gv_attr(tooltip,      table, atom).
+gv_attr(valign,	      table, oneof([middle,bottom,top])).
+gv_attr(width,	      table, atom).
+
+gv_attr(align,	      td,    oneof([center,left,right,text])).
+gv_attr(balign,	      td,    oneof([center,left,right])).
+gv_attr(bgcolor,      td,    atom).
+gv_attr(border,	      td,    atom).
+gv_attr(cellpadding,  td,    atom).
+gv_attr(cellspacing,  td,    atom).
+gv_attr(color,	      td,    atom).
+gv_attr(colspan,      td,    integer).
+gv_attr(fixedsize,    td,    boolean).
+gv_attr(height,	      td,    atom).
+gv_attr(href,	      td,    atom).
+gv_attr(port,	      td,    atom).
+gv_attr(rowspan,      td,    integer).
+gv_attr(target,	      td,    atom).
+gv_attr(title,	      td,    atom).
+gv_attr(tooltip,      td,    atom).
+gv_attr(valign,	      td,    oneof([middle,bottom,top])).
+gv_attr(width,	      td,    atom).
+
+gv_attr(color,	      font,  atom).
+gv_attr(face,	      font,  atom).
+gv_attr('point-size', font,  integer).
+
+gv_attr(align,	      br,    oneof([center,left,right])).
+
+gv_attr(scale,	      img,   oneof([false,true,width,height,both])).
+gv_attr(src,	      img,   atom).
+
 
 %%	cstring(+Codes)//
 %
