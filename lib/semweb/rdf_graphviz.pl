@@ -229,15 +229,15 @@ write_node_attributes(R, Stream, Options) :-
 	get_assoc(R, Bags, Members), !,
 	Members = [First|_],
 	shape(First, MemberShape, Options),
-	option(bags(merge(BagShape, Max)), Options, merge([shape(box)], 5)),
+	option(bags(merge(BagShape, Max)), Options, merge([shape(component)], 5)),
 	merge_options(BagShape, MemberShape, Shape),
 	bag_label(Members, Max, Label, Options),
 	write_attributes([html(Label)|Shape], Stream).
 write_node_attributes(R, Stream, Options) :-
 	rdf_is_resource(R), !,
 	shape(R, Shape, Options),
-	resource_label(R, Label, Options),
 	wrap_url(R, URL, Options),
+	resource_label(R, Label, Options),
 	target_option([href(URL), label(Label)|Shape], Attrs, Options),
 	write_attributes(Attrs, Stream).
 write_node_attributes(Lit, Stream, Options) :-
@@ -251,7 +251,6 @@ target_option(Attrs0, Attrs, Options) :-
 	option(target(Target), Options), !,
 	Attrs = [target(Target)|Attrs0].
 target_option(Attrs, Attrs, _).
-
 
 bag_label(Members, Max, Label, Options) :-
 	length(Members, Len),
@@ -268,7 +267,7 @@ html_bag_label(_, I, Max, Len, _Options) -->
 html_bag_label([H|T], I, Max, Len, Options) -->
 	{ (   atom(H)
 	  ->  wrap_url(H, URL, Options),
-	      Atts=[href(URL)]
+	      target_option([href(URL)], Atts, Options)
 	  ;   Atts=[]
 	  )
 	},
