@@ -252,6 +252,14 @@ target_option(Attrs0, Attrs, Options) :-
 	Attrs = [target(Target)|Attrs0].
 target_option(Attrs, Attrs, _).
 
+%%	bag_label(+Members, +Max, -Label, +Options) is det.
+%
+%	Create an HTML description for describing a bag of objects.
+%
+%	@param Max is the maximum # members to show.  If there are more,
+%	       a text "... showing N of M" is displayed.
+%	@param Label is a Prolog packed string with HTML text.
+
 bag_label(Members, Max, Label, Options) :-
 	length(Members, Len),
 	phrase(html(table(border(0),
