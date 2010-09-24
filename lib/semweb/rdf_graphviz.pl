@@ -88,6 +88,10 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %	    * wrap_url(:Goal)
 %	    If present, URLs of the graph are replaced with the
 %	    result of call(Goal, URL0, URL)
+%
+%	    * target(Target)
+%	    If present, add target=Target to all attribute lists that
+%	    have an =href= attribute.
 
 :- meta_predicate
 	gviz_write_rdf(+,+,:).
@@ -186,12 +190,12 @@ write_edge(rdf(S,P,O), Done0, Done2, Stream, Options) :-
 	write_node_id(S, Done0, Done1, Stream),
 	write(Stream, ' -> '),
 	write_node_id(O, Done1, Done2, Stream),
-	resource_label(P, PL, Options),
-	c_escape(PL, String),
+	resource_label(P, Label, Options),
 	(   option(edge_links(true), Options, true)
 	->  wrap_url(P, URL, Options),
-	    format(Stream, ' [href="~w" label="~s"];\n', [URL, String])
-	;   format(Stream, ' [label="~s"];\n', [String])
+	    target_option([href(URL), label(Label)], Attrs, Options),
+	    write_attributes(Attrs, Stream)
+	;   write_attributes([label(Label)], Stream)
 	).
 
 write_node_id(S, Done, Done, Stream) :-
@@ -234,7 +238,8 @@ write_node_attributes(R, Stream, Options) :-
 	shape(R, Shape, Options),
 	resource_label(R, Label, Options),
 	wrap_url(R, URL, Options),
-	write_attributes([href(URL), label(Label)|Shape], Stream).
+	target_option([href(URL), label(Label)|Shape], Attrs, Options),
+	write_attributes(Attrs, Stream).
 write_node_attributes(Lit, Stream, Options) :-
 	shape(Lit, Shape, Options),
 	option(max_label_length(MaxLen), Options, 25),
@@ -242,9 +247,17 @@ write_node_attributes(Lit, Stream, Options) :-
 	truncate_atom(Text, MaxLen, Summary),
 	write_attributes([label(Summary)|Shape], Stream).
 
+target_option(Attrs0, Attrs, Options) :-
+	option(target(Target), Options), !,
+	Attrs = [target(Target)|Attrs0].
+target_option(Attrs, Attrs, _).
+
+
 bag_label(Members, Max, Label, Options) :-
 	length(Members, Len),
-	phrase(html(table(border(0), \html_bag_label(Members, 1, Max, Len, Options))), Tokens),
+	phrase(html(table(border(0),
+			  \html_bag_label(Members, 1, Max, Len, Options))),
+	       Tokens),
 	with_output_to(string(Label), print_html(Tokens)).
 
 html_bag_label([], _, _, _, _) --> !.
