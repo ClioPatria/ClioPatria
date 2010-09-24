@@ -39,7 +39,11 @@
 :- use_module(library(process)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
+:- use_module(library(settings)).
 :- use_module(library(semweb/rdf_graphviz)).
+
+:- setting(graphviz:format, oneof([canviz,svg]), canviz,
+	   'Technique to include RDF graphs in a page').
 
 /** <module> Render RDF-graphs
 
@@ -48,6 +52,8 @@ as graphs.
 
 @see	library(semweb/rdf_abstract) for various operations on graphs
 	represented as lists of rdf(S,P,O).
+@tbd	Must be renamed to graphviz.  The current implementation
+	supports both canviz and graphviz+SVG.
 */
 
 :- html_resource(js('canviz.js'),
@@ -71,6 +77,9 @@ as graphs.
 %
 %	    * render(+Exe)
 %	    Set the rendering engine.  Default is =dot=.
+%	    * format(+Format)
+%	    One of =canviz=, using AJAX-based rendering on HTML5 canvas
+%	    or =svg=, using SVG.
 %
 %	This facility requires the graphiz   renderer programs installed
 %	in the executable search-path.
@@ -92,10 +101,17 @@ canviz_graph(_Closure, Options) -->
 	   }, !,
 	no_graph_viz(Renderer).
 canviz_graph(Closure, Options) -->
-	{ meta_options(is_meta, Options, QOptions),
+	{ setting(graphviz:format, DefFormat),
+	  option(format(Format), Options, DefFormat),
+	  meta_options(is_meta, Options, QOptions),
 	  variant_sha1(Closure+QOptions, Hash),
-	  http_session_assert(canviz(Hash, Closure+QOptions)),
-	  http_link_to_id(send_graph, [hash(Hash)], HREF)
+	  http_session_assert(canviz(Hash, Closure+QOptions))
+	},
+	canviz_graph_fmt(Format, Hash).
+
+
+canviz_graph_fmt(canviz, Hash) --> !,
+	{ http_link_to_id(send_graph, [hash(Hash)], HREF)
 	},
 	html_requires(js('canviz.js')),
 	html([ div(class(graph),
@@ -106,6 +122,19 @@ canviz_graph(Closure, Options) -->
 			 '  new Canviz(\'canviz\', \'~w\');\n'-[HREF],
 			 '});'
 		       ])
+	     ]).
+canviz_graph_fmt(svg, Hash) -->
+	{ http_link_to_id(send_graph,
+			  [ hash(Hash),
+			    lang(svg),
+			    target('_top')
+			  ], HREF)
+	},
+	html([ object([ data(HREF),
+			type('image/svg+xml'),
+			width('100%')
+		      ],
+		      [])
 	     ]).
 
 is_meta(wrap_url).
@@ -127,14 +156,26 @@ no_graph_viz(Renderer) -->
 
 send_graph(Request) :-
 	http_parameters(Request,
-			[ hash(Hash, [ description('Hash-key to the graph-data')])
+			[ hash(Hash,
+			       [ description('Hash-key to the graph-data')
+			       ]),
+			  lang(Lang,
+			       [ default(xdot),
+				 description('-TXXX option of graphviz')
+			       ]),
+			  target(Target,
+				 [ optional(true),
+				   description('Add TARGET= to all links')
+				 ])
 			]),
 	http_session_data(canviz(Hash, Closure+Options)),
 	call(Closure, Graph),
 	length(Graph, Len),
 	debug(canviz, 'Graph contains ~D triples', [Len]),
-	select_option(render(Renderer), Options, GraphOptions, dot),
-	process_create(path(Renderer), ['-Txdot'],
+	select_option(render(Renderer), Options, GraphOptions0, dot),
+	target_option(Target, GraphOptions0, GraphOptions),
+	atom_concat('-T', Lang, GraphLang),
+	process_create(path(Renderer), [GraphLang],
 		       [ stdin(pipe(ToDOT)),
 			 stdout(pipe(XDotOut)),
 			 process(PID)
@@ -143,7 +184,8 @@ send_graph(Request) :-
 	set_stream(XDotOut, encoding(utf8)),
 	thread_create(send_to_dot(Graph, GraphOptions, ToDOT), _,
 		      [ detached(true) ]),
-	format('Content-type: text/plain; charset=UTF-8\n'),
+	graph_mime_type(Lang, ContentType),
+	format('Content-type: ~w\n', [ContentType]),
 	format('Transfer-Encoding: chunked\n\n'),
 	call_cleanup(copy_graph_data(XDotOut),
 		     (	 process_wait(PID, Status),
@@ -152,6 +194,21 @@ send_graph(Request) :-
 			 debug(canviz, '~w: ~D bytes, exit status ~w',
 			       [Renderer, Count, Status])
 		     )).
+
+target_option(Target, GraphOptions0, GraphOptions) :-
+	(   nonvar(Target)
+	->  GraphOptions = [target(Target)|GraphOptions0]
+	;   GraphOptions = GraphOptions0
+	).
+
+
+graph_mime_type(xdot, 'text/plain; charset=UTF-8') :- !.
+graph_mime_type(svg,  'image/svg+xml') :- !.
+graph_mime_type(Lang, 'text/plain; charset=UTF-8') :-
+	print_message(warning,
+		      format('Do not know content-type for grapviz \
+		             language ~w.  Please extend graph_mime_type/2',
+			     Lang)).
 
 send_to_dot(Graph, Options, Out) :-
 	gviz_write_rdf(Out, Graph, Options),
