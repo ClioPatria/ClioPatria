@@ -1155,6 +1155,13 @@ context_graph(URI) -->
 rdf_link(URI, HREF) :-
 	http_link_to_id(list_resource, [r(URI)], HREF).
 
+%%	shape(+Start, +URI, -Shape) is semidet.
+%
+%	Specify GraphViz shape for URI. This   predicate  calls the hook
+%	cliopatria:node_shape/3.
+
+shape(Start, URI, Shape) :-
+	cliopatria:node_shape(URI, Shape, [start(Start)]), !.
 shape(Start, Start, [style(filled), fillcolor('#00ff00')]).
 
 %%	context_graph(+URI, -Triples) is det.

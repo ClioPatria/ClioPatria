@@ -76,7 +76,8 @@ The example below adds an item to =Help= popup of ClioPatria:
 	page_body//1,			% +Body
 	server_address//0,
 
-	context_graph/2.		% +R, -RDF
+	context_graph/2,		% +R, -RDF
+	node_shape/3.			% +R, -Shape, +Options
 
 
 		 /*******************************
@@ -178,3 +179,16 @@ The example below adds an item to =Help= popup of ClioPatria:
 %	@see	This predicate hooks cpa_browse:context_graph/2.  Please
 %		visit the soure to learn about available building
 %		blocks.
+
+%%	node_shape(+URI, -Shape, +Options) is semidet.
+%
+%	Compute the desired shape for a GraphViz node representing URI.
+%
+%	@param URI is the resource for which to determine the shape
+%	@param Shape is a list Name(Value) for parameters given to
+%	       GraphViz.
+%	@param Options provides additional guidance. Currently it
+%	       may provide start(StartURI) to indicate the graph is a
+%	       context node for the resource StartURI.
+%	@see   http://www.graphviz.org/doc/info/shapes.html
+
