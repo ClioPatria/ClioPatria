@@ -389,6 +389,16 @@ url_cached(Dir, URL, Property) :-
 	exists_file(MetaFile),
 	cache_file_property(Property, MetaFile).
 url_cached(Dir, URL, Property) :-
+	nonvar(Property),
+	Property = file(File),
+	atom(File),
+	atom_concat(Dir, Rest, File),
+	\+ sub_atom(Rest, _, _, _, '../'),
+	file_name_extension(Base, url, File),
+	file_name_extension(Base, meta, MetaFile),
+	exists_file(MetaFile),
+	once(read_meta_file(MetaFile, url(URL))).
+url_cached(Dir, URL, Property) :-
 	atom_concat(Dir, '/??', TopPat),
 	expand_file_name(TopPat, TopDirs),
 	member(TopDir, TopDirs),
