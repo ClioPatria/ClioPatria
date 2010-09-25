@@ -33,7 +33,9 @@
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/url_cache)).
 :- use_module(library(assoc)).
 :- use_module(library(option)).
 :- use_module(library(gensym)).
@@ -296,15 +298,17 @@ html_resource_label(Resource, Options) -->
 %	Render a node using an image.
 
 write_image_node(ImgAttrs, Attrs, Stream, _Options) :-
+	select(src(URL), ImgAttrs, ImgAttrs1),
+	url_cache(URL, File, _MimeType),
 	filter_attributes(Attrs, td, TDAttrs, _Attrs1),
 	html_current_option(dialect(Dialect)),
 	html_set_options([dialect(xhtml)]),
 	phrase(html(table(border(0),
-			  tr(td(TDAttrs, img(ImgAttrs, []))))),
+			  tr(td(TDAttrs, img([src(File)|ImgAttrs1], []))))),
 	       Tokens),
 	html_set_options([dialect(Dialect)]),
 	with_output_to(string(HTML), print_html(Tokens)),
-	write_attributes([html(HTML)], Stream).
+	write_attributes([html(HTML),shape(plaintext)], Stream).
 
 
 %%	resource_label(+Resource, -Label:Atom, +Options) is det.
@@ -503,3 +507,28 @@ shape(_, [], _).
 
 v_term(A-V, T) :-
         T =.. [A,V].
+
+
+		 /*******************************
+		 *	   IMAGE SERVER		*
+		 *******************************/
+
+:- http_handler('/cache/url/', image_in_svg, [prefix]).
+
+%%	image_in_svg(+Request)
+%
+%	HTTP handler to serve an image we have included in an SVG file.
+%
+%	@tbd	Should we restrict files served to files that are part of
+%		recently served SVG files?
+
+image_in_svg(Request) :-
+	memberchk(path_info(PathInfo), Request),
+	atom_concat('cache/url/', PathInfo, File),
+	url_cached(URL, file(File)),
+	url_cached(URL, mime_type(MimeType)),
+	http_reply_file(File,
+			[ mime_type(MimeType),
+			  unsafe(true)
+			],
+			Request).
