@@ -1,24 +1,31 @@
-/*  This file is part of ClioPatria.
+/*  Part of ClioPatria SeRQL and SPARQL server
 
-    Author:
-    HTTP:	http://e-culture.multimedian.nl/
-    GITWEB:	http://gollem.science.uva.nl/git/ClioPatria.git
-    GIT:	git://gollem.science.uva.nl/home/git/ClioPatria.git
-    GIT:	http://gollem.science.uva.nl/home/git/ClioPatria.git
-    Copyright:  2007-2008, E-Culture/MultimediaN
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2010, University of Amsterdam,
+		   VU University Amsterdam
 
-    ClioPatria is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
 
-    ClioPatria is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with ClioPatria.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
 */
 
 :- module(url_cache,
@@ -43,6 +50,18 @@
 
 :- setting(cache:url_cache_directory, atom, 'cache/url',
 	   'Directory to cache fetched remote URLs').
+
+/** <module> Cache the content of external URLs in local files
+
+This library provides a cache  for  data   stored  in  extenal URLs. The
+content of each URL is kept in a  file and described by a meta-file that
+remembers the mime-type, the original URL, when   it was fetched and -if
+provided by the server- the last-modified stamp.
+
+@tbd	The current implementation does not validate the cache content, nor
+	does it honour the HTTP cache directives.
+*/
+
 
 %%	url_cache(+URI:atom, -Path:atom, -MimeType:atom) is det.
 %
@@ -100,7 +119,7 @@ ndet_read(Stream, Term) :-
 
 %%	url_cache_delete(+URL) is det.
 %
-%	Delete an URL from the cache.  Succeeds if the cache files
+%	Delete an URL from the cache. Succeeds,  even if the cache files
 %	do not exist.
 %
 %	@error	Throws exceptions from delete_file/1 other than
@@ -116,7 +135,7 @@ url_cache_delete(URL) :-
 	error_ok(E1).
 
 error_ok(E) :-
-	subsumes_chk(error(existence_error(file, _), _), E), !.
+	subsumes_term(error(existence_error(file, _), _), E), !.
 error_ok(E) :-
 	throw(E).
 
