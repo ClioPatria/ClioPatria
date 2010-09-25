@@ -297,11 +297,14 @@ html_resource_label(Resource, Options) -->
 
 write_image_node(ImgAttrs, Attrs, Stream, _Options) :-
 	filter_attributes(Attrs, td, TDAttrs, _Attrs1),
+	html_current_option(dialect(Dialect)),
+	html_set_options([dialect(xhtml)]),
 	phrase(html(table(border(0),
-			  tr(td(TDAttrs, img(ImgAttrs))))),
+			  tr(td(TDAttrs, img(ImgAttrs, []))))),
 	       Tokens),
+	html_set_options([dialect(Dialect)]),
 	with_output_to(string(HTML), print_html(Tokens)),
-	write_attributes([label(HTML)], Stream).
+	write_attributes([html(HTML)], Stream).
 
 
 %%	resource_label(+Resource, -Label:Atom, +Options) is det.
@@ -383,7 +386,7 @@ c_escape(Atom, String) :-
 	phrase(cstring(Codes), String).
 
 %%	filter_attributes(+AllAttrs, +Element,
-%			  -ForElement, -Rest) is det.
+%%			  -ForElement, -Rest) is det.
 
 filter_attributes([], _, [], []).
 filter_attributes([H|T], E, ForE, Rest) :-
