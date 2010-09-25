@@ -1162,7 +1162,8 @@ rdf_link(URI, HREF) :-
 
 shape(Start, URI, Shape) :-
 	cliopatria:node_shape(URI, Shape, [start(Start)]), !.
-shape(Start, Start, [style(filled), fillcolor('#00ff00')]).
+shape(Start, Start,
+      [ shape(tripleoctagon),style(filled),fillcolor('#ff85fd') ]).
 
 %%	context_graph(+URI, -Triples) is det.
 %

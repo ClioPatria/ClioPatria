@@ -231,7 +231,11 @@ write_node_attributes(R, Stream, Options) :-
 	get_assoc(R, Bags, Members), !,
 	Members = [First|_],
 	shape(First, MemberShape, Options),
-	option(bags(merge(BagShape, Max)), Options, merge([shape(component)], 5)),
+	option(bags(merge(BagShape, Max)), Options,
+	       merge([ shape(box),
+		       style('rounded,filled,bold'),
+		       fillcolor('#ffff80')
+		     ], 5)),
 	merge_options(BagShape, MemberShape, Shape),
 	bag_label(Members, Max, Label, Options),
 	write_attributes([html(Label)|Shape], Stream).
@@ -267,7 +271,7 @@ target_option(Attrs, Attrs, _).
 
 bag_label(Members, Max, Label, Options) :-
 	length(Members, Len),
-	phrase(html(table(border(0),
+	phrase(html(table([ border(0) ],
 			  \html_bag_label(Members, 1, Max, Len, Options))),
 	       Tokens),
 	with_output_to(string(Label), print_html(Tokens)).
@@ -275,8 +279,8 @@ bag_label(Members, Max, Label, Options) :-
 html_bag_label([], _, _, _, _) --> !.
 html_bag_label(_, I, Max, Len, _Options) -->
 	{ I > Max }, !,
-	html(tr(td([align(right)],
-		   font(face('Verdana:style=Italic'), '... showing ~D of ~D'-[Max, Len])))).
+	html(tr(td([align(right), cellpadding(5)],
+		   font(face('Helvetica:style=Italic'), '... showing ~D of ~D'-[Max, Len])))).
 html_bag_label([H|T], I, Max, Len, Options) -->
 	{ (   atom(H)
 	  ->  wrap_url(H, URL, Options),
@@ -381,6 +385,7 @@ string_attribute(url(_)).
 string_attribute(href(_)).
 string_attribute('URL'(_)).
 string_attribute(fillcolor(_)).
+string_attribute(style(_)).
 
 html_attribute(html(_), label).
 
