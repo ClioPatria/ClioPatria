@@ -378,8 +378,7 @@ instance_in_graph(Graph, Class, bnode, S, C) :- !,
 
 instance_in_graph(Graph, Class, S, C) :-
 	var(Class), !,
-	rdf_subject(S),
-	once(rdf(S, _, _, Graph)),
+	subject_in_graph(Graph, S),
 	property_count(Graph, S, C).
 instance_in_graph(Graph, Class, S, C) :-
 	rdf_equal(Class, rdfs:'Resource'), !,
