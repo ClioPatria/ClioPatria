@@ -307,61 +307,79 @@ list_classes(Request) :-
 	http_parameters(Request,
 			[ graph(Graph, [description('Name of the graph')])
 			]),
-	findall(Type, type_in_graph(Graph, Type), Types),
-	sort_by_label(Types, Sorted),
+	types_in_graph(Graph, Map),
+	sort_pairs_by_label(Map, Sorted),
 	reply_html_page(cliopatria(default),
 			title('Classes in graph ~w'-[Graph]),
 			[ h4(['Classes in graph ', \graph_link(Graph)]),
 			  \class_table(Sorted, Graph, [])
 			]).
 
-class_table(Classes, Graph, Options) -->
+class_table(Pairs, Graph, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(top_max(BottomMax), Options, 500)
 	},
 	html(table(class(rdf_browse),
 		   [ \class_table_header
-		   | \table_rows_top_bottom(class_row(Graph), Classes,
+		   | \table_rows_top_bottom(class_row(Graph), Pairs,
 					    TopMax, BottomMax)
 		   ])).
 
 class_table_header -->
 	html(tr([ th('Class'),
-		  th('#Instances'),
-		  th('avg. properties')
+		  th('#Instances')
 		])).
 
-class_row(Graph, Class) -->
-	{ class_statistics(Graph, Class, InstanceCount, PropCount),
-	  (   var(Graph)
+class_row(Graph, Class-InstanceCount) -->
+	{ (   var(Graph)
 	  ->  Params = [class(Class)]
 	  ;   Params = [graph(Graph), class(Class)]
 	  ),
 	  http_link_to_id(list_instances, Params, ILink)
 	},
 	html([ td(\rdf_link(Class)),
-	       td(class(int), a(href(ILink), InstanceCount)),
-	       td(class(int), \float_or_minus(PropCount))
+	       td(class(int), a(href(ILink), InstanceCount))
 	     ]).
 
-float_or_minus(N) -->
-	{ number(N) }, !,
-	html(['~1f'-[N]]).
-float_or_minus(X) --> !,
-	html(X).
-
-%%	class_statistics(+Graph, +Class, -InstanceCount, -PropAvg)
+%%	types_in_graph(+Graph, -Map:list(Type-InstanceCount))
 %
-%	Gather statistics about the use of a class in a given Graph.
+%	Generate a map of all types that appear in Graph with a count on
+%	the number of instances.
 
-class_statistics(Graph, Class, InstanceCount, PropCount) :-
-	aggregate_all(count-sum(C),
-		      instance_in_graph(Graph, Class, _, C),
-		      InstanceCount-PropSum),
-	(   InstanceCount =:= 0
-	->  PropCount = (-)
-	;   PropCount is PropSum/InstanceCount
+types_in_graph(Graph, Map) :-
+	findall(S, subject_in_graph(Graph, S), Subjects),
+	types(Subjects, Pairs),
+	transpose_pairs(Pairs, TypeSubj),
+	group_pairs_by_key(TypeSubj, TypeSubjs),
+	maplist(instance_count, TypeSubjs, Map).
+
+types([], []).
+types([S|T0], [S-C|T]) :-
+	call_det(type_of(S,C), Det),
+	Det == true, !,
+	types(T0, T).
+types([S|T0], Pairs) :-
+	findall(C, type_of(S,C), Cs),
+	multi_class(Cs, S, Pairs, PT),
+	types(T0, PT).
+
+multi_class([], _, Pairs, Pairs).
+multi_class([H|T], S, [S-H|Pairs], PT) :-
+	multi_class(T, S, Pairs, PT).
+
+
+type_of(Subject, Type) :-
+	(   rdf_has(Subject, rdf:type, Type)
+	*-> true
+	;   rdf_equal(Type, rdfs:'Resource')
 	).
+
+call_det(G, Det) :-
+	call(G),
+	deterministic(Det).
+
+instance_count(Type-Instances, Type-Count) :-
+	length(Instances, Count).
 
 %%	instance_in_graph(?Graph, ?Class, +Type,
 %%			  -Subject, -PropertyCount) is nondet.
