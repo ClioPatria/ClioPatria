@@ -518,7 +518,7 @@ v_term(A-V, T) :-
 		 *	   IMAGE SERVER		*
 		 *******************************/
 
-:- http_handler('/cache/url/', image_in_svg, [prefix]).
+:- http_handler(root('cache/url/'), image_in_svg, [prefix]).
 
 %%	image_in_svg(+Request)
 %
