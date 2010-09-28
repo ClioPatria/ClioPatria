@@ -28,9 +28,9 @@
 */
 
 :- module(cpa_browse,
-	  [     graph_info//1,
-		graph_as_resource//1,
-		graph_actions//1
+	  [ graph_info//1,		% +Graph
+	    graph_as_resource//1,	% +Graph
+	    graph_actions//1		% +Graph
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
@@ -76,6 +76,9 @@ gain insight in the data in the RDF store.
 		 *	      PATHS		*
 		 *******************************/
 
+:- http_handler(rdf_browser(.),
+		http_404([index(list_graphs)]),
+		[spawn(cliopatria), prefix]).
 :- http_handler(rdf_browser(list_graphs),     list_graphs,     []).
 :- http_handler(rdf_browser(list_graph),      list_graph,      []).
 :- http_handler(rdf_browser(list_classes),    list_classes,    []).

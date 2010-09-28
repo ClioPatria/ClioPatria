@@ -251,6 +251,11 @@ http:create_pool(sparql_query) :-
 			   [ global(Global),
 			     trail(Trail)
 			   ]).
+http:create_pool(cliopatria) :-
+	thread_pool_create(cliopatria,
+			   50,
+			   [
+			   ]).
 
 
 		 /*******************************
