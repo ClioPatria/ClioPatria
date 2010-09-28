@@ -226,7 +226,7 @@ update_workers(New) :-
 
 cp_welcome :-
 	setting(http:port, Port),
-	print_message(informational, serql(welcome(Port))).
+	print_message(informational, cliopatria(welcome(Port))).
 
 
 		 /*******************************
@@ -260,14 +260,14 @@ http:create_pool(sparql_query) :-
 :- multifile
 	prolog:message/3.
 
-prolog:message(serql(server_started(Port))) -->
+prolog:message(cliopatria(server_started(Port))) -->
 	{ gethostname(Host),
 	  http_location_by_id(root, Root)
 	},
 	[ 'Started ClioPatria server at port ~w'-[Port], nl,
 	  'You may access the server at http://~w:~w~w'-[Host, Port, Root]
 	].
-prolog:message(serql(welcome(DefaultPort))) -->
+prolog:message(cliopatria(welcome(DefaultPort))) -->
 	[ nl,
 	  'Use one of the calls below to start the ClioPatria server:', nl, nl,
 	  '  ?- cp_server.               % start at port ~w'-[DefaultPort], nl,
