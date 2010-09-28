@@ -36,6 +36,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(pairs)).
 :- use_module(library(apply)).
+:- use_module(library(uri)).
 :- use_module(library(ctypes)).
 :- use_module(user(user_db)).
 :- use_module(cliopatria(hooks)).
@@ -127,7 +128,9 @@ menu_item(user/login_form,		'Login') :-
 menu_item(current_user/user_logout,	'Logout') :-
 	someone_logged_on.
 menu_item(current_user/change_password_form,	'Change password') :-
-	someone_logged_on.
+	local_user_logged_on.
+menu_item(current_user/my_openid_page,	'My OpenID page') :-
+	open_id_user(_).
 
 sort_menu_popups(List, Sorted) :-
 	map_list_to_pairs(popup_order, List, Keyed),
@@ -162,7 +165,7 @@ menu_label(current_user, _Default, Label) :-
 	X \== User, !,
 	(   user_property(User, realname(RealName))
 	->  true
-	;   RealName = User
+	;   RealName = 'My account'
 	),
 	(   user_property(User, url(URL))
 	->  Label = a(href(URL), i(RealName))
@@ -186,7 +189,32 @@ id_to_label(Atom, Capital) :-
 underscore_to_space(0'_, 32) :- !.
 underscore_to_space(X, X).
 
+local_user_logged_on :-
+	logged_on(User, X),
+	X \== User,
+	\+ ( uri_components(User, Components),
+	     uri_data(scheme, Components, Scheme),
+	     nonvar(Scheme)
+	   ).
+
 someone_logged_on :-
 	logged_on(User, X),
 	X \== User.
+
+		 /*******************************
+		 *	      OpenID		*
+		 *******************************/
+
+:- http_handler(root(my_openid_page), my_openid_page, []).
+
+my_openid_page(Request) :-
+	open_id_user(User),
+	http_redirect(see_other, User, Request).
+
+open_id_user(User) :-
+	logged_on(User, X),
+	X \== User,
+	uri_components(User, Components),
+	uri_data(scheme, Components, Scheme),
+	nonvar(Scheme).
 
