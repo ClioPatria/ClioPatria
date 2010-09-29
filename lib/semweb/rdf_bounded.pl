@@ -47,6 +47,11 @@ and replacing blank nodes with Prolog variables.
 @see	http://n2.talis.com/wiki/Bounded_Descriptions_in_RDF
 */
 
+:- meta_predicate
+	resource_CBD(3, +, -),
+	graph_CBD(3, +, -).
+
+
 %%	resource_CBD(:Expand, +URI, -Graph) is det.
 %
 %	Graph is the Concise Bounded Description  of URI. This notion is
@@ -55,9 +60,11 @@ and replacing blank nodes with Prolog variables.
 %	@param	Expand is called to enumerate the PO pairs for a subject.
 %		This will often be =rdf= to use rdf/3.
 
-resource_CBD(Expand, URI, Graph) :-
+resource_CBD(Expand, S, Graph) :-
 	empty_assoc(Map0),
-	phrase(r_cbd([URI], Expand, Map0, _Map), Graph).
+	findall(rdf(S,P,O), call(Expand, S,P,O), Graph, BNG),
+	new_bnodes(Graph, Map0, Map1, BN, []),
+	phrase(r_cbd(BN, Expand, Map1, _Map), BNG).
 
 r_cbd([], _, Map, Map) -->
 	[].
@@ -72,16 +79,16 @@ r_cbd([_|T], Expand, Map0, Map) -->
 
 new_bnodes(Var, Map, Map, BN, BN) :-
 	var(Var), !.
-new_bnodes([rdf(_,_,O)|T], Map0, Map, BN, T) :-
+new_bnodes([rdf(_,_,O)|RDF], Map0, Map, BN, T) :-
 	rdf_is_bnode(O), !,
 	(   get_assoc(O, Map0, _)
-	->  new_bnodes(T, Map0, Map, BN, T)
+	->  new_bnodes(RDF, Map0, Map, BN, T)
 	;   put_assoc(O, Map0, true, Map1),
 	    BN = [O|BNT],
-	    new_bnodes(T, Map1, Map, BNT, T)
+	    new_bnodes(RDF, Map1, Map, BNT, T)
 	).
-new_bnodes([_|T], Map0, Map, BN, T) :-
-	new_bnodes(T, Map0, Map, BN, T).
+new_bnodes([_|RDF], Map0, Map, BN, T) :-
+	new_bnodes(RDF, Map0, Map, BN, T).
 
 
 %%	graph_CBD(:Expand, +Graph0, -Graph) is det.

@@ -64,7 +64,7 @@ graph_json(Graph, json(JSON)) :-
 	group_pairs_by_key(Pairs1, SubjectKeyed),
 	maplist(json_description, SubjectKeyed, JSON).
 
-json_description(S-RDF, S=JSON) :-
+json_description(S-RDF, S=json(JSON)) :-
 	maplist(po, RDF, POList),
 	keysort(POList, POSorted),
 	group_pairs_by_key(POSorted, PList),

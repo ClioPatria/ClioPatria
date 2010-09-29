@@ -84,6 +84,7 @@ http:location(sesame,	   root(servlets),     []).
 http:location(sparql,	   root(sparql),       []).
 http:location(rdf_browser, cliopatria(browse), []).
 http:location(api,  	   cliopatria(api),    []).
+http:location(json,  	   api(json),	       []).
 
 
 		 /*******************************
