@@ -157,7 +157,8 @@ graph_link(Graph) -->
 
 list_graph(Request) :-
 	http_parameters(Request,
-			[ graph(Graph, [description('Name of the graph to describe')])
+			[ graph(Graph,
+				[description('Name of the graph to describe')])
 			]),
 	(   rdf_graph(Graph)
 	->  true
@@ -1612,11 +1613,19 @@ pcell(H) -->
 	html(td(H)).
 
 
-%%	table_rows(:Goal, +DataList)//
+%%	table_rows(:Goal, +DataList)// is det.
+%%	table_rows(:Goal, +DataList, +MaxTop, +MaxBottom)// is det.
 %
 %	Emit a number of table rows (=tr=).   The content of each row is
 %	created by calling call(Goal, Data)  as   a  DCG.  The rows have
 %	alternating classes =even= and =odd=.  The first row is =odd=.
+%
+%	The variation table_rows//4  limits  the   size  of  the  table,
+%	placing a cell with  class  =skip=,   indicating  the  number of
+%	skipped rows.
+%
+%	Note that we can also achieve  alternate colouring using the CSS
+%	pseudo classes =|tr:nth-child(odd)|= and =|tr:nth-child(even)|=.
 
 :- meta_predicate
 	table_rows(3, +),
