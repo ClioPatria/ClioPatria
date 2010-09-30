@@ -1,0 +1,27 @@
+---+ Tutorial work
+
+    * How to add a web-page
+    * How to define a new skin
+
+---+ Implementation work
+
+    * Test LOD
+    * Extend the HTML browser with RDFa
+    * Renamed (git) components to modules in version.pl?
+
+---+ Configuration
+
+Seems we are falling into the same trap   as Apache, building up a giant
+config file. We must modularize this.  This   is  probably not very hard
+because the ordering of code that is loaded typically doesn't matter.
+
+One of the options is to create a directory with small config blocks, as
+we now have sections in run.pl.in.  Say examples/config. Now also create
+an (empty) directory config. All *.pl  files   in  config  are loaded in
+alphabetical order. Maybe  we  should   name  the  files 00-prefixes.pl,
+10-settings.pl, etc. Or, A5-, B5, etc.?
+
+---+ Prolog
+
+Fix location and presentation of multifile   (hooks) in PlDoc: move them
+to the end, get colouring consistent and put [multifile] into the title.
