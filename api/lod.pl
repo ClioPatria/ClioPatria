@@ -44,7 +44,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_json)).
 :- use_module(library(semweb/rdf_label)).
-:- use_module(library(semweb/rdf_bounded)).
+:- use_module(library(semweb/rdf_describe)).
 :- use_module(library(settings)).
 :- use_module(library(rdf_write)).
 :- use_module(library(uri)).

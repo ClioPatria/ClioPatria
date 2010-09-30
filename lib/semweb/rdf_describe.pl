@@ -28,7 +28,7 @@
     the GNU General Public License.
 */
 
-:- module(rdf_bounded,
+:- module(rdf_describe,
 	  [ resource_CBD/3,		% :Expand, +URI, -Graph
 	    graph_CBD/3,		% :Expand, +Graph0, -Graph
 	    bnode_vars/3		% +Graph0, -VarGraph, -BNodeVars
