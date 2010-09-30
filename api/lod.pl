@@ -28,7 +28,9 @@
     the GNU General Public License.
 */
 
-:- module(api_lod, []).
+:- module(api_lod,
+	  [ lod_api/1			% +Request
+	  ]).
 
 :- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
@@ -50,80 +52,167 @@
 :- use_module(applications(browse)).
 
 
-:- setting(lod:prefix, atom, '.',
-	   'URL prefix that triggers the lod http handler').
+/** <module> LOD - Linked Open Data server
+
+Linked (Open) Data turns RDF URIs   (indentifiers) into URLs (locators).
+Requesting the data  behind  the  URL   returns  a  description  of  the
+resource. So, if we see   a resource http://example.com/employe/bill, we
+get do an HTTP GET  request  and   expect  to  receive  a description of
+_bill_.  This module adds LOD facilities to ClioPatria.
+
+---++ Running the LOD server
+
+There are several ways to run the LOD server.
+
+    1. The simplest way to realise LOD is to run ClioPatria there where
+    the authority component of the URL points to (see uri_components/2
+    for decomposing URIs).  This implies you must be able to create a
+    DNS binding for the host and be able to run ClioPatria there.
+
+    2. Sometimes the above does not work, because the port is already
+    assigned to another machine, you are not allowed to run ClioPatria
+    on the target host, the target is behind a firewall, etc. In that
+    case, notable if the host runs Apache, you can exploit the Apache
+    module =mod_proxy= and proxy the connections to a location where
+    ClioPatria runs. If you ensure that the path on Apache is the same
+    as the path on ClioPatria, the following Apache configuration rule
+    solves the problem:
+
+    ==
+    ProxyPass /rdf/ http://cliopatria-host:3020/rdf/
+    ==
+
+    3. Both above methods require no further configuration.
+    Unfortunately, they require a registered domain control over DNS
+    and administrative rights over certain machines.  A solution that
+    doesn't require this is to use www.purl.org.  This allows you to
+    redirect URLs within the purl domain to any location you control.
+    The redirection method can be defined with purl.  In the semantic
+    web community, we typically use *|See other|* (303).  The catch
+    is that if the address arrives at ClioPatria, we no longer know
+    where it came from.  This is not a problem in (1), as there was
+    no redirect.  It is also not a problem in (2), because Apache
+    adds a header =|x-forwarded-host|=.  Unfortunately, there is
+    no way to tell you are activated through a redirect, let alone
+    where the redirect came from.
+
+    To deal with this situation, we define an additional option for
+    http_handler/3, redirected_from. For example, if
+    http://www.purl.org/vocabularies/myvoc/ is redirected to /myvoc/
+    on ClioPatria, we use:
+
+    ==
+    :- http_handler('/myvoc/', lod_api,
+		    [ redirected_from('http://www.purl.org/vocabularies/myvoc/'),
+		      prefix
+		    ]).
+    ==
+
+By default, there is no HTTP handler  pointing to lod_api/1. The example
+above describes how to deal with redirected  URIs. The cases (1) and (2)
+must also be implemented by registering a  handler. This can be as blunt
+as registering a handler for the root   of the server, but typically one
+would use one or more handlers  that   deal  with  sub-trees that act as
+Linked Data repositories.  Handler  declarations   should  use  absolute
+addresses to guarantee a match with the RDF  URIs, even if the server is
+relocated by means of the http:prefix setting.  For example:
+
+    ==
+    :- http_handler('/rdf/', lod_api, [prefix]).
+    ==
+
+@see http://linkeddata.org/
+*/
+
 :- setting(lod:redirect, boolean, false,
-	   'Toggle the use of 303 redirects').
-:- setting(lod:global_host, atom, '',
-	   'Global hostname used to rewrite local requests').
-
-
-:- setting(lod:prefix, Prefix),
-   http_handler(root(Prefix), lod_api, [prefix]).
-
+	   'If true, redirect from accept-header to extension').
 
 %%	lod_api(+Request)
 %
-%	Perform queries on Resource and output result in JSON (by
-%	default, or other format if requested explictly in the http
-%	accept header).
+%	Reply to a Linked Data request. The  handler is capable of three
+%	output formats. It decides on the   desired  format based on the
+%	HTTP =Accept= header-field. If no acceptable format is found, it
+%	replies with a human-readable description  of the resource using
+%	ClioPatria RDF browser-page as defined by list_resource//2.
+
 
 lod_api(Request) :-
-	request_uri_components(Request, URIComponents),
+	lod_uri(Request, URI),
 	(   memberchk(accept(AcceptHeader), Request)
 	->  http_parse_header_value(accept, AcceptHeader, AcceptList)
 	;   AcceptList = []
 	),
-	lod_request(URIComponents, AcceptList, Request).
+	lod_request(URI, AcceptList, Request).
 
-lod_request(URIComponents, AcceptList, Request) :-   % reply 303 See Other
-	setting(lod:redirect, true),
-	redirect(URIComponents, AcceptList, SeeOther), !,
-	http_redirect(see_other, SeeOther, Request).
-lod_request(URIComponents, _AcceptList, _Request) :- % reply 200 OK
-	format_request(URIComponents, URI, Format), !,
-	lod_describe(Format, URI).
-lod_request(URIComponents, AcceptList, _Request) :-  % reply 200 OK
-	uri_request(URIComponents, URI), !,
+lod_request(URI, AcceptList, Request) :-
+	rdf_subject(URI), !,
 	preferred_format(AcceptList, Format),
+	(   cliopatria:redirect_uri(Format, URI, SeeOther)
+	->  http_redirect(see_other, SeeOther, Request)
+	;   setting(lod:redirect, true),
+	    redirect(URI, AcceptList, SeeOther)
+	->  http_redirect(see_other, SeeOther, Request)
+	;   lod_describe(Format, URI)
+	).
+lod_request(URL, _AcceptList, _Request) :-
+	format_request(URL, URI, Format), !,
 	lod_describe(Format, URI).
-lod_request(URIComponents, _AcceptList, _Request) :- % reply 404 Not Found
+lod_request(URIComponents, _AcceptList, _Request) :-
 	uri_components(URI, URIComponents),
 	throw(http_reply(not_found(URI))).
 
 
-%%	request_uri_components(+Request, -URIComponents)
+%%	lod_uri(+Request, -URI)
 %
-%	URIComponents contains all element in Request that together
-%	create the request URL.
-%
-%	@see	uri_components/2 and uri_data/3 for the description of
-%		URIComponents
+%	URI is the originally requested URI.   This predicate deals with
+%	redirections if the HTTP handler was registered using the option
+%	redirected_from(URL). Otherwise it resolves   the correct global
+%	URI using http_current_host/4.
 
-request_uri_components(Request, Components) :-
+lod_uri(Request, URI) :-
+	handler_options(Request, Location, Options),
+	memberchk(redirected_from(Org), Options),
+	memberchk(request_uri(ReqURI), Request),
+	atom_concat(Location, Rest, ReqURI),
+	atom_concat(Org, Rest, URI).
+lod_uri(Request, URI) :-
 	memberchk(request_uri(ReqURI), Request),
 	http_current_host(Request, Host, Port,
 			  [ global(true)
 			  ]),
-	uri_components(ReqURI, Components),
-	uri_authority_data(host, Auth, Host),
-	uri_authority_data(port, Auth, Port),
-	uri_authority_components(Authority, Auth),
-	uri_data(authority, Components, Authority).
+	(   Port == 80
+	->  atomic_list_concat(['http://', Host, ReqURI], URI)
+	;   atomic_list_concat(['http://', Host, :, Port, ReqURI], URI)
+	).
 
 
-%%	redirect(+URIComponents, +AcceptList, -RedirectURL)
+%%	handler_options(+Request, -Location, -Options) is det.
+%
+%	True if Options are  the  options   that  are  defined  with the
+%	HTTP-handler that processes request.
+
+handler_options(Request, Location, Options) :-
+	memberchk(path(Path), Request),
+	(   memberchk(path_info(Rest), Request),
+	    atom_concat(Location, Rest, Path)
+	->  true
+	;   Location = Path
+	),
+	http_current_handler(Location, _:_, Options).
+
+
+%%	redirect(+URI, +AcceptList, -RedirectURL)
 %
 %	Succeeds if URI is in the store and a RedirectURL is found for
 %	it.
 
-redirect(URIComponents, AcceptList, To) :-
-	uri_components(URI, URIComponents),
-	rdf_subject(URI), !,
+redirect(URI, AcceptList, To) :-
+	rdf_subject(URI),
 	preferred_format(AcceptList, Format),
-	(   cliopatria:redirect_url(Format, URIComponents, To)
+	(   cliopatria:redirect_url(Format, URI, To)
 	->  true
-	;   uri_data(path, URIComponents, Path0),
+	;   uri_components(URI, URIComponents),
+	    uri_data(path, URIComponents, Path0),
 	    format_suffix(Format, Suffix),
 	    file_name_extension(Path0, Suffix, Path),
 	    uri_data(path, URIComponents, Path, ToComponents),
@@ -144,30 +233,21 @@ preferred_format(AcceptList, Format) :-
 preferred_format(_, html).
 
 
-%%	format_request(+URIComponents, -URI, -Format) is semidet.
+%%	format_request(+URL, -URI, -Format) is semidet.
 %
-%	True if URIComponents contains a suffix   that  corresponds to a
-%	supported output format, and  the  global   URI  occurs  in  the
-%	database.
+%	True if URL contains a suffix   that  corresponds to a supported
+%	output format, and the global URI occurs in the database.
 
-format_request(URIComponents, URI, Format) :-
-	uri_data(path, URIComponents, Path),
+format_request(URL, URI, Format) :-
+	uri_components(URL, URLComponents),
+	uri_data(path, URLComponents, Path),
 	file_name_extension(Base, Ext, Path),
 	(   format_suffix(Format, Ext),
 	    mimetype_format(_, Format)
 	->  true
 	),
-	uri_data(path, URIComponents, Base, PlainComponents),
+	uri_data(path, URLComponents, Base, PlainComponents),
 	uri_components(URI, PlainComponents),
-	rdf_subject(URI).
-
-%%	uri_request(+URIComponents, -URI) is semidet.
-%
-%	Succeeds when the global URI corresponding with URIComponents
-%	occurs in the database.
-
-uri_request(URIComponents, URI) :-
-	uri_components(URI, URIComponents),
 	rdf_subject(URI).
 
 
@@ -232,18 +312,25 @@ format_suffix(html,   html).
 
 :- multifile
 	cliopatria:redirect_url/3,
-	cliopatria:uri_describe/2.
+	cliopatria:lod_description/2.
 
-%%	cliopatria:redirect_url(+Format, +URLComponents, -RedirectURL)
+%%	cliopatria:redirect_url(+Format, +URI, -RedirectURL)
 %
-%	Compose a RedirectionURL based on the output Format and the
-%	URLComponents.
+%	Compose a RedirectionURL based on the  output Format and the URI
+%	that is in our RDF database. For example, this could map the URI
+%	http://example.com/employe/bill   into   Bill's    homepage   at
+%	http://example.com/~bill if Format is =html=.  The default is to
+%	a format-specific extension  to  the   path  component  of  URI,
+%	returning  e.g.,  http://example.com/employe/bill.rdf    if  the
+%	requested format is RDF.
 %
-%       @see This hook is used by redirct/3.
+%       @see This hook is used by redirect/3.
+%       @param Format is one of =xmlrdf=, =json= or =html=.
 
 
-%%	cliopatria:uri_describe(+URI, -RDF:list(rdf(s,p,o)))
+%%	cliopatria:lod_description(+URI, -RDF:list(rdf(s,p,o)))
 %
-%	RDF is list of triples describing URI.
+%	RDF is list of triples describing URI. The default is to use the
+%	Concise Bounded Description as implemented by graph_CBD/3.
 %
-%	@see This hook is used by uri_describe/2
+%	@see This hook is used by lod_description/2
