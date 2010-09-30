@@ -30,7 +30,8 @@
 :- module(cpa_browse,
 	  [ graph_info//1,		% +Graph
 	    graph_as_resource//1,	% +Graph
-	    graph_actions//1		% +Graph
+	    graph_actions//1,		% +Graph
+	    list_resource//2		% +URI, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
@@ -865,13 +866,19 @@ list_resource(Request) :-
 	label_of(URI, Label),
 	reply_html_page(cliopatria(default),
 			title('Resource ~w'-[Label]),
-			\list_resource(URI, Graph, Sorted)).
+			\list_resource(URI,
+				       [ graph(Graph),
+					 sorted(Sorted)
+				       ])).
 
-%%	list_resource(+URI, ?Graph, +Sorted)// is det.
+%%	list_resource(+URI, +Options)// is det.
 %
-%	Component that shows the properties of a resource.
+%	Component that emits the local view for URI.
 
-list_resource(URI, Graph, Sorted) -->
+list_resource(URI, Options) -->
+	{ option(graph(Graph), Options, _),
+	  option(sorted(Sorted), Options, default)
+	},
 	html([ h4([ 'Local view for "',
 		    \location(URI, Graph), '"'
 		  ]),
@@ -879,6 +886,7 @@ list_resource(URI, Graph, Sorted) -->
 	       p(\as_object(URI, Graph)),
 	       \uri_info(URI, Graph)
 	     ]).
+
 
 %%	location(+URI, ?Graph) is det.
 %
