@@ -63,8 +63,8 @@ and replacing blank nodes with Prolog variables.
 resource_CBD(Expand, S, Graph) :-
 	empty_assoc(Map0),
 	findall(rdf(S,P,O), call(Expand, S,P,O), Graph, BNG),
-	new_bnodes(Graph, Map0, Map1, BN, []),
-	phrase(r_cbd(BN, Expand, Map1, _Map), BNG).
+	new_bnodes(Graph, BN, []),
+	phrase(r_cbd(BN, Expand, Map0, _Map), BNG).
 
 r_cbd([], _, Map, Map) -->
 	[].
@@ -72,23 +72,19 @@ r_cbd([H|T], Expand, Map0, Map, Graph, Tail) :-
 	rdf_is_bnode(H),
 	\+ get_assoc(H, Map0, _), !,
 	findall(rdf(H,P,O), call(Expand, H,P,O), Graph, Tail0),
-	new_bnodes(Graph, Map0, Map1, BN, T),
-	r_cbd(BN, Expand, Map1, Map, Tail0, Tail).
+	new_bnodes(Graph, BN, T),
+	r_cbd(BN, Expand, Map0, Map, Tail0, Tail).
 r_cbd([_|T], Expand, Map0, Map) -->
 	r_cbd(T, Expand, Map0, Map).
 
-new_bnodes(Var, Map, Map, BN, BN) :-
+new_bnodes(Var, BN, BN) :-
 	var(Var), !.
-new_bnodes([rdf(_,_,O)|RDF], Map0, Map, BN, T) :-
-	rdf_is_bnode(O), !,
-	(   get_assoc(O, Map0, _)
-	->  new_bnodes(RDF, Map0, Map, BN, T)
-	;   put_assoc(O, Map0, true, Map1),
-	    BN = [O|BNT],
-	    new_bnodes(RDF, Map1, Map, BNT, T)
+new_bnodes([rdf(_,_,O)|RDF], BN, T) :-
+	(   rdf_is_bnode(O)
+	->  BN = [O|BNT],
+	    new_bnodes(RDF, BNT, T)
+	;   new_bnodes(RDF, BN, T)
 	).
-new_bnodes([_|RDF], Map0, Map, BN, T) :-
-	new_bnodes(RDF, Map0, Map, BN, T).
 
 
 %%	graph_CBD(:Expand, +Graph0, -Graph) is det.

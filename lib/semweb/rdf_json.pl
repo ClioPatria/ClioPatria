@@ -64,7 +64,8 @@ graph_json(Graph, json(JSON)) :-
 	group_pairs_by_key(Pairs1, SubjectKeyed),
 	maplist(json_description, SubjectKeyed, JSON).
 
-json_description(S-RDF, S=json(JSON)) :-
+json_description(S-RDF, Key=json(JSON)) :-
+	uri_key(S, Key, _Type),
 	maplist(po, RDF, POList),
 	keysort(POList, POSorted),
 	group_pairs_by_key(POSorted, PList),
@@ -77,6 +78,12 @@ bnode_ids([bnode(N)|T], N) :-
 	N2 is N + 1,
 	bnode_ids(T, N2).
 
+uri_key(bnode(NodeID), Key, bnode) :- !,
+	atom_concat('_:', NodeID, Key).
+uri_key(BNode, _, _) :-
+	rdf_is_bnode(BNode), !,
+	type_error(rdf_resource, BNode).
+uri_key(URI, URI, uri).
 
 %%	graph_to_json(+Pairs:property-values, -JSON) is det.
 %
@@ -109,14 +116,8 @@ objects_to_json([R|T], [json(JSON)|Vs]) :-
 rdf_object_to_json(literal(Lit), Object) :- !,
 	Object = [value=Txt, type=literal|Rest],
 	literal_to_json(Lit, Txt, Rest).
-rdf_object_to_json(bnode(NodeID), Object) :- !,
-	atom_concat('_:', NodeID, Txt),
-	Object = [value=Txt, type=bnode].
-rdf_object_to_json(URI, _Object) :-
-	rdf_is_bnode(URI), !,
-	type_error(rdf_resource, URI).
-rdf_object_to_json(URI, Object) :-
-	Object = [value=URI, type=uri].
+rdf_object_to_json(URI, [value=Key, type=Type]) :-
+	uri_key(URI, Key, Type).
 
 %%	literal_to_json(+Literal, -Text, -Attributes)
 %
