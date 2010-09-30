@@ -42,9 +42,6 @@
 :- use_module(library(settings)).
 :- use_module(library(url)).
 
-:- use_module(rdf_json).
-:- use_module(rdf_html).
-
 :- setting(lod:prefix, atom, '.',
 	   'URL prefix that triggers the lod http handler').
 :- setting(lod:redirect, boolean, false,
