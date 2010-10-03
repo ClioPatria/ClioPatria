@@ -140,7 +140,7 @@ cp_server(Options) :-
 		    [ port(Port),
 		      HTTPOptions
 		    ]),
-	print_message(informational, serql(server_started(Port))),
+	print_message(informational, cliopatria(server_started(Port))),
 	setup_call_cleanup(http_handler(root(.), busy_loading,
 					[ priority(1000),
 					  hide_children(true),
