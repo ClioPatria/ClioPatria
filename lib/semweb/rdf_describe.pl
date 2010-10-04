@@ -94,6 +94,7 @@ new_bnodes([rdf(_,_,O)|RDF], BN, T) :-
 
 graph_CBD(Expand, Graph0, Graph) :-
 	empty_assoc(Map0),
+	must_be(list, Graph0),
 	phrase(gr_cbd(Graph0, Expand, Map0, _Map), Graph).
 
 gr_cbd([], _, Map, Map) -->
