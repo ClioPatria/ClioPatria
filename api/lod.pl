@@ -286,7 +286,7 @@ send_graph(json, RDF) :-
 lod_description(URI, RDF) :-
 	cliopatria:lod_description(URI, RDF), !.
 lod_description(URI, RDF) :-
-	graph_CBD(rdf, URI, RDF).
+	resource_CBD(rdf, URI, RDF).
 
 
 %%	mimetype_format(?MimeType, ?Format) is nondet.
