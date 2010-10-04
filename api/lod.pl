@@ -157,8 +157,7 @@ lod_request(URI, AcceptList, Request) :-
 lod_request(URL, _AcceptList, _Request) :-
 	format_request(URL, URI, Format), !,
 	lod_describe(Format, URI).
-lod_request(URIComponents, _AcceptList, _Request) :-
-	uri_components(URI, URIComponents),
+lod_request(URI, _AcceptList, _Request) :-
 	throw(http_reply(not_found(URI))).
 
 
