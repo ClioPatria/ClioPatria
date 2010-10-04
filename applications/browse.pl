@@ -29,7 +29,7 @@
 
 :- module(cpa_browse,
 	  [ graph_info//1,		% +Graph
-	    graph_as_resource//1,	% +Graph
+	    graph_as_resource//2,	% +Graph, +Options
 	    graph_actions//1,		% +Graph
 	    list_resource//2		% +URI, +Options
 	  ]).
@@ -168,7 +168,7 @@ list_graph(Request) :-
 			title('RDF Graph ~w'-[Graph]),
 			[ h4('Summary information for graph "~w"'-[Graph]),
 			  \graph_info(Graph),
-			  \graph_as_resource(Graph),
+			  \graph_as_resource(Graph, []),
 			  \graph_actions(Graph)
 			]).
 
@@ -419,11 +419,11 @@ instance_in_graph(Graph, Class, S, C) :-
 property_count(Graph, S, Count) :-
 	aggregate_all(count, rdf(S, _, _, Graph), Count).
 
-%%	graph_as_resource(+Graph)// is det.
+%%	graph_as_resource(+Graph, Options)// is det.
 %
 %	Show resource info for a graph if it is described.
 
-graph_as_resource(Graph) -->
+graph_as_resource(Graph, Options) -->
 	{ (   rdf(Graph, _, _)
 	  ;   rdf(_, Graph, _)
 	  ;   rdf(_, _, Graph)
@@ -432,9 +432,9 @@ graph_as_resource(Graph) -->
 	html([ h4([ 'Local view for "',
 		    \location(Graph, _), '"'
 		  ]),
-	       \local_view(Graph, _, [])
+	       \local_view(Graph, _, Options)
 	     ]).
-graph_as_resource(_) --> [].
+graph_as_resource(_, _) --> [].
 
 
 		 /*******************************
