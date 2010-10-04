@@ -311,10 +311,10 @@ format_suffix(html,   html).
 		 *******************************/
 
 :- multifile
-	cliopatria:redirect_url/3,
+	cliopatria:redirect_uri/3,
 	cliopatria:lod_description/2.
 
-%%	cliopatria:redirect_url(+Format, +URI, -RedirectURL)
+%%	cliopatria:redirect_uri(+Format, +URI, -RedirectURL)
 %
 %	Compose a RedirectionURL based on the  output Format and the URI
 %	that is in our RDF database. For example, this could map the URI
@@ -334,3 +334,9 @@ format_suffix(html,   html).
 %	Concise Bounded Description as implemented by graph_CBD/3.
 %
 %	@see This hook is used by lod_description/2
+
+
+
+
+
+
