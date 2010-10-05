@@ -33,7 +33,8 @@
 :- module(cp_server,
 	  [ cp_server/0,
 	    cp_server/1,		% +Options
-	    cp_welcome/0
+	    cp_welcome/0,
+	    cp_after_load/1		% :Goal
 	  ]).
 
 /** <module> ClioPatria main module
@@ -106,6 +107,9 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 		if(not_loaded)
 	      ]).
 
+:- dynamic
+	after_load_goal/1.
+
 %%	cp_server is det.
 %%	cp_server(:Options) is det.
 %
@@ -147,17 +151,52 @@ cp_server(Options) :-
 					  id(busy_loading),
 					  prefix
 					]),
-			   (   rdf_attach_store(QOptions),
-			       call(AfterLoad)
-			   ),
+			   rdf_attach_store(QOptions, AfterLoad),
 			   http_delete_handler(id(busy_loading))).
 
 is_meta(after_load).
 
-rdf_attach_store(Options) :-
+%%	rdf_attach_store(+Options, :AfterLoad) is det.
+%
+%	Attach     the     RDF     store       using     the     setting
+%	cliopatria:persistent_store and call the `after-load' goals.
+%
+%	@see cp_after_load/1 for registering after-load goals.
+
+rdf_attach_store(Options, AfterLoad) :-
 	setting(cliopatria:persistent_store, Directory),
 	Directory \== '', !,
-        rdf_attach_db(Directory, Options).
+        rdf_attach_db(Directory, Options),
+	forall(after_load_goal(Goal),
+	       call_warn(Goal)),
+	call_warn(AfterLoad).
+
+call_warn(Goal) :-
+	(   catch(Goal, E, true)
+	->  (   var(E)
+	    ->	true
+	    ;	print_message(warning, E)
+	    )
+	;   print_message(warning, goal_failed(Goal))
+	).
+
+%%	cp_after_load(:Goal) is det.
+%
+%	Register Goal to be executed after  reloading the RDF persistent
+%	DB. Note that  already  registered   goals  are  not duplicated.
+%	Running a goal after loading the   database  is commonly used to
+%	ensure presence of relevant schemas or build additional indices.
+%	Note that it is possible to   start  a thread for time-consuming
+%	tasks (see thread_create/3).
+
+:- meta_predicate
+	after_load(0).
+
+cp_after_load(Goal) :-
+	(   after_load_goal(Goal)
+	->  true
+	;   assert(after_load_goal(Goal))
+	).
 
 
 %%	busy_loading(+Request)
