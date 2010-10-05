@@ -113,15 +113,21 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 %%	cp_server is det.
 %%	cp_server(:Options) is det.
 %
-%	Start the HTTP server.  Defined options are:
+%	Start the HTTP server.  This predicate preforms the following
+%	steps:
 %
-%		* port(Port)
-%		Attach to Port instead of the port specified in the
-%		configuration file settings.db.
+%	    1. Load application settings from =|settings.db|=
+%	    2. Load user-data from =|users.db|=
+%	    3. Start the HTTP server
+%	    4. Load the RDF persistent database from =|RDF-store|=
+%	    5. Execute `after load' options registered using
+%	       cp_after_load/1.
 %
-%		* after_load(:Goal)
-%		Run Goal after loading/initialising the database, but
-%		before releasing the server to the public.
+%	Defined options are:
+%
+%	    * port(Port)
+%	    Attach to Port instead of the port specified in the
+%	    configuration file settings.db.
 
 :- meta_predicate
 	cp_server(:).
