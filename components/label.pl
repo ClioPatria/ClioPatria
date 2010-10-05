@@ -225,17 +225,13 @@ resource_label(R, _) -->
 resource_flabel(plain, R) --> !,
 	html(R).
 resource_flabel(label, R) --> !,
-	(   { rdf_label(R, Literal), !,
-	      literal_text(Literal, Label)
-	    }
+	(   { rdf_display_label(R, Label) }
 	->  html([span(class(rlabel),Label)])
 	;   turtle_label(R)
 	).
 resource_flabel(nslabel, R) --> !,
 	(   { rdf_global_id(NS:_Local, R), !,
-	      label_property(P),
-	      rdf_has(R, P, Value),
-	      literal_text(Value, Label)
+	      rdf_display_label(R, Label)
 	    }
 	->  html([span(class(ns),NS),':',span(class(rlabel),Label)])
 	;   turtle_label(R)
