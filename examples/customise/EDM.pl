@@ -23,13 +23,19 @@ Model) data. It realises two customizations:
     a link to the external resource.
 
     * Context graphs are customised, both in how they are computed and
-    in the rendering of the EDM classe.s
+    in the rendering of the EDM classes.
 
 @see cliopatria(hooks) for a description of the hooks.
 */
 
 :- rdf_register_ns(ens, 'http://www.europeana.eu/schemas/edm/').
 :- rdf_register_ns(ore, 'http://www.openarchives.org/ore/terms/').
+
+%%	cliopatria:display_link(+URI, +Options)// is det.
+%
+%	Display EDM WebResources.  If  the   resource  is  a  thumbnail,
+%	display it inline. Else put an icon behind the default link that
+%	links to the external site.
 
 cliopatria:display_link(R, Options) -->
 	{ \+ memberchk(edm(false), Options),
@@ -78,6 +84,13 @@ content_type(URL, _) :-
 % Use SVG context graphs, so we can include images.
 
 :- set_setting_default(graphviz:format, svg).
+
+%%	cliopatria:context_graph(+URI, -Graph)
+%
+%	Compute the EDM context graph. This is currently defined to do a
+%	two-step breadth-first expansion of the graph from URI using the
+%	known EDM properties. Branching from a single node is limited to
+%	20 and the total graph is not expanded beyond 100 nodes.
 
 :- rdf_meta
 	edm_context(r).
@@ -134,6 +147,11 @@ edm_context(ens:isNextInSequence).
 edm_context(ens:object).		% this is *always* a thumbnail
 edm_context(ens:hasView).
 
+
+%%	cliopatria:node_shape(+URI, -Shape, +Options)
+%
+%	Realise   EDM-specific   vizualisation   of     nodes   in   the
+%	context-graph.
 
 cliopatria:node_shape(URI, Shape, Options) :-
 	memberchk(start(URI), Options),
