@@ -37,6 +37,7 @@
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_describe)).
+:- use_module(library(semweb/rdf_bnode)).
 :- use_module(library(pairs)).
 :- use_module(library(apply)).
 :- use_module(library(assoc)).

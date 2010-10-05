@@ -30,8 +30,7 @@
 
 :- module(rdf_describe,
 	  [ resource_CBD/3,		% :Expand, +URI, -Graph
-	    graph_CBD/3,		% :Expand, +Graph0, -Graph
-	    bnode_vars/3		% +Graph0, -VarGraph, -BNodeVars
+	    graph_CBD/3
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(assoc)).
@@ -110,45 +109,3 @@ gr_cbd([Triple|T], Expand, Map0, Map) -->
 	[Triple],
 	gr_cbd(T, Expand, Map0, Map).
 
-
-		 /*******************************
-		 *        BNODE --> VAR		*
-		 *******************************/
-
-%%	bnode_vars(+RDF, -RDFWithVars, -Vars) is det.
-%
-%	Consistently replace bnodes in  RDF   with  Prolog  variable and
-%	unify Vars with a list of the variables found.
-%
-%	@param  RDF is a list rdf(S,P,O)
-%	@param  Resolved is a list rdf(S,P,O), where resources may be
-%		a variable
-%	@param	NodeIDs is a list of variables representing the bnodes.
-
-bnode_vars(Graph0, Graph, NodeIDs) :-
-	empty_assoc(Map0),		% BNodeID --> Var
-	bnode_vars(Graph0, Graph, Map0, Map),
-	assoc_to_values(Map, NodeIDs).
-
-bnode_vars([], [], Map, Map).
-bnode_vars([rdf(S0,P0,O0)|T0], Graph, Map0, Map) :-
-	(   rdf_is_bnode(S0)
-	;   rdf_is_bnode(P0)
-	;   rdf_is_bnode(O0)
-	), !,
-	Graph = [rdf(S,P,O)|T],
-	bnode_var(S0, S, Map0, Map1),
-	bnode_var(P0, P, Map1, Map2),
-	bnode_var(O0, O, Map2, Map3),
-	bnode_vars(T0, T, Map3, Map).
-bnode_vars([Triple|T0], [Triple|T], Map0, Map) :-
-	bnode_vars(T0, T, Map0, Map).
-
-
-bnode_var(R0, BNodeID, Map0, Map) :-
-	rdf_is_bnode(R0), !,
-	(   get_assoc(R0, Map0, BNodeID)
-	->  Map = Map0
-	;   put_assoc(R0, Map0, BNodeID, Map)
-	).
-bnode_var(R, R, Map, Map).
