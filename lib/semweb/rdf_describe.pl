@@ -32,7 +32,9 @@
 	  [ rdf_bounded_description/4,	% :Expand, +Type, +URI, -Graph
 	    resource_CBD/3,		% :Expand, +URI, -Graph
 	    graph_CBD/3,		% :Expand, +Graph0, -Graph
-	    rdf_include_reifications/3	% :Expand, +Graph0, -Graph
+	    rdf_include_reifications/3,	% :Expand, +Graph0, -Graph
+	    rdf_include_labels/3,	% :Expand, +Graph0, -Graph
+	    lcbd_label/3		% +Subject, -Pred, -Label
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(assoc)).
@@ -41,9 +43,18 @@
 
 /** <module> RDF Bounded descriptions
 
-The predicates in this  module  deal   with  blank  nodes.  They provide
-expansion of URIs and graphs to include  the descriptions of blank nodes
-and replacing blank nodes with Prolog variables.
+The predicates in this module deal   with  `RDF bounded descriptions'. A
+bounded description is a  subgraph  that   describes  a  single resource
+(URI). Unfortunately, such  an  isolated   description  is  not possible
+without the possibility of loosing semantics. We provide some meaningful
+approximations described in the literature.
+
+Scanning the definitions given in  the   link  below, we distinguish two
+ortogonal expansions: one expanding the graph  and another adding either
+reifications    or    labels.    Expansion      is     implemented    by
+rdf_bounded_description/4, while the  returned  graph   can  be  further
+expanded using rdf_include_reifications/3 and/or rdf_include_labels/3.
+
 
 @tbd	Also implement the variations on CBD
 @see	http://n2.talis.com/wiki/Bounded_Descriptions_in_RDF
@@ -181,3 +192,44 @@ reification(S,P,O, Expand, Triple) :-
 	;   Triple = rdf(Stmt, OP, O)
 	).
 
+%%	rdf_include_labels(:Expand, +Graph0, -Graph) is det.
+%
+%	Include missing `label' statements in   Graph0.  Expand must
+%	provide label triples on
+%
+%	    call(Expand, S, P, O)
+%
+%	The  predicate  lcbd_label/3  does   this    for   the  standard
+%	definition, considering the properties  rdfs:label, rdfs:comment
+%	and rdfs:seeAlso.
+
+rdf_include_labels(Expand, Graph0, Graph) :-
+	phrase(label_triples(Graph0, Expand), LabelRDF),
+	(   LabelRDF == []
+	->  Graph = Graph0
+	;   append(Graph0, LabelRDF, Graph)
+	).
+
+label_triples([], _) --> [].
+label_triples([rdf(_,_,O)|T], Expand) -->
+	findall(T, label_triple(O,Expand,T)),
+	label_triples(T, Expand).
+
+label_triple(O, Expand, Triple) :-
+	call(Expand, O, LP, Label),
+	Triple = rdf(O, LP, Label).
+
+:- rdf_meta
+	lcbd_property(r).
+
+%%	lcbd_label(+S, -P, -Label) is nondet.
+%
+%	Standard conforming `Expand' for rdf_include_labels/3.
+
+lcbd_label(S, P, Label) :-
+	lcbd_property(P),
+	rdf_has(S, P, Label).
+
+lcbd_property(rdfs:label).
+lcbd_property(rdfs:comment).
+lcbd_property(rdfs:seeAlso).
