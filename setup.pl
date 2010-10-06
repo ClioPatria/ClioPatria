@@ -25,44 +25,102 @@
 :- module(cp_setup,
 	  [ setup/0
 	  ]).
+:- use_module(library(apply)).
+
+/** <module> ClioPatria installation script
+*/
+
+:- multifile
+	user:file_search_path/2.
+:- dynamic
+	user:file_search_path/2.
+
+:- prolog_load_context(directory, Dir),
+   asserta(user:file_search_path(cliopatria, Dir)).
+
 
 %%	setup
 %
 %	Prepare current directory for running ClioPatria
 
 setup :-
-	install_pl_files,
+	absolute_file_name(cliopatria(.),
+			   ClioDir,
+			   [ file_type(directory),
+			     access(read)
+			   ]),
+	working_directory(CWD, CWD),
+	setup(ClioDir, CWD),
 	goodbye.
 
 
-%%	install_pl_files
+%%	setup(SourceDir, DestDir)
 %
 %	Copy all *.pl.in to *.pl, while replacing @var@ constructs and
 %	make the result executable.
 %
 %	@tbd	Provide public interface for '$mark_executable'/1.
 
-install_pl_files :-
-	substitutions(Vars),
-	format(user_error, 'Localizing scripts ...', []),
-	expand_file_name('*.pl.in', Files),
-	maplist(install_pl_file(Vars), Files),
+setup(SrcDir, DstDir) :-
+	localize_scripts(SrcDir, DstDir),
+	create_conf_d(SrcDir, DstDir).
+
+%%	localize_scripts(+SrcDir, +DstDir)
+%
+%	Copy all *.in files in SrcDir   into DstDir, replacing variables
+%	denoted as @NAME@. Defined variables are:
+%
+%	    $ SWIPL :
+%	    The SWI-Prolog executable as it must be used in #!
+%	    $ CLIOPATRIA :
+%	    Directory that holds the ClioPatria system
+%	    $ CWD :
+%	    The (current) installation directory
+%	    $ PARENTDIR :
+%	    Parent of CWD.  This can be useful if the startup-script
+%	    is located in a subdirectory of a project.
+
+localize_scripts(SrcDir, DstDir) :-
+	substitutions(SrcDir, DstDir, Vars),
+	format(user_error, 'Localizing scripts from ~w ...', [SrcDir]),
+	atom_concat(SrcDir, '/*.in', Pattern),
+	expand_file_name(Pattern, Files),
+	maplist(install_file(Vars, DstDir), Files),
 	format(user_error, ' done~n', []).
 
-install_pl_file(Vars, InFile) :-
-	file_name_extension(PlFile, in, InFile),
-	copy_file_with_vars(InFile, PlFile, Vars),
-	'$mark_executable'(PlFile),
-	file_base_name(PlFile, Base),
-	format(user_error, ' (~w)', [Base]).
+install_file(Vars, Dest, InFile) :-
+	(   exists_directory(Dest)
+	->  file_name_extension(File, in, InFile),
+	    file_base_name(File, Base),
+	    atom_concat(Dest, Base, DstFile)
+	;   DstFile = Dest
+	),
+	copy_file_with_vars(InFile, DstFile, Vars),
+	make_runnable(DstFile),
+	file_base_name(DstFile, Print),
+	format(user_error, ' (~w)', [Print]).
 
-substitutions([ 'SWIPL'=PL,		% Prolog executable (for
-		'CWD'=PWD,		% This directory
-		'PARENTDIR'=Parent	% The parent
+%%	make_runnable(+File)
+%
+%	Make a file executable if it starts with #!
+
+make_runnable(File) :-
+	open(File, read, In),
+	read_line_to_codes(In, Line),
+	close(In),
+	append("#!", _, Line), !,
+	'$mark_executable'(File).
+make_runnable(_).
+
+
+substitutions(SrcDir, DstDir,
+	      [ 'SWIPL'=PL,		% Prolog executable (for
+		'CLIOPATRIA'=SrcDir,	% ClioPatria directory
+		'CWD'=DstDir,		% This directory
+		'PARENTDIR'=Parent	% Parent of CWD
 	      ]) :-
 	prolog_executable(PL),
-	working_directory(PWD, PWD),
-	file_directory_name(PWD, Parent).
+	file_directory_name(DstDir, Parent).
 
 %%	prolog_executable(-Path)
 %
@@ -88,6 +146,27 @@ which(File, Path) :-
 	member(Dir, Parts),
 	concat_atom([Dir, File], /, Path),
 	access_file(Path, execute).
+
+%%	create_conf_d(SrcDir, DstDir)
+%
+%	Create a new configure directory if it doesn't exist yet.
+
+create_conf_d(SrcDir, DstDir) :-
+	atom_concat(DstDir, '/conf.d', ConfDir),
+	(   exists_directory(ConfDir)
+	->  true
+	;   make_directory(ConfDir)
+	),
+	atom_concat(ConfDir, '/README.txt', Readme),
+	(   exists_file(Readme)
+	->  true
+	;   format(user_error, 'Localizing conf.d ...', []),
+	    atom_concat(SrcDir, '/lib/APPCONF.txt.in', ReadmeIn),
+	    substitutions(SrcDir, DstDir, Vars),
+	    install_file(Vars, Readme, ReadmeIn),
+	    format(user_error, ' done~n', [])
+	).
+
 
 %%	goodbye
 %

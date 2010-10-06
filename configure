@@ -38,4 +38,6 @@ if [ -z "$SWIPL" ]; then
   exit 1
 fi
 
-$SWIPL -q -f none -g '[setup],setup'
+setup="$(dirname $0)/setup.pl"
+
+$SWIPL -q -f "$setup" -g setup
