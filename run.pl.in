@@ -18,7 +18,7 @@ requirements.  See comments in the file.
 % files in the target directory and any subdirectory thereof.
 %
 
-file_search_path(cliopatria, '@CWD@').
+file_search_path(cliopatria, '@CLIOPATRIA@').
 
 % Make loading files silent. Comment if you  want to see all files being
 % loaded.
