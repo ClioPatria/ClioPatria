@@ -196,7 +196,7 @@ call_warn(Goal) :-
 %	tasks (see thread_create/3).
 
 :- meta_predicate
-	after_load(0).
+	cp_after_load(0).
 
 cp_after_load(Goal) :-
 	(   after_load_goal(Goal)
