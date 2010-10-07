@@ -31,9 +31,7 @@
 	  [ graph_info//1,		% +Graph
 	    graph_as_resource//2,	% +Graph, +Options
 	    graph_actions//1,		% +Graph
-	    list_resource//2,		% +URI, +Options
-	    local_view//3               % +URI, ?Graph, +Options
-
+	    list_resource//2		% +URI, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
