@@ -1,4 +1,3 @@
-#!/usr/bin/pl -q -g setup -s
 /*  This file is part of ClioPatria.
 
     Author:
