@@ -278,7 +278,7 @@ send_graph(json, RDF) :-
 %	describes URI.
 %
 %	This predicate is hooked   by  cliopatria:lod_description/2. The
-%	default is implemented by graph_CBD/3.
+%	default is implemented by resource_CBD/3.
 %
 %	@see SPARQL DESCRIBE
 
