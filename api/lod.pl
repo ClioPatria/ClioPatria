@@ -47,6 +47,7 @@
 :- use_module(library(semweb/rdf_describe)).
 :- use_module(library(settings)).
 :- use_module(library(rdf_write)).
+:- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(uri)).
 
 :- use_module(applications(browse)).
@@ -270,6 +271,24 @@ send_graph(xmlrdf, RDF) :-
 send_graph(json, RDF) :-
 	graph_json(RDF, JSON),
 	reply_json(JSON).
+send_graph(turtle, RDF) :-
+	format('Content-type: text/turtle; charset=UTF-8~n~n'),
+	rdf_save_turtle(stream(current_output),
+			[ expand(triple_in(RDF)),
+			  only_known_prefixes(true),
+			  silent(true)
+			]).
+
+%%	triple_in(+RDF, ?S,?P,?O, ?G) is nondet.
+%
+%	Lookup a triple in the graph RDF, represented as a list of
+%	rdf(S,P,O).
+%
+%	@tbd	Describe required indexing from rdf_save_turtle/2 and
+%		implement that if the graph is big.
+
+triple_in(RDF, S,P,O,_G) :-
+	member(rdf(S,P,O), RDF).
 
 
 %%	lod_description(+URI, -RDF) is det.
@@ -292,9 +311,11 @@ lod_description(URI, RDF) :-
 %
 %	Conversion between mimetypes and formats.
 
-mimetype_format(application/'rdf+xml', xmlrdf).
-mimetype_format(application/json,      json).
-mimetype_format(text/html,	       html).
+mimetype_format(application/'rdf+xml',	xmlrdf).
+mimetype_format(application/json,	json).
+mimetype_format(application/'x-turtle',	turtle).
+mimetype_format(text/turtle,		turtle).
+mimetype_format(text/html,		html).
 
 %%	format_suffix(?Format, ?Suffix) is nondet.
 %
@@ -303,6 +324,7 @@ mimetype_format(text/html,	       html).
 format_suffix(xmlrdf, rdf).
 format_suffix(json,   json).
 format_suffix(html,   html).
+format_suffix(turtle, ttl).
 
 
 		 /*******************************
