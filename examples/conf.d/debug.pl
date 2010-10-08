@@ -16,6 +16,10 @@
 
 :- use_module(library(semweb/rdf_portray)).
 
+% Make rdf/3 available from the toplevel for interactive usage.
+
+:- use_module(user:library(semweb/rdf_db)).
+
 % Print HTTP requests to the console (handy for debugging. Typically you
 % want to disable this on an operational server.
 
