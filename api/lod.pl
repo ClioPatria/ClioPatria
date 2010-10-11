@@ -352,9 +352,11 @@ format_suffix(turtle, ttl).
 %%	cliopatria:lod_description(+URI, -RDF:list(rdf(s,p,o)))
 %
 %	RDF is list of triples describing URI. The default is to use the
-%	Concise Bounded Description as implemented by graph_CBD/3.
+%	Concise Bounded Description as implemented by resource_CBD/3.
 %
 %	@see This hook is used by lod_description/2
+%	@see library(semweb/rdf_describe) provides several definitions
+%	of bounded descriptions.
 
 
 

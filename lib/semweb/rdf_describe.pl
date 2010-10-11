@@ -89,7 +89,7 @@ expanded using rdf_include_reifications/3 and/or rdf_include_labels/3.
 rdf_bounded_description(Expand, Type, S, Graph) :-
 	empty_assoc(Map0),
 	expansion(Type, Expand, S, Graph, BNG),
-	new_bnodes(Graph, BN, []),
+	phrase(new_bnodes(Graph, Map0), BN),
 	phrase(r_bnodes(BN, Type, Expand, Map0, _Map), BNG).
 
 expansion(cbd, Expand, S, RDF, Tail) :-
@@ -101,22 +101,23 @@ expansion(scbd, Expand, S, RDF, Tail) :-
 r_bnodes([], _, _, Map, Map) -->
 	[].
 r_bnodes([H|T], Type, Expand, Map0, Map, Graph, Tail) :-
-	rdf_is_bnode(H),
-	\+ get_assoc(H, Map0, _), !,
+	rdf_is_bnode(H), !,
+	put_assoc(H, Map0, true, Map1),
 	expansion(Type, Expand, H, Graph, Tail0),
-	new_bnodes(Graph, BN, T),
-	r_bnodes(BN, Type, Expand, Map0, Map, Tail0, Tail).
+	phrase(new_bnodes(Graph, Map0), BN, T),
+	r_bnodes(BN, Type, Expand, Map1, Map, Tail0, Tail).
 r_bnodes([_|T], Type, Expand, Map0, Map) -->
 	r_bnodes(T, Type, Expand, Map0, Map).
 
-new_bnodes(Var, BN, BN) :-
-	var(Var), !.
-new_bnodes([rdf(_,_,O)|RDF], BN, T) :-
-	(   rdf_is_bnode(O)
-	->  BN = [O|BNT],
-	    new_bnodes(RDF, BNT, T)
-	;   new_bnodes(RDF, BN, T)
-	).
+new_bnodes(Var, _) -->
+	{ var(Var) }, !.
+new_bnodes([rdf(S,_,O)|RDF], Map) -->
+	new_bnode(S, Map),
+	new_bnode(O, Map),
+	new_bnodes(RDF, Map).
+
+new_bnode(S, Map) --> { rdf_is_bnode(S), \+ get_assoc(S, Map, _) }, !, [S].
+new_bnode(_, _) --> [].
 
 
 %%	resource_CBD(:Expand, +URI, -Graph) is det.
