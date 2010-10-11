@@ -146,7 +146,7 @@ lod_api(Request) :-
 	lod_request(URI, AcceptList, Request).
 
 lod_request(URI, AcceptList, Request) :-
-	rdf_subject(URI), !,
+	lod_resource(URI), !,
 	preferred_format(AcceptList, Format),
 	(   cliopatria:redirect_uri(Format, URI, SeeOther)
 	->  http_redirect(see_other, SeeOther, Request)
@@ -207,7 +207,7 @@ handler_options(Request, Location, Options) :-
 %	it.
 
 redirect(URI, AcceptList, To) :-
-	rdf_subject(URI),
+	lod_resource(URI),
 	preferred_format(AcceptList, Format),
 	(   cliopatria:redirect_url(Format, URI, To)
 	->  true
@@ -248,7 +248,7 @@ format_request(URL, URI, Format) :-
 	),
 	uri_data(path, URLComponents, Base, PlainComponents),
 	uri_components(URI, PlainComponents),
-	rdf_subject(URI).
+	lod_resource(URI).
 
 
 %%	lod_describe(+Format, +URI) is det.
@@ -327,6 +327,20 @@ format_suffix(html,   html).
 format_suffix(turtle, ttl).
 
 
+%%	lod_resource(+Resource) is semidet.
+%
+%	True if Resource is an  existing   resource  for the LOD server.
+%	Typically,  this  means  it  appears  as  a  subject,  but  when
+%	considering symmetric bounded descriptions,  it should certainly
+%	also hold for resources that only appear as object.
+
+lod_resource(Resource) :-
+	(   rdf(Resource, _, _)
+	;   rdf(_, Resource, _)
+	;   rdf(_, _, Resource)
+	), !.
+
+
 		 /*******************************
 		 *	       HOOKS		*
 		 *******************************/
@@ -357,9 +371,3 @@ format_suffix(turtle, ttl).
 %	@see This hook is used by lod_description/2
 %	@see library(semweb/rdf_describe) provides several definitions
 %	of bounded descriptions.
-
-
-
-
-
-
