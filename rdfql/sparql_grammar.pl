@@ -1698,10 +1698,10 @@ ncname_prefix(Atom) -->
 
 ncname_prefix_suffix(Codes) -->
 	ncchar_or_dots(Codes, []),
-	{ \+ append(_, [0'.], Codes) }.
+	{ \+ append(_, [0'.], Codes) }, !.
 
 ncchar_or_dots([H|T0], T) -->
-	ncchar_or_dot(H), !,
+	ncchar_or_dot(H),
 	ncchar_or_dots(T0, T).
 ncchar_or_dots(T, T) -->
 	[].
