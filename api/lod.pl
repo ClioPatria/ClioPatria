@@ -46,6 +46,7 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_describe)).
 :- use_module(library(settings)).
+:- use_module(library(option)).
 :- use_module(library(rdf_write)).
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(uri)).
@@ -141,6 +142,10 @@ relocated by means of the http:prefix setting. For example:
 %	    This option must be provided when using a purl.org or
 %	    similar redirect.  See overall documentation of this
 %	    library.
+%
+%	    * bounded_description(+Type)
+%	    Description style to use.  See rdf_bounded_description/4.
+%	    The default is =cbd= (Concise Bounded Description)
 
 lod_api(Options, Request) :-
 	lod_uri(Request, URI, Options),
@@ -148,9 +153,9 @@ lod_api(Options, Request) :-
 	->  http_parse_header_value(accept, AcceptHeader, AcceptList)
 	;   AcceptList = []
 	),
-	lod_request(URI, AcceptList, Request).
+	lod_request(URI, AcceptList, Request, Options).
 
-lod_request(URI, AcceptList, Request) :-
+lod_request(URI, AcceptList, Request, Options) :-
 	lod_resource(URI), !,
 	preferred_format(AcceptList, Format),
 	(   cliopatria:redirect_uri(Format, URI, SeeOther)
@@ -158,12 +163,12 @@ lod_request(URI, AcceptList, Request) :-
 	;   setting(lod:redirect, true),
 	    redirect(URI, AcceptList, SeeOther)
 	->  http_redirect(see_other, SeeOther, Request)
-	;   lod_describe(Format, URI)
+	;   lod_describe(Format, URI, Options)
 	).
-lod_request(URL, _AcceptList, _Request) :-
+lod_request(URL, _AcceptList, _Request, Options) :-
 	format_request(URL, URI, Format), !,
-	lod_describe(Format, URI).
-lod_request(URI, _AcceptList, _Request) :-
+	lod_describe(Format, URI, Options).
+lod_request(URI, _AcceptList, _Request, _) :-
 	throw(http_reply(not_found(URI))).
 
 
@@ -255,18 +260,18 @@ format_request(URL, URI, Format) :-
 	lod_resource(URI).
 
 
-%%	lod_describe(+Format, +URI) is det.
+%%	lod_describe(+Format, +URI, +Options) is det.
 %
 %	Write an HTTP document  describing  URI   to  in  Format  to the
 %	current output. Format is defined by mimetype_format/2.
 
-lod_describe(html, URI) :- !,
+lod_describe(html, URI, _) :- !,
 	rdf_display_label(URI, Label),
 	reply_html_page(cliopatria(default),
 			title('Resource ~w'-[Label]),
 			\list_resource(URI, [])).
-lod_describe(Format, URI) :-
-	lod_description(URI, RDF),
+lod_describe(Format, URI, Options) :-
+	lod_description(URI, RDF, Options),
 	send_graph(Format, RDF).
 
 send_graph(xmlrdf, RDF) :-
@@ -295,7 +300,7 @@ triple_in(RDF, S,P,O,_G) :-
 	member(rdf(S,P,O), RDF).
 
 
-%%	lod_description(+URI, -RDF) is det.
+%%	lod_description(+URI, -RDF, +Options) is det.
 %
 %	RDF is a  graph  represented  as   a  list  of  rdf(S,P,O)  that
 %	describes URI.
@@ -305,10 +310,11 @@ triple_in(RDF, S,P,O,_G) :-
 %
 %	@see SPARQL DESCRIBE
 
-lod_description(URI, RDF) :-
+lod_description(URI, RDF, _) :-
 	cliopatria:lod_description(URI, RDF), !.
-lod_description(URI, RDF) :-
-	resource_CBD(rdf, URI, RDF).
+lod_description(URI, RDF, Options) :-
+	option(bounded_description(Type), Options, cbd),
+	rdf_bounded_description(rdf, Type, URI, RDF).
 
 
 %%	mimetype_format(?MimeType, ?Format) is nondet.
