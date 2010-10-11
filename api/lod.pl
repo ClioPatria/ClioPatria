@@ -29,7 +29,7 @@
 */
 
 :- module(api_lod,
-	  [ lod_api/1			% +Request
+	  [ lod_api/2			% +Request
 	  ]).
 
 :- use_module(library(http/thread_httpd)).
@@ -97,29 +97,28 @@ There are several ways to run the LOD server.
     no way to tell you are activated through a redirect, let alone
     where the redirect came from.
 
-    To deal with this situation, we define an additional option for
-    http_handler/3, redirected_from. For example, if
-    http://www.purl.org/vocabularies/myvoc/ is redirected to /myvoc/
-    on ClioPatria, we use:
+    To deal with this situation, we use the redirected_from option of
+    lod_api/2. For example, if http://www.purl.org/vocabularies/myvoc/
+    is redirected to /myvoc/ on ClioPatria, we use:
 
     ==
-    :- http_handler('/myvoc/', lod_api,
-		    [ redirected_from('http://www.purl.org/vocabularies/myvoc/'),
-		      prefix
-		    ]).
+    :- http_handler('/myvoc/',
+		    lod_api([ redirected_from('http://www.purl.org/vocabularies/myvoc/')
+			    ]),
+		    [ prefix ]).
     ==
 
-By default, there is no HTTP handler  pointing to lod_api/1. The example
-above describes how to deal with redirected  URIs. The cases (1) and (2)
-must also be implemented by registering a  handler. This can be as blunt
-as registering a handler for the root   of the server, but typically one
-would use one or more handlers  that   deal  with  sub-trees that act as
-Linked Data repositories.  Handler  declarations   should  use  absolute
-addresses to guarantee a match with the RDF  URIs, even if the server is
-relocated by means of the http:prefix setting.  For example:
+By default, there is no HTTP handler pointing to lod_api/2. The example
+above describes how to deal with redirected URIs. The cases (1) and (2)
+must also be implemented by registering a handler. This can be as blunt
+as registering a handler for the root of the server, but typically one
+would use one or more handlers that deal with sub-trees that act as
+Linked Data repositories. Handler declarations should use absolute
+addresses to guarantee a match with the RDF URIs, even if the server is
+relocated by means of the http:prefix setting. For example:
 
     ==
-    :- http_handler('/rdf/', lod_api, [prefix]).
+    :- http_handler('/rdf/', lod_api([]), [prefix]).
     ==
 
 @see http://linkeddata.org/
@@ -128,17 +127,23 @@ relocated by means of the http:prefix setting.  For example:
 :- setting(lod:redirect, boolean, false,
 	   'If true, redirect from accept-header to extension').
 
-%%	lod_api(+Request)
+%%	lod_api(+Options, +Request)
 %
 %	Reply to a Linked Data request. The  handler is capable of three
 %	output formats. It decides on the   desired  format based on the
 %	HTTP =Accept= header-field. If no acceptable format is found, it
 %	replies with a human-readable description  of the resource using
 %	ClioPatria RDF browser-page as defined by list_resource//2.
+%
+%	Options:
+%
+%	    * redirected_from(+URL)
+%	    This option must be provided when using a purl.org or
+%	    similar redirect.  See overall documentation of this
+%	    library.
 
-
-lod_api(Request) :-
-	lod_uri(Request, URI),
+lod_api(Options, Request) :-
+	lod_uri(Request, URI, Options),
 	(   memberchk(accept(AcceptHeader), Request)
 	->  http_parse_header_value(accept, AcceptHeader, AcceptList)
 	;   AcceptList = []
@@ -162,20 +167,20 @@ lod_request(URI, _AcceptList, _Request) :-
 	throw(http_reply(not_found(URI))).
 
 
-%%	lod_uri(+Request, -URI)
+%%	lod_uri(+Request, -URI, +Options)
 %
 %	URI is the originally requested URI.   This predicate deals with
 %	redirections if the HTTP handler was registered using the option
 %	redirected_from(URL). Otherwise it resolves   the correct global
 %	URI using http_current_host/4.
 
-lod_uri(Request, URI) :-
-	handler_options(Request, Location, Options),
+lod_uri(Request, URI, Options) :-
 	memberchk(redirected_from(Org), Options),
 	memberchk(request_uri(ReqURI), Request),
+	handler_location(Request, Location),
 	atom_concat(Location, Rest, ReqURI),
 	atom_concat(Org, Rest, URI).
-lod_uri(Request, URI) :-
+lod_uri(Request, URI, _) :-
 	memberchk(request_uri(ReqURI), Request),
 	http_current_host(Request, Host, Port,
 			  [ global(true)
@@ -186,19 +191,18 @@ lod_uri(Request, URI) :-
 	).
 
 
-%%	handler_options(+Request, -Location, -Options) is det.
+%%	handler_location(+Request, -Location) is det.
 %
-%	True if Options are  the  options   that  are  defined  with the
-%	HTTP-handler that processes request.
+%	Location is the requested location on  the server. This includes
+%	the handler location, normally concatenated with the path_info.
 
-handler_options(Request, Location, Options) :-
+handler_location(Request, Location) :-
 	memberchk(path(Path), Request),
 	(   memberchk(path_info(Rest), Request),
 	    atom_concat(Location, Rest, Path)
 	->  true
 	;   Location = Path
-	),
-	http_current_handler(Location, _:_, Options).
+	).
 
 
 %%	redirect(+URI, +AcceptList, -RedirectURL)
