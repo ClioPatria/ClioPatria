@@ -67,9 +67,16 @@
 
 /** <module> ClioPatria RDF data browser
 
-This module implements basic browsing of an RDF repository.  This is not
+This module implements basic browsing of an  RDF repository. This is not
 intended to be used as an end-user application, but for the developer to
-gain insight in the data in the RDF store.
+gain insight in the data in the   RDF  store. That said, the distinction
+between end-user and developer  can  be   rather  vague  if  we consider
+`back-office'   applications.   To   a   certain   extend,   back-office
+applications  are  considered  within  the  scope  of  this  module  and
+therefore it provides several  hooks   and  defines several `components'
+that allow back-office applications to reuse this infrastructure.
+
+@see	cliopatria(hooks) for available hooks.
 */
 
 
@@ -171,6 +178,11 @@ list_graph(Request) :-
 			  \graph_as_resource(Graph, []),
 			  \graph_actions(Graph)
 			]).
+
+%%	graph_info(+Graph)//
+%
+%	HTML component that shows  -statistical-   properties  about the
+%	given named graph.
 
 graph_info(Graph) -->
 	html_property_table(row(P,V),
@@ -874,7 +886,9 @@ list_resource(Request) :-
 
 %%	list_resource(+URI, +Options)// is det.
 %
-%	Component that emits the local view for URI.
+%	Component that emits the `local view'   for  URI. The local view
+%	shows the basic properties  of  URI,   the  context  in which is
+%	appears and the graphs from which the information is extracted.
 
 list_resource(URI, Options) -->
 	{ option(graph(Graph), Options, _),

@@ -272,6 +272,10 @@ js_quote_code(C) -->
 		 *	   SAVED QUERIES	*
 		 *******************************/
 
+%%	store_query(+Type, +Name, +Query) is det.
+%
+%	Store the SPARQL/SeRQL Query under Name in the current session.
+
 store_query(_, '', _) :- !.
 store_query(Type, As, Query) :-
 	set_high_id(As),
