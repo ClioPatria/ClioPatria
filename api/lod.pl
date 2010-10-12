@@ -370,7 +370,7 @@ lod_resource(Resource) :-
 %	requested format is RDF.
 %
 %       @see This hook is used by redirect/3.
-%       @param Format is one of =xmlrdf=, =json= or =html=.
+%       @param Format is one of =xmlrdf=, =turtle, =json= or =html=.
 
 
 %%	cliopatria:lod_description(+URI, -RDF:list(rdf(s,p,o)))
