@@ -31,8 +31,6 @@
 
 :- module(rdfql_runtime,
 	  [ rdfql_carthesian/1,		% +Bags
-	    rdfql_is_literal/1,		% +Node
-	    rdfql_is_resource/1,	% +Node
 
 	    rdfql_bind_null/1,		% +List
 	    rdfql_cond_bind_null/1,	% +List
@@ -41,7 +39,7 @@
 	    serql_compare/3,		% +Comparison, +Left, +Right
 	    serql_eval/2,		% +Term, -Evaluated
 	    serql_member_statement/2,	% -Triple, +List
-	    
+
 					% SPAQRL support
 	    sparql_true/1,		% +Term
 	    sparql_eval/2		% +Expression, -Result
@@ -54,19 +52,38 @@
 :- meta_predicate
 	rdfql_carthesian(:).
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/** <module> SPARQL/SeRQL runtime support predicates
+
 This module provides runtime support for  running compiled queries. I.e.
 it defines special constructs that may be   emitted  by the compiler and
 optmizer that are common  to  all   query  languages.  Language specific
 runtime support is in serql_runtime.pl and sparql_runtime.pl
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+@see	serql_runtime.pl for the implementation of the SeRQL routines.
+@see	sparql_runtime.pl for the implementation of the SPARQL routines.
+*/
 
 		 /*******************************
 		 *      CARTHESIAN PRODUCT	*
 		 *******************************/
 
-rdfql_carthesian(Carthesian) :-
-	strip_module(Carthesian, M, Bags),
+%%	rdfql_carthesian(:Bags) is nondet.
+%
+%	Bags is a list of independent goals. This predicate provides the
+%	variable bindings for the carthesian product of all solutions of
+%	each goal in Bags.  For example:
+%
+%	    ==
+%	    ?- rdfql_carthesian([ bag([X], between(1,2,X)),
+%				  bag([Y], between(1,2,Y))]).
+%	    X = 1, Y = 1 ;
+%	    X = 1, Y = 2 ;
+%	    X = 2, Y = 1 ;
+%	    X = 2, Y = 2 ;
+%	    false.
+%	    ==
+
+rdfql_carthesian(M:Bags) :-
 	solve_bags(Bags, M, 1, Sets),
 	(   debugging(carthesian_size)
 	->  solution_set_size(Sets, Size),
@@ -111,6 +128,11 @@ solution_set_size([set(_,_,Len)|T], Size) :-
 		 *	    NULL HANDLING	*
 		 *******************************/
 
+%%	rdfql_cond_bind_null(+List) is det.
+%
+%	Bind variables in List  to   our  NULL-representation,  which is
+%	=|$null$|=.
+
 rdfql_cond_bind_null([]).
 rdfql_cond_bind_null([H|T]) :-
 	(   var(H)
@@ -119,12 +141,10 @@ rdfql_cond_bind_null([H|T]) :-
 	),
 	rdfql_cond_bind_null(T).
 
+%%	rdfql_bind_null(+List) is semidet.
+%
+%	True if all elements in List unify with =|$null$|=.
 
 rdfql_bind_null([]).
 rdfql_bind_null(['$null$'|T]) :-
 	rdfql_bind_null(T).
-
-
-rdfql_is_literal(literal(_)).
-rdfql_is_resource(X) :-
-	atom(X).

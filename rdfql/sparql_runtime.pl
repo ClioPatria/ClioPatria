@@ -39,6 +39,15 @@
 :- discontiguous
 	term_expansion/2.
 
+/** <module> SPARQL runtime support
+
+@see	rdfql_runtime.pl merges this module with generic predicates as well
+	as runtime libraries for other query languages.
+@see	These routines are part of the _entailment_ modules.  See
+	../entailment/README.txt
+*/
+
+
 %%	sparql_true(+Term)
 %
 %	Generated from FILTER Term, where Term must be converted to a
@@ -599,7 +608,7 @@ effective_boolean_value(_,  boolean(error)).
 
 %%	sparql_eval(+Expr, -Results)
 %
-%	Evaluate an expression.
+%	Evaluate a SPARQL expression.
 
 sparql_eval(Expr, Expr) :-
 	is_rdf(Expr), !.

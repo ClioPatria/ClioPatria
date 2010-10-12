@@ -395,9 +395,9 @@ where_constraints(serql_compare(like, Var, Pattern)) --> !,
 	constrain(Var, like(Pattern)).
 where_constraints(serql_compare(=, Var, Value)) --> !,
 	constrain(Var, eq(Value)).
-where_constraints(rdfql_is_literal(V)) --> !,
+where_constraints(rdf_is_literal(V)) --> !,
 	constrain(V, literal).
-where_constraints(rdfql_is_resource(V)) --> !,
+where_constraints(rdf_is_resource(V)) --> !,
 	constrain(V, resource).
 where_constraints(rdf(S,P,_)) --> !,
 	constrain(S, resource),
@@ -1060,9 +1060,9 @@ boolean_query0(serql_compare(Cmp, L, R)) -->
 boolean_query0(serql_compare(like, Var, String)) -->
 	var_or_value(Var),		% must be var?
 	[ like ], !, must_see_string(String).
-boolean_query0(rdfql_is_literal(V)) -->
+boolean_query0(rdf_is_literal(V)) -->
 	[ isliteral, '(' ], !, var(V), must_see(')').
-boolean_query0(rdfql_is_resource(V)) -->
+boolean_query0(rdf_is_resource(V)) -->
 	[ isresource, '(' ], !, var(V), must_see(')').
 boolean_query0(_) -->
 	syntax_error(expected(boolean_test)).
