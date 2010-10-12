@@ -52,11 +52,11 @@ into rdf_io.pl.
 		 *	  RESULT TABLES		*
 		 *******************************/
 
-%%	write_table(+Format, +Serialization, +Rows, +Options)
+%%	rdf_io:write_table(+Format, +Serialization, +Rows, +Options) is semidet.
 %
 %	Write a result-table in human-readable HTML format
 %
-%	@param Format	Must be =html=
+%	@param Format This clause only succeeds of Format is =html=
 
 :- multifile
 	rdf_io:write_table/4,
@@ -111,6 +111,17 @@ cells([H|T], Options) -->
 		 /*******************************
 		 *	    GRAPH OUTPUT	*
 		 *******************************/
+
+%%	rdf_io:write_graph(+Format, +Serialization, +Triples, +Options)
+%
+%	Write an RDF result-graph as an HTML table, where resources
+%	are links to the ClioPatria local view.
+%
+%	@param Format must be =html=
+%	@param Serialization is ignored
+%	@param Triples is a list of rdf(S,P,O) triples
+%	@param Options is passed to rdf_link//2.  It normally defines
+%	the preferred resource representation.
 
 rdf_io:write_graph(html, _Serialization, Triples, Options) :-
 	length(Triples, Count),

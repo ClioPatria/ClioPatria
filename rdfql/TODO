@@ -12,7 +12,9 @@
 * { ?x ?y 1 } cannot be mapped to rdf(X, Y, literal(type(xsd:integer, '1')))
   because it must match :a :b "01"^^xsd:integer.
 
-	* Add rdf(X, Y, literal(number(1), X))
+* Does SPARQL define a total ordering of literals?  If so, we may use
+  this for teh literal AVL-tree and speedup some of these queries a
+  lot.
 
 ---++ Jena compatibility
 
@@ -21,8 +23,3 @@
 	    different values for <O>.
 
 	    --> Post processing
-
----++ UI
-
-	* Stylable menu?
-	http://denilsonsa.selfip.org/~denilson/menu/menu.html
