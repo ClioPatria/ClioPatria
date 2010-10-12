@@ -97,7 +97,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 
 %%	menu_label(+Id, -Label)
 %
-%	This hook allows for dynamic   or  redefined (i.e. multilingual)
+%	This hook allows for dynamic   or redefined (e.g., multilingual)
 %	labels.  It  is   called   both    for   popup-identifiers   and
 %	item-identifiers.
 

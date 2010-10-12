@@ -61,6 +61,10 @@ another, there are two solutions:
 %	    File-name extension for the config files.  Default is =pl=.
 %
 %	Other options are passed to load_files/2.
+%
+%	@param	Spec is either the specification of a directory according
+%		to absolute_file_name/3 or a list thereof.  Duplicate
+%		directories are removed.
 
 load_conf_d(Spec, Options) :-
 	select_option(solutions(Sols), Options, LoadOptions0, all),
@@ -68,15 +72,24 @@ load_conf_d(Spec, Options) :-
 		      [ if(changed),
 			extension(pl)
 		      ], LoadOptions),
-	forall(absolute_file_name(Spec, Dir,
-				  [ file_type(directory),
-				    file_errors(fail),
-				    access(read),
-				    solutions(Sols)
-				  ]),
-	       load_conf_dir(Dir, LoadOptions)).
+	phrase(collect_dirs(Spec, Sols), Dirs),
+	list_to_set(Dirs, Set),
+	maplist(load_conf_dir(LoadOptions), Set).
 
-load_conf_dir(Dir, Options) :-
+collect_dirs([], _) --> !.
+collect_dirs([H|T], Sols) --> !,
+	collect_dirs(H, Sols),
+	collect_dirs(T, Sols).
+collect_dirs(Spec, Sols) -->
+	findall(Dir, absolute_file_name(Spec, Dir,
+					[ file_type(directory),
+					  file_errors(fail),
+					  access(read),
+					  solutions(Sols)
+					])).
+
+
+load_conf_dir(Options, Dir) :-
 	select_option(extension(Ext), Options, LoadOptions),
 	atomic_list_concat([Dir, '/*.', Ext], Pattern),
 	expand_file_name(Pattern, Files),
