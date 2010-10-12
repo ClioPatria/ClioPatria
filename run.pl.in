@@ -6,22 +6,16 @@ This file provides a skeleton startup file.  It can be localized by running
     % ./configure			(Unix)
     % Double-clicking setup.pl		(Windows)
 
-After that, the created run.pl can be   edited to suit your installation
-requirements.  See comments in the file.
+After  that,  the  system  may  be  customized  by  copying  or  linking
+customization files from  examples/conf.d.   See  conf.d/README.txt  for
+details.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-% Setup search paths. Adding cliopatria allows   using  this script from
-% any directory and adding  ontology  makes   RDF  files  visible in the
-% interface.
-%
-% Adding path(s) for ontology makes  the   system  look for Manifest.ttl
-% files in the target directory and any subdirectory thereof.
-%
+% Setup search path for cliopatria.
 
 file_search_path(cliopatria, '@CLIOPATRIA@').
 
-% Make loading files silent. Comment if you  want to see all files being
-% loaded.
+% Make loading files silent. Comment if you want verbose loading.
 
 :- set_prolog_flag(verbose, silent).
 
@@ -29,13 +23,14 @@ file_search_path(cliopatria, '@CLIOPATRIA@').
 		 *	      LOAD CODE		*
 		 *******************************/
 
-% Use the ClioPatria help system.  If used, it must be loaded first!
+% Use the ClioPatria help system.  May   be  commented to disable online
+% help on the source-code.
 
 :- use_module(cliopatria('applications/help/load')).
 
 % Load ClioPatria itself.  Better keep this line.
 
-:- use_module(cliopatria(cliopatria)).				% (*)
+:- use_module(cliopatria(cliopatria)).
 
 % Load the remainder of the configuration. The directory conf.d can also
 % be used to load additional (plugin) functionality. It is *not* adviced
@@ -44,8 +39,10 @@ file_search_path(cliopatria, '@CLIOPATRIA@').
 
 :- use_module(library(conf_d)).
 
-:- load_conf_d(cliopatria('conf.d'), []).
-:- load_conf_d('conf.d', []).
+:- load_conf_d([ cliopatria('conf.d'),
+		 'conf.d'
+	       ],
+	       []).
 
 % Get back normal verbosity of the toplevel.
 
