@@ -645,17 +645,45 @@ resource_type(URI, Graph, T) :-
 
 %%	list_predicate_resources(+Request)
 %
-%	List sets of resources according to various specifications
+%	List resources related to a predicate.   The  _side_ argument is
+%	one of:
+%
+%	    * subject
+%	    Display all subject values for the predicate
+%	    * object
+%	    Display all object values for the predicate
+%	    * domain
+%	    Display the types of all subject values
+%	    * range
+%	    Display the types of all object values.
+%
+%	If the _skosmap_ attribute is =true=,   an extra column is added
+%	that shows SKOS concepts that match   literals.  This only makes
+%	sense if _side_ = =object= and (some) objects are literals.
 
 list_predicate_resources(Request) :-
 	http_parameters(Request,
-			[ graph(Graph, [ optional(true) ]),
-			  predicate(Pred, []),
-			  side(Which, [oneof([subject,object,domain,range])]),
-			  sortBy(Sort, [ oneof([label,frequency]),
-					 default(frequency)
-				       ]),
-			  skosmap(SkosMap, [boolean, default(_)])
+			[ graph(Graph,
+				[ optional(true),
+				  description('Limit search to this graph')
+				]),
+			  predicate(Pred,
+				    [ description('Predicate to list')
+				    ]),
+			  side(Which,
+			       [ oneof([subject,object,domain,range]),
+				 description('Relation to the predicate (see docs)')
+			       ]),
+			  sortBy(Sort,
+				 [ oneof([label,frequency]),
+				   default(frequency),
+				   description('How to sort results')
+				 ]),
+			  skosmap(SkosMap,
+				  [ boolean,
+				    optional(true),
+				    description('Show SKOS concepts for literals')
+				  ])
 			]),
 	do_skos(SkosMap, Which, Pred),
 	findall(R, predicate_resource(Graph, Pred, Which, R), Set),
@@ -795,6 +823,9 @@ domain_range_parameter(domain, R, domain(R)).
 domain_range_parameter(range,  R, range(R)).
 
 %%	skosmap(+Literal, +Options)//
+%
+%	Component that emits a =td= cell with links to SKOS concepts
+%	that are labeled Literal.
 
 skosmap(Literal, Options) -->
 	{ Literal = literal(_),
@@ -889,6 +920,9 @@ list_resource(Request) :-
 %	Component that emits the `local view'   for  URI. The local view
 %	shows the basic properties  of  URI,   the  context  in which is
 %	appears and the graphs from which the information is extracted.
+%
+%	@see	list_resource/1 is the corresponding HTTP handler.  The
+%		component rdf_link//1 creates a link to list_resource/1.
 
 list_resource(URI, Options) -->
 	{ option(graph(Graph), Options, _),
@@ -1262,14 +1296,16 @@ context(skos:related).
 
 %%	list_triples(+Request)
 %
-%	List triples from a given specification
+%	List  triples  for  a  given    predicate.  The  triple-set  can
+%	optionally be filtered on the graph, type of the subject or type
+%	of the object.
 
 list_triples(Request) :-
 	http_parameters(Request,
 			[ predicate(Pred,
 				    [ description('Predicate to list triples for')]),
 			  graph(Graph, [ optional(true),
-					 description('Limit triples to this predicate')
+					 description('Limit triples to this graph')
 				       ]),
 			  domain(Dom,  [ optional(true),
 					 description('Restrict to subjects of this class')

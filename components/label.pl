@@ -46,6 +46,10 @@
 :- use_module(cliopatria(hooks)).
 
 /** <module> Support for showing labels
+
+This module provides HTML components to display labels for resources.
+
+@see	library(semweb/rdf_label) returns textual labels.
 */
 
 
@@ -147,8 +151,8 @@ rdf_collection_list(R, [H|T]) :-
 	rdf_collection_list(RT, T).
 
 
-%%	rdf_link(+URI) is det.
-%%	rdf_link(+URI, +Options) is det.
+%%	rdf_link(+URI)// is det.
+%%	rdf_link(+URI, +Options)// is det.
 %
 %	Make a hyper-link to an arbitrary   RDF resource or object using
 %	the label.  Options processed:
