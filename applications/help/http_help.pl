@@ -32,6 +32,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_json)).
+:- use_module(library(http/js_write)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_host)).
@@ -66,7 +67,7 @@ displayed page to its documentation.
 
 page_documentation_link(Request) -->
 	{ memberchk(path(Path), Request),
-	  http_link_to_id(help_on_handler, [location=Path], HREF),
+	  http_link_to_id(http_help, [location=Path], HREF),
 	  http_absolute_location(icons('doc.png'), IMG, [])
 	},
 	html(a([id('dev-help'), href(HREF)],
@@ -77,34 +78,49 @@ page_documentation_link(Request) -->
 %	HTTP handler to explore the Prolog HTTP server
 
 http_help(Request) :-
+	http_parameters(Request,
+			[ location(Start,
+				   [ optional(true),
+				     description('Display help on location')
+				   ])
+			]),
 	http_current_host(Request, Host, Port, [global(true)]),
 	(   Port == 80
 	->  Authority = Host
 	;   format(atom(Authority), '~w:~w', [Host, Port])
 	),
+	(   var(Start)
+	->  Options = []
+	;   Options = [ location(Start) ]
+	),
 	reply_html_page(cliopatria(http_help),
 			title('Server help'),
 			[ body(class('yui-skin-sam'),
 			       [ h1(class(title), 'Server at ~w'-[Authority]),
-				 \help_page
+				 \help_page(Options)
 			       ])
 			]).
 
-%%	help_page//
+%%	help_page(Options)//
 %
 %	Emit the tree and #http-help  for   holding  the description. We
 %	need to include the requirements for   PlDoc here as the scripts
 %	are not loaded through the innerHTML method.
+%
+%	Options:
+%
+%	    * location(Location)
+%	    Initially open Location.
 
-help_page -->
-	{ tree_view_options(Options) },
+help_page(Options) -->
+	{ tree_view_options(TreeOptions) },
 	html([ \html_requires(css('httpdoc.css')),
 	       \html_requires(pldoc),
 	       \html_requires(js('api_test.js')),
-	       div(id('http-tree'), \http_tree_view(Options)),
+	       div(id('http-tree'), \http_tree_view(TreeOptions)),
 	       div(id('http-find'), \quick_find_div_content),
 	       div(id('http-help'), \usage),
-	       \script,
+	       \script(Options),
 	       \init_api_tester
 	     ]).
 
@@ -123,16 +139,17 @@ usage -->
 	     ]).
 
 
-%%	script// is det.
+%%	script(+Options)// is det.
 %
 %	Emit JavScript code that gets  the   help  for the HTTP location
 %	associated  with  _node_  and  displays    this  information  in
 %	#http-help.
 
-script -->
+script(Options) -->
 	{ http_link_to_id(help_on_handler, [], Handler)
 	},
-	html([ script(type('text/javascript'), \[
+	html([ script(type('text/javascript'),
+		      \[
 'function helpNode(node)\n',
 '{',
 '  helpHTTP(node.data.path);\n',
@@ -148,9 +165,16 @@ script -->
 '  }\n',
 '  var sUrl = "~w?location=" + encodeURIComponent(path);\n'-[Handler],
 '  var transaction = YAHOO.util.Connect.asyncRequest("GET", sUrl, callback, null);\n',
-'}\n'
-						])
+'}\n',
+	       \start(Options)
+		       ])
 	     ]).
+
+start(Options) -->
+	{ option(location(Start), Options)
+	}, !,
+	js_call(helpHTTP(Start)).
+start(_) --> [].
 
 
 %%	help_on_handler(+Request)
