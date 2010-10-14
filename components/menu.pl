@@ -132,20 +132,24 @@ rank(Where,      0,    Where).
 
 menu_item(Item, Label) :-
 	cliopatria:menu_item(Item, Label).
+
 menu_item(100=repository/load_file_form,	 	'Load local file').
 menu_item(200=repository/load_url_form,			'Load from HTTP').
 menu_item(300=repository/load_library_ontology_form,	'Load from library').
 menu_item(400=repository/remove_statements_form,  	'Remove triples').
 menu_item(500=repository/clear_repository_form,		'Clear repository').
+
 menu_item(100=query/query_form,				'Query').
+
 menu_item(100=places/home,				'Home').
 menu_item(200=places/list_graphs,			'Graphs').
-menu_item(300=places/statistics,			'Statistics').
+
 menu_item(100=admin/list_users,				'Users').
 menu_item(200=admin/settings,				'Settings').
-% Home location
+menu_item(300=admin/statistics,				'Statistics').
+
 menu_item(100=help/cliopatria_doc,			'Documentation').
-% Keep users at the end
+
 menu_item(100=user/login_form,				'Login') :-
 	\+ someone_logged_on.
 menu_item(100=current_user/user_logout,			'Logout') :-
