@@ -6,7 +6,17 @@
 
 ---+++ Quality Assurance
 
+---+++ Browser facilities
+
+  * Predicate analysis
+    - Functional predicates
+    - Near functional predicates: what are the exceptions?
+
 ---+++ LOD Support
 
-  * Serving the repository as LOD
   * Load unresolved resources through LOD (per graph)
+
+---+++ Config
+
+  * Web front end for setup
+  * Reload nicely.
