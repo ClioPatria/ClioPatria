@@ -99,7 +99,8 @@ cliopatria:context_graph(R, RDF) :-
 	bf_graph(R, 2, 100, 20, RDF0),
 	minimise_graph(RDF0, RDF1),		% remove inverse/symmetric/...
 	bagify_graph(RDF1, RDF2, Bags, []), 	% Create bags of similar resources
-	append(RDF2, Bags, RDF).
+	append(RDF2, Bags, RDF),
+	RDF \== [].
 
 %%	bf_graph(+Start, +MaxDist, +MaxNodes, -Graph)
 
