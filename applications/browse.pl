@@ -347,6 +347,13 @@ class_table_header -->
 		  th('#Instances')
 		])).
 
+class_row(Graph, Class) -->
+	{ atom(Class), !,
+	  findall(I, rdf_has(I, rdf:type, Class, Graph), IL),
+	  sort(IL, Classes),
+	  length(Classes, InstanceCount)
+	},
+	class_row(Graph, Class-InstanceCount).
 class_row(Graph, Class-InstanceCount) -->
 	{ (   var(Graph)
 	  ->  Params = [class(Class)]
@@ -866,15 +873,25 @@ pick_same(L, L, _, F, F).
 
 %%	list_resource(+Request)
 %
-%	List the property table for a single resource (=local view)
+%	HTTP handler that lists the property table for a single resource
+%	(=local view)
+%
+%	@see	The functionality of this handler is also available as
+%		an embedable component through list_resource//2.
 
 list_resource(Request) :-
 	http_parameters(Request,
-			[ r(URI, []),
-			  sorted(Sorted, [ oneof([default,none]),
-					   default(default)
-					 ]),
-			  graph(Graph, [optional(true)])
+			[ r(URI,
+			    [ description('URI to describe')]),
+			  sorted(Sorted,
+				 [ oneof([default,none]),
+				   default(default),
+				   description('How to sort properties')
+				 ]),
+			  graph(Graph,
+				[ optional(true),
+				  description('Limit to properties from graph')
+				])
 			]),
 	label_of(URI, Label),
 	reply_html_page(cliopatria(default),
