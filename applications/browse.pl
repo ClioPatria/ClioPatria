@@ -347,6 +347,13 @@ class_table_header -->
 		  th('#Instances')
 		])).
 
+class_row(Graph, Class) -->
+	{ atom(Class), !,
+	  findall(I, rdf_has(I, rdf:type, Class, Graph), IL),
+	  sort(IL, Classes),
+	  length(Classes, InstanceCount)
+	},
+	class_row(Graph, Class-InstanceCount).
 class_row(Graph, Class-InstanceCount) -->
 	{ (   var(Graph)
 	  ->  Params = [class(Class)]
@@ -455,22 +462,29 @@ graph_as_resource(_, _) --> [].
 
 %%	list_instances(+Request)
 %
-%	List instances.
-
-
+%	HTTP handler that lists instances that satisfy certain criteria.
 
 list_instances(Request) :-
 	http_parameters(Request,
-			[ class(Class, [ optional(true)
-				       ]),
-			  graph(Graph, [ optional(true)
-				       ]),
-			  type(Type,   [ oneof([any, bnode]),
-					 default(any)
-				       ]),
-			  sortBy(Sort, [ oneof([label,properties]),
-					 default(label)
-				       ])
+			[ class(Class,
+				[ optional(true),
+				  description('Limit to instances of this class')
+				]),
+			  graph(Graph,
+				[ optional(true),
+				  description('Limit to have at least \
+					       one property in graph')
+				]),
+			  type(Type,
+			       [ oneof([any, bnode]),
+				 default(any),
+				 description('Any instance or only bnodes?')
+			       ]),
+			  sortBy(Sort,
+				 [ oneof([label,properties]),
+				   default(label),
+				   description('How to sort the result-table')
+				 ])
 			]),
 	findall(I-PC, instance_in_graph(Graph, Class, Type, I, PC), IPairs),
 	sort_pairs_by_label(IPairs, TableByName),
@@ -897,15 +911,25 @@ pick_same(L, L, _, F, F).
 
 %%	list_resource(+Request)
 %
-%	List the property table for a single resource (=local view)
+%	HTTP handler that lists the property table for a single resource
+%	(=local view)
+%
+%	@see	The functionality of this handler is also available as
+%		an embedable component through list_resource//2.
 
 list_resource(Request) :-
 	http_parameters(Request,
-			[ r(URI, []),
-			  sorted(Sorted, [ oneof([default,none]),
-					   default(default)
-					 ]),
-			  graph(Graph, [optional(true)])
+			[ r(URI,
+			    [ description('URI to describe')]),
+			  sorted(Sorted,
+				 [ oneof([default,none]),
+				   default(default),
+				   description('How to sort properties')
+				 ]),
+			  graph(Graph,
+				[ optional(true),
+				  description('Limit to properties from graph')
+				])
 			]),
 	label_of(URI, Label),
 	reply_html_page(cliopatria(default),
