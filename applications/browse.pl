@@ -462,22 +462,29 @@ graph_as_resource(_, _) --> [].
 
 %%	list_instances(+Request)
 %
-%	List instances.
-
-
+%	HTTP handler that lists instances that satisfy certain criteria.
 
 list_instances(Request) :-
 	http_parameters(Request,
-			[ class(Class, [ optional(true)
-				       ]),
-			  graph(Graph, [ optional(true)
-				       ]),
-			  type(Type,   [ oneof([any, bnode]),
-					 default(any)
-				       ]),
-			  sortBy(Sort, [ oneof([label,properties]),
-					 default(label)
-				       ])
+			[ class(Class,
+				[ optional(true),
+				  description('Limit to instances of this class')
+				]),
+			  graph(Graph,
+				[ optional(true),
+				  description('Limit to have at least \
+					       one property in graph')
+				]),
+			  type(Type,
+			       [ oneof([any, bnode]),
+				 default(any),
+				 description('Any instance or only bnodes?')
+			       ]),
+			  sortBy(Sort,
+				 [ oneof([label,properties]),
+				   default(label),
+				   description('How to sort the result-table')
+				 ])
 			]),
 	findall(I-PC, instance_in_graph(Graph, Class, Type, I, PC), IPairs),
 	sort_pairs_by_label(IPairs, TableByName),
