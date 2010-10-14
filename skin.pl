@@ -44,7 +44,7 @@
 /** <module> ClioPatria skin
 
 This page defines the overall layout of  ClioPatria pages. All pages are
-returned using html_reply_page/3, using the   page class cliopatria(Id),
+returned using reply_html_page/3, using the   page class cliopatria(Id),
 where Id is currently  always  =default=.   Pages  can  be  redefined by
 providing a rule for user:body//2, where   the first argument must unify
 with the page class.
@@ -53,18 +53,20 @@ The default skin provides the overall menu,   a  simple search form, the
 content and the `server-address'. Because the   search-form uses the YUI
 autocomplete widgets, the body must be of class =|yui-skin-sam|=.
 
-This library supports two hooks:
+The default skin provided by this can be overruled using two hooks:
 
-	* cliopatria:page_body(+Body)//
-	Emit a page.  This hook can modify the overall page layout.
-	* cliopatria:server_address//
+	$ cliopatria:page_body//1 :
+	Emit a page from the given content.  This hook can modify
+	the overall page layout.
+	$ cliopatria:server_address//0 :
 	Write the address of the server.
 
-This library also provides some building blocks:
+This   library   also   provides   building     blocks,    notably   for
+server_address//0:
 
-	* server_address//0
-	Presents the version info and a link to ClioPatria
-	* current_page_doc_link//0
+	$ server_address//1 :
+	Presents the version info and a link to a GIT module.
+	$ current_page_doc_link//0 :
 	Presents a link to the documentation of a page if the
 	self-documentation facilities are loaded.  See run.pl.in.
 */
@@ -88,7 +90,8 @@ user:body(cliopatria(_), Body) -->
 %%	address//
 %
 %	Emit an element =address= with   class  =cliopatria=. This first
-%	class the hook cliopatria:server_address//0.
+%	class  the  hook  cliopatria:server_address//0.  If  this  hooks
+%	fails, it calls server_address('ClioPatria').
 %
 %	@see version.pl
 
@@ -100,8 +103,19 @@ address -->
 
 %%	server_address(+Component)//
 %
-%	Emit the default ClioPatria address link.   This provides a link
-%	to the ClioPatria home page and the (GIT) version information.
+%	HTML component that emits the   default ClioPatria address link.
+%	This provides a link to the ClioPatria   home page and the (GIT)
+%	version information. ClioPatria  is  registered   with  the  GIT
+%	module =|ClioPatria|= and the default server address is provided
+%	by calling:
+%
+%	    ==
+%	    	...,
+%	    	server_address('ClioPatria'),
+%	    	...
+%	    ==
+%
+%	@see register_git_module/2 for registering a GIT module.
 
 server_address(Component) -->
 	html_requires(css('cliopatria.css')),
@@ -116,7 +130,7 @@ server_address(Component) -->
 %	The label ClioPatria as a link to its home-page on the web.
 
 component_address(Component) -->
-	(   { git_component_property(Component, home_url(Home)) }
+	(   { git_module_property(Component, home_url(Home)) }
 	->  html(a([class(home), href(Home)], Component))
 	;   html(span(class(home), Component))
 	),
@@ -130,7 +144,7 @@ component_address(Component) -->
 %	Give verion information and link to detailed version info
 
 component_version(Component) -->
-	{ (   git_component_property(Component, version(Version))
+	{ (   git_module_property(Component, version(Version))
 	  ->  true
 	  ;   Version = 'no GIT?'
 	  ),

@@ -68,11 +68,16 @@ cp_help(Request) :-
 	atom_concat(Location, HelpFile, StartPage),
 	http_redirect(moved, StartPage, Request).
 
+%%	cliopatria:menu_item(-Item, -Label) is nondet.
+%
+%	Extends the help popup with  links   to  the source-code and the
+%	HTTP services.
+
 :- multifile
 	cliopatria:menu_item/2.
 
-cliopatria:menu_item(help/http_help,	'HTTP API').
-cliopatria:menu_item(help/cp_help,	'Source code').
+cliopatria:menu_item(200=help/http_help, 'HTTP Services').
+cliopatria:menu_item(300=help/cp_help,	 'Developer').
 
 :- multifile
 	user:body//2.

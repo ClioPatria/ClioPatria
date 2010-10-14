@@ -87,13 +87,32 @@ The example below adds an item to =Help= popup of ClioPatria:
 %%	menu_item(?Item, ?Label)
 %
 %	This hook adds an item to the ClioPatria menu. Item is a term of
-%	the form popup/item, where _popup_ denotes the name of the popup
-%	menu and _item_ is a (new) item to   be  added to the popup. The
-%	_item_ is the  handler-identifier  of   the  HTTP  handler  that
-%	implements the item (see  http_handler/3).   Label  is the label
-%	displayed.
+%	the form [rank=]popup/item, where _popup_   denotes  the name of
+%	the popup menu and _item_ is a  (new)   item  to be added to the
+%	popup. The _item_ is the handler-identifier  of the HTTP handler
+%	that implements the item  (see   http_handler/3).  Label  is the
+%	label displayed. _rank_ defines the   position inside the popup.
+%	The built-in items are numbered 100,200,...
 %
-%	@see menu_label/2 and menu_popup_order/2.
+%	For example, if we want to add   a  new item to the *Repository*
+%	menu after *|Load from library|* that   crawls  LOD data, we can
+%	use the following code:
+%
+%	==
+%	:- use_module(cliopatria(hooks)).
+%	:- use_module(library(http/http_dispatch)).
+%
+%	:- handler(cliopatria('crawl_lod_form'), crawl_lod_form, []).
+%
+%	cliopatria:menu_item(400=repository/crawl_lod_form, 'Crawl LOD').
+%
+%	crawl_lod_form(Request) :-
+%		...
+%	==
+%
+%	@see The menu_label/2 and menu_popup_order/2 hooks provide
+%	further control over the menu.
+%	@see cp_menu:menu_item/2 implements the default menu.
 
 %%	menu_label(+Id, -Label)
 %

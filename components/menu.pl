@@ -43,16 +43,24 @@
 
 /** <module> ClioPatria menu-bar
 
+This  module  provides  the   ClioPatria    application   menu-bar.  The
+application menu is attached by cliopatria(skin)  to all HTML pages that
+match the style cliopatria(_) (see reply_html_page/3).
+
+@see	The menu is built using CSS from
+	http://denilsonsa.selfip.org/~denilson/menu/menu.html
 */
 
 %%	cp_menu//
 %
-%	Emit the ClioPatria menu.  The menu is built from three hooks in
-%	the =cliopatria= namespace:
+%	HTML Components that emits the ClioPatria   menu.  The menu is a
+%	standard nested HTML =ul= list, turned   into  a horizontal menu
+%	using CSS. The menu can be   extended and controlled using three
+%	hooks in the module =cliopatria=:
 %
-%	    * cliopatria:menu_item/2
-%	    * cliopatria:menu_label/2
-%	    * cliopatria:menu_popup_order/2
+%	    * cliopatria:menu_item/2 defines the menu-items present
+%	    * cliopatria:menu_label/2 assigns non-standard labels
+%	    * cliopatria:menu_popup_order/2 defines the order of the popups
 
 cp_menu -->
 	{ findall(Key-Item, current_menu_item(Key, Item), Pairs0),
@@ -78,7 +86,7 @@ menu([Key-Items|T]) -->
 menu_items([]) --> [].
 menu_items([H|T]) --> menu_item(H), menu_items(T).
 
-menu_item(item(Spec, Label)) -->
+menu_item(item(_Rank, Spec, Label)) -->
 	{ atom(Spec) }, !,
 	{ (   \+ sub_atom(Spec, 0, _, _, 'http://'),
 	      catch(http_location_by_id(Spec, Location), E,
@@ -91,8 +99,17 @@ menu_item(item(Spec, Label)) -->
 	html(li(a([href(Location)], Label))).
 
 
-current_menu_item(Key, item(Location, Label)) :-
-	menu_item(Where, DefLabel),
+%%	current_menu_item(-PopupKey, -Item) is nondet.
+%
+%	Enumerate the menu-items.
+%
+%	@param PopupKey is the id  of  a   popup.  The  label thereof is
+%	computed by menu_label/3 and the ordering by menu_popup_order/2.
+%	@param Item is a term item(Rank, Location, Label).
+
+current_menu_item(Key, item(Rank, Location, Label)) :-
+	menu_item(Spec, DefLabel),
+	rank(Spec, Rank, Where),
 	(   Where = Key/Location
 	->  menu_label(Location, DefLabel, Label)
 	;   Where = Location,
@@ -100,36 +117,42 @@ current_menu_item(Key, item(Location, Label)) :-
 	    menu_label(Location, DefLabel, Label)
 	).
 
-%%	menu_item(?Id, ?Label) is nondet.
+rank(Rank=Where, Rank, Where) :- !.
+rank(Where,      0,    Where).
+
+%%	menu_item(Item, ?Label) is nondet.
 %
-%	True if Id/Label must appear in the side-menu.  Id is one of
+%	Define a menu-item for  the   ClioPatria  application menu. This
+%	predicate is hooked by cliopatria:menu_item/2.
 %
-%	    * handler-id
-%	    * HTML code
+%	@param Item is of the form Rank=Popup/Handler, where Handler is
+%	the identifier of the HTTP handler (see http_handler/3).
+%
+%	@param Label is the label of the popup.
 
 menu_item(Item, Label) :-
 	cliopatria:menu_item(Item, Label).
-menu_item(file/load_file_form,	 	'Load local file').
-menu_item(file/load_url_form,		'Load from HTTP').
-menu_item(file/load_library_ontology_form, 'Load ontology from library').
-menu_item(file/remove_statements_form,  'Remove statements').
-menu_item(file/clear_repository_form,	'Clear the repository').
-menu_item(query/query_form,		'Query').
-menu_item(view/list_graphs,		'Graphs').
-menu_item(view/statistics,		'Statistics').
-menu_item(admin/list_users,		'Users').
-menu_item(admin/settings,		'Settings').
+menu_item(100=repository/load_file_form,	 	'Load local file').
+menu_item(200=repository/load_url_form,			'Load from HTTP').
+menu_item(300=repository/load_library_ontology_form,	'Load from library').
+menu_item(400=repository/remove_statements_form,  	'Remove triples').
+menu_item(500=repository/clear_repository_form,		'Clear repository').
+menu_item(100=query/query_form,				'Query').
+menu_item(100=places/home,				'Home').
+menu_item(200=places/list_graphs,			'Graphs').
+menu_item(300=places/statistics,			'Statistics').
+menu_item(100=admin/list_users,				'Users').
+menu_item(200=admin/settings,				'Settings').
 % Home location
-menu_item(help/home,			'Home').
-menu_item(help/cliopatria_doc,		'Documentation').
+menu_item(100=help/cliopatria_doc,			'Documentation').
 % Keep users at the end
-menu_item(user/login_form,		'Login') :-
+menu_item(100=user/login_form,				'Login') :-
 	\+ someone_logged_on.
-menu_item(current_user/user_logout,	'Logout') :-
+menu_item(100=current_user/user_logout,			'Logout') :-
 	someone_logged_on.
-menu_item(current_user/change_password_form,	'Change password') :-
+menu_item(200=current_user/change_password_form,	'Change password') :-
 	local_user_logged_on.
-menu_item(current_user/my_openid_page,	'My OpenID page') :-
+menu_item(300=current_user/my_openid_page,		'My OpenID page') :-
 	open_id_user(_).
 
 sort_menu_popups(List, Sorted) :-
@@ -140,23 +163,26 @@ sort_menu_popups(List, Sorted) :-
 popup_order(Key-Members, Order-(Key-Members)) :-
 	(   menu_popup_order(Key, Order)
 	->  true
-	;   Order = 10000
+	;   Order = 550			% between application and help
 	).
 
 %%	menu_popup_order(+Item, -Location)
 %
-%	Provide numeric locations for the popup-items.
+%	Provide numeric locations for the   popup-items.  This predicate
+%	can be hooked by cliopatria:menu_popup_order/2.
 
 menu_popup_order(Popup, Order) :-
 	cliopatria:menu_popup_order(Popup, Order), !.
-menu_popup_order(file,	       1000).
-menu_popup_order(query,	       2000).
-menu_popup_order(view,	       3000).
-menu_popup_order(admin,	       4000).
-menu_popup_order(application,  5000).
-menu_popup_order(help,	       6000).
-menu_popup_order(user,	       7000).
-menu_popup_order(current_user, 8000).
+menu_popup_order(places,       100).
+menu_popup_order(admin,	       200).
+menu_popup_order(repository,   300).
+menu_popup_order(query,	       400).
+menu_popup_order(application,  500).
+menu_popup_order(help,	       600).
+menu_popup_order(user,	       700).
+menu_popup_order(current_user, 800).
+
+%%	menu_label(+Id, +Default, -Label) is det.
 
 menu_label(Item, _Default, Label) :-
 	cliopatria:menu_label(Item, Label), !.
@@ -174,6 +200,11 @@ menu_label(current_user, _Default, Label) :-
 menu_label(_, Default, Label) :-
 	id_to_label(Default, Label).
 
+%%	id_to_label(+HandlerID, -Label) is det.
+%
+%	Computes a default label  from   the  HandlerID. Underscores are
+%	mapped to spaces and the first character is capitalised.
+
 id_to_label(Atom, Capital) :-
 	atom_codes(Atom, Codes0),
 	maplist(underscore_to_space, Codes0, Codes),
@@ -189,6 +220,11 @@ id_to_label(Atom, Capital) :-
 underscore_to_space(0'_, 32) :- !.
 underscore_to_space(X, X).
 
+%%	local_user_logged_on is semidet.
+%
+%	True if the currently logged on user is a local user (as opposed
+%	to an OpenID accredited logon).
+
 local_user_logged_on :-
 	logged_on(User, X),
 	X \== User,
@@ -196,6 +232,10 @@ local_user_logged_on :-
 	     uri_data(scheme, Components, Scheme),
 	     nonvar(Scheme)
 	   ).
+
+%%	someone_logged_on is semidet.
+%
+%	True if some user is logged on.
 
 someone_logged_on :-
 	logged_on(User, X),

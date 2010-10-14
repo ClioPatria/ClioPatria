@@ -51,37 +51,37 @@
 version_info(_Request) :-
 	reply_html_page(cliopatria(default),
 			[ title('Version details') ],
-			[ h4('GIT components'),
-			  \git_components,
+			[ h4('GIT modules'),
+			  \git_modules,
 			  h4('Server implementation language'),
 			  p(\prolog_version),
 			  div(class(textbox), \about_git_versions)
 			]).
 
-%%	git_components//
+%%	git_modules//
 %
 %	Component that creates a table of registered GIT modules.
 %
-%	@see register_git_component/2
+%	@see register_git_module/2
 
-git_components -->
-	{ findall(C-V, git_component_property(C, version(V)), Pairs) },
+git_modules -->
+	{ findall(C-V, git_module_property(C, version(V)), Pairs) },
 	html(table(class('cliopatria'),
-		   [ tr([ th('GIT component'), th('Version'), th('Directory') ]),
-		     \git_components(Pairs)
+		   [ tr([ th('GIT module'), th('Version'), th('Directory') ]),
+		     \git_modules(Pairs)
 		   ])).
 
-git_components([]) --> [].
-git_components([H|T]) -->
-	git_component(H),
-	git_components(T).
+git_modules([]) --> [].
+git_modules([H|T]) -->
+	git_module(H),
+	git_modules(T).
 
-git_component(Name-Version) -->
-	{ git_component_property(Name, directory(Dir)) },
+git_module(Name-Version) -->
+	{ git_module_property(Name, directory(Dir)) },
 	html(tr([td(\home_link(Name)), td(Version), td(Dir)])).
 
 home_link(Component) -->
-	{ git_component_property(Component, home_url(Home)) }, !,
+	{ git_module_property(Component, home_url(Home)) }, !,
 	html(a(href(Home), Component)).
 home_link(Component) -->
 	html(Component).
@@ -92,12 +92,16 @@ home_link(Component) -->
 %	Component that emits the current version of SWI-Prolog
 
 prolog_version -->
-	{ current_prolog_flag(version_data, swi(Major, Minor, Patch, _)) },
+	{ current_prolog_flag(version_data, swi(Major, Minor, Patch, _)),
+	  atomic_list_concat([Major, Minor, Patch], '.', Version)
+	},
 	html([ a(href('http://www.swi-prolog.org'), 'SWI-Prolog'), ' ',
-	       'version ~w.~w.~w'-[Major, Minor, Patch]
+	       'version ', b(Version)
 	     ]),
-	(   { current_prolog_flag(version_git, GitVersion) }
-	->  html([' (GIT version ', GitVersion, ')'])
+	(   { current_prolog_flag(version_git, GitVersion),
+	      GitVersion \== Version
+	    }
+	->  html([' (GIT version ', b(GitVersion), ')'])
 	;   []
 	).
 

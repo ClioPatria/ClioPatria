@@ -30,8 +30,8 @@
 
 :- module(prolog_version,
 	  [ check_prolog_version/1,	% +NumericVersion
-	    register_git_component/2,	% +Name, +Options
-	    git_component_property/2	% ?Name, ?Property
+	    register_git_module/2,	% +Name, +Options
+	    git_module_property/2	% ?Name, ?Property
 	  ]).
 :- use_module(library(process)).
 :- use_module(library(option)).
@@ -44,7 +44,7 @@ The module deals with software  versions.   It  currently implements two
 features:  test  whether   SWI-Prolog   is    sufficiently   new   using
 check_prolog_version/1 and find GIT version   signatures for the running
 server. Modules that want  their  version   info  available  through the
-web-page can do so using a call to register_git_component/2.
+web-page can do so using a call to register_git_module/2.
 */
 
 
@@ -167,10 +167,10 @@ stream_char_count(Out, Count) :-
 		 *******************************/
 
 :- dynamic
-	git_component/3,		% Name, Dir, Options
-	git_component_version/2.	% Name, Version
+	git_module/3,		% Name, Dir, Options
+	git_module_version/2.	% Name, Version
 
-%%	register_git_component(+Name, +Options)
+%%	register_git_module(+Name, +Options)
 %
 %	Register the directory from which the  Prolog file was loaded as
 %	a GIT component about which to  report version information. This
@@ -185,7 +185,7 @@ stream_char_count(Out, Count) :-
 %	    * home_url(URL)
 %	    Used to create a link to the components home-page.
 
-register_git_component(Name, Options) :-
+register_git_module(Name, Options) :-
 	(   prolog_load_context(directory, BaseDir)
 	->  true
 	;   working_directory(BaseDir, BaseDir)
@@ -196,23 +196,23 @@ register_git_component(Name, Options) :-
 			     relative_to(BaseDir),
 			     access(read)
 			   ]),
-	retractall(git_component(Name, _, _)),
-	assert(git_component(Name, AbsDir, RestOptions)),
+	retractall(git_module(Name, _, _)),
+	assert(git_module(Name, AbsDir, RestOptions)),
 	git_update_versions(Name).
 
 git_update_versions(Name) :-
-	catch(forall(git_component(Name, _, _),
+	catch(forall(git_module(Name, _, _),
 		     update_version(Name)),
 	      _,
 	      print_message(warning, git(no_version))).
 
 update_version(Name) :-
-	git_component(Name, Dir, Options),
+	git_module(Name, Dir, Options),
 	git_describe(GitVersion, [directory(Dir)|Options]),
-	retractall(git_component_version(Name, _)),
-	assert(git_component_version(Name, GitVersion)).
+	retractall(git_module_version(Name, _)),
+	assert(git_module_version(Name, GitVersion)).
 
-%%	git_component_property(?Name, ?Property) is nondet.
+%%	git_module_property(?Name, ?Property) is nondet.
 %
 %	Property is a property of the named git-component. Defined
 %	properties are:
@@ -224,16 +224,16 @@ update_version(Name) :-
 %
 %	@tbd Extend with more detailed version (e.g., _remote_)
 
-git_component_property(Name, Property) :-
+git_module_property(Name, Property) :-
 	var(Name), !,
-	git_component(Name, _, _),
-	git_component_property(Name, Property).
-git_component_property(Name, version(Version)) :-
-	git_component_version(Name, Version).
-git_component_property(Name, directory(Dir)) :-
-	git_component(Name, Dir, _).
-git_component_property(Name, Term) :-
-	git_component(Name, _, Options),
+	git_module(Name, _, _),
+	git_module_property(Name, Property).
+git_module_property(Name, version(Version)) :-
+	git_module_version(Name, Version).
+git_module_property(Name, directory(Dir)) :-
+	git_module(Name, Dir, _).
+git_module_property(Name, Term) :-
+	git_module(Name, _, Options),
 	member(Term, Options).
 
 
