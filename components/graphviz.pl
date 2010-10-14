@@ -28,8 +28,8 @@
     the GNU General Public License.
 */
 
-:- module(cp_canviz,
-	  [ canviz_graph//2		% :Closure, +Options
+:- module(cp_graphviz,
+	  [ graphviz_graph//2		% :Closure, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -42,13 +42,13 @@
 :- use_module(library(settings)).
 :- use_module(library(semweb/rdf_graphviz)).
 
-:- setting(graphviz:format, oneof([canviz,svg]), canviz,
+:- setting(graphviz:format, oneof([svg,canviz]), svg,
 	   'Technique to include RDF graphs in a page').
 
 /** <module> Render RDF-graphs
 
-This module provides canviz_graph//2 to render lists of rdf(S,P,O) terms
-as graphs.
+This module provides graphviz_graph//2 to render   a  list of rdf(S,P,O)
+terms as a graph.
 
 @see	library(semweb/rdf_abstract) for various operations on graphs
 	represented as lists of rdf(S,P,O).
@@ -66,20 +66,31 @@ as graphs.
 			    ])
 		 ]).
 
-:- http_handler(root(canviz_send_graph), send_graph, []).
+:- http_handler(root(graphviz_send_graph), send_graph, []).
 
-%%	canviz_graph(:Closure, +Options)//
+%%	graphviz_graph(:Closure, +Options)//
 %
-%	Display an RDF graph on a canviz (HTML5). The graph is a list of
-%	rdf(S,P,O) triples and is  obtained   by  calling  call(Closure,
-%	Graph). Options is  an  option-list   for  gviz_write_rdf/3.  In
-%	addition, it processes the option:
+%	Display an RDF graph graphical in the   browser.  The graph is a
+%	list  of  rdf(S,P,O)  triples  and    is   obtained  by  calling
+%	call(Closure, Graph). This component  inserts   HTML  that  will
+%	cause  a  subsequent  call  to    send_graph/1,  which  executes
+%	call(Closure,  Graph)  and  sends  the  graph.  This  design  is
+%	required for the HTML5/canviz rendering. For   SVG we could have
+%	opted for embedded SVG,  but  this   design  is  currently  more
+%	portable  and  avoid  slowing  down  page  rendering  if  it  is
+%	expensive to produce the graph.
+%
+%	Options is an option-list for  gviz_write_rdf/3. In addition, it
+%	processes the option:
 %
 %	    * render(+Exe)
 %	    Set the rendering engine.  Default is =dot=.
 %	    * format(+Format)
 %	    One of =canviz=, using AJAX-based rendering on HTML5 canvas
-%	    or =svg=, using SVG.
+%	    or =svg=, using SVG.  The default is defined by the setting
+%	    graphviz:format.
+%	    * object_attributes(+List)
+%	    Additional attributes to pass to the SVG =object= element.
 %
 %	This facility requires the graphiz   renderer programs installed
 %	in the executable search-path.
@@ -88,9 +99,9 @@ as graphs.
 %	@see http://www.graphviz.org/
 
 :- meta_predicate
-	canviz_graph(:, :, ?, ?).
+	graphviz_graph(1, :, ?, ?).
 
-canviz_graph(_Closure, Options) -->
+graphviz_graph(_Closure, Options) -->
 	{ option(render(Renderer), Options, dot)
 	},
 	\+ { process:exe_options(ExeOptions),
@@ -100,17 +111,17 @@ canviz_graph(_Closure, Options) -->
 				])
 	   }, !,
 	no_graph_viz(Renderer).
-canviz_graph(Closure, Options) -->
+graphviz_graph(Closure, Options) -->
 	{ setting(graphviz:format, DefFormat),
 	  option(format(Format), Options, DefFormat),
 	  meta_options(is_meta, Options, QOptions),
 	  variant_sha1(Closure+QOptions, Hash),
-	  http_session_assert(canviz(Hash, Closure+QOptions))
+	  http_session_assert(graphviz(Hash, Closure+QOptions))
 	},
-	canviz_graph_fmt(Format, Hash).
+	graphviz_graph_fmt(Format, Hash, QOptions).
 
 
-canviz_graph_fmt(canviz, Hash) --> !,
+graphviz_graph_fmt(canviz, Hash, _Options) --> !,
 	{ http_link_to_id(send_graph, [hash(Hash)], HREF)
 	},
 	html_requires(js('canviz.js')),
@@ -123,16 +134,17 @@ canviz_graph_fmt(canviz, Hash) --> !,
 			 '});'
 		       ])
 	     ]).
-canviz_graph_fmt(svg, Hash) -->
-	{ http_link_to_id(send_graph,
+graphviz_graph_fmt(svg, Hash, Options) -->
+	{ option(object_attributes(Attrs), Options, []),
+	  http_link_to_id(send_graph,
 			  [ hash(Hash),
 			    lang(svg),
 			    target('_top')
 			  ], HREF)
 	},
 	html([ object([ data(HREF),
-			type('image/svg+xml'),
-			width('100%')
+			type('image/svg+xml')
+		      | Attrs
 		      ],
 		      [])
 	     ]).
@@ -151,7 +163,7 @@ no_graph_viz(Renderer) -->
 %%	send_graph(+Request)
 %
 %	HTTP handler to send a graph.  This   HTTP  handler is a private
-%	handler for canviz_graph//2, rendering  a   list  of  rdf(S,P,O)
+%	handler for graphviz_graph//2, rendering a   list  of rdf(S,P,O)
 %	triples using Graphviz.
 
 send_graph(Request) :-
@@ -168,10 +180,10 @@ send_graph(Request) :-
 				   description('Add TARGET= to all links')
 				 ])
 			]),
-	http_session_data(canviz(Hash, Closure+Options)),
+	http_session_data(graphviz(Hash, Closure+Options)),
 	call(Closure, Graph),
 	length(Graph, Len),
-	debug(canviz, 'Graph contains ~D triples', [Len]),
+	debug(graphviz, 'Graph contains ~D triples', [Len]),
 	select_option(render(Renderer), Options, GraphOptions0, dot),
 	target_option(Target, GraphOptions0, GraphOptions),
 	atom_concat('-T', Lang, GraphLang),
@@ -191,7 +203,7 @@ send_graph(Request) :-
 		     (	 process_wait(PID, Status),
 			 character_count(XDotOut, Count),
 			 close(XDotOut),
-			 debug(canviz, '~w: ~D bytes, exit status ~w',
+			 debug(graphviz, '~w: ~D bytes, exit status ~w',
 			       [Renderer, Count, Status])
 		     )).
 
@@ -215,7 +227,7 @@ send_to_dot(Graph, Options, Out) :-
 	close(Out, [force(true)]).
 
 copy_graph_data(Out) :-
-	debugging(canviz), !,
+	debugging(graphviz), !,
 	get_code(Out, C0),
 	copy_graph_data(C0, Out).
 copy_graph_data(Out) :-

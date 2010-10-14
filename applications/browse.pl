@@ -58,7 +58,7 @@
 
 :- use_module(components(label)).
 :- use_module(components(simple_search)).
-:- use_module(components(canviz)).
+:- use_module(components(graphviz)).
 :- use_module(library(semweb/rdf_abstract)).
 :- use_module(library(semweb/rdf_label)).
 
@@ -1187,12 +1187,13 @@ uri_predicate_info(_, _) --> [].
 
 context_graph(URI) -->
 	html([ h4('Context graph'),
-	       \canviz_graph(context_graph(URI),
-			     [ wrap_url(rdf_link),
-			       graph_attributes([ rankdir('RL')
-						]),
-			       shape_hook(shape(URI))
-			     ])
+	       \graphviz_graph(context_graph(URI),
+			       [ object_attributes([width('100%')]),
+				 wrap_url(rdf_link),
+				 graph_attributes([ rankdir('RL')
+						  ]),
+				 shape_hook(shape(URI))
+			       ])
 	     ]).
 
 rdf_link(URI, HREF) :-
