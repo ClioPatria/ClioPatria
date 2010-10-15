@@ -1,25 +1,38 @@
 ---+ Installation and Administration
 
----++ Getting started
+Basic installation merely  requires  installing   a  recent  version  of
+[[SWI-Prolog][http://www.swi-prolog.org]] and unpacking  ClioPatria (see
+_Downloading_ below).  Next, you can deploy it in two ways:
 
-Create run.pl from run.pl.in. On Unix system, run =|./configure|= to
-accompish this. On Windows, double click setup.pl. The created file
-run.pl loads and starts the server. There are several configuration
-options that may be selected by editing run.pl according to the comments
-in this file.
+---+++ Installation as application
 
-Next, start the server by running =|./run.pl|= (Unix) or double-clicking
-run.pl (Windows). Now direct your browser to the server, using the
-default setup this is \url{http://localhost:3020}. If no users are
-defined the browser will prompt to enter the administrative password.
-After that the admin and anonymous users are created. Accounts can be
-created and modified by users with administrative rights through the
-\emph{Admin/Users} link in the menu.
+Running ClioPatria as an application requires a few steps:
+
+    1. Create the start-file run.pl from run.pl.in.  On Unix, this
+    is achieved by running =|./configure|= from the top directory.  On
+    Windows by double-clicking setup.pl.
+
+    2. Optionally, pull in configuration files according to
+    conf.d/README.txt.  This can also be done later.
+
+    3. Start run.pl as =|./run.pl|= on Unix or double-clicking run.pl
+    on Windows and direct your browser to the indicated address (default
+    is http://localhost:3020/.  If this is the first time, you will be
+    asked to enter an _admin_ password. This protects some
+    web-operations, such as managing settings and loading/unloading RDF.
+
+If you want to extend the application, there  are two options. One is to
+put a Prolog file with the desired  extensions in =|conf.d|=. Another is
+to run configure/setup from another directory.   This creates run.pl and
+conf.d in the current working directory,  after which the extensions can
+be placed in =|conf.d|=.
 
 
----++ Configuring the server
+---+++ Use as library
 
-To configure the server, login as \const{admin} and click
-*|Admin/Settings|*. Edit settings and hit *Apply* to save them. In most
-cases you will have to restart the server before the new settings take
-effect.
+To use ClioPatria as a library,   one  can simply compile cliopatria.pl.
+The file run.pl as generated from   installation as an application gives
+additional actions you may want to setup.   The web-server is started by
+cp_server/0, but the system runs happily if   the  Prolog HTTP server is
+started in another way, as long as   the server uses http_dispatch/1 for
+dispatching HTTP requests.

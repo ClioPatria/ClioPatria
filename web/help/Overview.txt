@@ -1,37 +1,35 @@
 ---+ Overview of ClioPatria
 
-ClioPatria unifies the SWI-Prolog general Web support and Semantic Web
-support, providing both a starting point for dedicated applications and
-a platform for exchange of RDF-based data using a standardised language
-and protocol.
+ClioPatria is an extension of the SWI-Prolog RDF infratructure (`semweb'
+package) that provides you with a   ready-to-run  web-server that can be
+extended into a  full-fledged  Semantic   Web  application.  The  semweb
+package provides reading and writing RDF   (XML and Turtle), storage and
+querying by means of rdf(Subject,   Predicate,  Object). ClioPatria adds
+the following:
 
-`Out of the box', ClioPatria can be used to load and study RDF data. RDF
-data can be studied using the interactive SPARQL interface, a graph
-browser or the Prolog toplevel.
+    $ A SPARQL server :
+    This processes HTTP SPARQL requests.  The server also includes
+    support for SeRQL and the Sesame (www.openrdf.org) HTTP protocol.
 
-ClioPatria is first of all intended as a base-level infrastructure for
-building RDF-based applications. This is achieved by loading additional
-Prolog code that implements the required application logic on top of
-the SWI-Prolog semweb package and optionally ClioPatria extensions
-thereof.  Next, there are several options to make this application
-logic available:
+    $ Reasoning libraries :
+    Called entailment modules.  See entailment/README.txt
 
-    * Define `APIs': HTTP handlers that emit JSON or XML that is
-    handled by a presentation layer that resides either in the browser
-    (using AJAX technology) or in another web-server.
+    $ User administration :
+    Create users, provide OpenID services, use external OpenID
+    authorization and connect users to right-tokens.
 
-    * Define HTTP handlers that emit HTML pages, possibly enriched
-    with AJAX components.  This technique is used by the development
-    tools that are part of ClioPatria.  More information on providing
-    web-services from Prolog can be found on the SWI-Prolog
-    [[HOWTO pages][http://www.swi-prolog.org/howto/http/]]
+    $ A web-based developers front-end :
+    This provides provides browsing the RDF, loading and unloading
+    graphs, testing queries interactively, browsing the documentation of
+    HTTP services and source-code.
 
-The choice between these two options depends on external requirements,
-such as skills of the involved developers, integration with other
-software and the amount of interaction. Serving HTML pages from Prolog
-requires knowledge of HTML and CSS and the SWI-Prolog HTML-writer
-library. It provides good modularity and reuse. Alternatively, the UI
-can be programmed in e.g., flash or a generic JavaScript library such as
-YUI. This approach makes the UI independent from the server, but
-requires programming in two languages: Prolog to define the APIs and
-flash/JavaScript/... to program the UI.
+    $ Web-page generation components :
+    Server-side components to render an RDF resource or literals with
+    a link to the development UI, render simple graphs, etc.
+
+    $ Additional libraries :
+    These are additional components to the http and semweb libraries
+    that may become part of SWI-Prolog in the future.  Examples are
+    lib/semweb/rdf_optimise.pl to optimise rdf-control-structures and
+    lib/semweb/rdf_abstract.pl to transform graphs represented as
+    rdf(S,P,O) terms.
