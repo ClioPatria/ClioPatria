@@ -27,8 +27,7 @@
 }
 #nav li { /* Appearance settings (eye candy) */
 	position: relative;
-	background: #E7E7E7;
-/*	background: url(trans/white80.png);*/
+	background: url("../icons/button-bg.png") left top;
 	color: #00F;
 	border: solid 1px #AAA;
 	height: auto;
@@ -79,10 +78,8 @@
 /* Shadow! */
 
 #nav li:hover {
-/*	border-style: outset;*/
-/*	background: #D7D7D7;*/
-	background: #1AD;
-	color: white;
+	background: url("../icons/button-bg-highlight.png") left top;
+	color: #F00;
 }
 #nav > li ul {
 /*	background: #666;*/
