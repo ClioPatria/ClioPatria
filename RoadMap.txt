@@ -33,9 +33,6 @@ from the top-left menu.
     Example and template files are in examples/conf.d.  See
     conf.d/README.txt and examples/conf.d/README.txt.
 
-    $ doc :
-    Generate the documentation.
-
     $ entailment :
     Entailment modules provide an alternative definition of rdf/3 that
     included triples entailed by reasoning.  The various entailment
