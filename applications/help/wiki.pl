@@ -38,18 +38,36 @@
 :- use_module(library(pldoc/doc_wiki)).
 :- use_module(library(readutil)).
 :- use_module(library(option)).
+:- use_module(library(settings)).
 :- use_module(library(pldoc/doc_html),
 	      except([ file//2,
 		       include//3
 		     ])).
 
-
 /** <module> ClioPatria wiki-page server
+
+This module serves wiki-pages from (by default) cliopatria(web/help). If
+the user requests an X.html page, it runs SWI-Prolog's PlDoc wiki-engine
+over the associated X.txt file.
+
+@see The file load.pl binds this functionality to cliopatria(web/help).
 */
 
 %%	serve_page(+Alias, +Request)
 %
-%	HTTP handler for files below document-root.
+%	HTTP handler for files below the file-path Alias. .txt files are
+%	served as Wiki-pages. All other files   are  served according to
+%	the rules of http_reply_file/3. To serve   a directory, one must
+%	create a file search path for it   and decide on the location in
+%	the web-hierarchy. Here is an example that serves files from the
+%	subdirectory =www= below  the  search-path   =myapp=  from  HTTP
+%	locations below =|/web|=.
+%
+%	    ==
+%	    user:file_search_path(web_files, myapp(www)).
+%
+%	    :- http_handler(root(web), serve_page(web_files), [prefix]).
+%	    ==
 
 serve_page(Alias, Request) :-
 	memberchk(path_info(Relative), Request),
