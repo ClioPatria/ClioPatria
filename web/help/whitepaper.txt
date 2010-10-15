@@ -113,7 +113,7 @@ call this relation with a given MBox it will swap the two RDF
 statements.
 
 ==
-:- use_module(serql(rdf_optimise)).
+:- use_module(library(semweb/rdf_optimise))).
 
 name_mbox(Name, MBox) :-
 	rdf_optimise((rdf(X, foaf:name, Name),
@@ -150,10 +150,12 @@ name_mbox(Name, MBox) :-
 Above, we compared querying the triple-store in Prolog with SPARQL. What
 if we compare Prolog to using Sesame/Jena as a library? The marriage
 between Object Oriented systems and relational data in general and RDF
-in particular is discussed in http://eyaloren.org/pubs/jws2008.pdf.
-Roughly, static languages such as Java allow for three approaches.
-Each of these either require setting up an _enumerator_ or dealing
-with _sets_.
+in particular is discussed in [[ActiveRDF: embedding Semantic Web data
+into object-oriented
+languages][http://linkinghub.elsevier.com/retrieve/pii/S1570826808000401]].
+Roughly, static languages such as Java allow for three approaches. Each
+of these either require setting up an _enumerator_ or dealing with
+_sets_.
 
   1. GetStatement(): Query statements based on a pattern. This is
   comparable to what our Prolog based approach does, but in our approach
@@ -214,26 +216,31 @@ ClioPatria.
 
 ---+++ ClioPatria extensions
 
+    $ The development environment :
+    ClioPatria is an interactive and self-documenting system that
+    provides basic user-management and utilities to examine RDF
+    data.
+
     $ SeRQL/SPARQL endpoint :
     Although generally not used for application development,
-    the compliant RDF query endpoints make ClioPatria a possible
-    component in Semantic Web applications that use these endpoints.
+    the compliant RDF query endpoints make ClioPatria a standard
+    component in Semantic Web applications that use such endpoints.
 
     $ Linked Open Data serer :
-    Serve RDF repositories or fragments thereof as LOD with a single
-    line declaration.
+    Serve RDF repositories or fragments thereof as LOD with a
+    single-line declaration.
 
 
 ---++ Running ClioPatria
 
 You need two things to run ClioPatria: the ClioPatria sources and
-a recent version of SWI-Prolog that fits your computer.  If you
-want thumbnail support to show images, you also need =convert=
-from the ImageMagic project.  Here are the URLs for downloading:
+a recent version of SWI-Prolog that fits your computer.  The ClioPatria
+resource viewer can display a graph that places a resource in context.
+This facility requires Graphviz.
 
-    * http://www.swi-prolog.org/we/ClioPatria/
+    * http://www.swi-prolog.org/web/ClioPatria/
     * http://www.swi-prolog.org
-    * http://www.imagemagick.org/
+    * http://www.graphviz.org/
 
 ClioPatria runs on all major platforms supported by SWI-Prolog: Windows
 (32- and 64-bits), MacOSX, Linux (32- and 64-bits) and, from source,
