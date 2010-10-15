@@ -148,8 +148,6 @@ menu_item(100=admin/list_users,				'Users').
 menu_item(200=admin/settings,				'Settings').
 menu_item(300=admin/statistics,				'Statistics').
 
-menu_item(100=help/cliopatria_doc,			'Documentation').
-
 menu_item(100=user/login_form,				'Login') :-
 	\+ someone_logged_on.
 menu_item(100=current_user/user_logout,			'Logout') :-

@@ -1,0 +1,25 @@
+---+ Installation and Administration
+
+---++ Getting started
+
+Create run.pl from run.pl.in. On Unix system, run =|./configure|= to
+accompish this. On Windows, double click setup.pl. The created file
+run.pl loads and starts the server. There are several configuration
+options that may be selected by editing run.pl according to the comments
+in this file.
+
+Next, start the server by running =|./run.pl|= (Unix) or double-clicking
+run.pl (Windows). Now direct your browser to the server, using the
+default setup this is \url{http://localhost:3020}. If no users are
+defined the browser will prompt to enter the administrative password.
+After that the admin and anonymous users are created. Accounts can be
+created and modified by users with administrative rights through the
+\emph{Admin/Users} link in the menu.
+
+
+---++ Configuring the server
+
+To configure the server, login as \const{admin} and click
+*|Admin/Settings|*. Edit settings and hit *Apply* to save them. In most
+cases you will have to restart the server before the new settings take
+effect.

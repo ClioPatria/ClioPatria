@@ -37,13 +37,16 @@
 
 :- use_module(cliopatria(parms)).	% Get paths
 :- use_module(cliopatria(skin)).	% Skinning primitives
+:- use_module(wiki).			% Our own help-pages
 :- use_module(http_help).		% Help on HTTP server
 :- use_module(ac_predicate).		% Predicate autocompletion
 :- use_module(components(menu)).	% ClioPatria Menu
 
-/** <module> Support PlDoc
+/** <module> ClioPatria help system
 
-Integrates PlDoc from /help/source/
+This   module   serves   the   wiki-source     based   help-pages   from
+cliopatria(web/help)  and  integrates   SWI-Prolog's    PlDoc   literate
+programming system to provide documentation of the source-code.
 */
 
 %       http:location(pldoc, Location, Options) is det.
@@ -53,6 +56,7 @@ Integrates PlDoc from /help/source/
 http:location(pldoc, root('help/source'), [priority(10)]).
 
 :- http_handler(root(help/source), cp_help, []).
+:- http_handler(cliopatria('help/'), serve_page(help), [prefix, id(wiki_help)]).
 
 %%	cp_help(+Request)
 %
@@ -76,6 +80,7 @@ cp_help(Request) :-
 :- multifile
 	cliopatria:menu_item/2.
 
+cliopatria:menu_item(100=help/wiki_help, 'Documentation').
 cliopatria:menu_item(200=help/http_help, 'HTTP Services').
 cliopatria:menu_item(300=help/cp_help,	 'Developer').
 

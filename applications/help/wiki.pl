@@ -1,0 +1,249 @@
+/*  Part of ClioPatria SeRQL and SPARQL server
+
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2010, University of Amsterdam,
+		   VU University Amsterdam
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
+*/
+
+:- module(cpa_wiki,
+	  [ serve_page/2
+	  ]).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_dirindex)).
+:- use_module(library(http/html_write)).
+:- use_module(library(pldoc/doc_wiki)).
+:- use_module(library(readutil)).
+:- use_module(library(option)).
+:- use_module(library(pldoc/doc_html),
+	      except([ file//2,
+		       include//3
+		     ])).
+
+
+/** <module> ClioPatria wiki-page server
+*/
+
+%%	serve_page(+Alias, +Request)
+%
+%	HTTP handler for files below document-root.
+
+serve_page(Alias, Request) :-
+	memberchk(path_info(Relative), Request),
+	Spec =.. [ Alias, Relative ],
+	http_safe_file(Spec, []),
+	find_file(Spec, File), !,
+	serve_file(File, Request).
+serve_page(Alias, Request) :-
+	\+ memberchk(path_info(_), Request), !,
+	serve_page(Alias, [path_info('index.html')|Request]).
+serve_page(_, Request) :-
+	http_404([], Request).
+
+%%	find_file(+Spec, -File) is semidet.
+%
+%	Translate Spec into a File  in   the  document-root tree. If the
+%	given extension is .html, also look for   .txt files that can be
+%	translated into HTML.
+
+find_file(Spec, File) :-
+	spec_replace_extension(Spec, html, txt, TxtSpec),
+	absolute_file_name(TxtSpec,
+			   File,
+			   [ access(read),
+			     file_errors(fail)
+			   ]), !.
+find_file(Spec, File) :-
+	absolute_file_name(Spec,
+			   File,
+			   [ access(read),
+			     file_errors(fail)
+			   ]).
+find_file(Spec, File) :-
+	absolute_file_name(Spec,
+			   File,
+			   [ access(read),
+			     file_errors(fail),
+			     file_type(directory)
+			   ]).
+
+spec_replace_extension(File0, Ext0, Ext, File) :-
+	atomic(File0), !,
+	file_name_extension(Base, Ext0, File0),
+	file_name_extension(Base, Ext, File).
+spec_replace_extension(Comp0, Ext0, Ext, Comp) :-
+	Comp0 =.. [Alias,Inside0],
+	spec_replace_extension(Inside0, Ext0, Ext, Inside),
+	Comp =.. [Alias,Inside].
+
+%%	serve_file(+File, +Request) is det.
+%%	serve_file(+Extension, +File, +Request) is det.
+%
+%	Serve the requested file.
+
+serve_file(File, Request) :-
+	file_name_extension(_, Ext, File),
+	debug(plweb, 'Serving ~q; ext=~q', [File, Ext]),
+	serve_file(Ext, File, Request).
+
+serve_file('',  Dir, Request) :-
+	exists_directory(Dir), !,
+	(   sub_atom(Dir, _, _, 0, /),
+	    serve_index_file(Dir, Request)
+	->  true
+	;   http_reply_dirindex(Dir, [unsafe(true)], Request)
+	).
+serve_file(txt, File, Request) :-
+	http_parameters(Request,
+			[ format(Format, [ oneof([raw,html]),
+					   default(html)
+					 ])
+			]),
+	Format == html, !,
+	read_file_to_codes(File, String, []),
+	b_setval(pldoc_file, File),
+	call_cleanup(serve_wiki(String),
+		     nb_delete(pldoc_file)).
+serve_file(_Ext, File, Request) :-	% serve plain files
+	http_reply_file(File, [unsafe(true)], Request).
+
+%%	serve_index_file(+Dir, +Request) is semidet.
+%
+%	Serve index.txt or index.html, etc. if it exists.
+
+serve_index_file(Dir, Request) :-
+        setting(http:index_files, Indices),
+        member(Index, Indices),
+	ensure_slash(Dir, DirSlash),
+	atom_concat(DirSlash, Index, File),
+        access_file(File, read), !,
+        serve_file(File, Request).
+
+ensure_slash(Dir, Dir) :-
+	sub_atom(Dir, _, _, 0, /), !.
+ensure_slash(Dir0, Dir) :-
+	atom_concat(Dir0, /, Dir).
+
+
+%%	serve_wiki(+String) is det.
+%
+%	Emit page from wiki content in String.
+
+serve_wiki(String) :-
+	wiki_codes_to_dom(String, [], DOM),
+	(   sub_term(h1(_, Title), DOM)
+	->  true
+	;   Title = 'SWI-Prolog'
+	),
+	setup_call_cleanup(b_setval(pldoc_options,
+				    [ prefer(manual)
+				    ]),
+			   serve_wiki_page(Title, DOM),
+			   nb_delete(pldoc_options)).
+
+serve_wiki_page(Title, DOM) :-
+	reply_html_page(pldoc(wiki),
+			[ title(Title)
+			],
+			DOM).
+
+
+		 /*******************************
+		 *	      RENDERING		*
+		 *******************************/
+
+%%	wiki_file_to_dom(+File, +DOM) is det.
+%
+%	DOM is the HTML dom representation for the content of File.
+
+wiki_file_to_dom(File, DOM) :-
+	read_file_to_codes(File, String, []),
+	(   nb_current(pldoc_file, OrgFile)
+	->  b_setval(pldoc_file, File),
+	    call_cleanup(wiki_codes_to_dom(String, [], DOM),
+			 b_setval(pldoc_file, OrgFile))
+	;   b_setval(pldoc_file, File),
+	    call_cleanup(wiki_codes_to_dom(String, [], DOM),
+			 nb_delete(pldoc_file))
+	).
+
+
+		 /*******************************
+		 *	     RENDERING		*
+		 *******************************/
+
+%%	include(+Object, +Type, +Options)//
+
+include(Object, Type, Options) -->
+	pldoc_html:include(Object, Type,
+			   [ map_extension([txt-html])
+			   | Options
+			   ]).
+
+%%	file(+Path, Options)//
+%
+%	Trap translation of \file(+Path, Options)
+
+file(Path, Options) -->
+	{ \+ option(label(_), Options),
+	  file_base_name(Path, File),
+	  file_name_extension(Label, txt, File), !,
+	  file_href(Options, Options1)
+	},
+	pldoc_html:file(Path,
+			[ label(Label),
+			  map_extension([txt-html])
+			| Options1
+			]).
+file(File, Options) -->
+	{ file_href(Options, Options1)
+	},
+	pldoc_html:file(File,
+			[ map_extension([txt-html])
+			| Options1
+			]).
+
+
+file_href(Options0, Options) :-
+	\+ ( nb_current(pldoc_file, CFile),
+	     CFile \== []
+	   ),
+	option(absolute_path(Path), Options0),
+	absolute_file_name(document_root(.),
+			   DocRoot,
+			   [ file_type(directory),
+			     access(read)
+			   ]),
+	atom_concat(DocRoot, DocLocal, Path), !,
+	ensure_leading_slash(DocLocal, HREF),
+	Options = [ href(HREF) | Options0 ].
+file_href(Options, Options).
+
+ensure_leading_slash(Path, SlashPath) :-
+	(   sub_atom(Path, 0, _, _, /)
+	->  SlashPath = Path
+	;   atom_concat(/, Path, SlashPath)
+	).

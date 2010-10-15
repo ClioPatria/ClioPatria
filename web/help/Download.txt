@@ -1,0 +1,9 @@
+---+ Downloading ClioPatria
+
+ClioPatria is available from its [[GIT][http://git-scm.com/]]
+[[repository][http://www.swi-prolog.org/git/ClioPatria.git]] using the
+following command.
+
+    ==
+    % git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
+    ==

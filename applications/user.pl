@@ -103,10 +103,6 @@ in:
 :- http_handler(cliopatria('user/clearRepository'),  clear_repository_form,   []).
 :- http_handler(cliopatria('user/removeStatements'), remove_statements_form,  []).
 
-:- http_handler(cliopatria('documentation.html'),
-		reply_decorated_file(cliopatria('doc/cliopatria.html')),
-		[id(cliopatria_doc)]).
-
 
 %%	root(+Request)
 %

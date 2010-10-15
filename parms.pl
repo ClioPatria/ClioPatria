@@ -73,6 +73,7 @@ user:file_search_path(icons,	    web(icons)).
 user:file_search_path(yui,	    web('yui/2.7.0')).
 user:file_search_path(js,	    web(js)).
 user:file_search_path(html,	    web(html)).
+user:file_search_path(help,	    web(help)).
 
 
 		 /*******************************
