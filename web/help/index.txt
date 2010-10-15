@@ -13,6 +13,7 @@ management and web-based tools to help the developer analysing the
 loaded RDF.
 
     * Overview.txt of ClioPatria
+    * [[Rationale][whitepaper.txt]] behind ClioPatria
     * QueryLanguages.txt supported
     * Install.txt or restart.txt ClioPatria
     * Download.txt ClioPatria
