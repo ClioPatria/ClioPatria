@@ -14,3 +14,6 @@ BRAHMS                  31        461       714
 SWI                     36        608       988
 SWI – 32-bit            24        365       588
 ==
+
+The details of this benchmark are described in my PhD thesis
+[[PDF][http://www.swi-prolog.org/download/publications/jan-phd.pdf]].
