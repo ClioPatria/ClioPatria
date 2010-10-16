@@ -56,8 +56,8 @@ td.object
 }
 
 table.rdf_browse th
-{ color: white;
-  background-color: blue;
+{ background:  url("../icons/th.png") left top;
+  border: 1px solid #444;
 }
 
 table.rdf_browse th.sorted

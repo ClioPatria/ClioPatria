@@ -366,7 +366,7 @@ parameter_table([]) --> !,
 parameter_table(Params) -->
 	html([ table(class(http_parameters),
 		     [ tr([th('Name'), th('Type'), th('Default'), th('Description')])
-		     | \parameters(Params, 0)
+		     | \parameters(Params, 1)
 		     ])
 	     ]).
 

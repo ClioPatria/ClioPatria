@@ -78,8 +78,8 @@ td.empty, td.cint
 }
 
 table.cliopatria th
-{ color: white;
-  background-color: blue;
+{ background:  url("../icons/th.png") left top;
+  border: 1px solid #444;
 }
 
 		 /*******************************

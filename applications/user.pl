@@ -171,7 +171,7 @@ statistics(Request) :-
 			      h4([id(ntriples)], 'Triples in database'),
 			      \triple_statistics,
 			      h4([id(callstats)],'Call statistics'),
-			      \rdf_call_stat_table,
+			      \rdf_call_statistics_table,
 			      h4([id(sessions)], 'Active sessions'),
 			      \http_session_table,
 			      h4([id(serverstats)], 'Server statistics'),

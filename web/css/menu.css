@@ -27,7 +27,7 @@
 }
 #nav li { /* Appearance settings (eye candy) */
 	position: relative;
-	background: url("../icons/button-bg.png") left top;
+	background: url("../icons/menu-bg.png") left top;
 	color: #00F;
 	border: solid 1px #AAA;
 	height: auto;
@@ -78,7 +78,7 @@
 /* Shadow! */
 
 #nav li:hover {
-	background: url("../icons/button-bg-highlight.png") left top;
+	background: url("../icons/menu-bg-highlight.png") left top;
 	color: #F00;
 }
 #nav > li ul {

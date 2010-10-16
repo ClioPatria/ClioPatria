@@ -32,26 +32,22 @@ div.query_stats
 
 table.rdfql
 { margin-top: 1ex;
-  margin-left: 5%;
-  border-width: 0px;
-  border-style: solid;
+  margin-left: 50px;
   border-collapse: collapse;
 }
 
 table.rdfql th
-{ color: white;
-  background-color: navy
+{ background:  url("../icons/th.png") left top;
+  font-size: 90%;
 }
 
 table.rdfql td,th
-{ border-width: 1px;
-  border-style: solid;
-  border-color: #A0A0A0;
+{ border: 1px solid #A0A0A0;
+  padding: 0 2px 0 2px;
 }
 
 table.rdfql th.port,td.port
-{ color: navy;
-  background-color: yellow;
+{ background:  url("../icons/th.png") left top;
 }
 
 table.rdfql tr.odd

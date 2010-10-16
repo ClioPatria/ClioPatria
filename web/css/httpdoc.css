@@ -20,8 +20,9 @@
 }
 
 table.http_parameters th
-{ color: white;
-  background-color: blue;
+{ background:  url("../icons/th.png") left top;
+  border: 1px solid #000;
+  padding: 1px;
 }
 
 table.http_parameters tr.group th
@@ -47,8 +48,7 @@ table.http_parameters td
 }
 
 table.http_parameters
-{ border-width: 1px;
-  border-style: solid;
+{ border: 1px solid #000;
   border-collapse: collapse;
   margin-left: 1cm;
 }

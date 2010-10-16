@@ -29,7 +29,7 @@
 */
 
 :- module(server_statistics,
-	  [ rdf_call_stat_table//0,
+	  [ rdf_call_statistics_table//0,
 	    http_session_table//0,
 	    http_server_statistics//0,
 	    http_server_pool_table//0
@@ -48,11 +48,11 @@
 */
 
 
-%%	rdf_call_stat_table//
+%%	rdf_call_statistics_table//
 %
 %	Display table with RDF-call statistics
 
-rdf_call_stat_table -->
+rdf_call_statistics_table -->
 	{ rdf_call_stats(Lookup),
 	  (   Lookup = [rdf(_,_,_)-_|_]
 	  ->  Cols = 3
