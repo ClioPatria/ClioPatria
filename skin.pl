@@ -140,7 +140,9 @@ server_address(Component) -->
 
 component_address(Component) -->
 	(   { git_module_property(Component, home_url(Home)) }
-	->  html(a([class(home), href(Home)], Component))
+	->  html(a([ class(home), href(Home),
+		     title(Component+' home')
+		   ], Component))
 	;   html(span(class(home), Component))
 	),
 	html(' (version '),
@@ -159,7 +161,10 @@ component_version(Component) -->
 	  ),
 	  http_link_to_id(version_info, [], VREF)
 	},
-	html(a([class(version), href(VREF)], Version)).
+	html(a([title('About versions'),
+		class(version),
+		href(VREF)],
+	       Version)).
 
 
 

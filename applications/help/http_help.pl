@@ -71,7 +71,10 @@ page_documentation_link(Request) -->
 	  http_absolute_location(icons('doc.png'), IMG, [])
 	},
 	html(a([id('dev-help'), href(HREF)],
-	       img(src(IMG)))).
+	       img([ alt('Developer help'),
+		     title('Page documentation'),
+		     src(IMG)
+		   ]))).
 
 %%	http_help(Request)
 %
@@ -796,19 +799,11 @@ max_results_displayed(50).
 quick_find_div_content -->
 	html([ span(id(qf_label), 'Quick find:'),
 	       \autocomplete_finder,
-	       input([ value('Clear'), type(submit),
-		       onClick('clearQuickFind();')
-		     ]),
 	       input([ value('Show'), type(submit),
 		       onClick('showLocation();')
 		     ]),
 	       script(type('text/javascript'),
-		      [ 'function clearQuickFind()\n',
-			'{',
-			'  document.getElementById("ac_location_input").value = "";\n',
-			'  document.getElementById("http-help").innerHTML = "";\n',
-			'}\n\n',
-		        'function showLocation()\n',
+		      [ 'function showLocation()\n',
 			'{ helpHTTP(document.getElementById("ac_location_input").value);\n',
 			'}'
 		      ])
