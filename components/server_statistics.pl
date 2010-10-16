@@ -198,6 +198,7 @@ server_stats(Port-Workers) -->
 	       tr([ th([align(right), colspan(3)], 'Total CPU usage:'),
 		    td(colspan(3), ['~2f'-[CPU], ' seconds'])
 		  ]),
+	       \request_statistics,
 	       tr([ th([align(right), colspan(3)], '# worker threads:'),
 		    td(colspan(3), NWorkers)
 		  ]),
@@ -211,6 +212,23 @@ server_stats(Port-Workers) -->
 		  ]),
 	       \http_workers(Workers)
 	     ]).
+
+:- if(source_exports(library(http/http_stream), cgi_statistics/1)).
+:- use_module(library(http/http_stream)).
+request_statistics -->
+	{ cgi_statistics(requests(Count)),
+	  cgi_statistics(bytes_sent(Sent))
+	},
+	html([ tr([ th([align(right), colspan(3)], 'Requests processed:'),
+		    \nc(human, Count, [colspan(3), align(left)])
+		  ]),
+	       tr([ th([align(right), colspan(3)], 'Bytes sent:'),
+		    td([align(left), colspan(3)], [ \n(human, Sent), bytes ])
+		  ])
+	     ]).
+:- else.
+request_statistics --> [].
+:- endif.
 
 
 http_workers([]) -->
