@@ -71,6 +71,15 @@ server_address//0:
 	self-documentation facilities are loaded.  See run.pl.in.
 */
 
+:- http_handler('/favicon.ico',
+		http_reply_file(icons('favicon.ico'), []),
+		[]).
+
+%%	user:body(+Style, :Body)// is det.
+%
+%	The multi-file implementation defines the overall layout of HTML
+%	pages with the Style cliopatria(_).
+
 :- multifile
 	user:body//2.
 
