@@ -16,7 +16,8 @@
 .title
 { text-align: center;
   color: #fff;
-  background-color: #1d64c7;
+  background: url("../icons/title-bg.png") left top;
+  background-size: 100%;
 }
 
 table.http_parameters th
