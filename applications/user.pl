@@ -188,9 +188,9 @@ triple_statistics -->
 	  graph_count(Count),
 	  http_link_to_id(list_graphs, [], ListGraphs)
 	},
-	html(p([ 'The RDF store contains ~D triples '-[Total],
-		 'in ~D '-[Count], a(href(ListGraphs), graphs),
-		 ', using ~D bytes memory'-[Core]])).
+	html(p([ 'The RDF store contains ', \n(human, Total), ' triples in ',
+		 \n(human, Count), ' ', a(href(ListGraphs), graphs),
+		 ', using ', \n(human, Core), 'b memory'])).
 
 
 graph_count(Count) :-

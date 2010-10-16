@@ -42,6 +42,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(user(user_db)).
+:- use_module(components(basics)).
 
 /** <module> Server statistics components
 
@@ -66,7 +67,7 @@ rdf_call_statistics_table -->
 		   [ tr([ th(colspan(Cols), 'Indexed (SOPG)'),
 			  th('Calls')
 			]),
-		     \lookup_statistics(Lookup)
+		     \lookup_statistics(Lookup, 1)
 		   ])).
 
 rdf_call_stats(Lookup) :-
@@ -74,14 +75,17 @@ rdf_call_stats(Lookup) :-
 		rdf_statistics(lookup(Index, Count)),
 		Lookup).
 
-lookup_statistics([]) -->
+lookup_statistics([], _) -->
 	[].
-lookup_statistics([rdf(S,P,O)-Count|T]) -->
-	html(tr([ \i(S), \i(P), \i(O), \nc('~D', Count)])),
-	lookup_statistics(T).
-lookup_statistics([rdf(S,P,O,G)-Count|T]) -->
-	html(tr([ \i(S), \i(P), \i(O), \i(G), \nc('~D', Count)])),
-	lookup_statistics(T).
+lookup_statistics([H|T], Row) -->
+	odd_even_row(Row, Next, \lookup_row(H)),
+	lookup_statistics(T, Next).
+
+lookup_row(rdf(S,P,O)-Count) -->
+	html([ \i(S), \i(P), \i(O), \nc(human, Count)]).
+lookup_row(rdf(S,P,O,G)-Count) -->
+	html([\i(S), \i(P), \i(O), \i(G), \nc(human, Count)]).
+
 
 i(I) -->
 	html(td(class(instantiated), I)).
@@ -101,11 +105,15 @@ http_session_table -->
 		     ],
 		     [ tr([th('User'), th('Real Name'),
 			   th('On since'), th('Idle'), th('From')])
-		     | \sessions(Sessions)
+		     | \sessions(Sessions, 1)
 		     ])
 	     ]).
 http_session_table -->
 	html(p('No users logged in')).
+
+%%	session(-Session:s(Idle, User, SessionID, Peer)) is nondet.
+%
+%	Enumerate all current HTTP sessions.
 
 session(s(Idle, User, SessionID, Peer)) :-
 	http_current_session(SessionID, peer(Peer)),
@@ -115,11 +123,13 @@ session(s(Idle, User, SessionID, Peer)) :-
 	;   User = (-)
 	).
 
-sessions([]) --> [].
-sessions([H|T]) --> session(H), sessions(T).
+sessions([], _) --> [].
+sessions([H|T], Row) -->
+	odd_even_row(Row, Next, \session(H)),
+	sessions(T, Next).
 
 session(s(Idle, -, _SessionID, Peer)) -->
-	html(tr([td(-), td(-), td(-), td(\idle(Idle)), td(\ip(Peer))])).
+	html([td(-), td(-), td(-), td(\idle(Idle)), td(\ip(Peer))]).
 session(s(Idle, User, _SessionID, Peer)) -->
 	{  (   user_property(User, realname(RealName))
 	   ->  true
@@ -130,7 +140,7 @@ session(s(Idle, User, _SessionID, Peer)) -->
 	   ;   OnSince = 0
 	   )
 	},
-	html(tr([td(User), td(RealName), td(\date(OnSince)), td(\idle(Idle)), td(\ip(Peer))])).
+	html([td(User), td(RealName), td(\date(OnSince)), td(\idle(Idle)), td(\ip(Peer))]).
 
 idle(Time) -->
 	{ Secs is round(Time),
@@ -164,7 +174,7 @@ http_server_statistics -->
 		     ],
 		     [ \servers_stats(Servers),
 		       tr([ th([align(right), colspan(3)], 'Heap memory:'),
-			    \nc('~D', Heap, [align(left), colspan(3)])
+			    \nc(human, Heap, [align(left), colspan(3)])
 			  ])
 		     ])
 	     ]).
@@ -176,13 +186,17 @@ servers_stats([H|T]) -->
 server_stats(Port-Workers) -->
 	{ length(Workers, NWorkers),
 	  http_server_property(Port, start_time(StartTime)),
-	  format_time(string(ST), '%+', StartTime)
+	  format_time(string(ST), '%+', StartTime),
+	  statistics(cputime, CPU)
 	},
 	html([ tr([ th([align(right), colspan(3), class(port)], 'Port:'),
 		    td([colspan(3), class(port)], Port)
 		  ]),
 	       tr([ th([align(right), colspan(3)], 'Started:'),
 		    td(colspan(3), ST)
+		  ]),
+	       tr([ th([align(right), colspan(3)], 'Total CPU usage:'),
+		    td(colspan(3), ['~2f'-[CPU], ' seconds'])
 		  ]),
 	       tr([ th([align(right), colspan(3)], '# worker threads:'),
 		    td(colspan(3), NWorkers)
@@ -213,14 +227,14 @@ http_workers([H|T]) -->
 	html([ tr([ td(rowspan(2), H),
 		    \nc('~3f', CPU, [rowspan(2)]),
 		    th('In use'),
-		    \nc('~D', LU),
-		    \nc('~D', GU),
-		    \nc('~D', TU)
+		    \nc(human, LU),
+		    \nc(human, GU),
+		    \nc(human, TU)
 		  ]),
 	       tr([ th('Limit'),
-		    \nc('~D', LL),
-		    \nc('~D', GL),
-		    \nc('~D', TL)
+		    \nc(human, LL),
+		    \nc(human, GL),
+		    \nc(human, TL)
 		  ])
 	     ]),
 	http_workers(T).
@@ -257,33 +271,10 @@ server_pool(Pool) -->
 	  option(backlog(MaxBackLog), Options, infinite)
 	},
 	html(tr([ td(Pool),
-		  \nc('~D', Running),
-		  \nc('~D', Size),
-		  \nc('~D', Waiting),
-		  \nc('~D', MaxBackLog)
+		  \nc(human, Running),
+		  \nc(human, Size),
+		  \nc(human, Waiting),
+		  \nc(human, MaxBackLog)
 		])).
 
-
-		 /*******************************
-		 *	       UTIL		*
-		 *******************************/
-
-%%	nc(+Format, +Value)// is det.
-%
-%	Numeric  cell.  The  value  is    formatted   using  Format  and
-%	right-aligned in a table cell (td).
-
-nc(Fmt, Value) -->
-	nc(Fmt, Value, []).
-
-nc(Fmt, Value, Options) -->
-	{ (   memberchk(align(_), Options)
-	  ->  Opts = Options
-	  ;   Opts = [align(right)|Options]
-	  )
-	},
-	(   { number(Value) }
-	->  html(td(Opts, Fmt-[Value]))
-	;   html(td(Opts, '~w'-[Value]))
-	).
 

@@ -49,6 +49,7 @@
 :- use_module(library(debug)).
 :- use_module(library(settings)).
 :- use_module(components(query)).
+:- use_module(components(basics)).
 
 :- http_handler(sesame('login'),	      http_login,	    []).
 :- http_handler(sesame('logout'),	      http_logout,	    []).
@@ -695,20 +696,3 @@ result_table(Message, CPU, Subjects, Triples) -->
 			   \nc('~D', Triples), \nc('~D', TriplesNow)])
 		     ])
 	     ]).
-
-
-%%	nc(+Format, +Value)// is det.
-%
-%	Numeric  cell.  The  value  is    formatted   using  Format  and
-%	right-aligned in a table cell (td).
-
-nc(Fmt, Value) -->
-	nc(Fmt, Value, []).
-
-nc(Fmt, Value, Options) -->
-	{ (   memberchk(align(_), Options)
-	  ->  Opts = Options
-	  ;   Opts = [align(right)|Options]
-	  )
-	},
-	html(td(Opts, Fmt-[Value])).
