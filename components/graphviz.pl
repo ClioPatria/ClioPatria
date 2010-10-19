@@ -52,8 +52,6 @@ terms as a graph.
 
 @see	library(semweb/rdf_abstract) for various operations on graphs
 	represented as lists of rdf(S,P,O).
-@tbd	Must be renamed to graphviz.  The current implementation
-	supports both canviz and graphviz+SVG.
 */
 
 :- html_resource(js('canviz.js'),
