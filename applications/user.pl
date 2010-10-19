@@ -239,10 +239,10 @@ load_file_form(_Request) :-
 	authorized(write(default, load(posted))),
 	reply_html_page(cliopatria(default),
 			title('Upload RDF'),
-			[ h3(align(center), 'Upload an RDF document'),
+			[ h1('Upload an RDF document'),
 
-			  p(['Upload a document using POST to /servlets/uploadData. \
-			  Alternatively you can use ',
+			  p(['Upload a document using POST to /servlets/uploadData. ',
+			     'Alternatively you can use ',
 			     a(href=loadURL,loadURL), ' to load data from a \
 			     web server.'
 			    ]),
@@ -252,18 +252,20 @@ load_file_form(_Request) :-
 				 enctype('multipart/form-data')
 			       ],
 			       [ \hidden(resultFormat, html),
-				 table([tr([ td(align(right), 'File:'),
+				 table(class(form),
+				       [tr([ th(class(label), 'File:'),
 					     td(input([ name(data),
 							type(file),
 							size(50)
 						      ]))
 					   ]),
-					tr([ td(align(right), 'BaseURI:'),
+					tr([ th(class(label), 'BaseURI:'),
 					     td(input([ name(baseURI),
 							size(50)
 						      ]))
 					   ]),
-					tr([ td([align(right), colspan(2)],
+					tr(class(buttons),
+					   [ th([align(right), colspan(2)],
 						input([ type(submit),
 							value('Upload now')
 						      ]))
@@ -278,27 +280,35 @@ load_file_form(_Request) :-
 %	Provide a form for uploading triples from a URL.
 
 load_url_form(_Request) :-
+	TurtleHREF = 'http://www.w3.org/TeamSubmission/turtle/',
 	reply_html_page(cliopatria(default),
 			title('Load RDF from HTTP server'),
-			[ h3(align(center), 'Load RDF from HTTP server'),
+			[ h1('Load RDF from HTTP server'),
+			  p([ 'This form can load RDF from an HTTP server that serves ',
+			      'either RDF/XML or ', a(href(TurtleHREF), 'Turtle'), '. ',
+			      'The format is derived from the Content-type reported by ',
+			      'the server or the file name extension.'
+			    ]),
 			  form([ action(location_by_id(upload_url)),
 				 method('GET')
 			       ],
 			       [ \hidden(resultFormat, html),
-				 table([tr([ td(align(right), 'URL:'),
+				 table(class(form),
+				       [tr([ th(class(label), 'URL:'),
 					     td(input([ name(url),
 							value('http://'),
 							size(50)
 						      ]))
 					   ]),
-					tr([ td(align(right), 'BaseURI:'),
+					tr([ th(class(label), 'BaseURI:'),
 					     td(input([ name(baseURI),
 							size(50)
 						      ]))
 					   ]),
-					tr([ td([align(right), colspan(2)],
+					tr(class(buttons),
+					   [ td([align(right), colspan(2)],
 						input([ type(submit),
-							value('Upload now')
+							value('Load RDF')
 						      ]))
 					   ])
 				       ])
@@ -308,19 +318,26 @@ load_url_form(_Request) :-
 
 %%	load_library_ontology_form(+Request)
 %
-%	Provide a form for loading an ontology from the archive.
+%	Provide a form  for  loading  an   ontology  from  the  library.
+%	Libraries are made  available  through   the  file  search  path
+%	=ontology=. Directories found through this   alias  are searched
+%	recursively for files named =|Manifest.ttl|=.
+%
+%	@see file_search_path/2
+%	@see rdf_attach_library/1.
 
-load_library_ontology_form(Request) :- !,
+load_library_ontology_form(Request) :-
 	authorized(read(status, listBaseOntologies)),
 	get_base_ontologies(Request, Ontologies),
 	reply_html_page(cliopatria(default),
 			title('Load base ontology'),
-			[ h3(align(center), 'Load ontology from repository'),
+			[ h1('Load ontology from repository'),
 
 			  p('Select an ontology from the registered libraries'),
 
 			  \load_base_ontology_form(Ontologies)
 			]).
+
 
 %%	load_base_ontology_form(+Ontologies)//
 %
@@ -333,9 +350,8 @@ load_base_ontology_form(Ontologies) -->
 		    method('GET')
 		  ],
 		  [ \hidden(resultFormat, html),
-		    table([ class(form)
-			  ],
-			  [ tr([ th('Ontology'),
+		    table(class(form),
+			  [ tr([ th('Ontology:'),
 				 td(select(name(ontology),
 					   [ option([], '')
 					   | \emit_base_ontologies(Ontologies)
@@ -388,7 +404,7 @@ get_base_ontologies(Request, List) :-
 clear_repository_form(_Request) :-
 	reply_html_page(cliopatria(default),
 			title('Load base ontology'),
-			[ h3(align(center), 'Clear entire repository'),
+			[ h1('Clear entire repository'),
 
 			  p(['This operation removes ', b(all), ' triples from \
 			  the RDF store.']),
@@ -412,11 +428,12 @@ clear_repository_form(_Request) :-
 remove_statements_form(_Request) :-
 	reply_html_page(cliopatria(default),
 			title('Load base ontology'),
-			[ h3(align(center), 'Remove statements'),
+			[ h1('Remove statements'),
 
-			  p('Remove matching triples from the database.  The three \
-			  fields are in ntriples notation.  Omitted fields \
-			  match any value.'),
+			  p(['Remove matching triples from the database.  The three ',
+			     'fields are in ntriples/Turtle notation.  Omitted fields ',
+			     'match any value.'
+			    ]),
 
 			  \remove_statements_form
 			]).
@@ -427,20 +444,19 @@ remove_statements_form -->
 		  ],
 		  [ \hidden(repository, default),
 		    \hidden(resultFormat, html),
-		    table([ id('remove-statements-form'),
-			    class(form)
+		    table([ class(form)
 			  ],
-			  [ tr([ th(align(right), 'Subject: '),
+			  [ tr([ th(class(label), 'Subject:'),
 				 td(input([ name(subject),
 					    size(50)
 					  ]))
 			       ]),
-			    tr([ th(align(right), 'Predicate: '),
+			    tr([ th(class(label), 'Predicate:'),
 				 td(input([ name(predicate),
 					    size(50)
 					  ]))
 			       ]),
-			    tr([ th(align(right), 'Object: '),
+			    tr([ th(class(label), 'Object:'),
 				 td(input([ name(object),
 					    size(50)
 					  ]))

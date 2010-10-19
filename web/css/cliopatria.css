@@ -145,6 +145,12 @@ table.form
   margin-left: 1cm;
 }
 
+table.form th.label
+{ text-align: right;
+  padding: 0 3px;
+}
+
+
 		 /*******************************
 		 *	   AUTO-COMPLETE	*
 		 *******************************/

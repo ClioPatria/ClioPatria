@@ -106,7 +106,6 @@ explain_login(ReturnTo) -->
 	{ parse_url(ReturnTo, Parts),
 	  memberchk(path(Path), Parts)
 	},
-	html_requires(css('rdfql.css')),
 	html(div(class('rdfql-login'),
 		 [ p([ 'You are trying to access a page (~w) that requires authorization.'-[Path],
 		       'You can either login using an ', a(href('http://www.openid.net'), 'OpenID'),
