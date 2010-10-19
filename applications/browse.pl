@@ -103,6 +103,11 @@ that allow back-office applications to reuse this infrastructure.
 :- http_handler(rdf_browser(search),          search,	       []).
 
 
+:- meta_predicate
+	table_rows(3, +, ?, ?),
+	table_rows_top_bottom(3, +, +, +, ?, ?),
+	html_property_table(?, 0, ?, ?).
+
 %%	list_graphs(+Request)
 %
 %	Display a page holding a table with all RDF graphs.  The graphs
@@ -1428,13 +1433,26 @@ so_row(_P, S-O) -->
 
 
 %%	list_triples_with_object(+Request)
+%
+%	HTTP handler that creates a  subject/predicate table for triples
+%	that have the gived _object_. Object   is specified using either
+%	the =r= or =l= parameter. Optionally,  results can be limited to
+%	a predicate and/or graph.
 
 list_triples_with_object(Request) :-
 	http_parameters(Request,
-			[ r(RObject,   [optional(true)]),
-			  l(LObject,   [optional(true)]),
-			  p(P,         [optional(true)]),
-			  graph(Graph, [optional(true)])
+			[ r(RObject,   [optional(true),
+					description('Object as resource (URI)')
+				       ]),
+			  l(LObject,   [optional(true),
+					description('Object as literal (Prolog notation)')
+				       ]),
+			  p(P,         [optional(true),
+					description('Limit to a given predicate (URI)')
+				       ]),
+			  graph(Graph, [optional(true),
+					description('Limit to a given graph (URI)')
+				       ])
 			]),
 	target_object(RObject, LObject, Object),
 	findall(S-P, rdf(S,P,Object,Graph), Pairs0),
@@ -1478,7 +1496,7 @@ otriple_table(SPList, Object, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(top_max(BottomMax), Options, 500)
 	},
-	html(table(class(rdf_browse),
+	html(table(class(block),
 		   [ \sp_header(Object)
 		   | \table_rows_top_bottom(sp_row(Object), SPList,
 					    TopMax, BottomMax)
@@ -1547,20 +1565,24 @@ literal_label(Value, Value).
 		 *	  CUSTOMIZATION		*
 		 *******************************/
 
-%%	label(+Id, -Label)
+%%	p_label(+Id, -Label)
+%
+%	Defines the visible label for a property.
+%
+%	@see	html_property_table//2.
 
-label(source,	       'Source URL').
-label(triples,	       'Triple count').
-label(subject_count(G),
+p_label(source,	       'Source URL').
+p_label(triples,	       'Triple count').
+p_label(subject_count(G),
       ['# ', a(href(Link), subjects)]) :-
 	http_link_to_id(list_instances, [graph=G], Link).
-label(bnode_count(G),
+p_label(bnode_count(G),
       ['# ', a(href(Link), 'bnode subjects')]) :-
 	http_link_to_id(list_instances, [graph=G, type=bnode], Link).
-label(predicate_count(G),
+p_label(predicate_count(G),
       ['# ', a(href(Link), predicates)]) :-
 	http_link_to_id(list_predicates, [graph=G], Link).
-label(type_count(G),
+p_label(type_count(G),
       ['# Referenced ', a(href(Link), classes)]) :-
 	http_link_to_id(list_classes, [graph=G], Link).
 
@@ -1664,8 +1686,13 @@ triple(rdf(S,P,O)) -->
 		 *     HTML INFRASTRUCTURE	*
 		 *******************************/
 
-:- meta_predicate
-	html_property_table(?, 0).
+%%	html_property_table(+Template, :Goal)// is det.
+%
+%	Create a table for all instantiations of Template for which Goal
+%	is true. Template is a term row(C1,   C2, ...). The first column
+%	(C1) is considered the property-name and   emitted  as a cell of
+%	class =p_name=. The label for  the   property  is  derived using
+%	p_label/2. The remainder is emited as normal td value-cells.
 
 html_property_table(Template, Goal) -->
 	{ findall(Template, Goal, Rows) },
@@ -1674,7 +1701,7 @@ html_property_table(Template, Goal) -->
 
 prow(Row) -->
 	{ Row =.. [_,H|Cells],
-	  (   label(H, Label0)
+	  (   p_label(H, Label0)
 	  ->  true
 	  ;   functor(H, Label0, _)
 	  ),
@@ -1718,10 +1745,6 @@ pcell(H) -->
 %	Note that we can also achieve  alternate colouring using the CSS
 %	pseudo classes =|tr:nth-child(odd)|= and =|tr:nth-child(even)|=.
 
-:- meta_predicate
-	table_rows(3, +),
-	table_rows_top_bottom(3, +, +, +).
-
 table_rows(Goal, Rows) -->
 	table_rows(Rows, Goal, 1, -1).
 
@@ -1761,11 +1784,3 @@ delete_list_prefix(N, [_|T], List) :-
 	N2 is N - 1,
 	delete_list_prefix(N2, T, List).
 
-
-		 /*******************************
-		 *    PARAMETER DECLARATIONS	*
-		 *******************************/
-
-parameter_decl(class,
-	       [ description('URI of a class')
-	       ]).
