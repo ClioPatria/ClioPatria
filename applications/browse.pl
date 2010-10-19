@@ -59,6 +59,7 @@
 :- use_module(components(label)).
 :- use_module(components(simple_search)).
 :- use_module(components(graphviz)).
+:- use_module(components(basics)).
 :- use_module(library(semweb/rdf_abstract)).
 :- use_module(library(semweb/rdf_label)).
 
@@ -119,7 +120,7 @@ list_graphs(_Request) :-
 	append(DownCount, [virtual(total)], Rows),
 	reply_html_page(cliopatria(default),
 			title('RDF Graphs'),
-			[ h4('Named graphs in the RDF store'),
+			[ h1('Named graphs in the RDF store'),
 			  \graph_table(Rows, [])
 			]).
 
@@ -128,7 +129,8 @@ graph_table(Graphs, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(top_max(BottomMax), Options, 500)
 	},
-	html(table(class(rdf_browse),
+	html_requires(css('rdf.css')),
+	html(table(class(block),
 		   [ \graph_table_header
 		   | \table_rows_top_bottom(graph_row, Graphs,
 					    TopMax, BottomMax)
@@ -143,13 +145,13 @@ graph_row(virtual(total)) --> !,
 	{ rdf_statistics(triples(Count))
 	},
 	html([ th(class(total), 'Total #triples:'),
-	       td(class(int), '~D'-[Count])
+	       \nc('~D', Count, [class(total)])
 	     ]).
 graph_row(Graph) -->
 	{ rdf_statistics(triples_by_file(Graph, Count))
 	},
 	html([ td(\graph_link(Graph)),
-	       td(class(int), '~D'-[Count])
+	       \nc('~D', Count)
 	     ]).
 
 graph_link(Graph) -->
@@ -173,7 +175,7 @@ list_graph(Request) :-
 	),
 	reply_html_page(cliopatria(default),
 			title('RDF Graph ~w'-[Graph]),
-			[ h4('Summary information for graph "~w"'-[Graph]),
+			[ h1('Summary information for graph "~w"'-[Graph]),
 			  \graph_info(Graph),
 			  \graph_as_resource(Graph, []),
 			  \graph_actions(Graph)
@@ -328,7 +330,7 @@ list_classes(Request) :-
 	sort_pairs_by_label(Map, Sorted),
 	reply_html_page(cliopatria(default),
 			title('Classes in graph ~w'-[Graph]),
-			[ h4(['Classes in graph ', \graph_link(Graph)]),
+			[ h1(['Classes in graph ', \graph_link(Graph)]),
 			  \class_table(Sorted, Graph, [])
 			]).
 
@@ -336,7 +338,8 @@ class_table(Pairs, Graph, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(top_max(BottomMax), Options, 500)
 	},
-	html(table(class(rdf_browse),
+	html_requires(css('rdf.css')),
+	html(table(class(block),
 		   [ \class_table_header
 		   | \table_rows_top_bottom(class_row(Graph), Pairs,
 					    TopMax, BottomMax)
@@ -448,7 +451,7 @@ graph_as_resource(Graph, Options) -->
 	  ;   rdf(_, _, Graph)
 	  ), !
 	},
-	html([ h4([ 'Local view for "',
+	html([ h1([ 'Local view for "',
 		    \location(Graph, _), '"'
 		  ]),
 	       \local_view(Graph, _, Options)
@@ -498,7 +501,7 @@ list_instances(Request) :-
 
 	reply_html_page(cliopatria(default),
 			title(\instance_table_title(Graph, Class, Sort)),
-			[ h4(\html_instance_table_title(Graph, Class, Sort)),
+			[ h1(\html_instance_table_title(Graph, Class, Sort)),
 			  \instance_table(Table, [])
 			]).
 
@@ -536,7 +539,8 @@ instance_table(Pairs, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(top_max(BottomMax), Options, 500)
 	},
-	html(table(class(rdf_browse),
+	html_requires(css('rdf.css')),
+	html(table(class(block),
 		   [ \instance_table_header
 		   | \table_rows_top_bottom(instance_row, Pairs,
 					    TopMax, BottomMax)
@@ -569,7 +573,7 @@ list_predicates(Request) :-
 	sort_by_label(Preds, Sorted),
 	reply_html_page(cliopatria(default),
 			title('Predicates in graph ~w'-[Graph]),
-			[ h4(['Predicates in graph ', \graph_link(Graph)]),
+			[ h1(['Predicates in graph ', \graph_link(Graph)]),
 			  \predicate_table(Sorted, Graph, [])
 			]).
 
@@ -577,7 +581,8 @@ predicate_table(Preds, Graph, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(bottom_max(BottomMax), Options, 500)
 	},
-	html(table(class(rdf_browse),
+	html_requires(css('rdf.css')),
+	html(table(class(block),
 		   [ \predicate_table_header
 		   | \table_rows_top_bottom(predicate_row(Graph), Preds,
 					    TopMax, BottomMax)
@@ -619,7 +624,7 @@ resources(Many, What, Params, _) --> !,
 	{ length(Many, Count),
 	  http_link_to_id(list_predicate_resources, [side(What)|Params], Link)
 	},
-	html(td(class(cint), a(href(Link), Count))).
+	html(td(class(int_c), a(href(Link), Count))).
 
 
 predicate_statistics(Graph, P, C, Subjects, Objects, Domains, Ranges) :-
@@ -715,7 +720,7 @@ list_predicate_resources(Request) :-
 
 	reply_html_page(cliopatria(default),
 			title(\resource_table_title(Graph, Pred, Which, Sort)),
-			[ h4(\html_resource_table_title(Graph, Pred, Which,
+			[ h1(\html_resource_table_title(Graph, Pred, Which,
 							Sort, SkosMap)),
 			  \resource_frequency_table(Table,
 						    [ skosmap(SkosMap),
@@ -771,7 +776,8 @@ resource_frequency_table(Pairs, Options) -->
 	  option(predicate(Pred), Options, _),
 	  option(side(Side), Options)
 	},
-	html(table(class(rdf_browse),
+	html_requires(css('rdf.css')),
+	html(table(class(block),
 		   [ \resource_table_header(Options)
 		   | \table_rows_top_bottom(resource_row(Pred, Side, Options), Pairs,
 					    TopMax, BottomMax)
@@ -952,7 +958,7 @@ list_resource(URI, Options) -->
 	{ option(graph(Graph), Options, _),
 	  option(sorted(Sorted), Options, default)
 	},
-	html([ h4([ 'Local view for "',
+	html([ h1([ 'Local view for "',
 		    \location(URI, Graph), '"'
 		  ]),
 	       \local_view(URI, Graph, [sorted(Sorted)]),
@@ -1035,13 +1041,13 @@ as_object_locations([], _URI, _) --> !,
 	html([ 'The resource does not appear as an object' ]).
 as_object_locations([S-P], URI, _) --> !,
 	html([ 'The resource appears as object in one triple:',
-	       div(class(triple),
-		   [ '{ ',
-		     \rdf_link(S), ', ',
-		     \rdf_link(P, []), ', ',
-		     \rdf_link(URI),
-		     ' }'
-		   ])
+	       blockquote(class(triple),
+			  [ '{ ',
+			    \rdf_link(S), ', ',
+			    \rdf_link(P, []), ', ',
+			    \rdf_link(URI),
+			    ' }'
+			  ])
 	     ]).
 as_object_locations(List, URI, Graph) --> !,
 	{ length(List, Len),
@@ -1075,7 +1081,8 @@ local_view(URI, Graph, Options) -->
 	  po_pairs(URI, Graph, Pairs, Options),
 	  lview_graphs(URI, Graph, Graphs)
 	},
-	html(table(class(rdf_browse),
+	html_requires(css('rdf.css')),
+	html(table(class(block),
 		   [ \lview_header(Options)
 		   | \table_rows_top_bottom(lview_row(Options, URI, Graphs),
 					    Pairs,
@@ -1098,16 +1105,25 @@ alt_sorted(none, default).
 
 lview_row(Options, S, Graphs, P-OList) -->
 	html([ td(class(predicate), \rdf_link(P, Options)),
-	       td(class(object), \object_list(OList, S, P, Graphs, Options))
+	       td(class(object), \object_list(OList, S, P, Graphs, Options, 1))
 	     ]).
 
-object_list([], _, _, _, _) --> [].
-object_list([H|T], S, P, Graphs, Options) -->
-	html(div(class(obj),
+object_list([], _, _, _, _, _) --> [].
+object_list([H|T], S, P, Graphs, Options, Row) -->
+	{ NextRow is Row + 1,
+	  obj_class(Row, Class)
+	},
+	html(div(class(Class),
 		 [ \rdf_link(H, Options),
 		   \graph_marks(S, P, H, Graphs)
 		 ])),
-	object_list(T, S, P, Graphs, Options).
+	object_list(T, S, P, Graphs, Options, NextRow).
+
+obj_class(N, Class) :-
+	(   N mod 2 =:= 0
+	->  Class = even
+	;   Class = odd
+	).
 
 graph_marks(_,_,_,[_]) --> !.
 graph_marks(S,P,O,Graphs) -->
@@ -1227,14 +1243,14 @@ uri_info(URI, Graph) -->
 uri_class_info(URI, Graph) -->
 	{ rdf_current_predicate(URI)
 	}, !,
-	html(h4('Predicate statistics')),
+	html(h2('Predicate statistics')),
 	predicate_table([URI], Graph, []).
 uri_class_info(_,_) --> [].
 
 uri_predicate_info(URI, Graph) -->
 	{ \+ \+ rdf(_, rdf:type, URI, Graph)
 	}, !,
-	html(h4('Class statistics')),
+	html(h2('Class statistics')),
 	class_table([URI], Graph, []).
 uri_predicate_info(_, _) --> [].
 
@@ -1244,7 +1260,7 @@ uri_predicate_info(_, _) --> [].
 %	Show graph with the context of URI
 
 context_graph(URI) -->
-	html([ h4('Context graph'),
+	html([ h2('Context graph'),
 	       \graphviz_graph(context_graph(URI),
 			       [ object_attributes([width('100%')]),
 				 wrap_url(rdf_link),
@@ -1350,7 +1366,7 @@ list_triples(Request) :-
 	label_of(Pred, PLabel),
 	reply_html_page(cliopatria(default),
 			title('Triples for ~w in graph ~w'-[PLabel, Graph]),
-			[ h4(\triple_header(Count, Pred, Dom, Range, Graph)),
+			[ h1(\triple_header(Count, Pred, Dom, Range, Graph)),
 			  \triple_table(Sorted, Pred, [])
 			]).
 
@@ -1428,7 +1444,7 @@ list_triples_with_object(Request) :-
 	label_of(Object, OLabel),
 	reply_html_page(cliopatria(default),
 			title('Triples with object ~w'-[OLabel]),
-			[ h4(\otriple_header(Count, Object, P, Graph)),
+			[ h1(\otriple_header(Count, Object, P, Graph)),
 			  \otriple_table(Sorted, Object, [])
 			]).
 
@@ -1589,7 +1605,7 @@ search(Request) :-
 	phrase(ltriples(Literals), Triples),
 	reply_html_page(cliopatria(default),
 			title('Search results for ~q'-[Query]),
-			[ h4('Search results for token "~q"'-[Query]),
+			[ h1('Search results for token "~q"'-[Query]),
 			  \rdf_table(Triples, [])
 			]).
 
@@ -1653,7 +1669,7 @@ triple(rdf(S,P,O)) -->
 
 html_property_table(Template, Goal) -->
 	{ findall(Template, Goal, Rows) },
-	html(table(class(properties),
+	html(table(class(block),
 		   \table_rows(prow, Rows))).
 
 prow(Row) -->
@@ -1667,7 +1683,7 @@ prow(Row) -->
 	  ;   Label = [Label0, :]
 	  )
 	},
-	html([ th(Label)
+	html([ th(class(p_name), Label)
 	     | \pcells(Cells)
 	     ]).
 
@@ -1678,7 +1694,7 @@ pcells([H|T]) -->
 
 pcell(int(Value)) -->
 	{ integer(Value) }, !,
-	html(td(class(int), '~D'-[Value])).
+	nc('~D', Value).
 pcell(H) -->
 	{ compound(H),
 	  H =.. [Class,Value], !

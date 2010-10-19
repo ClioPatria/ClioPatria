@@ -1,0 +1,49 @@
+/* CSS file for RDF browser
+*/
+
+td.object
+{ padding-left: 1em;
+}
+
+a.r_undef
+{ color: red;
+}
+
+div.graph-fn
+{ margin-left: 1cm;
+}
+
+div.bnode_attr
+{ display:inline-block;
+  text-align: center;
+  position: relative;
+  top: 0.5em;
+  border: 1px;
+  border-style: dotted;
+}
+
+input.gaction
+{ width: 2cm;
+}
+
+span.rdf_list				/* (values...) */
+{ border: 1px;
+  border-style: outset;
+  padding: 1px;
+  background-color: #c0c0c0;
+}
+
+span.rdf_bnode				/* [rdf:value...] */
+{ border: 1px;
+  border-style: outset;
+  padding: 1px;
+  background-color: #c0c0c0;
+}
+
+span.l_type, span.l_lang
+{ font-weight: bold;
+}
+
+a.l_count				/* linked literal */
+{ color: black;
+}

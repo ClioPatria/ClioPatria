@@ -30,6 +30,7 @@
 :- use_module(library('http/http_parameters')).
 :- use_module(library(option)).
 :- use_module(library(lists)).
+:- use_module(library(pairs)).
 :- use_module(library(debug)).
 :- use_module(library(settings)).
 
@@ -37,29 +38,28 @@
 %
 %	Emit an HTML representation of the current settings.  Options:
 %
-%		* edit(+Boolean)
+%	    * edit(+Boolean)
 %
-%		* hide_module(+Boolean)
-%		If true, hide module headers from the user.
+%	    * hide_module(+Boolean)
+%	    If true, hide module headers from the user.
 %
-%		* module(+ModuleList)
-%		If present, only show settings from modules in ModuleList.
+%	    * module(+ModuleList)
+%	    If present, only show settings from modules in ModuleList.
 
 http_show_settings(Options) -->
 	{ findall(M-N, current_setting(M:N), List),
 	  keysort(List, Sorted),
-	  join_by_key(Sorted, ByModule)
+	  group_pairs_by_key(Sorted, ByModule)
 	},
-	html_requires(css('settings.css')),
 	(   { option(edit(true), Options, false),
 	      option(action(Action), Options, '/http/settings')
 	    }
 	->  html(form([ action(Action),
 			method('GET')
 		      ],
-		      table(class('settings'),
+		      table(class(block),
 			    \settings_table(ByModule, Options))))
-	;   html([ table(class('settings'),
+	;   html([ table(class(block),
 			 \settings_table(ByModule, Options))
 		 ])
 	).
@@ -90,13 +90,9 @@ show_modules([M-List|T], Options) -->
 	show_modules(T, Options).
 
 show_module(Module, _Settings, Options) -->
-	{
-	    option(modules(ListOfModules), Options),
-	    \+ memberchk(Module,ListOfModules),
-	    !
-	},
-	[].
-
+	{ option(modules(ListOfModules), Options),
+	  \+ memberchk(Module,ListOfModules)
+	}, !.
 show_module(Module, Settings, Options) -->
 	show_module_header(Module, Options),
 	show_settings(Settings, Module, odd, Options).
@@ -104,7 +100,7 @@ show_module(Module, Settings, Options) -->
 show_module_header(_Module, Options) -->
 	{ option(hide_module(true), Options, false)}, !.
 show_module_header(Module, _Options) -->
-	html(tr(th([colspan(2), class('settings-module')], Module))).
+	html(tr(th([colspan(2), class(group)], Module))).
 
 show_settings([], _, _, _) -->
 	[].
@@ -119,9 +115,9 @@ show_setting(H, Module, EO, Options) -->
 	  setting(Module:H, Value),
 	  debug(settings, '~w: type=~w', [H, Type])
 	},
-	html(tr(class('settings-entry-'+EO),
-		[ td(class('settings-comment'), Comment),
-		  td(class('settings-value'),
+	html(tr(class(EO),
+		[ td(class(comment), Comment),
+		  td(class(value),
 		     \show_value(Type, Value, Module:H, Options))
 		])).
 
@@ -137,17 +133,16 @@ show_value(Type, Value, _, _Options) -->
 %	Emit a Value in non-editable representation.
 
 show_value(list(Type), Values) --> !,
-	html(div(class(list), \show_list(Values, Type))).
+	html(div(class(list), \show_list(Values, Type, odd))).
 show_value(_, Value) -->
-	{ format(string(S), '~w', [Value])
-	},
-	html(S).
+	html('~w'-[Value]).
 
-show_list([], _) -->
+show_list([], _, _) -->
 	[].
-show_list([H|T], Type) -->
-	html(div(class('list-element'), \show_value(Type, H))),
-	show_list(T, Type).
+show_list([H|T], Type, Class) -->
+	html(div(class(elem_+Class), \show_value(Type, H))),
+	{ negate_odd_even(Class, NextClass) },
+	show_list(T, Type, NextClass).
 
 
 %%	input_value(+Type, +Value, +Id)// is det.
@@ -215,12 +210,11 @@ http_apply_settings(Request, Options) -->
 	  debug(settings, 'Form data: ~p', [Data]),
 	  phrase(process_settings_form(Data), Changes)
 	},
-	html_requires(css('settings.css')),
 	report_changed(Changes, Options).
 
 
 report_changed([], _) -->
-	html(div(class('settings.updated'), 'No changes')).
+	html(div(class(msg_informational), 'No changes')).
 report_changed(L, _) -->
 	{ memberchk(error(_), L) },
 	report_errors(L).
@@ -235,7 +229,7 @@ report_changed(L, Options) -->
 	  ;   true
 	  )
 	},
-	html(div(class('settings.updated'), ['Changed ', N, ' settings'])).
+	html(div(class(msg_informational), ['Changed ', N, ' settings'])).
 
 report_errors([]) -->
 	[].
@@ -247,11 +241,11 @@ report_errors([_|T]) -->
 
 report_error(no_setting(Id)) -->
 	{ format(string(Name), '~w', [Id]) },
-	html(div(class('settings.error'),
+	html(div(class(msg_error),
 		 ['Setting ', Name, ' does not exist.'])).
 report_error(bad_value(Id, RawValue)) -->
 	{ format(string(Name), '~w', [Id]) },
-	html(div(class('settings.error'),
+	html(div(class(msg_error),
 		 ['Wrong value for ', Name, ': ', RawValue])).
 
 
@@ -298,23 +292,10 @@ process_form_field(Id, RawValue) -->
 %	Convert between Module:Setting and Name for use in form-fields.
 
 html_name(Module:Setting, Name) :-
-	concat_atom([Module, Setting], ':', Name).
+	atomic_list_concat([Module, Setting], ':', Name).
 
 
 %%	negate_odd_even(+OddEven, -EventOdd)
 
 negate_odd_even(odd, even).
 negate_odd_even(even, odd).
-
-%%	join_by_key(+KeyedList, -Joined:list(Key-Values)) is det.
-%
-%	Join values on the same key of a list sorted by keysort/1.
-
-join_by_key([], []).
-join_by_key([M-N|T0], [M-[N|TN]|T]) :-
-	same_key(M, T0, TN, T1),
-	join_by_key(T1, T).
-
-same_key(M, [M-N|T0], [N|TN], T) :- !,
-	same_key(M, T0, TN, T).
-same_key(_, L, [], L).

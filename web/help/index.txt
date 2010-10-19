@@ -15,5 +15,6 @@ loaded RDF.
     * Overview.txt of ClioPatria
     * [[Rationale][whitepaper.txt]] behind ClioPatria
     * QueryLanguages.txt supported
+    * Developing.txt applications with ClioPatria
     * Install.txt or restart.txt ClioPatria
     * Download.txt ClioPatria

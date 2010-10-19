@@ -72,13 +72,11 @@ rdf_io:write_table(html, _Serialization, Rows, Options) :- !,
 			]).
 
 select_result_table(Rows, Options) -->
-	html_requires(css('rdf_browse.css')),
-	html_requires(css('rdfql.css')),
-	html(table([ id('query-result-select'),
-		     class(rdfql)
+	html_requires(css('rdf.css')),
+	html(table([ class(block)
 		   ],
 		   [ \variables(Options)
-		   | \rows(Rows, Options)
+		   | \rows(Rows, Options, odd)
 		   ])).
 
 
@@ -94,18 +92,22 @@ varnames([Name|T]) -->
 	html(th(Name)),
 	varnames(T).
 
-rows([], _) -->
-	[].
-rows([H|T], Options) -->
-	{ H =.. [_|Cells] },
-	html(tr(\cells(Cells, Options))),
-	rows(T, Options).
+rows([], _, _) --> [].
+rows([H|T], Options, Class) -->
+	{ H =.. [_|Cells],
+	  odd_even(Class, NextClass)
+	},
+	html(tr(class(Class), \cells(Cells, Options))),
+	rows(T, Options, NextClass).
 
 cells([], _) -->
 	[].
 cells([H|T], Options) -->
 	html(td(\rdf_link(H, Options))),
 	cells(T, Options).
+
+odd_even(odd, even).
+odd_even(even, odd).
 
 
 		 /*******************************
@@ -133,23 +135,23 @@ rdf_io:write_graph(html, _Serialization, Triples, Options) :-
 
 
 consult_result_table(Triples, Options) -->
-	html_requires(css('rdf_browse.css')),
-	html_requires(css('rdfql.css')),
-	html(table([ id('query-result-rdf'),
-		     class(rdfql)
+	html_requires(css('rdf.css')),
+	html(table([ class(block)
 		   ],
 		   [ tr([th('Subject'), th('Predicate'), th('Object')])
-		   | \triples(Triples, Options)
+		   | \triples(Triples, Options, odd)
 		   ])).
 
-triples([], _) -->
+triples([], _, _) -->
 	[].
-triples([H|T], Options) -->
-	triple(H, Options),
-	triples(T, Options).
+triples([H|T], Options, Class) -->
+	{ odd_even(Class, NextClass) },
+	triple(H, Options, Class),
+	triples(T, Options, NextClass).
 
-triple(rdf(S,P,O), Options) -->
-	html(tr([ td(\rdf_link(S, Options)),
+triple(rdf(S,P,O), Options, Class) -->
+	html(tr(class(Class),
+		[ td(\rdf_link(S, Options)),
 		  td(\rdf_link(P, Options)),
 		  td(\rdf_link(O, Options))])).
 
@@ -163,8 +165,8 @@ query_statistics(Options, Units) -->
 	{ memberchk(cputime(CPU), Options),
 	  memberchk(count(Count), Options)
 	}, !,
-	html(div(class(query_stats),
-		 'Query completed in ~3f seconds ~D ~w'-[CPU, Count, Units])).
+	html(p(class(msg_informational),
+	       'Query completed in ~3f seconds ~D ~w'-[CPU, Count, Units])).
 query_statistics(_, _) -->
 	[].
 

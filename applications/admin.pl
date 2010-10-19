@@ -6,7 +6,7 @@
     Copyright (C): 2004-2010, University of Amsterdam,
 			      VU University Amsterdam
 
-    This program is free software; you can redistribute it and/or
+    This program is free software; you can redistribute it and/o<r
     modify it under the terms of the GNU General Public License
     as published by the Free Software Foundation; either version 2
     of the License, or (at your option) any later version.
@@ -105,9 +105,7 @@ if_allowed(_, _, []).
 user_table(Options) -->
 	{ setof(U, current_user(U), Users)
 	},
-	html_requires(css('rdfql.css')),
-	html([ table([ id('user-table'),
-		       class(rdfql)
+	html([ table([ class(block)
 		     ],
 		     [ tr([ th('UserID'),
 			    th('RealName'),
@@ -223,13 +221,11 @@ new_user_form(Options) -->
 	  ;   RealNameOptions = []
 	  )
 	},
-	html_requires(css('rdfql.css')),
 	html([ h1('Add new user'),
 	       form([ action(location_by_id(add_user)),
 		      method('GET')
 		    ],
-		    table([ id('new-user-form'),
-			    class(rdfql)
+		    table([ class((form))
 			  ],
 			  [ \input(user,     'Name',
 				   UserOptions),
@@ -325,15 +321,13 @@ edit_user_form(Request) :-
 edit_user_form(User) -->
 	{ user_property(User, realname(RealName))
 	},
-	html_requires(css('rdfql.css')),
-	html([ h4(['Edit user ', User, ' (', RealName, ')']),
+	html([ h1(['Edit user ', User, ' (', RealName, ')']),
 
 	       form([ action(location_by_id(edit_user)),
 		      method('GET')
 		    ],
 		    [ \hidden(user, User),
-		      table([ id('edit-user-form'),
-			      class(rdfql)
+		      table([ class((form))
 			    ],
 			    [ \user_property(User, realname, 'Realname', []),
 			      \permissions(User),
@@ -357,12 +351,12 @@ user_property(User, Name, Label, Options) -->
 	-> O2 = [value(Value)|Options]
 	;  O2 = Options
 	},
-	html(tr([ th(align(right), Label),
+	html(tr([ th(class(p_name), Label),
 		  td(input([name(Name),size(40)|O2]))
 		])).
 
 permissions(User) -->
-	html(tr([ th(align(right), 'Permissions'),
+	html(tr([ th(class(p_name), 'Permissions'),
 		  td([ \permission_checkbox(User, read,  'Read'),
 		       \permission_checkbox(User, write, 'Write'),
 		       \permission_checkbox(User, admin, 'Admin')
@@ -478,7 +472,7 @@ change_password_form(_Request) :-
 	user_property(User, realname(RealName)),
 	reply_html_page(cliopatria(default),
 			title('Change password'),
-			[ h4(['Change password for ', User, ' (', RealName, ')']),
+			[ h1(['Change password for ', User, ' (', RealName, ')']),
 
 			  \change_password_form(User)
 			]).
@@ -489,12 +483,11 @@ change_password_form(_Request) :-
 %	UserID.
 
 change_password_form(User) -->
-	html_requires(css('rdfql.css')),
 	html(form([ action(location_by_id(change_password)),
 		    method('GET')
 		  ],
 		  [ table([ id('change-password-form'),
-			    class(rdfql)
+			    class(form)
 			  ],
 			  [ \user_or_old(User),
 			    \input(pwd1,     'New Password',
@@ -707,13 +700,12 @@ add_openid_server_form(_Request) :-
 %	Present form to add a new OpenID provider.
 
 new_openid_form -->
-	html_requires(css('rdfql.css')),
 	html([ h1('Add new OpenID server'),
 	       form([ action(location_by_id(add_openid_server)),
 		      method('GET')
 		    ],
 		    table([ id('add-openid-server'),
-			    class(rdfql)
+			    class(form)
 			  ],
 			  [ \input(openid_server, 'Server homepage', []),
 			    \input(openid_description, 'Server description',
@@ -798,15 +790,13 @@ edit_openid_server_form(Request) :-
 			\edit_openid_server_form(Server)).
 
 edit_openid_server_form(Server) -->
-	html_requires(css('rdfql.css')),
-	html([ h4(['Edit OpenID server ', Server]),
+	html([ h1(['Edit OpenID server ', Server]),
 
 	       form([ action(location_by_id(edit_openid_server)),
 		      method('GET')
 		    ],
 		    [ \hidden(openid_server, Server),
-		      table([ id('edit-openid-server-form'),
-			      class(rdfql)
+		      table([ class(form)
 			    ],
 			    [ \openid_property(Server, description, 'Description', []),
 			      \permissions(Server),
@@ -844,8 +834,7 @@ openid_property(Server, Name, Label, Options) -->
 openid_server_table(Options) -->
 	{ setof(S, openid_current_server(S), Servers), !
 	},
-	html([ table([ id('trusted-open-id-servers'),
-		       class(rdfql)
+	html([ table([ class(block)
 		     ],
 		     [ tr([ th('Server'),
 			    th('Description')
@@ -947,7 +936,7 @@ del_openid_server(Request) :- !,
 
 %%	settings(+Request)
 %
-%	Show current settings. Is user  has administrative rights, allow
+%	Show current settings. If user  has administrative rights, allow
 %	editing the settings.
 
 settings(_Request) :-
@@ -958,7 +947,8 @@ settings(_Request) :-
 	),
 	reply_html_page(cliopatria(default),
 			title('Settings'),
-			[ \http_show_settings([ edit(Edit),
+			[ h1('Application settings'),
+			  \http_show_settings([ edit(Edit),
 						hide_module(false),
 						action('save_settings')
 					      ]),

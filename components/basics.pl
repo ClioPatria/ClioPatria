@@ -35,6 +35,7 @@
 	    odd_even_row//3		% +Row, -Next, :Content
 	  ]).
 :- use_module(library(http/html_write)).
+:- use_module(library(option)).
 
 /** <module> Simple Small HTML components
 */
@@ -71,13 +72,23 @@ nc(Fmt, Value) -->
 	nc(Fmt, Value, []).
 
 nc(Fmt, Value, Options) -->
-	{ (   memberchk(align(_), Options)
-	  ->  Opts = Options
-	  ;   Opts = [align(right)|Options]
-	  ),
+	{ class(Value, Class),
+	  merge_options(Options,
+			[ align(right),
+			  class(Class)
+			], Opts),
 	  number_html(Fmt, Value, HTML)
 	},
 	html(td(Opts, HTML)).
+
+class(Value, Class) :-
+	(   integer(Value)
+	->  Class = int
+	;   float(Value)
+	->  Class = float
+	;   Class = value
+	).
+
 
 %%	odd_even_row(+Row, -Next, :Content)//
 %

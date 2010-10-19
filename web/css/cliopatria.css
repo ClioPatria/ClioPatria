@@ -5,7 +5,7 @@
 { margin-top: 10px;
 }
 
-address.cliopatria
+address.footer
 { margin-top: 1ex;
   border-width: 1px 0 0 0;
   border-style: solid;
@@ -14,7 +14,7 @@ address.cliopatria
   text-align: right;
 }
 
-address.cliopatria img
+address.footer img
 { padding-left: 5px;
   border: 0;
   height: 1.2em;
@@ -31,40 +31,74 @@ div.messages, div.textbox
   width: 90%;
 }
 
-div.informational
+.msg_informational
 { color: #007f00;
 }
 
-div.warning
+.msg_warning
 { color: #ca0000;
 }
 
-div.warning
+.msg_error
 { background-color: #ca0000;
   color: blue;
+}
+
+p.footnote
+{ font-size: smaller;
+}
+
+#content h1
+{ font-size: 140%;
+  background-color: #b9daff;
+}
+
+#content h2
+{ font-size: 130%;
+  background-color: #b9daff;
+}
+
+#content h3
+{ font-size: 110%;
+  background-color: #b9daff;
+}
+
+#content h4
+{ font-size: 100%;
+  background-color: #b9daff;
 }
 
 		 /*******************************
 		 *	       TABLES		*
 		 *******************************/
 
-table.cliopatria
+table.block
 { border-width: 1px;
   border-style: solid;
   border-collapse: collapse;
   margin-left: 1cm;
+  margin-top: 1em;
 }
 
-table.cliopatria td
-{ border-width: 0 1px 0 1px;
-  border-style: solid;
-}
-
-tr.even td
+table.block tr.even th
 { background-color: #e0e0e0;
 }
 
-table.cliopatria tr.even th
+table.block tr.skip th
+{ color:white;
+  background-color: blue;
+  text-align: center;
+  padding-top: 1cm;
+  padding-bottom: 1cm;
+}
+
+table.block td,th
+{ border-width: 0 1px 0 1px;
+  border-style: solid;
+  padding: 0 2px;
+}
+
+tr.even td
 { background-color: #e0e0e0;
 }
 
@@ -73,13 +107,42 @@ td.int
   padding-right:5px;
 }
 
-td.empty, td.cint
+td.empty, td.int_c
 { text-align:center;
 }
 
-table.cliopatria th
+table.block td.total
+{ border-width: 1px 0 0 0;
+  font-weight: bold;
+}
+
+table.block th
 { background:  url("../icons/th.png") left top;
   border: 1px solid #444;
+}
+
+table.block th.total
+{ text-align: right;
+  padding-right: 7px;
+  border-width: 0 1px 0 1px;
+  border-style: solid;
+  color:black;
+  background: transparent;
+}
+
+table.block th.sorted
+{
+}
+
+table.block th.p_name
+{ text-align: right;
+  background: transparent;
+  border-width: 0 1px 0 1px;
+}
+
+table.form
+{ border-width: 0px;
+  margin-left: 1cm;
 }
 
 		 /*******************************
@@ -112,6 +175,60 @@ span.ac-exported
 span.ac-private
 { color: red;
 }
+
+#search_form
+{ float: right;
+}
+
+		 /*******************************
+		 *	       LOGIN		*
+		 *******************************/
+
+div.rdfql-login
+{ margin-bottom: 2em;
+}
+
+div.local-login, div.openid-login
+{ margin-top: 3em;
+  padding: 5px;
+  border-style: dashed;
+  border-width: 1px;
+}
+
+div.local-login form
+{ margin-top: 1em;
+  margin-left: 5%;
+}
+
+
+		 /*******************************
+		 *	     QUERY FORM		*
+		 *******************************/
+
+form.query
+{ margin-top: 4ex;
+}
+
+form.query h3
+{ padding-left: 5%;
+  background-color: #b9daff;
+}
+
+table.query
+{ margin-top: 1ex;
+  margin-left: 5%;
+  width: 90%;
+}
+
+table.query textarea
+{ width: 100%;
+  height: 30ex;
+}
+
+table.query span.label
+{ font-size: smaller;
+}
+
 
 		 /*******************************
 		 *	       LINKS		*

@@ -55,7 +55,6 @@
 %	Provide a search form to find literals in the database.
 
 simple_search_form -->
-	html_requires(css('rdf_browse.css')),
 	html(form([ id(search_form),
 		    action(location_by_id(search))
 		  ],

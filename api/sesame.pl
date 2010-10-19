@@ -40,6 +40,7 @@
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_turtle)).
+:- use_module(library(semweb/rdf_http_plugin)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_open)).
@@ -438,33 +439,51 @@ upload_file(Request) :-
 
 %%	upload_url(+Request)
 %
-%	Add data to the repository
+%	Load data from an HTTP server. This API is compatible to Sesame,
+%	although the =verifyData= option  is   not  implemented (data is
+%	always checked for syntax). Unlike Sesame, the default format is
+%	not =rdfxml=, but derived from the  Content-type reported by the
+%	server.
+%
+%	@see Calls rdf_load/2 for the actual loading.
+%	@see load_url_form/1 a form to access this API
 
 upload_url(Request) :-
 	http_parameters(Request,
-			[ repository(Repository),
-			  url(URL, []),
-			  dataFormat(DataFormat),
+			[ url(URL, []),
+			  dataFormat(DataFormat,
+				     [ optional(true),
+				       oneof([rdfxml, ntriples]),
+				       description('Serialization of the data')
+				     ]
+				    ),
 			  baseURI(BaseURI,
-				  [ default(URL)
+				  [ optional(true)
 				  ]),
+			  resultFormat(ResultFormat),
 			  verifyData(_Verify),
-			  resultFormat(ResultFormat)
+			  repository(Repository)
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
 	authorized(write(Repository, load(url(URL)))),
-	http_open(URL, Stream,
-		  [ timeout(60)
-		  ]),
-	action(Request, call_cleanup(load_triples(stream(Stream),
-					 [ base_uri(BaseURI),
-					   data_format(DataFormat)
-					 ]),
-			    (	 close(Stream)
-			    )),
+	phrase(load_option(DataFormat, BaseURI), Options),
+	action(Request,
+	       rdf_load(URL, Options),
 	       ResultFormat,
 	       'Loaded data from ~w'-[URL]).
+
+load_option(DataFormat, BaseURI) -->
+	data_format_option(DataFormat),
+	base_uri_option(BaseURI).
+
+data_format_option(Var) --> {var(Var)}, !.
+data_format_option(rdfxml) --> [format(xml)].
+data_format_option(ntriples) --> [format(turtle)].
+
+base_uri_option(Var) --> {var(Var)}, !.
+base_uri_option(URI) --> [base_uri(URI)].
+
 
 %%	remove_statements(+Request)
 %
@@ -676,23 +695,26 @@ done(rdf, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format(Fmt, Args).
 
 
+%%	result_table(+Message, +CPU, +SubDiff, +TripleDiff)// is det.
+%
+%	HTML component that summarises the result of an operation.
+
 result_table(Message, CPU, Subjects, Triples) -->
 	{ rdf_statistics(triples(TriplesNow)),
 	  rdf_statistics(subjects(SubjectsNow))
 	},
-	html_requires(css('rdfql.css')),
 	html([ h4('Operation completed'),
-	       p(Message),
+	       p(class(msg_informational), Message),
 	       h4('Statistics'),
 	       table([ id('result'),
-		       class(rdfql)
+		       class(block)
 		     ],
-		     [ tr([td(''), th('+/-'), th('now')]),
-		       tr([th(align(right), 'CPU time'),
+		     [ tr([td(class(empty), ''), th('+/-'), th('now')]),
+		       tr([th(class(p_name), 'CPU time'),
 			   \nc('~3f', CPU), td('')]),
-		       tr([th(align(right), 'Subjects'),
+		       tr([th(class(p_name), 'Subjects'),
 			   \nc('~D', Subjects), \nc('~D', SubjectsNow)]),
-		       tr([th(align(right), 'Triples'),
+		       tr([th(class(p_name), 'Triples'),
 			   \nc('~D', Triples), \nc('~D', TriplesNow)])
 		     ])
 	     ]).

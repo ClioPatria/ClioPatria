@@ -60,9 +60,7 @@ rdf_call_statistics_table -->
 	  ;   Cols = 4
 	  )
 	},
-	html_requires(css('rdfql.css')),
-	html(table([ id('rdf-call-stats'),
-		     class(rdfql)
+	html(table([ class(block)
 		   ],
 		   [ tr([ th(colspan(Cols), 'Indexed (SOPG)'),
 			  th('Calls')
@@ -100,8 +98,7 @@ http_session_table -->
 	  sort(Sessions0, Sessions),
 	  Sessions \== [], !
 	},
-	html([ table([ id('http-session-table'),
-		       class(rdfql)
+	html([ table([ class(block)
 		     ],
 		     [ tr([th('User'), th('Real Name'),
 			   th('On since'), th('Idle'), th('From')])
@@ -166,16 +163,11 @@ ip(IP) -->
 
 http_server_statistics -->
 	{ findall(Port-ID, http_current_worker(Port, ID), Workers),
-	  group_pairs_by_key(Workers, Servers),
-	  statistics(heapused, Heap)
+	  group_pairs_by_key(Workers, Servers)
 	},
-	html([ table([ id('http-server-statistics'),
-		       class(rdfql)
+	html([ table([ class(block)
 		     ],
-		     [ \servers_stats(Servers),
-		       tr([ th([align(right), colspan(3)], 'Heap memory:'),
-			    \nc(human, Heap, [align(left), colspan(3)])
-			  ])
+		     [ \servers_stats(Servers)
 		     ])
 	     ]).
 
@@ -187,21 +179,15 @@ server_stats(Port-Workers) -->
 	{ length(Workers, NWorkers),
 	  http_server_property(Port, start_time(StartTime)),
 	  format_time(string(ST), '%+', StartTime),
-	  statistics(cputime, CPU)
+	  statistics(cputime, CPU),
+	  statistics(heapused, Heap)
 	},
-	html([ tr([ th([align(right), colspan(3), class(port)], 'Port:'),
-		    td([colspan(3), class(port)], Port)
-		  ]),
-	       tr([ th([align(right), colspan(3)], 'Started:'),
-		    td(colspan(3), ST)
-		  ]),
-	       tr([ th([align(right), colspan(3)], 'Total CPU usage:'),
-		    td(colspan(3), ['~2f'-[CPU], ' seconds'])
-		  ]),
+	html([ \server_stat('Port:', Port, odd),
+	       \server_stat('Started:', ST, even),
+	       \server_stat('Total CPU usage:', [\n('~2f',CPU), ' seconds'], odd),
+	       \server_stat('Heap memory:', [ \n(human,Heap), ' bytes' ], even),
 	       \request_statistics,
-	       tr([ th([align(right), colspan(3)], '# worker threads:'),
-		    td(colspan(3), NWorkers)
-		  ]),
+	       \server_stat('# worker threads:', NWorkers, odd),
 	       tr(th(colspan(6), 'Statistics by worker')),
 	       tr([ th('Thread'),
 		    th('CPU'),
@@ -210,8 +196,15 @@ server_stats(Port-Workers) -->
 		    th('Global'),
 		    th('Trail')
 		  ]),
-	       \http_workers(Workers)
+	       \http_workers(Workers, odd)
 	     ]).
+
+server_stat(Name, Value, OE) -->
+	html(tr(class(OE),
+		[ th([class(p_name), colspan(3)], Name),
+		  td([class(value),  colspan(3)], Value)
+		])).
+
 
 :- if(source_exports(library(http/http_stream), cgi_statistics/1)).
 :- use_module(library(http/http_stream)).
@@ -219,21 +212,21 @@ request_statistics -->
 	{ cgi_statistics(requests(Count)),
 	  cgi_statistics(bytes_sent(Sent))
 	},
-	html([ tr([ th([align(right), colspan(3)], 'Requests processed:'),
-		    \nc(human, Count, [colspan(3), align(left)])
-		  ]),
-	       tr([ th([align(right), colspan(3)], 'Bytes sent:'),
-		    td([align(left), colspan(3)], [ \n(human, Sent), bytes ])
-		  ])
-	     ]).
+	server_stat('Requests processed:', \n(human, Count), odd),
+	server_stat('Bytes sent:', \n(human, Sent), even).
 :- else.
 request_statistics --> [].
 :- endif.
 
 
-http_workers([]) -->
+http_workers([], _) -->
 	[].
-http_workers([H|T]) -->
+http_workers([H|T], OE) -->
+	{ odd_even(OE, OE2) },
+	http_worker(H, OE),
+	http_workers(T, OE2).
+
+http_worker(H, OE) -->
 	{ thread_statistics(H, locallimit, LL),
 	  thread_statistics(H, globallimit, GL),
 	  thread_statistics(H, traillimit, TL),
@@ -242,20 +235,24 @@ http_workers([H|T]) -->
 	  thread_statistics(H, trailused, TU),
 	  thread_statistics(H, cputime, CPU)
 	},
-	html([ tr([ td(rowspan(2), H),
+	html([ tr(class(OE),
+		  [ td(rowspan(2), H),
 		    \nc('~3f', CPU, [rowspan(2)]),
 		    th('In use'),
 		    \nc(human, LU),
 		    \nc(human, GU),
 		    \nc(human, TU)
 		  ]),
-	       tr([ th('Limit'),
+	       tr(class(OE),
+		  [ th('Limit'),
 		    \nc(human, LL),
 		    \nc(human, GL),
 		    \nc(human, TL)
 		  ])
-	     ]),
-	http_workers(T).
+	     ]).
+
+odd_even(even, odd).
+odd_even(odd, even).
 
 
 		 /*******************************
@@ -271,14 +268,16 @@ http_server_pool_table -->
 	  sort(Pools, Sorted)
 	},
 	html(table([ id('http-server-pool'),
-		     class(rdfql)
+		     class(block)
 		   ],
 		   [ tr([th('Name'), th('Running'), th('Size'), th('Waiting'), th('Backlog')])
-		   | \server_pools(Sorted)
+		   | \server_pools(Sorted, 1)
 		   ])).
 
-server_pools([]) --> [].
-server_pools([H|T]) --> server_pool(H), server_pools(T).
+server_pools([], _) --> [].
+server_pools([H|T], Row) -->
+	odd_even_row(Row, Next, \server_pool(H)),
+	server_pools(T, Next).
 
 server_pool(Pool) -->
 	{ findall(P, thread_pool_property(Pool, P), List),
@@ -288,11 +287,11 @@ server_pool(Pool) -->
 	  memberchk(options(Options), List),
 	  option(backlog(MaxBackLog), Options, infinite)
 	},
-	html(tr([ td(Pool),
-		  \nc(human, Running),
-		  \nc(human, Size),
-		  \nc(human, Waiting),
-		  \nc(human, MaxBackLog)
-		])).
+	html([ th(class(p_name), Pool),
+	       \nc(human, Running),
+	       \nc(human, Size),
+	       \nc(human, Waiting),
+	       \nc(human, MaxBackLog)
+	     ]).
 
 

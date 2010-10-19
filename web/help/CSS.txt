@@ -1,0 +1,118 @@
+---+ CSS usage within ClioPatria
+
+The ClioPatria interface is built using  dynamically generated HTML (see
+html//1) that is styled using CSS. The  interface is as much as possible
+built using appropriate HTML elements (e.g., use =h1= instead of a =div=
+classed =header=).
+
+---++ List of CSS classes
+
+Below, we summarise the CSS classes  in   use  on  the various elements.
+Notably some really dedicated classes are lacking from this description,
+but this list is intended to help you  deciding on the classes to use on
+standard components and how to change   the  standard ClioPatria _skin_.
+The    overall    appearance    of    ClioPatria     is    defined    in
+css('cliopatria.css').
+
+---+++ RDF elements
+
+RDF resources and literals  have  class-name   that  reflect  their  RDF
+status.  These  are  mostly   generated    from   components(label)  and
+applications(browse).  The  styling  for  RDF   element  is  defined  in
+css('rdf.css').
+
+
+    $ *a* :
+	| *r_def*	| Link to resource with properties |
+	| *r_undef*	| Link to resource without properties |
+	| *r_graph*	| Link to named graph |
+	| *l_count* 	| Link to literal that appears multiple times |
+
+    $ *span* :
+	| *prefix*	| Prefix abbreviation of a namespace |
+	| *local*	| Local part of a URI |
+	| *rdf_bnode*	| RDF Blank Node |
+	| *rdf_list*	| RDF List |
+	| *literal*	| an RDF literal |
+	| *l_text*	| Text of an RDF literal (inside =literal=) |
+	| *l_type*	| Type qualifier of a literal (^^...) |
+	| *l_lang*	| Language qualifier of a literal (@...) |
+	| *r_label* 	| Label of a resource (used to represent R) |
+
+    $ *div* :
+	| *bnode_attr*	| P-O pair in a bnode representation.  See cpa_browse:location/2 |
+
+    $ *blockquote* :
+	| *triple*	| {S,P,O} as a block-element |
+
+    $ *td* :
+	| *subject*     | RDF subject |
+	| *predicate*   | RDF predicate |
+	| *object* 	| RDF object |
+
+---+++ Structure elements
+
+Structure elements have classes that reflects their role on a page.
+
+    $ *div* :
+	| *list*	| A list of div.elem_(odd/even) divs |
+	| *elem_odd*	| Elements inside a div |
+	| *elem_even*	| Elements inside a div |
+	| *msg_error*	| Error message |
+	| *msg_warning*	| Warning message |
+	| *msg_informational* | Informational message |
+
+    $ *p* :
+	| *footnote*	| Informative (smaller font) note |
+	| *msg_error*	| Error message |
+	| *msg_warning*	| Warning message |
+	| *msg_informational* | Informational message |
+
+    $ *table* :
+	| *block*	| A real table that fills most of the width |
+	| *form*	| Table that builds a form |
+
+    $ *tr* :
+	| *group*	| Group-(sub-)header |
+	| *odd* 	| odd rows (see odd_even_row//3) |
+	| *even* 	| even rows (see odd_even_row//3) |
+	| *skip* 	| skipped rows |
+	| *buttons*	| Row contains buttons |
+
+    $ *td* :
+	| *empty*	| empty cell |
+	| *int*		| integer values |
+	| *int_c*	| integer value, horizontally centered |
+        | *total* 	| (numeric) total |
+	| *comment* 	| Longer textual description |
+	| *value* 	| Column with values |
+
+    $ *th* :
+	| *total* 	| Title explaining a td.total |
+	| *sorted*	| Table is sorted on this column |
+	| *p_name*	| Property-name.  Next cell has value |
+
+---+++ Page layout
+
+Page layout classes control the overall page layout of ClioPatria
+pages.  The header-elements =h1=, =h2=, ... are styled if they appear
+within div.content.  The menu itself is defined in components(menu) and
+styled with css('menu.css').
+
+    $ *body* :
+	| yui-skin-sam	| Required to support YUI |
+
+    $ *div* :
+	| *menu*	| The ClioPatria main menu |
+	| *content*	| The dynamic page content |
+	| *footer*	| Footer with address info |
+
+    $ *a* :
+	| *version*	| GIT version info |
+	| *home*	| (Component) home-link |
+
+    $ *span* :
+	| *home*	| (Component) home-link (if no URL is known) |
+
+    $ *address* :
+	| *footer*	| Address-component of the footer |

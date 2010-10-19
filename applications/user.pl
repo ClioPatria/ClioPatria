@@ -160,26 +160,27 @@ statistics(Request) :-
 	http_current_host(Request, Host, _Port, [global(true)]),
 	reply_html_page(cliopatria(default),
 			title('RDF statistics'),
-			div(id('rdf-statistics'),
-			    [ h1([id(stattitle)], ['RDF statistics for ', Host]),
-			      ol([id(toc)],
-				 [ li(a(href('#ntriples'),    'Triples in database')),
-				   li(a(href('#callstats'),   'Call statistics')),
-				   li(a(href('#sessions'),    'Active sessions')),
-				   li(a(href('#serverstats'), 'Server statistics'))
-				 ]),
-			      h4([id(ntriples)], 'Triples in database'),
-			      \triple_statistics,
-			      h4([id(callstats)],'Call statistics'),
-			      \rdf_call_statistics_table,
-			      h4([id(sessions)], 'Active sessions'),
-			      \http_session_table,
-			      h4([id(serverstats)], 'Server statistics'),
-			      p('Static workers and statistics:'),
-			      \http_server_statistics,
-			      p('Defined dynamic worker pools:'),
-			      \http_server_pool_table
-			    ])).
+			[ div(id('rdf-statistics'),
+			      [ h1([id(stattitle)], ['RDF statistics for ', Host]),
+				ol([id(toc)],
+				   [ li(a(href('#ntriples'),    'Triples in database')),
+				     li(a(href('#callstats'),   'Call statistics')),
+				     li(a(href('#sessions'),    'Active sessions')),
+				     li(a(href('#serverstats'), 'Server statistics'))
+				   ]),
+				h2([id(ntriples)], 'Triples in database'),
+				\triple_statistics,
+				h2([id(callstats)],'Call statistics'),
+				\rdf_call_statistics_table,
+				h2([id(sessions)], 'Active sessions'),
+				\http_session_table,
+				h2([id(serverstats)], 'Server statistics'),
+				h3('Static workers and statistics:'),
+				\http_server_statistics,
+				h3('Defined dynamic worker pools:'),
+				\http_server_pool_table
+			      ])
+			]).
 
 
 triple_statistics -->
@@ -215,7 +216,7 @@ warn_interactive -->
 	  SparqlAPI = 'http://www.w3.org/TR/rdf-sparql-protocol/'
 	},
 	html([ br(clear(all)),
-	       p(class('warn-interactive'),
+	       p(class(footnote),
 		 [ 'This form is to test SPARQL queries ', i(interactively), '. ',
 		   'Machines should use ', b([HREF,'?query=...']),
 		   ', which provides a ',
@@ -328,13 +329,11 @@ load_library_ontology_form(Request) :- !,
 %	used by rdf_load_library/1.
 
 load_base_ontology_form(Ontologies) -->
-	html_requires(css('rdfql.css')),
 	html(form([ action(location_by_id(load_library_ontology)),
 		    method('GET')
 		  ],
 		  [ \hidden(resultFormat, html),
-		    table([ id('load-base-ontology-form'),
-			    class(rdfql)
+		    table([ class(form)
 			  ],
 			  [ tr([ th('Ontology'),
 				 td(select(name(ontology),
@@ -423,14 +422,13 @@ remove_statements_form(_Request) :-
 			]).
 
 remove_statements_form -->
-	html_requires(css('rdfql.css')),
 	html(form([ action(location_by_id(remove_statements)),
 		    method('GET')
 		  ],
 		  [ \hidden(repository, default),
 		    \hidden(resultFormat, html),
 		    table([ id('remove-statements-form'),
-			    class(rdfql)
+			    class(form)
 			  ],
 			  [ tr([ th(align(right), 'Subject: '),
 				 td(input([ name(subject),

@@ -64,7 +64,7 @@ turtle_label(R) -->
 	{ atom(R),
 	  rdf_global_id(NS:Local, R), !
 	},
-	html(['<', span(class(ns), NS), ':', span(class(local), Local), '>']).
+	html(['<', span(class(prefix), NS), ':', span(class(local), Local), '>']).
 turtle_label(R) -->
 	{ atom(R),
 	  label_property(P),
@@ -84,15 +84,15 @@ turtle_label(literal(Lit)) --> !,
 
 literal_label(type(Type, Value)) --> !,
 	html(span(class(literal),
-		  ['"', span(class(ltext), Value),
-		   '"', span(class(tqual), '^^'), \turtle_label(Type)])).
+		  ['"', span(class(l_text), Value),
+		   '"', span(class(l_type), '^^'), \turtle_label(Type)])).
 literal_label(lang(Lang, Value)) --> !,
 	html(span(class(literal),
-		  ['"', span(class(ltext), Value), '"',
-		   span(class(lqual), '@'), span(class(lang), Lang)])).
+		  ['"', span(class(l_text), Value), '"',
+		   span(class(l_lang), '@'), span(class(lang), Lang)])).
 literal_label(Value) -->
 	html(span(class(literal),
-		  ['"', span(class(ltext), Value), '"'])).
+		  ['"', span(class(l_text), Value), '"'])).
 
 
 %%	bnode_label(+Resource)// is semidet.
@@ -115,7 +115,7 @@ bnode_label(R) -->
 	  ;   \+ rdf_is_bnode(Value)
 	  )
 	}, !,
-	html(span([ class('rdf-bnode'),
+	html(span([ class(rdf_bnode),
 		    title('RDF bnode using rdf:value')
 		  ],
 		  ['[', \turtle_label(Value), '...]'])).
@@ -124,7 +124,7 @@ bnode_label(R) -->
 	  length(List, Len),
 	  format(string(Title), 'RDF collection with ~D members', Len)
 	},
-	html(span([ class('rdf-list'),
+	html(span([ class(rdf_list),
 		    title(Title)
 		  ],
 		  ['(', \collection_members(List, 0, Len, 5), ')'])).
@@ -187,10 +187,10 @@ rdf_link(R, Options) -->
 	{ atom(R), !,
 	  resource_link(R, Options, HREF),
 	  (   rdf(R, _, _)
-	  ->  Class = lres
+	  ->  Class = r_def
 	  ;   rdf_graph(R)
-	  ->  Class = graph
-	  ;   Class = undef
+	  ->  Class = r_graph
+	  ;   Class = r_undef
 	  )
 	},
 	html(a([class(Class), href(HREF)], \resource_label(R, Options))).
@@ -204,7 +204,7 @@ rdf_link(Literal, Options) -->
 	  term_to_atom(Literal, Atom),
 	  http_link_to_id(list_triples_with_object, [l=Atom], HREF)
 	},
-	html(a([ class(llobject),
+	html(a([ class(l_count),
 		 href(HREF),
 		 title(Title)
 	       ],
@@ -230,14 +230,14 @@ resource_flabel(plain, R) --> !,
 	html(R).
 resource_flabel(label, R) --> !,
 	(   { rdf_display_label(R, Label) }
-	->  html([span(class(rlabel),Label)])
+	->  html([span(class(r_label),Label)])
 	;   turtle_label(R)
 	).
 resource_flabel(nslabel, R) --> !,
 	(   { rdf_global_id(NS:_Local, R), !,
 	      rdf_display_label(R, Label)
 	    }
-	->  html([span(class(ns),NS),':',span(class(rlabel),Label)])
+	->  html([span(class(prefix),NS),':',span(class(r_label),Label)])
 	;   turtle_label(R)
 	).
 resource_flabel(_, R) -->

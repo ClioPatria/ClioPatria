@@ -56,7 +56,6 @@ with a simple query-history mechanism for user-submitted SPARQL queries.
 %	    Specifying only one removes the query-language menu.
 
 query_form(Options) -->
-	html_requires(css('rdfql.css')),
 	html([ form([ class(query),
 		      name(query),
 		      action(location_by_id(evaluate_query)),

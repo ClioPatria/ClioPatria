@@ -92,7 +92,7 @@ user:body(cliopatria(_), Body) -->
 		    br(clear(all)),
 		    div(id(content), Body),
 		    br(clear(all)),
-		    div(id(address), \address)
+		    div(id(footer), \address)
 		  ])).
 
 
@@ -128,7 +128,7 @@ address -->
 
 server_address(Component) -->
 	html_requires(css('cliopatria.css')),
-	html([ address(class(cliopatria),
+	html([ address(class(footer),
 		       [ \component_address(Component),
 			 \current_page_doc_link
 		       ])
