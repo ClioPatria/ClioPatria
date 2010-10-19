@@ -34,7 +34,8 @@
 	    abstract_graph/3,		% +GraphIn, -GraphOut, +Options
 	    minimise_graph/2,		% +GraphIn, -GraphOut
 
-	    graph_resources/2		% +Graph, -Resources
+	    graph_resources/2,		% +Graph, -Resources
+	    graph_resources/4		% +Graph, -Resources, -Predicates, -Types
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
