@@ -31,13 +31,16 @@ matter.
   Configure logging HTTP requests.
 
   $ network.pl (edit) :
-  Configure the (HTTP) network settings port.
+  Configure the (HTTP) network settings, notably the *port*.
 
   $ ontopath.pl (edit) :
   Configure places for finding RDF libraries.
 
   $ winpath.pl :
   Configure the locations for finding dot.exe and git.exe on MS-Windows.
+
+  $ zlib.pl :
+  Enable loading of compressed (=|.gz|=) RDF data without decompressing.
 
 ---++ Plugins
 
