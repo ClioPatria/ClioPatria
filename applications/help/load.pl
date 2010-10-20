@@ -81,8 +81,8 @@ cp_help(Request) :-
 	cliopatria:menu_item/2.
 
 cliopatria:menu_item(100=help/wiki_help, 'Documentation').
-cliopatria:menu_item(200=help/http_help, 'HTTP Services').
-cliopatria:menu_item(300=help/cp_help,	 'Developer').
+cliopatria:menu_item(200=help/cp_help,	 'Roadmap').
+cliopatria:menu_item(300=help/http_help, 'HTTP Services').
 
 :- multifile
 	user:body//2.
