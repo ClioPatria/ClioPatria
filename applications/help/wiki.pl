@@ -226,15 +226,21 @@ include(Object, Type, Options) -->
 
 %%	file(+Path, Options)//
 %
-%	Trap translation of \file(+Path, Options)
+%	Trap translation of \file(+Path,  Options).   The  first  clause
+%	reduces the label of the file to the plain file-name if the file
+%	is inside the help-system.
 
 file(Path, Options) -->
 	{ \+ option(label(_), Options),
-	  file_name_extension(_Base, txt, Path), !,
+	  file_name_extension(Base, txt, Path),
+	  option(absolute_path(AbsPath), Options),
+	  current_alias_root(DocRoot),
+	  sub_atom(AbsPath, 0, _, _, DocRoot), !,
+	  file_base_name(Base, Label),
 	  file_href(Options, Options1)
 	},
 	pldoc_html:file(Path,
-			[ label(Path),
+			[ label(Label),
 			  map_extension([txt-html])
 			| Options1
 			]).

@@ -13,7 +13,7 @@ in the settings.
     $ users.db :
     This keeps the registered users and their permissions. You can
     freely edit this file if the server is not running. Passwords are
-    stored as MD5-hashes.
+    stored as MD5-hashes, hashed with crypt/2.
 
     $ RDF-store :
     This directory holds backup of the RDF data. Each named-graph is
@@ -25,7 +25,8 @@ in the settings.
     details. You can freely remove a graph by removing both files if the
     server is not running. Similar, you can remove the journal to
     restore a graph to its initial state after loading it from the
-    source-data.
+    source-data.  Finally, rdf_flush_journals/1 can be used to merge
+    the journals into the =trp= quick-load snapshots.
 
     $ httpd.log :
     Keeps a log of HTTP interactions. It is enabled by linking or

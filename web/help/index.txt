@@ -18,7 +18,14 @@ loaded RDF.
     * The role of RDF [[query languages][QueryLanguages.txt]] (e.g.,
       *SPARQL*) in ClioPatria.
 
-  * *|Using ClioPatria|*
-    * Developing.txt applications with ClioPatria
-    * Install.txt or restart.txt ClioPatria
+  * *|Getting ClioPatria|*
     * Download.txt ClioPatria
+    * Install.txt or restart.txt ClioPatria
+
+  * *|Using ClioPatria|*
+    * Howto [[load RDF][howto/LoadRDF.txt]] into ClioPatria
+    * [[Exploring RDF][howto/ExploreRDF.txt]] with ClioPatria
+
+  * *|Development with ClioPatria|*
+    * Developing.txt applications with ClioPatria
+

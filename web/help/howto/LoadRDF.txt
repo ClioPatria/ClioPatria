@@ -1,0 +1,45 @@
+---+ Loading RDF into ClioPatria
+
+The RDF store of ClioPatria is initially empty.  There are many ways to
+load RDF.
+
+    1. Login and use the actions from the _Repository_ menu to manage
+    the database.
+
+    2. Load them from the Prolog commandline using rdf_load/1.  If you
+    wish to use this route frequently, it is adviced to activate
+    examples/conf.d/debug.pl to make the core RDF library available from
+    the toplevel. See the [[installation][../Install.txt]] instructions.
+    Then continue with e.g.,
+
+    ==
+    ?- rdf_load('myfile.rdf').
+    ?- rdf_load('http://www.w3.org/2004/02/skos/core').
+    ==
+
+    By default, the system understands XML/RDF and Turtle and can load
+    from local files and HTTP servers.  The plugin mechanism of
+    library(semweb/rdf_db) can be used to extend the formats that are
+    understood and the locations from which they can be loaded.  In
+    particular, activating the examples/conf.d/zlib.pl config skeleton
+    allows loading from compressed data sources.
+
+    ==
+    ?- rdf_load('myfile.rdf.gz').
+    ==
+
+    3. Add the locations to the library manager and load them either
+    through the meny _|Repository/Load from library|_ or
+    rdf_load_library/1.  ClioPatria comes with a default library
+    in the directory =ontologies=.  See ontologies/README.txt.
+    The file examples/conf.d/ontopath.pl provides a configuration
+    skeleton.
+
+    Details of the library structure are described in the SWI-Prolog
+    documentation for the
+    [[semweb][http://www.swi-prolog.org/pldoc/package/semweb.html]]
+    package, in the section named _|Managing RDF input files|_
+
+@tbd	Spidering LOD sources is not yet provided.
+@see	After loading, you probably want to [[explore][ExploreRDF.txt]]
+	the result.
