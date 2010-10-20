@@ -116,7 +116,9 @@ odd_even_row(Row, Next, Content) -->
 
 %%	n(+Format, +Value)//
 %
-%	HTML component to emit a number.  See ns//2 for details.
+%	HTML component to emit a number.
+%
+%	@see nc//2 for details.
 
 n(Fmt, Value) -->
 	{ number_html(Fmt, Value, HTML) },
