@@ -39,6 +39,7 @@
 :- use_module(library(readutil)).
 :- use_module(library(option)).
 :- use_module(library(settings)).
+:- use_module(library(pldoc/doc_index)).
 :- use_module(library(pldoc/doc_html),
 	      except([ file//2,
 		       include//3
@@ -74,7 +75,9 @@ serve_page(Alias, Request) :-
 	Spec =.. [ Alias, Relative ],
 	http_safe_file(Spec, []),
 	find_file(Spec, File), !,
-	serve_file(File, Request).
+	setup_call_cleanup(b_setval(doc_alias, Alias),
+			   serve_file(File, Request),
+			   nb_delete(Alias)).
 serve_page(Alias, Request) :-
 	\+ memberchk(path_info(_), Request), !,
 	serve_page(Alias, [path_info('index.html')|Request]).
@@ -142,9 +145,9 @@ serve_file(txt, File, Request) :-
 			]),
 	Format == html, !,
 	read_file_to_codes(File, String, []),
-	b_setval(pldoc_file, File),
-	call_cleanup(serve_wiki(String),
-		     nb_delete(pldoc_file)).
+	setup_call_cleanup(b_setval(pldoc_file, File),
+			   serve_wiki(String),
+			   nb_delete(pldoc_file)).
 serve_file(_Ext, File, Request) :-	% serve plain files
 	http_reply_file(File, [unsafe(true)], Request).
 
@@ -227,12 +230,11 @@ include(Object, Type, Options) -->
 
 file(Path, Options) -->
 	{ \+ option(label(_), Options),
-	  file_base_name(Path, File),
-	  file_name_extension(Label, txt, File), !,
+	  file_name_extension(_Base, txt, Path), !,
 	  file_href(Options, Options1)
 	},
 	pldoc_html:file(Path,
-			[ label(Label),
+			[ label(Path),
 			  map_extension([txt-html])
 			| Options1
 			]).
@@ -250,15 +252,32 @@ file_href(Options0, Options) :-
 	     CFile \== []
 	   ),
 	option(absolute_path(Path), Options0),
-	absolute_file_name(document_root(.),
-			   DocRoot,
-			   [ file_type(directory),
-			     access(read)
-			   ]),
+	current_alias_root(DocRoot),
 	atom_concat(DocRoot, DocLocal, Path), !,
 	ensure_leading_slash(DocLocal, HREF),
 	Options = [ href(HREF) | Options0 ].
+file_href(Options0, Options) :-
+	nb_current(pldoc_file, CFile),
+	CFile \== [],
+	option(absolute_path(Path), Options0),
+	current_alias_root(DocRoot),
+	\+ sub_atom(Path, 0, _, _, DocRoot),
+	doc_file_href(Path, HREF),
+	Options = [ href(HREF)|Options0 ].
 file_href(Options, Options).
+
+current_alias_root(DocRoot) :-
+	(   nb_current(doc_alias, Val), Val \== []
+	->  Alias = Val
+	;   Alias = document_root
+	),
+	Term =.. [Alias,'.'],
+	absolute_file_name(Term,
+			   DocRoot,
+			   [ file_type(directory),
+			     access(read)
+			   ]).
+
 
 ensure_leading_slash(Path, SlashPath) :-
 	(   sub_atom(Path, 0, _, _, /)

@@ -34,6 +34,7 @@
 :- use_module(library(http/http_hook)).		% Get hook signatures
 :- use_module(library(http/http_dispatch)).	% Get hook signatures
 :- use_module(library(http/html_write)).
+:- include(library(pldoc/hooks)).
 
 :- use_module(cliopatria(parms)).	% Get paths
 :- use_module(cliopatria(skin)).	% Skinning primitives
@@ -57,6 +58,18 @@ http:location(pldoc, root('help/source'), [priority(10)]).
 
 :- http_handler(root(help/source), cp_help, []).
 :- http_handler(cliopatria('help/'), serve_page(help), [prefix, id(wiki_help)]).
+
+%%	prolog:doc_directory(+Dir) is semidet.
+%
+%	True if we allow PlDoc to  serve   files  from  Dir. This allows
+%	serving all files in the ClioPatria hierarchy.
+
+prolog:doc_directory(Dir) :-
+	absolute_file_name(cliopatria(.), CpDir,
+			   [ file_type(directory),
+			     access(read)
+			   ]),
+	sub_atom(Dir, 0, _, _, CpDir).
 
 %%	cp_help(+Request)
 %
