@@ -1,3 +1,18 @@
 ---+ Developing with ClioPatria
 
+This page links to issues  around   programming  ClioPatria in some way.
+Programming  ClioPatria  requires  a  little    knowledge  about  Prolog
+programming in general, knowledge about the SWI-Prolog RDF libraries and
+knowledge about emitting the result as HTML, JSON, XML, etc.
+
+  * *|Writing ClioPatria applications|*
+    * [[Linking][howto/LinkBrowser.txt]] to the ClioPatria browser from
+      your application.
+
+  * *|Styling ClioPatria|*
     * Use of CSS.txt within ClioPatria.
+
+@see	[[Learn Prolog Now][http://www.learnprolognow.org/]] is a good
+	online introduction into Prolog.
+@see	The ClioPatria whitepaper.txt explains the basic philosophy.
+@see	The SWI-Prolog [[HTTP HOWTO][http://www.swi-prolog.org/howto/http/]]
