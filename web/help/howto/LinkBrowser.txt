@@ -1,0 +1,43 @@
+---+ Linking from your application to the ClioPatria browser
+
+The ClioPatria _backoffice_ facilities are not intended for the
+end-user (i.e., the application you built for a wide adience), but may
+come handy for applications intended for expert users.  In that case,
+you may wish to use predicates from
+
+    * components(label) such as rdf_link//1 to emit a label for a
+    resource that is a link to its _|local view|_.
+
+    * applications(browse) to embed one of the views or tables into
+    your page.
+
+The demo prophier.pl provides a complete and   ready to run example that
+displays the property-hierarchy of  the  loaded   RDF.  It  links to the
+ClioPatria local view by means of  the   rdf_link//1  call  in this code
+fragment:
+
+    ==
+    emit_children([]) --> [].
+    emit_children([node(P,Children)|T]) -->
+	html(li([ \rdf_link(P)		% Create link to local view
+		| \emit_tree(Children)
+		])),
+	emit_children(T).
+    ==
+
+To see the program in action, make sure   to have some RDF loaded (e.g.,
+OWL from the library; see LoadRDF.txt).  Now, load prophier.pl. This can
+be done using the command below from   the  Prolog console or by copying
+prophier.pl into =|conf.d|= and restarting ClioPatria.
+
+    ==
+    ?- use_module(web/help/howto/prophier).
+    ==
+
+Now reload the page in  your  browser   to  update  the  menu and select
+_|Places/Predicate tree|_.
+
+@see prophier.pl provides the complete code.
+@see An introduction into generating HTML from Prolog is at
+     http://www.swi-prolog.org/howto/http/
+

@@ -1415,7 +1415,7 @@ triple_table(SOList, Pred, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(top_max(BottomMax), Options, 500)
 	},
-	html(table(class(rdf_browse),
+	html(table(class(block),
 		   [ \so_header(Pred)
 		   | \table_rows_top_bottom(so_row(Pred), SOList,
 					    TopMax, BottomMax)

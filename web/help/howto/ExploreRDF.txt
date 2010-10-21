@@ -1,1 +1,31 @@
 ---+ Exploring RDF loaded into ClioPatria
+
+ClioPatria offers browsing capabilities over the loaded RDF. These
+facilities are intended primarily for the developer, but may also be
+suitable for _backoffice_ applications.  The browser has two entry
+points:
+
+    * The *|top-right box|* provides autocompletion *search* for
+    literals that _start_ with the string you type. If a string is
+    selected, it shows a table with all subject-predicate (S-P) pairs
+    that have this literal as object. From there, one may browse to the
+    desired resources.
+
+    * The _|Places/Graphs|_ menu provides an overview of all available
+    *|named graphs|*. Clicking a graph shows statistics on the
+    predicates, subjects and classes available from that graph. Notably
+    the predicate table may provide useful insight in your data. The
+    graph-info also allows *downloading* the graph.
+
+Selecting an individual resource shows the *|Local View|* if the
+resource, together with the *|Context Graph|*. The local view shows the
+properties and their values. The context graph identifies
+object-relations that place the object in its (hierarchical) context.
+
+*Literals* that are *underlined* appear multiple times in the graph.
+Hovering shows the number of times the literal appears and clicking
+shows all S-P pairs that share the same literal.
+
+@see [[Customizing][CustomContext.txt]] the context graph
+@see [[Linking][LinkBrowser.txt]] to the ClioPatria browser from
+     your application.

@@ -1,0 +1,23 @@
+---+ Supported browsers
+
+ClioPatria as a web-platform is not browser specific. Some of the
+_backoffice_ facilities (i.e., the ClioPatria web frontend) might not
+work on all browsers. Development is based on
+[[Firefox][http://www.mozilla.com]] (currently 3.6). In general, the
+ClioPatria web frontend uses HTML that _requires_ little styling and is
+made prettier using CSS. There are three areas where it uses more
+advanced technology.
+
+    * The ClioPatria menu is based on extensive use of CSS.
+    * The search fields use autocompletion based on the YUI (2.7)
+      AJAX framework.
+    * The context graphs (see howto/ExploreRDF.txt) use SVG, embedded
+      using the HTML =object= element.  The _setting_ graphviz:format
+      can be used to change this into HTML5 using the
+      [[canviz][http://code.google.com/p/canviz/]] library, but canviz
+      is slower, does not support all graph features and is not very
+      portable over browsers either.
+
+@see The menu is based on http://denilsonsa.selfip.org/~denilson/menu/menu.html
+@see The [[YUI][http://developer.yahoo.com/yui/]] framework
+@see graphviz_graph//2 embeds the SVG/Canviz graphs.

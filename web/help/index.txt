@@ -25,6 +25,7 @@ loaded RDF.
   * *|Using ClioPatria|*
     * Howto [[load RDF][howto/LoadRDF.txt]] into ClioPatria
     * [[Exploring RDF][howto/ExploreRDF.txt]] with ClioPatria
+    * [[Supported browsers][Browsers.txt]]
 
   * *|Development with ClioPatria|*
     * Developing.txt applications with ClioPatria
