@@ -266,11 +266,28 @@ file_href(Options0, Options) :-
 	nb_current(pldoc_file, CFile),
 	CFile \== [],
 	option(absolute_path(Path), Options0),
-	current_alias_root(DocRoot),
-	\+ sub_atom(Path, 0, _, _, DocRoot),
-	doc_file_href(Path, HREF),
+	plfile_href(Path, HREF),
 	Options = [ href(HREF)|Options0 ].
 file_href(Options, Options).
+
+%%	plfile_href(+Path, -HREF) is det.
+%
+%	Create a link for a file to see  the (pretty) source if the file
+%	is inside the help system. Otherwise create a normal PlDoc link.
+
+plfile_href(Path, HREF) :-
+	file_name_extension(_, Ext, Path),
+	prolog_file_type(Ext, prolog),
+	current_alias_root(DocRoot),
+	sub_atom(Path, 0, _, _, DocRoot), !,
+	doc_file_href(Path, HREF0),
+	atom_concat(HREF0, '?show=src', HREF).
+plfile_href(Path, HREF) :-
+	doc_file_href(Path, HREF).
+
+%%	current_alias_root(-Root)
+%
+%	Root is the root of the current file-alias we are served from.
 
 current_alias_root(DocRoot) :-
 	(   nb_current(doc_alias, Val), Val \== []
