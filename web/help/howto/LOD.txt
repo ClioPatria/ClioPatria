@@ -1,0 +1,13 @@
+---+ Providing LOD services from ClioPatria
+
+LOD (Linked Open Data)  means  that   URIs  (indentiers)  and  also URLs
+(resource locators for which  you  can   get  content).  The  content is
+typically either a human explanation or an   RDF graph. The RDF graph is
+commonly referred to as the `Bounded Description' (see below).
+
+The  file  api(lod)  implements  the    ClioPatria   LOD  server,  while
+examples/conf.d/lod.pl provides a starting point   for  configuring your
+LOD server.
+
+@see http://linkeddata.org/ for more background on LOD.
+@see library(semweb/rdf_describe) for bounded graph implementations

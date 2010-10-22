@@ -3,25 +3,33 @@
 
 /** <module> Set options for development
 
+This  module  make  ClioPatria  more    suitable   for  development.  In
+particular, it implements the following methods:
+
+    * Load library(http/http_error), which causes uncaught Prolog
+    exceptions to produce an HTML page holding a stack-trace.
+    * Load library(semweb/rdf_portray), which prints RDF resources
+    in a more compact way.
+    * Load library(semweb/rdf_db) into the module =user=.  This allows
+    usage of rdf/3, rdf_load/1, etc. from the toplevel without
+    specifying the module.
+    * Use debug/1 on the _topic_ http(request), which causes the
+    toplevel to print basic information on the HTTP requests processed.
+    Using copy/paste of the HTTP path, one can assemble a command that
+    edits the implementation of a page.
+
+        ==
+        ?- edit('/http/path/to/handler').
+        ==
+    * Define tmon/0 that brings up a graphical tool showing thread
+    activity.
+
 @see	http://www.swi-prolog.org/howto/http/Developing.html
 */
 
-% Turn uncaught exceptions  into  a  500   error-page  that  includes  a
-% stack-dump. Handy for debugging, but also  handy for someone trying to
-% hack your server :-(
-
 :- use_module(library(http/http_error)).
-
-% Make the toplevel and debugger print RDF resources as prefix:local.
-
 :- use_module(library(semweb/rdf_portray)).
-
-% Make rdf/3 available from the toplevel for interactive usage.
-
 :- use_module(user:library(semweb/rdf_db)).
-
-% Print HTTP requests to the console (handy for debugging. Typically you
-% want to disable this on an operational server.
 
 :- debug(http(request)).
 
