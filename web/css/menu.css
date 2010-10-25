@@ -33,6 +33,7 @@
 	height: auto;
 	max-width: 12em;
 	overflow: visible;
+	overflow: hidden;
 }
 #nav ul ul {
 	width: 8em;
