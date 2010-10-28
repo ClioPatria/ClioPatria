@@ -1,0 +1,23 @@
+---+ The Local View for a resource
+
+The *|Local View|* describes a single resource. It shows four aspects of
+a resource.
+
+  1. A table holding the predicates and objects for this resource
+  2. A description of the named graphs involved
+  3. Where the resource is used as an object
+  4. The _|Context Graph|_
+
+---++ Programming the Local View
+
+The Local View is provided by   the HTML component list_resource//2. Its
+view can be customized to satisfy certain datasets:
+
+  * The hook cliopatria:predicate_order/2 may be used to change the
+  order of predicates in the table or delete predicates from the table.
+  * The cliopatria:bnode_label//1 can be used to customize the
+  presentation of blank nodes.
+  * The context graph may be [[customized][CustomContext.txt]] as well
+
+@see ExploreRDF.txt for exploring loaded RDF
+@see CustomContext.txt for configuring the context graph

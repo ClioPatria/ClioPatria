@@ -17,10 +17,11 @@ points:
     the predicate table may provide useful insight in your data. The
     graph-info also allows *downloading* the graph.
 
-Selecting an individual resource shows the *|Local View|* if the
-resource, together with the *|Context Graph|*. The local view shows the
-properties and their values. The context graph identifies
-object-relations that place the object in its (hierarchical) context.
+Selecting an individual resource shows the [[Local View][LocalView.txt]]
+if the resource, together with the [[Context Graph][CustomContext.txt]].
+The local view shows the properties and their values. The context graph
+identifies object-relations that place the object in its (hierarchical)
+context.
 
 *Literals* that are *underlined* appear multiple times in the graph.
 Hovering shows the number of times the literal appears and clicking

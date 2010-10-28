@@ -40,6 +40,7 @@
 :- use_module(library(debug)).
 :- use_module(library(option)).
 :- use_module(library(settings)).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_graphviz)).
 
 :- setting(graphviz:format, oneof([svg,canviz]), svg,
@@ -237,4 +238,5 @@ copy_graph_data(C, Stream) :-
 	put_code(user_error, C),
 	get_code(Stream, C2),
 	copy_graph_data(C2, Stream).
+
 

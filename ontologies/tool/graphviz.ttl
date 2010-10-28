@@ -8,14 +8,27 @@
 # see library(semweb/rdf_graphviz)
 
 <styleParameter>
-	a rdf:Property .
+	a rdf:Property ;
+	rdfs:comment "Super-property to find GraphViz shape-defining properties" .
 
 <shape> a rdf:Property ;
 	rdfs:label "shape" ;
+	rdfs:seeAlso <http://www.graphviz.org/doc/info/shapes.html> ;
+	rdfs:comment "Defines the basic shape of a node" ;
 	rdfs:subPropertyOf <styleParameter> .
 <style> a rdf:Property ;
 	rdfs:label "style" ;
+	rdfs:seeAlso <http://www.graphviz.org/doc/info/shapes.html#d:style> ;
+	rdfs:comment "Modifies the basic shape of a node" ;
 	rdfs:subPropertyOf <styleParameter> .
 <fillcolor> a rdf:Property ;
 	rdfs:label "fillcolor" ;
+	rdfs:comment "Color used to fill the shape" ;
 	rdfs:subPropertyOf <styleParameter> .
+
+<hideType>
+	a rdf:Property ;
+	rdfs:label "hide type" ;
+	rdfs:comment "Set to xsd:true to remove the type-triple for a class" ;
+	rdfs:range rdfs:Class ;
+	rdfs:domain rdfs:Literal .

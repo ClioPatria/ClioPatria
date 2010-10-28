@@ -40,6 +40,7 @@
 :- use_module(library(option)).
 :- use_module(library(gensym)).
 :- use_module(library(lists)).
+:- use_module(library(apply)).
 :- use_module(library(semweb/rdf_label)).
 
 :- rdf_register_ns(graphviz, 'http://www.graphviz.org/').
@@ -91,6 +92,11 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %	    If present, URLs of the graph are replaced with the
 %	    result of call(Goal, URL0, URL)
 %
+%	    * shape_hook(:Goal)
+%	    Called to define the shape of a resource as call(Goal, URI,
+%	    Shape).  Shape is a list of Name(Value) terms.  See
+%	    shape/3.
+%
 %	    * target(Target)
 %	    If present, add target=Target to all attribute lists that
 %	    have an =href= attribute.
@@ -98,7 +104,8 @@ represented as a list of rdf(S,P,O) into a .dot file.
 :- meta_predicate
 	gviz_write_rdf(+,+,:).
 
-gviz_write_rdf(Stream, Graph, Options0) :-
+gviz_write_rdf(Stream, Graph0, Options0) :-
+	exclude(exclude_triple, Graph0, Graph),
 	meta_options(is_meta, Options0, Options),
 	format(Stream, 'digraph G~n{ ', []),
 	option(graph_attributes(Attrs), Options, []),
@@ -537,3 +544,17 @@ image_in_svg(Request) :-
 			  unsafe(true)
 			],
 			Request).
+
+
+		 /*******************************
+		 *   RDF BASED CUSTOMIZATION	*
+		 *******************************/
+
+:- rdf_meta
+	exclude_triple(r,r,o).
+
+exclude_triple(rdf(S,P,O)) :-
+	exclude_triple(S,P,O).
+
+exclude_triple(_,rdf:type,C) :-
+	rdf_has(C, graphviz:hideType, literal(type(xsd:boolean, true))).

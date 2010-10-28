@@ -31,7 +31,8 @@
 	  [ graph_info//1,		% +Graph
 	    graph_as_resource//2,	% +Graph, +Options
 	    graph_actions//1,		% +Graph
-	    list_resource//2		% +URI, +Options
+	    list_resource//2,		% +URI, +Options
+	    context_graph//2		% +URI, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
@@ -955,6 +956,12 @@ list_resource(Request) :-
 %	Component that emits the `local view'   for  URI. The local view
 %	shows the basic properties  of  URI,   the  context  in which is
 %	appears and the graphs from which the information is extracted.
+%	Options is one of:
+%
+%	    * graph(Graph)
+%	    Limit properties in the table to the given graph
+%	    * sorted(Sorted)
+%	    One of =default= or =none=.
 %
 %	@see	list_resource/1 is the corresponding HTTP handler.  The
 %		component rdf_link//1 creates a link to list_resource/1.
@@ -1181,7 +1188,7 @@ lview_graphs(Subject, Graph, Graphs) :-
 %
 %	Pairs is a  list  of  P-ObjectList   for  the  S,P,O  triples on
 %	Subject. The list is normally sorted  by predicate as defined by
-%	order/2 below.
+%	p_order/2 below.
 
 po_pairs(S, Graph, Pairs, Options) :-
 	option(sorted(none), Options), !,
@@ -1207,32 +1214,35 @@ po_pairs(S, Graph, Pairs, _Options) :-
 sort_po(Pairs, Sorted) :-
 	map_list_to_pairs(po_key, Pairs, Keyed),
 	keysort(Keyed, KeySorted),
-	pairs_values(KeySorted, Sorted).
+	exclude(=(0-_), KeySorted, Remaining),
+	pairs_values(Remaining, Sorted).
 
 po_key(P-_, Key) :-
-	order(P, Key), !.
+	p_order(P, Key), !.
 po_key(P-_, Key) :-
 	label_sort_key(P, Key).
 
-%%	order(+P, -SortKey) is semidet.
+%%	p_order(+P, -SortKey) is semidet.
 %
 %	SortKey is the key used for sorting the predicate P.
 %
 %	@tbd	Make this hookable.
 
 :- rdf_meta
-	order(r,?).
+	p_order(r,?).
 
-order(P, 1000) :-
-	label_property(P).
-order(P, 1001) :-
-	rdfs_subproperty_of(P, skos:altLabel).
-order(rdf:type,		2000).
-order(rdfs:subClassOf,  2001).
-order(rdfs:domain,	2002).
-order(rdfs:range,	2003).
-order(rdfs:comment,	3000).
-order(rdfs:isDefinedBy,	3001).
+p_order(P, Order) :-
+	cliopatria:predicate_order(P, Order), !.
+p_order(P, 100) :-
+	label_property(P), !.
+p_order(P, 110) :-
+	rdfs_subproperty_of(P, skos:altLabel), !.
+p_order(rdf:type,	  210).
+p_order(rdfs:subClassOf,  220).
+p_order(rdfs:domain,	  230).
+p_order(rdfs:range,	  240).
+p_order(rdfs:comment,	  310).
+p_order(rdfs:isDefinedBy, 320).
 
 
 %%	uri_info(+URI, +Graph)// is det.
@@ -1243,7 +1253,7 @@ order(rdfs:isDefinedBy,	3001).
 uri_info(URI, Graph) -->
 	uri_class_info(URI, Graph),
 	uri_predicate_info(URI, Graph),
-	context_graph(URI).
+	context_graph(URI, []).
 
 uri_class_info(URI, Graph) -->
 	{ rdf_current_predicate(URI)
@@ -1260,11 +1270,11 @@ uri_predicate_info(URI, Graph) -->
 uri_predicate_info(_, _) --> [].
 
 
-%%	context_graph(+URI)// is det.
+%%	context_graph(+URI, +Options)// is det.
 %
 %	Show graph with the context of URI
 
-context_graph(URI) -->
+context_graph(URI, _Options) -->
 	html([ h2('Context graph'),
 	       \graphviz_graph(context_graph(URI),
 			       [ object_attributes([width('100%')]),

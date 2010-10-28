@@ -1,1 +1,34 @@
 ---+ Customizing the Context Graph
+
+The [[local view][LocalView.txt]] contains  a   graph  that displays the
+target resource in its context. The  graph   is  implemented by the HTML
+component context_graph//2, which in turn uses graphviz_graph//2. It can
+be customised by defining the following hooks:
+
+  * cliopatria:context_graph/2 generates the context as a graph of
+  rdf(S,P,O) triples.  The default implementation is given by
+  cpa_browse:context_graph/2.
+  * cliopatria:node_shape/3 defines the shape of an individual node.
+
+In addition, graphs may be customized   by  adding certain properties to
+their  schema.  To  make  this   work,    the   application   must  load
+ontologies/tool/graphviz.ttl. Below is a  Turtle   example  to vizualise
+verbs in the output from the Alpino dependency parser.
+
+    ==
+    @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+    @prefix alpino: <http://www.let.rug.nl/vannoord/alp/Alpino/> .
+    @prefix graphviz: <http://www.graphviz.org/> .
+
+    alpino:Verb
+        graphviz:shape "box3d" ;
+        graphviz:style "filled" ;
+        graphviz:fillcolor "#fff48f" ;
+        graphviz:hideType true .
+    ==
+
+@see	An example for showing the Europeana EDM is given in
+	examples/customise/EDM.pl.
+@see	http://www.graphviz.org/doc/info/shapes.html defines GraphViz
+	supported shapes.

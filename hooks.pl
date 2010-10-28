@@ -76,6 +76,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 	page_body//1,			% +Body
 	server_address//0,
 
+	predicate_order/2,		% +P, -Order
 	context_graph/2,		% +R, -RDF
 	node_shape/3.			% +R, -Shape, +Options
 
@@ -187,6 +188,15 @@ The example below adds an item to =Help= popup of ClioPatria:
 		 /*******************************
 		 *	    RDF BROWSING	*
 		 *******************************/
+
+%%	predicate_order(+Pred, -Order) is semidet.
+%
+%	Define the in which predicates  appear   in  the local view. The
+%	Order  is  an  integer.  The  system   ordering  is  defined  by
+%	cpa_browse:p_order/2. Predicates that are not explicitly ordered
+%	are placed at the end of the table an ordered alphabetically.
+%
+%	Predicates that have order `0' are _deleted_ from the table.
 
 %%	context_graph(+R, -RDF) is semidet.
 %
