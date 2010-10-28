@@ -1,0 +1,13 @@
+---+ The ClioPatria plugin architecture
+
+ClioPatria plugins are Prolog source-files that can do two things:
+
+  * Define hooks to alter the behavior of the existing application.
+  Supported hooks are documented in hooks.pl.  An example is provided
+  by examples/customise/EDM.pl.
+  * Create an HTTP service.  Such services come in two types:
+    * Services that produce HTML for human consumption
+    * Services that produce XML or JSON for machines.
+
+Plugins can be added to ClioPatria in   many different ways. To preserve
+best modularity, we suggest to use conf.d for loading plugins.

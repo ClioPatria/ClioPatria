@@ -29,5 +29,6 @@ loaded RDF.
     * Provide howto/LOD.txt (Linked Open Data) services from ClioPatria
 
   * *|Development with ClioPatria|*
+    * The ClioPatria [[plugin architecture][Plugin.txt]]
     * Developing.txt applications with ClioPatria
 
