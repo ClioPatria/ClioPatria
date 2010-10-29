@@ -146,7 +146,7 @@ serve_file(txt, File, Request) :-
 	Format == html, !,
 	read_file_to_codes(File, String, []),
 	setup_call_cleanup(b_setval(pldoc_file, File),
-			   serve_wiki(String),
+			   serve_wiki(String, File, Request),
 			   nb_delete(pldoc_file)).
 serve_file(_Ext, File, Request) :-	% serve plain files
 	http_reply_file(File, [unsafe(true)], Request).
@@ -169,16 +169,17 @@ ensure_slash(Dir0, Dir) :-
 	atom_concat(Dir0, /, Dir).
 
 
-%%	serve_wiki(+String) is det.
+%%	serve_wiki(+String, +File, +Request) is det.
 %
 %	Emit page from wiki content in String.
 
-serve_wiki(String) :-
-	wiki_codes_to_dom(String, [], DOM),
-	(   sub_term(h1(_, Title), DOM)
+serve_wiki(String, File, Request) :-
+	wiki_codes_to_dom(String, [], DOM0),
+	(   sub_term(h1(_, Title), DOM0)
 	->  true
 	;   Title = 'SWI-Prolog'
 	),
+	insert_edit_button(DOM0, File, Request, DOM),
 	setup_call_cleanup(b_setval(pldoc_options,
 				    [ prefer(manual)
 				    ]),
@@ -190,6 +191,21 @@ serve_wiki_page(Title, DOM) :-
 			[ title(Title)
 			],
 			DOM).
+
+insert_edit_button(DOM, _, Request, DOM) :-
+	\+ catch(http:authenticate(pldoc(edit), Request, _), _, fail), !.
+insert_edit_button([h1(Attrs,Title)|DOM], File, _,
+		   [h1(Attrs,[ span(style('float:right'),
+				   \edit_button(File, [edit(true)]))
+			     | Title
+			     ])|DOM]) :- !.
+insert_edit_button(DOM, File, _,
+		   [ h1(class(wiki),
+			[ span(style('float:right'),
+			       \edit_button(File, [edit(true)]))
+			])
+		   | DOM
+		   ]).
 
 
 		 /*******************************
