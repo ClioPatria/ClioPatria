@@ -33,6 +33,18 @@ particular, it implements the following methods:
 
 :- debug(http(request)).
 
+%%	prepare_editor
+%
+%	Start XPCE as edit requests comming from the document server can
+%	only be handled if XPCE is running.
+
+prepare_editor :-
+	current_prolog_flag(editor, pce_emacs), !,
+	start_emacs.
+prepare_editor.
+
+:- prepare_editor.
+
 %%	tmon
 %
 %	Show the graphical thread-monitor. Can be  useful to examine and
