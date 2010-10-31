@@ -33,19 +33,68 @@
 :- use_module(library(conf_d)).
 :- use_module(library(pairs)).
 :- use_module(library(ordsets)).
+:- use_module(pldoc(doc_index)).
+:- use_module(cliopatria(hooks)).
 
 /** <module> ClioPatria configuration interface
+
+This application provides a web-interface   for configuration management
+by adding files to =|conf.d|=.
 */
 
 :- http_handler(cliopatria('admin/config'), config, []).
+
+cliopatria:menu_item(250=admin/config,  'Configuration').
+
+%%	config(+Request)
+%
+%	HTTP handler that shows the  current   status  of  available and
+%	installed configuration modules.
 
 config(_Request) :-
 	reply_html_page(cliopatria(admin),
 			title('Server configuration'),
 			[ h1('Server configuration'),
+			  p(['The table below shows available and installed ',
+			     'configuration modules. ',
+			     \conf_d_readme_links
+			    ]),
 			  \config_table
 			]).
 
+
+conf_d_readme_links -->
+	{ findall(Path, absolute_file_name('conf.d/README.txt', Path,
+					   [ access(read),
+					     solutions(all),
+					     file_errors(fail)
+					   ]), ReadmeList),
+	  ReadmeList \== []
+	}, !,
+	html(['See ', \file_links(ReadmeList)]).
+conf_d_readme_links --> [].
+
+file_links([File]) -->
+	file_link(File).
+file_links([File1,File2]) -->
+	html([ \file_link(File1),
+	       ' and ',
+	       \file_link(File2)
+	     ]).
+file_links([File|More]) -->
+	html([ \file_link(File), ', ' ]),
+	file_links(More).
+
+file_link(File) -->
+	{ doc_file_href(File, HREF),
+	  file_name_on_path(File, OnPath)
+	},
+	html(a(href(HREF), '~q'-[OnPath])).
+
+%%	config_table
+%
+%	HTML  Component  that  shows   the    available   and  installed
+%	configuration components.
 
 config_table -->
 	{ config_files(Configs)
@@ -64,27 +113,69 @@ config_modules([H|T], OE) -->
 	config_modules(T, OE1).
 
 config_module(Key-[Templ,-]) -->
-	html(tr([ td(Key),
-		  td(\config_name(Templ)),
+	html(tr([ td(\config_key(Key, Templ)),
+		  td(\config_title(Templ)),
 		  td('Not installed')
 		])).
 config_module(Key-[-,Installed]) -->
-	html(tr([ td(Key),
-		  td(\config_name(Installed)),
+	html(tr([ td(\config_key(Key, Installed)),
+		  td(\config_title(Installed)),
 		  td('Local')
 		])).
-config_module(Key-[Templ,_Installed]) -->
-	html(tr([ td(Key),
-		  td(\config_name(Templ)),
-		  td('Installed')
+config_module(Key-[Templ, Installed]) -->
+	html(tr([ td(\config_key(Key, Installed)),
+		  td(\config_title(Templ)),
+		  td(\installed(Templ, Installed))
 		])).
 
-config_name(Data) -->
+config_key(Key, Data) -->
+	{ conf_d_member_data(file, Data, File),
+	  doc_file_href(File, HREF)
+	},
+	html(a(href(HREF), Key)).
+
+config_title(Data) -->
 	{ conf_d_member_data(title, Data, Title) }, !,
 	html([ Title ]).
-config_name(_) -->
+config_title(_) -->
 	html([]).
 
+installed(Templ, Installed) -->
+	{ conf_d_member_data(file, Templ, TemplFile),
+	  conf_d_member_data(file, Installed, InstalledFile),
+	  compare_files(TemplFile, InstalledFile, Status)
+	},
+	html(['Installed (', Status, ')']).
+
+compare_files(Templ, Installed, linked) :-
+	same_file(Templ, Installed).
+compare_files(Templ, Installed, copied) :-
+	same_file_content(Templ, Installed).
+compare_files(_Templ, _Installed, edited).
+
+same_file_content(File1, File2) :-
+	setup_call_cleanup((open(File1, read, In1),
+			    open(File2, read, In2)),
+			   same_stream_content(In1, In2),
+			   (close(In2), close(In1))).
+
+same_stream_content(In1, In2) :-
+	get_code(In1, C1),
+	get_code(In2, C2),
+	same_stream_content(C1, C2, In1, In2).
+
+same_stream_content(C, C, In1, In2) :-
+	(   C == -1
+	->  true
+	;   same_stream_content(In1, In2)
+	).
+
+
+%%	config_files(-Configs)
+%
+%	@param	Configs is a list if Key-[Example,Installed], where
+%		either is (-) or a config data item as required by
+%		conf_d_member_data/3.  The list is sorted on Key.
 
 config_files(Configs) :-
 	keyed_config(cliopatria('examples/conf.d'), Templ),
@@ -115,6 +206,8 @@ key_by_file(Data, Key) :-
 %			     ], Merged).
 %	  Merged = [a-[1,1,-], b-[-,-,2], d-[4,-,-], c-[-,3,-]].
 %	  ==
+%
+%	@tbd Is this useful and generic enough for library(pairs)?
 
 merge_pairlists(Lists, Merged) :-
 	heads(Lists, Heads),
