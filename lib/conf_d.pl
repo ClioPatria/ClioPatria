@@ -157,7 +157,10 @@ conf_d_reload :-
 %	conf_d_member_data/3 must be used to extract data from these
 %	terms.
 
-conf_d_members(Dir, InfoRecords, Options) :-
+conf_d_members(DirSpec, InfoRecords, Options) :-
+	absolute_file_name(DirSpec, Dir,
+			   [ file_type(directory)
+			   ]),
 	conf_d_files(Dir, Files, Options),
 	maplist(conf_file, Files, InfoRecords).
 
@@ -187,10 +190,10 @@ conf_file(File, config_file(File, _Module, _Title)).
 %	    * loaded
 %	    Boolean, indicating whether the file is currently loaded.
 
-conf_d_member_data(file,   config(F, _, _), F).
-conf_d_member_data(module, config(_, M, _), M) :- nonvar(M).
-conf_d_member_data(title,  config(_, _, T), T) :- nonvar(T).
-conf_d_member_data(loaded, config(F, _, _), B) :-
+conf_d_member_data(file,   config_file(F, _, _), F).
+conf_d_member_data(module, config_file(_, M, _), M) :- nonvar(M).
+conf_d_member_data(title,  config_file(_, _, T), T) :- nonvar(T).
+conf_d_member_data(loaded, config_file(F, _, _), B) :-
 	(   source_file(F)
 	->  B = true
 	;   B = false
