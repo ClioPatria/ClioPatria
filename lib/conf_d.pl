@@ -28,10 +28,17 @@
 */
 
 :- module(conf_d,
-	  [ load_conf_d/2		% +Directory, +Options
+	  [ load_conf_d/2,		% +Directories, +Options
+	    conf_d_reload/0,
+	    conf_d_members/3,		% +Directory, -FileData, +Options
+	    conf_d_member_data/3	% ?Field, +FileData, -Value
 	  ]).
 :- use_module(library(option)).
+:- use_module(library(ordsets)).
+:- use_module(library(lists)).
 :- use_module(library(apply)).
+:- use_module(library(prolog_xref)).
+:- use_module(pldoc(doc_process)).
 
 /** <module> Load configuration directories
 
@@ -89,13 +96,120 @@ collect_dirs(Spec, Sols) -->
 					])).
 
 
+:- dynamic
+	conf_d/3.			% Directory, Options, Files
+
 load_conf_dir(Options, Dir) :-
-	select_option(extension(Ext), Options, LoadOptions),
+	conf_d_files(Dir, Files, Options),
+	delete(Options, extension(_), LoadOptions),
+	update_conf_d(Dir, Files, Options),
+	load_files(user:Files, LoadOptions).
+
+conf_d_files(Dir, Files, Options) :-
+	option(extension(Ext), Options, pl),
 	atomic_list_concat([Dir, '/*.', Ext], Pattern),
-	expand_file_name(Pattern, Files),
-	include(accessible, Files, AccessibleFiles),
-	sort(AccessibleFiles, Sorted),
-	load_files(user:Sorted, LoadOptions).
+	expand_file_name(Pattern, Matches),
+	include(accessible, Matches, AccessibleFiles),
+	maplist(absolute_file_name, AccessibleFiles, CanonicalFiles),
+	sort(CanonicalFiles, Files).
 
 accessible(File) :-
 	access_file(File, read).
+
+update_conf_d(Dir, Files, Options) :-
+	\+ conf_d(Dir, _, _), !,
+	assert(conf_d(Dir, Options, Files)).
+update_conf_d(Dir, Files, Options) :-
+	retract(conf_d(Dir, _, OldFiles)), !,
+	ord_subtract(OldFiles, Files, Removed),
+	(   Removed \== []
+	->  print_message(informational, conf_d(unload(Removed))),
+	    catch(maplist(unload_file, Removed), E,
+		  print_message(error, E))
+	;   true
+	),
+	ord_subtract(Files, OldFiles, New),
+	(   New \== []
+	->  print_message(informational, conf_d(new(Removed)))
+	;   true
+	),
+	assert(conf_d(Dir, Options, Files)).
+
+%%	conf_d_reload is det.
+%
+%	Reload configuration files  after  adding   or  deleting  config
+%	files. Note that this is not exactly  the same as restarting the
+%	server. First of all, the order in   which  the files are loaded
+%	may be different and second, wiping a config file only wipes the
+%	clauses and module. Side effects, for   example  due to executed
+%	directives, are *not* reverted.
+
+conf_d_reload :-
+	findall(Dir-Options, conf_d(Dir, Options, _Files), Pairs),
+	forall(member(Dir-Options, Pairs),
+	       load_conf_dir(Options, Dir)).
+
+%%	conf_d_members(+Dir, -InfoRecords:list, Options) is det
+%
+%	Provide information about config files in Dir.
+%
+%	@param InfoRecords is a list of terms. The predicate
+%	conf_d_member_data/3 must be used to extract data from these
+%	terms.
+
+conf_d_members(Dir, InfoRecords, Options) :-
+	conf_d_files(Dir, Files, Options),
+	maplist(conf_file, Files, InfoRecords).
+
+:- if(current_predicate(xref_public_list/6)).
+
+conf_file(File, config_file(Path, Module, Title)) :-
+	xref_public_list(File, Path, Module, _Public, _Meta, []), !,
+	(   doc_comment(_:module(Title), Path:_, _Summary, _Comment)
+	->  true
+	;   true
+	).
+:- endif.
+conf_file(File, config_file(File, _Module, _Title)).
+
+%%	conf_d_member_data(?Field, +ConfigInfo, ?Value) is nondet.
+%
+%	True if Value is the value   for Field in ConfigInfo. ConfigInfo
+%	is an opaque term as returned   by conf_d_info/3. Defined fields
+%	are:
+%
+%	    * file
+%	    Absolute path of the file
+%	    * module
+%	    Module defined in the file (can fail)
+%	    * title
+%	    Comment-title (from /** <module> Title .. */)
+%	    * loaded
+%	    Boolean, indicating whether the file is currently loaded.
+
+conf_d_member_data(file,   config(F, _, _), F).
+conf_d_member_data(module, config(_, M, _), M) :- nonvar(M).
+conf_d_member_data(title,  config(_, _, T), T) :- nonvar(T).
+conf_d_member_data(loaded, config(F, _, _), B) :-
+	(   source_file(F)
+	->  B = true
+	;   B = false
+	).
+
+
+		 /*******************************
+		 *	      MESSAGES		*
+		 *******************************/
+
+:- multifile
+	prolog:message//1.
+
+prolog:message(conf_d(unload(Files))) -->
+	[ 'Unloaded the following config files:'-[] ],
+	files(Files).
+prolog:message(conf_d(new(Files))) -->
+	[ 'Added the following config files:'-[] ],
+	files(Files).
+
+files([]) --> [].
+files([H|T]) --> [ nl, '\t~w'-[H] ], files(T).
