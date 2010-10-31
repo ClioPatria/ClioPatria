@@ -37,6 +37,7 @@
 :- use_module(library(occurs)).
 :- use_module(library(sgml)).
 :- use_module(library(lists)).
+:- use_module(components(basics)).
 
 /** <module> Provide detailed version information
 */
@@ -113,16 +114,4 @@ prolog_version -->
 
 
 about_git_versions -->
-	insert_html(html('git-versions.html')).
-
-insert_html(Alias) -->
-	{ absolute_file_name(Alias, Page, [access(read)]),
-	  load_html_file(Page, DOM),
-	  contains_term(element(body, _, Body), DOM),
-	  Style = element(style, _, _),
-	  findall(Style, sub_term(Style, DOM), Styles),
-	  append(Styles, Body, Content)
-	},
-	html(Content).
-
-
+	insert_html_file(html('git-versions.html')).

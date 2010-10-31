@@ -78,6 +78,7 @@ Structure elements have classes that reflects their role on a page.
 	| *even* 	| even rows (see odd_even_row//3) |
 	| *skip* 	| skipped rows |
 	| *buttons*	| Row contains buttons |
+	| *header*	| Row contains headers for columns |
 
     $ *td* :
 	| *empty*	| empty cell |

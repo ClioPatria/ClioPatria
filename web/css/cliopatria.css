@@ -31,6 +31,10 @@ div.messages, div.textbox
   width: 90%;
 }
 
+div.messages pre
+{ margin: 0px;
+}
+
 .msg_informational
 { color: #007f00;
 }
@@ -66,6 +70,14 @@ p.footnote
 #content h4
 { font-size: 100%;
   background-color: #b9daff;
+}
+
+#content dl
+{ margin-left: 5%;
+}
+
+#content dl dt
+{ font-weight: bold;
 }
 
 		 /*******************************
@@ -111,12 +123,16 @@ td.empty, td.int_c
 { text-align:center;
 }
 
+tr.even td.buttons
+{ background-color: #fff;
+}
+
 table.block td.total
 { border-width: 1px 0 0 0;
   font-weight: bold;
 }
 
-table.block th
+table.block th, tr.header th
 { background:  url("../icons/th.png") left top;
   border: 1px solid #444;
 }

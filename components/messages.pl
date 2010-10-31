@@ -76,11 +76,15 @@ call_showing_messages(Goal, Options) :-
 
 send_message(Me, Level, Lines) :-
 	thread_self(Me),
-	Level \== silent,
-	phrase(html(div(class(Level), \html_message_lines(Lines))), Tokens),
+	level_css_class(Level, Class),
+	phrase(html(pre(class(Class), \html_message_lines(Lines))), Tokens),
 	print_html(Tokens),
 	flush_output,
 	fail.
+
+level_css_class(informational, msg_informational).
+level_css_class(warning,       msg_warning).
+level_css_class(error,	       msg_error).
 
 html_message_lines([]) -->
 	[].
@@ -89,15 +93,8 @@ html_message_lines([nl|T]) --> !,
 	html_message_lines(T).
 html_message_lines([flush]) -->
 	[].
-html_message_lines([Fmt-Args|T]) --> !,
-	{ format(string(S), Fmt, Args)
-	},
-	html([S]),
-	html_message_lines(T).
-html_message_lines([Fmt|T]) --> !,
-	{ format(string(S), Fmt, [])
-	},
-	html([S]),
+html_message_lines([H|T]) --> !,
+	html(H),
 	html_message_lines(T).
 
 

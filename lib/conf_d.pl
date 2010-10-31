@@ -130,7 +130,7 @@ update_conf_d(Dir, Files, Options) :-
 	),
 	ord_subtract(Files, OldFiles, New),
 	(   New \== []
-	->  print_message(informational, conf_d(new(Removed)))
+	->  print_message(informational, conf_d(new(New)))
 	;   true
 	),
 	assert(conf_d(Dir, Options, Files)).
@@ -165,7 +165,6 @@ conf_d_members(DirSpec, InfoRecords, Options) :-
 	maplist(conf_file, Files, InfoRecords).
 
 :- if(current_predicate(xref_public_list/6)).
-
 conf_file(File, config_file(Path, Module, Title)) :-
 	xref_public_list(File, Path, Module, _Public, _Meta, []), !,
 	(   doc_comment(_:module(Title), Path:_, _Summary, _Comment)
@@ -215,4 +214,4 @@ prolog:message(conf_d(new(Files))) -->
 	files(Files).
 
 files([]) --> [].
-files([H|T]) --> [ nl, '\t~w'-[H] ], files(T).
+files([H|T]) --> [ nl, '    ~w'-[H] ], files(T).

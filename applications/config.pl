@@ -32,9 +32,15 @@
 :- use_package(html_page).
 :- use_module(library(conf_d)).
 :- use_module(library(pairs)).
+:- use_module(library(apply)).
 :- use_module(library(ordsets)).
 :- use_module(pldoc(doc_index)).
 :- use_module(cliopatria(hooks)).
+:- use_module(user(user_db)).
+:- use_module(components(messages)).
+:- if(exists_source(library(filesex))).
+:- use_module(library(filesex)).
+:- endif.
 
 /** <module> ClioPatria configuration interface
 
@@ -42,7 +48,8 @@ This application provides a web-interface   for configuration management
 by adding files to =|conf.d|=.
 */
 
-:- http_handler(cliopatria('admin/config'), config, []).
+:- http_handler(cliopatria('admin/config'),	 config,      []).
+:- http_handler(cliopatria('admin/reconfigure'), reconfigure, []).
 
 cliopatria:menu_item(250=admin/config,  'Configuration').
 
@@ -52,16 +59,18 @@ cliopatria:menu_item(250=admin/config,  'Configuration').
 %	installed configuration modules.
 
 config(_Request) :-
+	if_allowed(admin(config), [edit(true)], Options),
 	reply_html_page(cliopatria(admin),
 			title('Server configuration'),
 			[ h1('Server configuration'),
-			  p(['The table below shows available and installed ',
-			     'configuration modules. ',
-			     \conf_d_readme_links
-			    ]),
-			  \config_table
+			  \edit_config_table(Options),
+			  \insert_html_file(html('help-config.html'))
 			]).
 
+if_allowed(Token, Options, Options) :-
+	logged_on(User, anonymous),
+	catch(check_permission(User, Token), _, fail), !.
+if_allowed(_, _, []).
 
 conf_d_readme_links -->
 	{ findall(Path, absolute_file_name('conf.d/README.txt', Path,
@@ -91,42 +100,66 @@ file_link(File) -->
 	},
 	html(a(href(HREF), '~q'-[OnPath])).
 
-%%	config_table
+%%	edit_config_table(+Options)
 %
 %	HTML  Component  that  shows   the    available   and  installed
 %	configuration components.
 
-config_table -->
+edit_config_table(Options) -->
+	{ option(edit(true), Options) }, !,
+	html(form([ action(location_by_id(reconfigure)),
+		    method('GET')
+		  ],
+		  \config_table(Options))).
+edit_config_table(Options) -->
+	config_table(Options).
+
+config_table(Options) -->
 	{ config_files(Configs)
 	},
-	html(table(class(block),
+	html(table(class(form),
 		   [ \config_table_header
-		   | \config_modules(Configs, 1)
+		   | \config_modules(Configs, 1, Options)
 		   ])).
 
 config_table_header -->
-	html(tr([th('Config'), th('Title'), th('Status')])).
+	html(tr(class(header),
+		[th('Config'), th('Title'), th('Status')])).
 
-config_modules([], _) --> [].
-config_modules([H|T], OE) -->
-	odd_even_row(OE, OE1, \config_module(H)),
-	config_modules(T, OE1).
+config_modules([], _, Options) -->
+	(   { option(edit(true), Options) }
+	->  html(tr(class(buttons),
+		    td([ colspan(3), align(right), style('padding-top:1em;')
+		       ],
+		       [ input(type(reset)),
+			 input([type(submit),value('Update configuration')])
+		       ])))
+	;   []
+	).
+config_modules([H|T], OE, Options) -->
+	{ config_module_status(H, Status) },
+	odd_even_row(OE, OE1, \config_module(Status, H, Options)),
+	config_modules(T, OE1, Options).
 
-config_module(Key-[Templ,-]) -->
-	html(tr([ td(\config_key(Key, Templ)),
-		  td(\config_title(Templ)),
-		  td('Not installed')
-		])).
-config_module(Key-[-,Installed]) -->
-	html(tr([ td(\config_key(Key, Installed)),
-		  td(\config_title(Installed)),
-		  td('Local')
-		])).
-config_module(Key-[Templ, Installed]) -->
-	html(tr([ td(\config_key(Key, Installed)),
-		  td(\config_title(Templ)),
-		  td(\installed(Templ, Installed))
-		])).
+config_module_status(_-[_,-], not) :- !.
+config_module_status(_-[-,_], local) :- !.
+config_module_status(_-[Templ,Installed], Status) :-
+	conf_d_member_data(file, Templ, TemplFile),
+	conf_d_member_data(file, Installed, InstalledFile),
+	compare_files(TemplFile, InstalledFile, Status).
+
+config_module(Status, Data, Options) -->
+	{ Data = Key-_Members,
+	  prop_member(Status, Data, Props)
+	},
+	html([ td(\config_key(Key, Props)),
+	       td(\config_title(Props)),
+	       \config_installed(Status, Key, Options)
+	     ]).
+
+prop_member(not, _-[Templ,_], Templ) :- !.
+prop_member(_,	 _-[_,Installed], Installed).
+
 
 config_key(Key, Data) -->
 	{ conf_d_member_data(file, Data, File),
@@ -140,18 +173,52 @@ config_title(Data) -->
 config_title(_) -->
 	html([]).
 
-installed(Templ, Installed) -->
-	{ conf_d_member_data(file, Templ, TemplFile),
-	  conf_d_member_data(file, Installed, InstalledFile),
-	  compare_files(TemplFile, InstalledFile, Status)
+config_installed(Value, Key, Options) -->
+	{ option(edit(true), Options),
+	  findall(O-L, ( installed_option(O,L,A),
+			 (   Value==O
+			 ->  true
+			 ;   memberchk(Value, A)
+			 )
+		       ),
+		  Pairs)
+	}, !,
+	html(td(class(buttons),
+		select(name(Key),
+		       \installed_options(Pairs, Value)))).
+config_installed(Value, _, _) -->
+	{ installed_option(Value, Label, _)
 	},
-	html(['Installed (', Status, ')']).
+	html(td(Label)).
 
-compare_files(Templ, Installed, linked) :-
-	same_file(Templ, Installed).
-compare_files(Templ, Installed, copied) :-
-	same_file_content(Templ, Installed).
-compare_files(_Templ, _Installed, edited).
+installed_options([], _) --> [].
+installed_options([H|T], Value) -->
+	installed_option(H, Value),
+	installed_options(T, Value).
+
+installed_option(V-L, V) -->
+	html(option([value(V),selected], L)).
+installed_option(V-L, _) -->
+	html(option(value(V), L)).
+
+installed_option(not,	   'Not installed',	   [linked,copied,modified]).
+installed_option(linked,   'Installed (linked)',   [not,copied,modified]).
+installed_option(copied,   'Installed (copied)',   [not,linked,modified]).
+installed_option(modified, 'Installed (modified)', []).
+installed_option(local,	   'Local',		   []).
+
+%%	compare_files(+File, +File2, -Status) is det.
+%
+%	Compare  two  files,  unifying  Status  with  one  of  =linked=,
+%	=copied= or =modified=.
+
+compare_files(Templ, Installed, Status) :-
+	(   same_file(Templ, Installed)
+	->  Status = linked
+	;   same_file_content(Templ, Installed)
+	->  Status = copied
+	;   Status = modified
+	).
 
 same_file_content(File1, File2) :-
 	setup_call_cleanup((open(File1, read, In1),
@@ -192,6 +259,112 @@ key_by_file(Data, Key) :-
 	conf_d_member_data(file, Data, Path),
 	file_name_extension(Plain, _, Path),
 	file_base_name(Plain, Key).
+
+%%	reconfigure(+Request)
+%
+%	Update configuration on the basis of the menu.
+
+reconfigure(Request) :-
+	authorized(admin(reconfigure)),
+	http_link_to_id(config, [], HREF),
+	http_parameters(Request, [], [form_data(Form)]),
+	call_showing_messages(update_config(Form),
+			      [ footer(h4(['Done. ', a(href(HREF), 'back to configuration')]))
+			      ]).
+
+update_config(Form) :-
+	config_files(Configs),
+	maplist(update_config_key(Form, Updated), Configs),
+	(   var(Updated)
+	->  print_message(informational, config(no_changes))
+	;   conf_d_reload
+	).
+
+update_config_key(Form, Updated, Config) :-
+	Config = Key-Versions,
+	config_module_status(Config, CurrentStatus),
+	(   memberchk(Key=NewStatus, Form),
+	    NewStatus \== CurrentStatus
+	->  update_config_file(CurrentStatus, NewStatus, Versions),
+	    Updated = true
+	;   true
+	).
+
+update_config_file(linked, not, [_,Installed]) :- !,
+	conf_d_member_data(file, Installed, File),
+	delete_file(File),
+	print_message(informational, config(delete(File))).
+update_config_file(_, not, [_,Installed]) :- !,
+	conf_d_member_data(file, Installed, File),
+	atom_concat(File, '.disabled', DisabledFile),
+	rename_file(File, DisabledFile),
+	print_message(informational, config(rename(File, DisabledFile))).
+:- if(current_predicate(link_file/3)).
+update_config_file(not, linked, [Templ,_]) :-
+	conf_d_member_data(file, Templ, File),
+	file_base_name(File, Base),
+	local_conf_dir(Dir),
+	atomic_list_concat([Dir, /, Base], NewFile),
+	relative_file_name(File, NewFile, RelPath),
+	link_file(RelPath, NewFile, symbolic),
+	print_message(informational, config(link(NewFile))).
+update_config_file(copied, linked, [Templ,Installed]) :-
+	conf_d_member_data(file, Templ, TemplFile),
+	conf_d_member_data(file, Installed, InstalledFile),
+	delete_file(InstalledFile),
+	relative_file_name(TemplFile, InstalledFile, RelPath),
+	link_file(RelPath, InstalledFile, symbolic),
+	print_message(informational, config(link(InstalledFile))).
+:- endif.
+update_config_file(not, copied, [Templ,_]) :-
+	conf_d_member_data(file, Templ, File),
+	file_base_name(File, Base),
+	local_conf_dir(Dir),
+	atomic_list_concat([Dir, /, Base], NewFile),
+	copy_file(File, NewFile),
+	print_message(informational, config(copy(NewFile))).
+update_config_file(linked, copied, [Templ,Installed]) :-
+	conf_d_member_data(file, Templ, TemplFile),
+	conf_d_member_data(file, Installed, InstalledFile),
+	delete_file(InstalledFile),
+	copy_file(TemplFile, InstalledFile),
+	print_message(informational, config(copy(InstalledFile))).
+
+local_conf_dir(Dir) :-
+	absolute_file_name('conf.d', Dir,
+			   [ file_type(directory),
+			     access(write)
+			   ]).
+
+
+:- multifile prolog:message//1.
+
+prolog:message(config(Action)) -->
+	message(Action).
+
+message(delete(File)) --> ['Deleted '], file(File).
+message(rename(Old, New)) --> ['Renamed '], file(Old), [' into '], file(New).
+message(link(File)) --> ['Linked '], file(File).
+message(copy(File)) --> ['Copied '], file(File).
+message(no_changes) --> ['No changes; configuration is left untouched'].
+
+file(Path) -->
+	{ working_directory(Dir,Dir),
+	  ensure_slash(Dir, RelTo),
+	  relative_file_name(Path, RelTo, Rel)
+	},
+	[ '~w'-[Rel] ].
+
+ensure_slash(Dir0, Dir) :-
+	(   sub_atom(Dir0, _, _, 0, /)
+	->  Dir = Dir0
+	;   atom_concat(Dir0, /, Dir)
+	).
+
+
+		 /*******************************
+		 *	       LIB		*
+		 *******************************/
 
 %%	merge_pairlists(+PairLists, -Merged)
 %

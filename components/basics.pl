@@ -32,10 +32,14 @@
 	    n//2,			% +Format, +Value
 	    nc//2,			% +Format, +Value
 	    nc//3,			% +Format, +Value, +Options
-	    odd_even_row//3		% +Row, -Next, :Content
+	    odd_even_row//3,		% +Row, -Next, :Content
+	    insert_html_file//1		% +FileSpec
 	  ]).
 :- use_module(library(http/html_write)).
+:- use_module(library(sgml)).
+:- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(occurs)).
 
 /** <module> Simple Small HTML components
 */
@@ -157,3 +161,22 @@ digits(Count, N) :-
 	;   N = 0
 	).
 
+
+		 /*******************************
+		 *	   INCLUDE FILES	*
+		 *******************************/
+
+%%	insert_html_file(+Specification)
+%
+%	Insert the content of an HTML   file  into the current document.
+%	Only the content of the =body= element is included.
+
+insert_html_file(Alias) -->
+	{ absolute_file_name(Alias, Page, [access(read)]),
+	  load_html_file(Page, DOM),
+	  contains_term(element(body, _, Body), DOM),
+	  Style = element(style, _, _),
+	  findall(Style, sub_term(Style, DOM), Styles),
+	  append(Styles, Body, Content)
+	},
+	html(Content).
