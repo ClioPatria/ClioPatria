@@ -17,6 +17,9 @@ matter.
   $ 00-prefixes.pl (edit) :
   Configure RDF prefixes (namespaces).
 
+  $ config.pl :
+  Web-based configuration management.
+
   $ debug.pl :
   Configure the system for easy development.
 

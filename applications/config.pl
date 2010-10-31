@@ -72,34 +72,6 @@ if_allowed(Token, Options, Options) :-
 	catch(check_permission(User, Token), _, fail), !.
 if_allowed(_, _, []).
 
-conf_d_readme_links -->
-	{ findall(Path, absolute_file_name('conf.d/README.txt', Path,
-					   [ access(read),
-					     solutions(all),
-					     file_errors(fail)
-					   ]), ReadmeList),
-	  ReadmeList \== []
-	}, !,
-	html(['See ', \file_links(ReadmeList)]).
-conf_d_readme_links --> [].
-
-file_links([File]) -->
-	file_link(File).
-file_links([File1,File2]) -->
-	html([ \file_link(File1),
-	       ' and ',
-	       \file_link(File2)
-	     ]).
-file_links([File|More]) -->
-	html([ \file_link(File), ', ' ]),
-	file_links(More).
-
-file_link(File) -->
-	{ doc_file_href(File, HREF),
-	  file_name_on_path(File, OnPath)
-	},
-	html(a(href(HREF), '~q'-[OnPath])).
-
 %%	edit_config_table(+Options)
 %
 %	HTML  Component  that  shows   the    available   and  installed
@@ -269,7 +241,9 @@ reconfigure(Request) :-
 	http_link_to_id(config, [], HREF),
 	http_parameters(Request, [], [form_data(Form)]),
 	call_showing_messages(update_config(Form),
-			      [ footer(h4(['Done. ', a(href(HREF), 'back to configuration')]))
+			      [ footer(h4(['Done. ',
+					   a(href(HREF),
+					     'back to configuration')]))
 			      ]).
 
 update_config(Form) :-
@@ -299,7 +273,6 @@ update_config_file(_, not, [_,Installed]) :- !,
 	atom_concat(File, '.disabled', DisabledFile),
 	rename_file(File, DisabledFile),
 	print_message(informational, config(rename(File, DisabledFile))).
-:- if(current_predicate(link_file/3)).
 update_config_file(not, linked, [Templ,_]) :-
 	conf_d_member_data(file, Templ, File),
 	file_base_name(File, Base),
@@ -315,7 +288,6 @@ update_config_file(copied, linked, [Templ,Installed]) :-
 	relative_file_name(TemplFile, InstalledFile, RelPath),
 	link_file(RelPath, InstalledFile, symbolic),
 	print_message(informational, config(link(InstalledFile))).
-:- endif.
 update_config_file(not, copied, [Templ,_]) :-
 	conf_d_member_data(file, Templ, File),
 	file_base_name(File, Base),
@@ -417,3 +389,55 @@ take_key([List|T0], K, NewLists, NewKs, Vs) :-
 	).
 
 
+		 /*******************************
+		 *	  COMPATIBILITY		*
+		 *******************************/
+
+% library(filesex) additions added in 5.11.9
+
+:- if(\+current_predicate(link_file/3)).
+
+link_file(From, To, symbolic) :-
+	process_create(path(ln), ['-s', file(From), file(To)], []).
+
+:- endif.
+
+:- if(\+current_predicate(copy_file/2)).
+
+copy_file(From, To) :-
+	destination_file(To, From, Dest),
+	setup_call_cleanup(open(Dest, write, Out, [type(binary)]),
+			   copy_from(From, Out),
+			   close(Out)).
+
+copy_from(File, Stream) :-
+	setup_call_cleanup(open(File, read, In, [type(binary)]),
+			   copy_stream_data(In, Stream),
+			   close(In)).
+
+destination_file(Dir, File, Dest) :-
+	exists_directory(Dir), !,
+	atomic_list_concat([Dir, File], /, Dest).
+destination_file(Dest, _, Dest).
+
+:- endif.
+
+:- if(\+current_predicate(relative_file_name/3)).
+
+relative_file_name(Path, RelTo, RelPath) :-
+        atomic_list_concat(PL, /, Path),
+        atomic_list_concat(RL, /, RelTo),
+        delete_common_prefix(PL, RL, PL1, PL2),
+        to_dot_dot(PL2, DotDot, PL1),
+        atomic_list_concat(DotDot, /, RelPath).
+
+delete_common_prefix([H|T01], [H|T02], T1, T2) :- !,
+        delete_common_prefix(T01, T02, T1, T2).
+delete_common_prefix(T1, T2, T1, T2).
+
+to_dot_dot([], Tail, Tail).
+to_dot_dot([_], Tail, Tail) :- !.
+to_dot_dot([_|T0], ['..'|T], Tail) :-
+        to_dot_dot(T0, T, Tail).
+
+:- endif.

@@ -39,8 +39,7 @@ file_search_path(cliopatria, '@CLIOPATRIA@').
 
 :- use_module(library(conf_d)).
 
-:- load_conf_d([ cliopatria('conf.d'),
-		 'conf.d'
+:- load_conf_d([ 'conf.d'
 	       ],
 	       []).
 

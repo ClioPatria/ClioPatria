@@ -1,30 +1,40 @@
-/*  This file is part of ClioPatria.
+/*  Part of ClioPatria SeRQL and SPARQL server
 
-    Author:
-    HTTP:	http://e-culture.multimedian.nl/
-    GITWEB:	http://gollem.science.uva.nl/git/ClioPatria.git
-    GIT:	git://gollem.science.uva.nl/home/git/ClioPatria.git
-    GIT:	http://gollem.science.uva.nl/home/git/ClioPatria.git
-    Copyright:  2007, E-Culture/MultimediaN
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2007-2010, University of Amsterdam,
+		   VU University Amsterdam
 
-    ClioPatria is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
 
-    ClioPatria is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with ClioPatria.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
 */
 
 :- module(cp_setup,
 	  [ setup/0
 	  ]).
 :- use_module(library(apply)).
+:- if(exists_source(library(filesex))).
+:- use_module(library(filesex)).
+:- endif.
 
 /** <module> ClioPatria installation script
 */
@@ -151,7 +161,7 @@ which(File, Path) :-
 %	Create a new configure directory if it doesn't exist yet.
 
 create_conf_d(SrcDir, DstDir) :-
-	atom_concat(DstDir, '/conf.d', ConfDir),
+	directory_file_path(DstDir, 'conf.d', ConfDir),
 	(   exists_directory(ConfDir)
 	->  true
 	;   make_directory(ConfDir)
@@ -164,6 +174,61 @@ create_conf_d(SrcDir, DstDir) :-
 	    substitutions(SrcDir, DstDir, Vars),
 	    install_file(Vars, Readme, ReadmeIn),
 	    format(user_error, ' done~n', [])
+	),
+	directory_file_path(SrcDir, 'examples/conf.d', TemplDir),
+	default_config(ConfDir, TemplDir).
+
+
+default_config(ConfDir, TemplateDir) :-
+	directory_file_path(ConfDir, '.config', File),
+	(   exists_file(File)
+	->  true
+	;   (   directory_file_path(TemplateDir, 'DEFAULTS', DefFile),
+	        access_file(DefFile, read)
+	    ->	read_file_to_terms(DefFile, Terms, []),
+		maplist(install_config(ConfDir, TemplateDir), Terms)
+	    ;	true
+	    ),
+	    open(File, write, Out),
+	    get_time(Now),
+	    format_time(Out, 'Configured at %+\n', Now),
+	    close(Out)
+	).
+
+install_config(ConfDir, TemplateDir, Term) :-
+	config_file(Term, File, How), !,
+	install_file(How, ConfDir, TemplateDir, File).
+install_config(_, _, _).
+
+config_file((Head:-Cond), File, How) :- !,
+	call(Cond),
+	config_file(Head, File, How).
+config_file(config(File, How), File, How) :- !.
+config_file(Term, _, _) :-
+	domain_error(config_term, Term).
+
+install_file(_, ConfDir, _, File) :-
+	directory_file_path(ConfDir, File, Dest),
+	exists_file(Dest), !.
+install_file(link, ConfDir, TemplateDir, File) :-
+	directory_file_path(TemplateDir, File, Source),
+	directory_file_path(ConfDir, File, Dest),
+	relative_file_name(Source, Dest, Rel),
+	format(user_error, 'Linking config file ~w ...', [File]),
+	link_file(Rel, Dest, symbolic),
+	format(user_error, ' ok~n', []).
+install_file(copy, ConfDir, TemplateDir, File) :-
+	directory_file_path(TemplateDir, File, Source),
+	directory_file_path(ConfDir, File, Dest),
+	format(user_error, 'Copying config file ~w ...', [File]),
+	copy_file(Source, Dest),
+	format(user_error, ' ok~n', []).
+
+
+directory_file_path(Dir, File, Path) :-
+	(   sub_atom(Dir, _, _, 0, /)
+	->  atom_concat(Dir, File, Path)
+	;   atomic_list_concat([Dir, /, File], Path)
 	).
 
 
@@ -240,3 +305,42 @@ read_var_name(C0, In, [C0|T], End) :-
 	get_code(In, C1),
 	read_var_name(C1, In, T, End).
 read_var_name(C0, _In, [], C0).
+
+
+		 /*******************************
+		 *	  COMPATIBILITY		*
+		 *******************************/
+
+:- if(\+current_predicate(link_file/3)).
+
+link_file(From, To, symbolic) :-
+	process_create(path(ln), ['-s', file(From), file(To)], []).
+
+:- endif.
+
+:- if(\+current_predicate(copy_file/2)).
+
+copy_file(From, To) :-
+	copy_file_with_vars(From, To, []).
+
+:- endif.
+
+:- if(\+current_predicate(relative_file_name/3)).
+
+relative_file_name(Path, RelTo, RelPath) :-
+        atomic_list_concat(PL, /, Path),
+        atomic_list_concat(RL, /, RelTo),
+        delete_common_prefix(PL, RL, PL1, PL2),
+        to_dot_dot(PL2, DotDot, PL1),
+        atomic_list_concat(DotDot, /, RelPath).
+
+delete_common_prefix([H|T01], [H|T02], T1, T2) :- !,
+        delete_common_prefix(T01, T02, T1, T2).
+delete_common_prefix(T1, T2, T1, T2).
+
+to_dot_dot([], Tail, Tail).
+to_dot_dot([_], Tail, Tail) :- !.
+to_dot_dot([_|T0], ['..'|T], Tail) :-
+        to_dot_dot(T0, T, Tail).
+
+:- endif.
