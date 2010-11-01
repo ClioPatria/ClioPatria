@@ -89,7 +89,7 @@ level_css_class(error,	       msg_error).
 html_message_lines([]) -->
 	[].
 html_message_lines([nl|T]) --> !,
-	html([br([])]),
+	html('\n'),			% we are in a <pre> environment
 	html_message_lines(T).
 html_message_lines([flush]) -->
 	[].

@@ -147,19 +147,19 @@ config_title(_) -->
 
 config_installed(Value, Key, Options) -->
 	{ option(edit(true), Options),
-	  findall(O-L, ( installed_option(O,L,A),
-			 (   Value==O
-			 ->  true
-			 ;   memberchk(Value, A)
-			 )
-		       ),
+	  findall(o(O,L,LC), ( option(O,L,A,LC),
+			       (   Value==O
+			       ->  true
+			       ;   memberchk(Value, A)
+			       )
+			     ),
 		  Pairs)
 	}, !,
 	html(td(class(buttons),
-		select(name(Key),
+		select([name(Key),style('width:100%')],
 		       \installed_options(Pairs, Value)))).
 config_installed(Value, _, _) -->
-	{ installed_option(Value, Label, _)
+	{ option(Value, Label, _, _)
 	},
 	html(td(Label)).
 
@@ -168,16 +168,31 @@ installed_options([H|T], Value) -->
 	installed_option(H, Value),
 	installed_options(T, Value).
 
-installed_option(V-L, V) -->
+installed_option(o(V,L,_LC), V) -->
 	html(option([value(V),selected], L)).
-installed_option(V-L, _) -->
-	html(option(value(V), L)).
+installed_option(o(V,_L,LC), _) -->
+	html(option([value(V),class(change)], LC)).
 
-installed_option(not,	   'Not installed',	   [linked,copied,modified]).
-installed_option(linked,   'Installed (linked)',   [not,copied,modified]).
-installed_option(copied,   'Installed (copied)',   [not,linked,modified]).
-installed_option(modified, 'Installed (modified)', []).
-installed_option(local,	   'Local',		   []).
+option(not,				% Id
+       'Not installed',			% Label if current status
+       [linked,copied,modified],	% State that can be changed to me
+       'Remove').			% Label to change
+option(linked,
+       'Installed (linked)',
+       [not,copied,modified],
+       'Link').
+option(copied,
+       'Installed (copied)',
+       [not,linked,modified],
+       'Copy').
+option(modified,
+       'Installed (modified)',
+       [],
+       '').
+option(local,
+       'Local',
+       [],
+       '').
 
 %%	compare_files(+File, +File2, -Status) is det.
 %

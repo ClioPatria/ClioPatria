@@ -52,6 +52,10 @@ p.footnote
 { font-size: smaller;
 }
 
+option.change
+{ color: red;
+}
+
 #content h1
 { font-size: 140%;
   background-color: #b9daff;

@@ -10,6 +10,8 @@ that is not always connected to the   internet and/or may change address
 and/or may be behind a firewall. You   can disable redirection using the
 settings below. These settings may also be   necessary  if the server is
 behind a proxy.
+
+@see network.pl for changing the port
 */
 
 :- set_setting_default(http:public_host, localhost).
