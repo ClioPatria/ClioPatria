@@ -1348,6 +1348,7 @@ transitive_context(P) :-
 	BF < 2.0.
 
 context(skos:related).
+context(skos:mappingRelation).
 
 %%	list_triples(+Request)
 %
