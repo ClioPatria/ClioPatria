@@ -64,15 +64,20 @@ prog_dir_pattern('dot.exe', 'Graphviz*/bin').
 %	prog_dir_pattern/2.
 
 :- dynamic
-	dir_cache/2.
+	dir_cache/2,
+	resolving/1.
 
+prog_in_dir(Prog, _) :-			% Break loop
+	resolving(Prog), !, fail.
 prog_in_dir(Prog, Dir) :-
 	(   dir_cache(Prog, Cached)
 	->  Cached = dir(Dir)
-	;   absolute_file_name(path(Prog), _,
-			       [ access(read),
-				 file_errors(fail)
-			       ])
+	;   setup_call_cleanup(asserta(resolving(Prog), Ref),
+			       absolute_file_name(path(Prog), _,
+						  [ access(read),
+						    file_errors(fail)
+						  ]),
+			       erase(Ref))
 	->  asserta(dir_cache(Prog, nodir)),
 	    fail
 	;   prog_in_dir_no_cache(Prog, Computed)

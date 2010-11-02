@@ -1,0 +1,11 @@
+/* Fix the position of the menu and search-form
+*/
+
+div.menu
+{ position: fixed;
+}
+
+#search_form
+{ position: fixed;
+  right: 0.5em;
+}

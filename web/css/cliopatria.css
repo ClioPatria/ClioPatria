@@ -1,11 +1,11 @@
 /* General ClioPatria page layout
 */
 
-#content
+.cliopatria .content
 { margin-top: 10px;
 }
 
-address.footer
+.cliopatria address.footer
 { margin-top: 1ex;
   border-width: 1px 0 0 0;
   border-style: solid;
@@ -14,7 +14,7 @@ address.footer
   text-align: right;
 }
 
-address.footer img
+.cliopatria address.footer img
 { padding-left: 5px;
   border: 0;
   height: 1.2em;
@@ -52,31 +52,35 @@ p.footnote
 { font-size: smaller;
 }
 
-#content h1
+option.change
+{ color: red;
+}
+
+.cliopatria h1
 { font-size: 140%;
   background-color: #b9daff;
 }
 
-#content h2
+.cliopatria h2
 { font-size: 130%;
   background-color: #b9daff;
 }
 
-#content h3
+.cliopatria h3
 { font-size: 110%;
   background-color: #b9daff;
 }
 
-#content h4
+.cliopatria h4
 { font-size: 100%;
   background-color: #b9daff;
 }
 
-#content dl
+.cliopatria dl
 { margin-left: 5%;
 }
 
-#content dl dt
+.cliopatria dl dt
 { font-weight: bold;
 }
 

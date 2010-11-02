@@ -51,13 +51,14 @@ with the page class.
 
 The default skin provides the overall menu,   a  simple search form, the
 content and the `server-address'. Because the   search-form uses the YUI
-autocomplete widgets, the body must be of class =|yui-skin-sam|=.
+autocomplete widgets, the body must include class =|yui-skin-sam|=.  The
+default body has the classes =|yui-skin-sam|= and =cliopatria=.
 
 The default skin provided by this can be overruled using two hooks:
 
 	$ cliopatria:page_body//1 :
-	Emit a page from the given content.  This hook can modify
-	the overall page layout.
+	Emit a page from the given content.  This hook can be used to modify
+	the overall page layout beyond what can be achieved with CSS.
 	$ cliopatria:server_address//0 :
 	Write the address of the server.
 
@@ -69,11 +70,22 @@ server_address//0:
 	$ current_page_doc_link//0 :
 	Presents a link to the documentation of a page if the
 	self-documentation facilities are loaded.  See run.pl.in.
+
+The CSS file css('cliopatria.css') contains the ClioPatria style that is
+makes ClioPatria look pretty to our  eyes,   but  is  not essential. The
+plugin examples/conf.d/fix_menu.pl contains example code   to extend the
+ClioPatria skin.
 */
 
 :- http_handler('/favicon.ico',
 		http_reply_file(icons('favicon.ico'), []),
 		[]).
+
+:- html_resource(cliopatria,
+		 [ virtual(true),
+		   requires([ css('cliopatria.css')
+			    ])
+		 ]).
 
 %%	user:body(+Style, :Body)// is det.
 %
@@ -86,13 +98,14 @@ server_address//0:
 user:body(cliopatria(_), Body) -->
 	cliopatria:page_body(Body), !.
 user:body(cliopatria(_), Body) -->
-	html(body(class('yui-skin-sam'),
-		  [ div(id(menu), \cp_menu),
+	html_requires(cliopatria),
+	html(body(class('yui-skin-sam cliopatria'), % TBD: Use a list
+		  [ div(class(menu), \cp_menu),
 		    \simple_search_form,
 		    br(clear(all)),
-		    div(id(content), Body),
+		    div(class(content), Body),
 		    br(clear(all)),
-		    div(id(footer), \address)
+		    div(class(footer), \address)
 		  ])).
 
 
@@ -127,7 +140,6 @@ address -->
 %	@see register_git_module/2 for registering a GIT module.
 
 server_address(Component) -->
-	html_requires(css('cliopatria.css')),
 	html([ address(class(footer),
 		       [ \component_address(Component),
 			 \current_page_doc_link
