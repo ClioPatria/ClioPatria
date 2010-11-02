@@ -197,8 +197,7 @@ register_git_module(Name, Options) :-
 			     access(read)
 			   ]),
 	retractall(git_module(Name, _, _)),
-	assert(git_module(Name, AbsDir, RestOptions)),
-	git_update_versions(Name).
+	assert(git_module(Name, AbsDir, RestOptions)).
 
 git_update_versions(Name) :-
 	catch(forall(git_module(Name, _, _),
@@ -208,7 +207,8 @@ git_update_versions(Name) :-
 
 update_version(Name) :-
 	git_module(Name, Dir, Options),
-	git_describe(GitVersion, [directory(Dir)|Options]),
+	catch(git_describe(GitVersion, [directory(Dir)|Options]), _,
+	      GitVersion = unknown),
 	retractall(git_module_version(Name, _)),
 	assert(git_module_version(Name, GitVersion)).
 
@@ -229,7 +229,13 @@ git_module_property(Name, Property) :-
 	git_module(Name, _, _),
 	git_module_property(Name, Property).
 git_module_property(Name, version(Version)) :-
-	git_module_version(Name, Version).
+	(   git_module_version(Name, Version0)
+	->  true
+	;   git_update_versions(Name),
+	    git_module_version(Name, Version0)
+	),
+	Version0 \== unknown,
+	Version = Version0.
 git_module_property(Name, directory(Dir)) :-
 	git_module(Name, Dir, _).
 git_module_property(Name, Term) :-
