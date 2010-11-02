@@ -34,6 +34,7 @@
 :- use_module(library(http/http_hook)).		% Get hook signatures
 :- use_module(library(http/http_dispatch)).	% Get hook signatures
 :- use_module(library(http/html_write)).
+:- use_module(library(http/html_head)).
 :- include(library(pldoc/hooks)).
 
 :- use_module(cliopatria(parms)).	% Get paths
@@ -106,7 +107,8 @@ user:body(pldoc(wiki), Content) -->
 			       access(read)
 			     ])
 	},
-	html(body(class('yui-skin-sam'),
+	html_requires(cliopatria),
+	html(body(class('yui-skin-sam cliopatria'),
 		  [ div(id(menu), \cp_menu),
 		    br(clear(all)),
 		    div(id(content),
@@ -116,7 +118,8 @@ user:body(pldoc(wiki), Content) -->
 		    \server_address('ClioPatria')
 		  ])).
 user:body(pldoc(_), Content) -->
-	html(body(class('yui-skin-sam'),
+	html_requires(cliopatria),
+	html(body(class('yui-skin-sam cliopatria'),
 		  [ div(id(menu), \cp_menu),
 		    br(clear(all)),
 		    div(id(content), Content),
