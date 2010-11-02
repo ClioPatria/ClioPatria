@@ -286,6 +286,7 @@ update_config_file(linked, not, [_,Installed]) :- !,
 update_config_file(_, not, [_,Installed]) :- !,
 	conf_d_member_data(file, Installed, File),
 	atom_concat(File, '.disabled', DisabledFile),
+	catch(delete_file(DisabledFile), _, true),
 	rename_file(File, DisabledFile),
 	print_message(informational, config(rename(File, DisabledFile))).
 update_config_file(not, linked, [Templ,_]) :-
@@ -293,16 +294,14 @@ update_config_file(not, linked, [Templ,_]) :-
 	file_base_name(File, Base),
 	local_conf_dir(Dir),
 	atomic_list_concat([Dir, /, Base], NewFile),
-	relative_file_name(File, NewFile, RelPath),
-	link_file(RelPath, NewFile, symbolic),
-	print_message(informational, config(link(NewFile))).
+	try_link_file(File, NewFile, How, Level),
+	print_message(Level, config(link(NewFile, How))).
 update_config_file(copied, linked, [Templ,Installed]) :-
 	conf_d_member_data(file, Templ, TemplFile),
 	conf_d_member_data(file, Installed, InstalledFile),
 	delete_file(InstalledFile),
-	relative_file_name(TemplFile, InstalledFile, RelPath),
-	link_file(RelPath, InstalledFile, symbolic),
-	print_message(informational, config(link(InstalledFile))).
+	try_link_file(TemplFile, InstalledFile, How, Level),
+	print_message(Level, config(link(InstalledFile, How))).
 update_config_file(not, copied, [Templ,_]) :-
 	conf_d_member_data(file, Templ, File),
 	file_base_name(File, Base),
@@ -316,6 +315,21 @@ update_config_file(linked, copied, [Templ,Installed]) :-
 	delete_file(InstalledFile),
 	copy_file(TemplFile, InstalledFile),
 	print_message(informational, config(copy(InstalledFile))).
+
+
+try_link_file(Source, Dest, How, Level) :-
+	relative_file_name(Source, Dest, Rel),
+	catch(link_file(Rel, Dest, symbolic), Error, true),
+	(   var(Error)
+	->  How = linked,
+	    Level = informational
+	;   current_prolog_flag(windows, true)
+	->  copy_file(Source, Dest),
+	    How = copied,
+	    Level = warning
+	;   throw(Error)
+	).
+
 
 local_conf_dir(Dir) :-
 	absolute_file_name('conf.d', Dir,
@@ -331,7 +345,8 @@ prolog:message(config(Action)) -->
 
 message(delete(File)) --> ['Deleted '], file(File).
 message(rename(Old, New)) --> ['Renamed '], file(Old), [' into '], file(New).
-message(link(File)) --> ['Linked '], file(File).
+message(link(File, linked)) --> ['Linked '], file(File).
+message(link(File, copied)) --> ['Copied '], file(File).
 message(copy(File)) --> ['Copied '], file(File).
 message(no_changes) --> ['No changes; configuration is left untouched'].
 
@@ -412,6 +427,9 @@ take_key([List|T0], K, NewLists, NewKs, Vs) :-
 
 :- if(\+current_predicate(link_file/3)).
 
+link_file(_, _, symbolic) :-
+	current_prolog_flag(windows, true), !,
+	domain_error(link_type, symbolic).
 link_file(From, To, symbolic) :-
 	process_create(path(ln), ['-s', file(From), file(To)], []).
 

@@ -1,3 +1,4 @@
+#!/usr/bin/swipl -q -g setup -s
 /*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
@@ -213,10 +214,9 @@ install_file(_, ConfDir, _, File) :-
 install_file(link, ConfDir, TemplateDir, File) :-
 	directory_file_path(TemplateDir, File, Source),
 	directory_file_path(ConfDir, File, Dest),
-	relative_file_name(Source, Dest, Rel),
-	format(user_error, 'Linking config file ~w ...', [File]),
-	link_file(Rel, Dest, symbolic),
-	format(user_error, ' ok~n', []).
+	format(user_error, 'Install config file ~w ...', [File]),
+	try_link_file(Source, Dest, How),
+	format(user_error, ' ~w~n', [How]).
 install_file(copy, ConfDir, TemplateDir, File) :-
 	directory_file_path(TemplateDir, File, Source),
 	directory_file_path(ConfDir, File, Dest),
@@ -224,6 +224,16 @@ install_file(copy, ConfDir, TemplateDir, File) :-
 	copy_file(Source, Dest),
 	format(user_error, ' ok~n', []).
 
+try_link_file(Source, Dest, How) :-
+	relative_file_name(Source, Dest, Rel),
+	catch(link_file(Rel, Dest, symbolic), Error, true),
+	(   var(Error)
+	->  How = linked
+	;   current_prolog_flag(windows, true)
+	->  copy_file(Source, Dest),
+	    How = copied
+	;   throw(Error)
+	).
 
 directory_file_path(Dir, File, Path) :-
 	(   sub_atom(Dir, _, _, 0, /)
