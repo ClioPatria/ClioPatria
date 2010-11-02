@@ -75,6 +75,12 @@ server_address//0:
 		http_reply_file(icons('favicon.ico'), []),
 		[]).
 
+:- html_resource(cliopatria,
+		 [ virtual(true),
+		   requires([ css('cliopatria.css')
+			    ])
+		 ]).
+
 %%	user:body(+Style, :Body)// is det.
 %
 %	The multi-file implementation defines the overall layout of HTML
@@ -86,13 +92,14 @@ server_address//0:
 user:body(cliopatria(_), Body) -->
 	cliopatria:page_body(Body), !.
 user:body(cliopatria(_), Body) -->
-	html(body(class('yui-skin-sam'),
-		  [ div(id(menu), \cp_menu),
+	html_requires(cliopatria),
+	html(body(class('yui-skin-sam cliopatria'), % TBD: Use a list
+		  [ div(class(menu), \cp_menu),
 		    \simple_search_form,
 		    br(clear(all)),
-		    div(id(content), Body),
+		    div(class(content), Body),
 		    br(clear(all)),
-		    div(id(footer), \address)
+		    div(class(footer), \address)
 		  ])).
 
 
@@ -127,7 +134,6 @@ address -->
 %	@see register_git_module/2 for registering a GIT module.
 
 server_address(Component) -->
-	html_requires(css('cliopatria.css')),
 	html([ address(class(footer),
 		       [ \component_address(Component),
 			 \current_page_doc_link
