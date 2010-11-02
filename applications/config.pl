@@ -51,7 +51,7 @@ by adding files to =|conf.d|=.
 :- http_handler(cliopatria('admin/config'),	 config,      []).
 :- http_handler(cliopatria('admin/reconfigure'), reconfigure, []).
 
-cliopatria:menu_item(250=admin/config,  'Configuration').
+cliopatria:menu_item(250=admin/config,  'Plugins').
 
 %%	config(+Request)
 %
@@ -61,8 +61,8 @@ cliopatria:menu_item(250=admin/config,  'Configuration').
 config(_Request) :-
 	if_allowed(admin(config), [edit(true)], Options),
 	reply_html_page(cliopatria(admin),
-			title('Server configuration'),
-			[ h1('Server configuration'),
+			title('Server plugin configuration'),
+			[ h1('Server plugin configuration'),
 			  \edit_config_table(Options),
 			  \insert_html_file(html('help-config.html'))
 			]).
