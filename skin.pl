@@ -51,13 +51,14 @@ with the page class.
 
 The default skin provides the overall menu,   a  simple search form, the
 content and the `server-address'. Because the   search-form uses the YUI
-autocomplete widgets, the body must be of class =|yui-skin-sam|=.
+autocomplete widgets, the body must include class =|yui-skin-sam|=.  The
+default body has the classes =|yui-skin-sam|= and =cliopatria=.
 
 The default skin provided by this can be overruled using two hooks:
 
 	$ cliopatria:page_body//1 :
-	Emit a page from the given content.  This hook can modify
-	the overall page layout.
+	Emit a page from the given content.  This hook can be used to modify
+	the overall page layout beyond what can be achieved with CSS.
 	$ cliopatria:server_address//0 :
 	Write the address of the server.
 
@@ -69,6 +70,11 @@ server_address//0:
 	$ current_page_doc_link//0 :
 	Presents a link to the documentation of a page if the
 	self-documentation facilities are loaded.  See run.pl.in.
+
+The CSS file css('cliopatria.css') contains the ClioPatria style that is
+makes ClioPatria look pretty to our  eyes,   but  is  not essential. The
+plugin examples/conf.d/fix_menu.pl contains example code   to extend the
+ClioPatria skin.
 */
 
 :- http_handler('/favicon.ico',
