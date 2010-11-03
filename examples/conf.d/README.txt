@@ -17,6 +17,9 @@ matter.
   $ 00-prefixes.pl (edit) :
   Configure RDF prefixes (namespaces).
 
+  $ cache.pl (edit) :
+  Control caching of RDF inputs.
+
   $ config.pl :
   Web-based configuration management.
 
