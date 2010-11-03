@@ -84,6 +84,11 @@ option.change
 { font-weight: bold;
 }
 
+.cliopatria input.gaction
+{ width: 7em;
+}
+
+
 		 /*******************************
 		 *	       TABLES		*
 		 *******************************/
