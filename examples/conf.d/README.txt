@@ -26,6 +26,9 @@ matter.
   $ debug.pl :
   Configure the system for easy development.
 
+  $ https.pl (edit) :
+  Add access through HTTPS (HTTP over SSL).
+
   $ localhost.pl :
   Make ClioPatria work on localhost only.  For development on machines
   that are not connected to the internet, sit behind firewalls, etc.
