@@ -70,7 +70,7 @@ call_showing_messages(Goal, Options) :-
 	thread_self(Me),
 	setup_call_cleanup(asserta((user:message_hook(_Term, Level, Lines) :-
 				   	send_message(Me, Level, Lines)), Ref),
-			   Goal,
+			   catch(Goal, E, print_message(error, E)),
 			   erase(Ref)), !,
 	footer(FooterTokens).
 
