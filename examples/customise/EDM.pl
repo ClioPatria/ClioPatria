@@ -146,7 +146,7 @@ edm_context(dcterms:hasPart).
 edm_context(ens:isNextInSequence).
 edm_context(ens:object).		% this is *always* a thumbnail
 edm_context(ens:hasView).
-edm_context(dcterms:related).
+edm_context(dcterms:relation).
 
 
 %%	cliopatria:node_shape(+URI, -Shape, +Options)
