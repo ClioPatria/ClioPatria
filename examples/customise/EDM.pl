@@ -102,32 +102,31 @@ cliopatria:context_graph(R, RDF) :-
 	append(RDF2, Bags, RDF),
 	RDF \== [].
 
-%%	bf_graph(+Start, +MaxDist, +MaxNodes, -Graph)
+%%	bf_graph(+Start, +MaxDist, +MaxEdges, +MaxBranch, -Graph)
 
 bf_graph(Start, MaxDist, MaxEdges, MaxBranch, Graph) :-
-	bf_graph_2([Start,+], MaxDist, MaxEdges, MaxBranch, 0, _, [], Graph).
+	bf_graph_2([0-Start], MaxDist, MaxEdges, MaxBranch, [], Graph).
 
-bf_graph_2([], _, _, _, D, D, G, G) :- !.
-bf_graph_2(_, MaxDist, _, _, D, D, G, G) :-
+bf_graph_2([], _, _, _, G, G) :- !.
+bf_graph_2([D-_|_], MaxDist, _, _, G, G) :-
 	D >= MaxDist, !.
-bf_graph_2(AG0, MaxDist, MaxEdges, MaxBranch, D0, D, G0, G) :-
-	bf_expand(AG0, AG, D0, D1, MaxBranch, G1),
+bf_graph_2(AG0, MaxDist, MaxEdges, MaxBranch, G0, G) :-
+	bf_expand(AG0, AG, MaxBranch, G1),
 	(   G1 == []
-	->  bf_graph_2(AG, MaxDist, MaxEdges, MaxBranch, D1, D, G0, G)
+	->  bf_graph_2(AG, MaxDist, MaxEdges, MaxBranch, G0, G)
 	;   append(G1, G0, G2),
 	    sort(G2, G3),
 	    length(G3, Edges),
 	    (   Edges >= MaxEdges
-	    ->  D = D0,
-		G = G0
-	    ;   bf_graph_2(AG, MaxDist, MaxEdges, MaxBranch, D1, D, G3, G)
+	    ->  G = G0
+	    ;   bf_graph_2(AG, MaxDist, MaxEdges, MaxBranch, G3, G)
 	    )
 	).
 
-bf_expand([+|AG], AG, D0, D, _, []) :- !,
-	D is D0 + 1.
-bf_expand([F|AG0], AG, D, D, MaxBranch, Triples) :-
-	answer_set(Dst-Triple, related(F, Dst, Triple), MaxBranch, Pairs),
+bf_expand([D-F|AG0], AG, MaxBranch, Triples) :-
+	D1 is D + 1,
+	Key = D1-Dst,
+	answer_set(Key-Triple, related(F, Dst, Triple), MaxBranch, Pairs),
 	pairs_keys_values(Pairs, Dsts, Triples),
 	append(AG0, Dsts, AG).
 
