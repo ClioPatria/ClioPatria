@@ -69,6 +69,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 	rdf_label:label_property/1,
 	bnode_label//1,			% +Resource
 	display_link//2,		% +RDFObject, +Options
+	resource_link/2,		% +URI, -URL
 
 	user_preference_db/2,		% ?Property, ?Value
 	user_preference_default/2,	% ?Property, ?Value
@@ -148,6 +149,15 @@ The example below adds an item to =Help= popup of ClioPatria:
 %	given RDFObject (a resource  or   literal)  with  an appropriate
 %	link. This predicate is called by the RDF browser to present RDF
 %	triples.
+
+%%	resource_link(+URI, -URL)//
+%
+%	URL is the link created by rdf_link//1 for URI. The default
+%	opens the ClioPatria `local view'.
+%
+%	@see	cpa_browse:list_resource/1 is the handler addressed by the
+%		default link.
+%	@see	cp_label:resource_link/2 calls the hook.
 
 
 		 /*******************************

@@ -31,7 +31,8 @@
 :- module(cp_label,
 	  [ turtle_label//1,		% +Literal
 	    rdf_link//1,		% +RDFTerm
-	    rdf_link//2			% +RDFTerm, +Options
+	    rdf_link//2,		% +RDFTerm, +Options
+	    resource_link/2		% +URI, -URL
 	  ]).
 :- use_module(library(error)).
 :- use_module(library(option)).
@@ -185,7 +186,7 @@ rdf_link(R, Options) -->
 	cliopatria:display_link(R, Options), !.
 rdf_link(R, Options) -->
 	{ atom(R), !,
-	  resource_link(R, Options, HREF),
+	  resource_link(R, HREF),
 	  (   rdf(R, _, _)
 	  ->  Class = r_def
 	  ;   rdf_graph(R)
@@ -212,13 +213,19 @@ rdf_link(Literal, Options) -->
 rdf_link(Literal, _) -->
 	turtle_label(Literal).
 
-resource_link(_, Options, HREF) :-
-	option(link(To), Options), !,
-	To =.. [ID|Parms],
-	http_link_to_id(ID, Parms, HREF).
-resource_link(R, _, HREF) :-
-	http_link_to_id(list_resource, [r=R], HREF).
+%%	resource_link(+URI, -URL) is det.
+%
+%	Generate a link to display more   information  about a resource.
+%	The  default  is  to  link  to  the  HTTP  handler  implementing
+%	=list_resource=     using     the     parameter     =r=.     See
+%	cpa_browse:list_resource/1.  This  predicate  calls    the  hook
+%	cliopatria:resource_link/2,  which  allows  for  overruling  the
+%	default.
 
+resource_link(R, HREF) :-
+	cliopatria:resource_link(R, HREF), !.
+resource_link(R, HREF) :-
+	http_link_to_id(list_resource, [r=R], HREF).
 
 resource_label(R, Options) -->
 	{ option(resource_format(Format), Options) }, !,

@@ -1278,15 +1278,13 @@ context_graph(URI, _Options) -->
 	html([ h2('Context graph'),
 	       \graphviz_graph(context_graph(URI),
 			       [ object_attributes([width('100%')]),
-				 wrap_url(rdf_link),
+				 wrap_url(resource_link),
 				 graph_attributes([ rankdir('RL')
 						  ]),
 				 shape_hook(shape(URI))
 			       ])
 	     ]).
 
-rdf_link(URI, HREF) :-
-	http_link_to_id(list_resource, [r(URI)], HREF).
 
 %%	shape(+Start, +URI, -Shape) is semidet.
 %
