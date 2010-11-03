@@ -98,6 +98,11 @@ cliopatria:menu_item(100=help/wiki_help, 'Documentation').
 cliopatria:menu_item(200=help/cp_help,	 'Roadmap').
 cliopatria:menu_item(300=help/http_help, 'HTTP Services').
 
+%%	user:body(+Style, :Body)// is det.
+%
+%	The multi-file implementation defines the overall layout of HTML
+%	pages with the Style pldoc(_).
+
 :- multifile
 	user:body//2.
 
@@ -109,9 +114,9 @@ user:body(pldoc(wiki), Content) -->
 	},
 	html_requires(cliopatria),
 	html(body(class('yui-skin-sam cliopatria'),
-		  [ div(id(menu), \cp_menu),
+		  [ div(class(menu), \cp_menu),
 		    br(clear(all)),
-		    div(id(content),
+		    div(class(content),
 			[ \doc_links(Dir, [])
 			| Content
 			]),
@@ -120,8 +125,8 @@ user:body(pldoc(wiki), Content) -->
 user:body(pldoc(_), Content) -->
 	html_requires(cliopatria),
 	html(body(class('yui-skin-sam cliopatria'),
-		  [ div(id(menu), \cp_menu),
+		  [ div(class(menu), \cp_menu),
 		    br(clear(all)),
-		    div(id(content), Content),
+		    div(class(content), Content),
 		    \server_address('ClioPatria')
 		  ])).
