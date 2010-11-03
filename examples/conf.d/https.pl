@@ -15,8 +15,9 @@ SSL).  The default port for HTTPS usage is 443.
 :- setting(https:port, integer, 1443,
 	   'Port to use for https connections').
 
-:- set_setting_default(http:public_host, localhost).
-:- set_setting_default(http:public_port, setting(https:port)).
+:- set_setting_default(http:public_host,   localhost).
+:- set_setting_default(http:public_port,   setting(https:port)).
+:- set_setting_default(http:public_scheme, setting(https)).
 
 start_https :-
 	setting(https:port, Port),
