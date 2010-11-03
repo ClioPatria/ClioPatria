@@ -329,34 +329,12 @@ write_image_node(ImgAttrs, Attrs, Stream, _Options) :-
 %
 %	    * lang(+Lang)
 %	    * max_label_length(+Len)
-%
-%	@tbd Use rdf_label.pl facilities.
 
 resource_label(Resource, Label, Options) :-
-	(   option(lang(Lang), Options),
-	    Literal = literal(lang(Lang)),
-	    rdf_label(Resource, Literal)
-	->  true
-	;   rdf_label(Resource, Literal)
-	->  true
-	), !,
-	literal_text(Literal, Text),
+	option(lang(Lang), Options, _),
+	rdf_display_label(Resource, Lang, Text),
 	option(max_label_length(MaxLen), Options, 25),
 	truncate_atom(Text, MaxLen, Label).
-resource_label(BNode, Label, Options) :-
-	rdf_is_bnode(BNode), !,
-	rdf_has(BNode, rdf:value, Value),
-	resource_label(Value, ValueLabel, Options),
-	format(atom(Label), '[~w ...]', [ValueLabel]).
-resource_label(Resource, Label, _Options) :-
-	uri_components(Resource, Components),
-	(   uri_data(fragment, Components, Fragment),
-	    nonvar(Fragment)
-	->  Label = Fragment
-	;   uri_data(path, Components, Path),
-	    file_base_name(Path, Label)
-	).
-
 
 %%	write_attributes(+Attributes:list, +Out:stream) is det.
 %
