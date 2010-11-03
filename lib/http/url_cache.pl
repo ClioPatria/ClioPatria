@@ -145,11 +145,24 @@ error_ok(E) :-
 
 url_cache_dir(Dir) :-
 	setting(cache:url_cache_directory, Dir),
-	(   exists_directory(Dir)
-	->  true
-	;   make_directory(Dir)
-	).
+	make_directory_path(Dir).
 
+%%	make_directory_path(+Dir) is det.
+%
+%	Create Dir and all required components.
+
+make_directory_path(Dir) :-
+	make_directory_path_2(Dir), !.
+make_directory_path(Dir) :-
+	permission_error(create, directory, Dir).
+
+make_directory_path_2(Dir) :-
+	exists_directory(Dir), !.
+make_directory_path_2(Dir) :-
+	Dir \== (/), !,
+	file_directory_name(Dir, Parent),
+	make_directory_path_2(Parent),
+	make_directory(Dir).
 
 %%	fetch_url(+URL:atom, +Path:atom, -MimeType:atom) is det.
 %
