@@ -1,4 +1,4 @@
-:- module(conf_network, []).
+:- module(conf_https, []).
 :- use_module(library(settings)).
 :- use_module(library(http/http_ssl_plugin)).
 :- use_module(library(http/thread_httpd)).
@@ -8,10 +8,15 @@
 
 This plugin module makes the server available under https (aka http over
 SSL).  The default port for HTTPS usage is 443.
+
+@see etc/README.txt for creating SSL certificates
 */
 
 :- setting(https:port, integer, 1443,
 	   'Port to use for https connections').
+
+:- set_setting_default(http:public_host, localhost).
+:- set_setting_default(http:public_port, setting(https:port)).
 
 start_https :-
 	setting(https:port, Port),
