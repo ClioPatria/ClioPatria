@@ -66,8 +66,6 @@
 		[ time_limit(infinite) ]).
 :- http_handler(sesame('uploadData'),	      upload_data,
 		[ time_limit(infinite) ]).
-:- http_handler(sesame('uploadFile'),	      upload_file,
-		[ time_limit(infinite) ]).
 :- http_handler(sesame('uploadURL'),	      upload_url,
 		[ time_limit(infinite) ]).
 :- http_handler(sesame('removeStatements'),   remove_statements,
@@ -395,44 +393,14 @@ upload_data(Request) :- !,
 			[ attribute_declarations(attribute_decl)
 			]),
 	authorized(write(Repository, load(posted))),
+	phrase(load_option(DataFormat, BaseURI), Options),
 	atom_to_memory_file(Data, MemFile),
-	open_memory_file(MemFile, read, Stream),
-	action(Request, call_cleanup(load_triples(stream(Stream),
-					 [ base_uri(BaseURI),
-					   data_format(DataFormat)
-					 ]),
-			    (	 close(Stream),
-				 free_memory_file(MemFile)
-			    )),
-	       ResultFormat,
-	       'Loaded data from POST'-[]).
-
-
-%%	upload_file(+Request)
-%
-%	Add data to the repository from a file form
-
-upload_file(Request) :-
-	http_parameters(Request,
-			[ repository(Repository),
-			  fileData(Data, []),
-			  dataFormat(DataFormat),
-			  baseURI(BaseURI),
-			  verifyData(_Verify),
-			  resultFormat(ResultFormat)
-			],
-			[ attribute_declarations(attribute_decl)
-			]),
-	authorized( write(Repository, load(posted))),
-	atom_to_memory_file(Data, MemFile),
-	open_memory_file(MemFile, read, Stream),
-	action(Request, call_cleanup(load_triples(stream(Stream),
-					 [ base_uri(BaseURI),
-					   data_format(DataFormat)
-					 ]),
-			    (	 close(Stream),
-				 free_memory_file(MemFile)
-			    )),
+	action(Request,
+	       setup_call_cleanup(open_memory_file(MemFile, read, Stream),
+				  rdf_load(stream(Stream), Options),
+				  ( close(Stream),
+				    free_memory_file(MemFile)
+				  )),
 	       ResultFormat,
 	       'Loaded data from POST'-[]).
 
@@ -654,6 +622,9 @@ bool(Def,
 %
 %	Perform some -modifying-  goal,  reporting   time,  triples  and
 %	subject statistics.
+
+:- meta_predicate
+	action(+, 0, +, +).
 
 action(_Request, G, Format, Message) :-
 	logged_on(User, anonymous),
