@@ -59,15 +59,17 @@ not be necessary to modify this file:
 :- multifile
 	user:file_search_path/2.
 
-user:file_search_path(library,	    cliopatria('lib')).
-user:file_search_path(ontology,	    cliopatria('ontologies')).
-user:file_search_path(entailment,   cliopatria('entailment')).
-user:file_search_path(rdfql,	    cliopatria('rdfql')).
-user:file_search_path(components,   cliopatria('components')).
-user:file_search_path(applications, cliopatria('applications')).
-user:file_search_path(api,	    cliopatria('api')).
-user:file_search_path(user,	    cliopatria('user')).
-user:file_search_path(web,	    cliopatria(web)).
+user:file_search_path(cpack,	    cliopatria('.')).
+
+user:file_search_path(library,	    cpack(lib)).
+user:file_search_path(ontology,	    cpack(ontologies)).
+user:file_search_path(entailment,   cpack(entailment)).
+user:file_search_path(rdfql,	    cpack(rdfql)).
+user:file_search_path(components,   cpack(components)).
+user:file_search_path(applications, cpack(applications)).
+user:file_search_path(api,	    cpack(api)).
+user:file_search_path(user,	    cpack(user)).
+user:file_search_path(web,	    cpack(web)).
 user:file_search_path(css,	    web(css)).
 user:file_search_path(icons,	    web(icons)).
 user:file_search_path(yui,	    web('yui/2.7.0')).
