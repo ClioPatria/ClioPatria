@@ -29,7 +29,7 @@
 */
 
 :- module(cpa_config, []).
-:- use_package(html_page).
+:- use_bundle(html_page).
 :- use_module(library(conf_d)).
 :- use_module(library(pairs)).
 :- use_module(library(apply)).

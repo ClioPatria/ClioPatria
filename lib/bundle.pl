@@ -28,15 +28,18 @@
     the GNU General Public License.
 */
 
-:- module(prolog_packages,
-	  [ use_package/1
+:- module(bundle,
+	  [ use_bundle/1
 	  ]).
 
-/** <module> Import packages
+/** <module> Import bundles
 
 This module provides an interface that is   similar  to the Ciao package
-interface. Packages are Prolog files that  are included. Typically, they
+interface. Bundles are Prolog files that   are included. Typically, they
 contain multiple use_module/1 calls.
+
+At least for now, the system  has   been  named  bundle because the name
+package is already used as a package of software.
 */
 
 :- multifile
@@ -44,23 +47,23 @@ contain multiple use_module/1 calls.
 	system:term_expansion/2,
 	emacs_prolog_colours:goal_colours/2.
 
-user:file_search_path(package,	    library(packages)).
+user:file_search_path(bundle,	    library(bundles)).
 
-%%	use_package(+Term)
+%%	use_bundle(+Term)
 %
 %	Include a bundle of declarations.  Typically, these declarations
 %	are a set of :- use_module(Library). calls.
 
-use_package(Package) :-
-	throw(error(context_error(nodirective, use_package(Package)), _)).
+use_bundle(Package) :-
+	throw(error(context_error(nodirective, use_bundle(Package)), _)).
 
-system:term_expansion((:- use_package(Package)),
-		      (:- include(package(Package)))).
+system:term_expansion((:- use_bundle(Package)),
+		      (:- include(bundle(Package)))).
 
 
-emacs_prolog_colours:goal_colours(use_package(Pkg),
+emacs_prolog_colours:goal_colours(use_bundle(Pkg),
 				  built_in - [ Class ]) :-
-	(   absolute_file_name(package(Pkg), File,
+	(   absolute_file_name(bundle(Pkg), File,
 			       [ file_type(prolog),
 				 file_errors(fail)
 			       ])

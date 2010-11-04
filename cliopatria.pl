@@ -76,7 +76,7 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 :- load_files([ parms,
 		skin,			% HTML Page layout
 		library(option),
-		library(packages),
+		library(bundle),
 		library(debug),
 		library(lists),
 		library(settings),
