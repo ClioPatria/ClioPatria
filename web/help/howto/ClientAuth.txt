@@ -1,0 +1,36 @@
+---+ Client authentication to access restricted services
+
+In the default setup, some services have restricted access.  Restriction
+is provided by authorized/1 from user(user_db).  There are three ways to
+autheticate a user:
+
+  1. By logging in as a local user.  This causes ClioPatria to associate
+  the current session with the local user.
+  2. By logging in through OpenID.  This too causes ClioPatria to associate
+  the OpenID with the current session.
+  3. Using HTTP =basic= (clear password) authentication for registered
+  local users.
+
+Exploiting (1) above, clients may use /servlets/login and cookie
+management to access restricted services. Alternatively, they may
+exploit (3) and send basic authetication. Note however that the system
+does not _challenge_ the client, and the client should thus send the
+authentication data voluntarily. When using the *wget* program we can
+authenticate using this command:
+
+  ==
+  wget -O - --auth-no-challenge --http-user=User --http-passwd=Passwd ...
+  ==
+
+The example below uploads a local file _file_ using *curl* to a
+cliopatria server running on host cliopatria.com. The data is stored in
+the _|named graph|_ =|http://my.org/rdf/|=
+
+  ==
+  curl -u User:Password -F data=@file -F baseURI="http://my.org/rdf/" \
+	http://cliopatria.com:3020/servlets/uploadData
+  ==
+
+@bug The current data API is, as far as possible, compatible to Sesame.
+     Unfortunately, this doesn't match ClioPatria very well. There is
+     only one repository, but there are multiple named graphs.
