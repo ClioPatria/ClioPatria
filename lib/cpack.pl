@@ -52,8 +52,8 @@ install_package_dir(Dir) :-
 			   [ file_type(directory),
 			     access(read)
 			   ]),
-	directory_file_path(Path, 'Pack.ttl', PackFile),
-	rdf_load(PackFile, [graph(Graph)]),
+	cpack_file(Path, File),
+	rdf_load(File, [graph(Graph)]),
 	rdf_has(Graph, cpack:name, literal(Pack)),
 	assert(user:file_search_path(Pack, Path)),
 	DirAlias =.. [Pack,'.'],
@@ -62,6 +62,23 @@ install_package_dir(Dir) :-
 
 load_cpack_schema :-
 	rdf_load(ontology('tool/cpack.ttl')).
+
+%%	cpack_file(+Dir, -File) is det.
+%
+%	File is the pack information file for a package in Dir.
+
+cpack_file(Dir, File) :-
+	cpack_files(Dir, Files),
+	(   Files = [File]
+	->  true
+	;   File == []
+	->  existence_error(pack_file, Dir)
+	;   throw(error(ambiguity_error(pack_file, Dir)))
+	).
+
+cpack_files(Dir, Files) :-
+	directory_file_path(Dir, '*.cpack', Pattern),
+	expand_file_name(Pattern, Files).
 
 
 		 /*******************************
