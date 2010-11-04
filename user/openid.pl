@@ -71,8 +71,7 @@ http_openid:openid_hook(login(OpenID)) :-
 http_openid:openid_hook(logout(OpenID)) :-
 	logout(OpenID).
 http_openid:openid_hook(logged_in(OpenID)) :-
-	http_session_id(Session),
-	user_property(OpenID, session(Session)).
+	logged_on(OpenID).
 http_openid:openid_hook(trusted(OpenID, Server)) :-
 	(   openid_server_properties(Server, _)
 	->  true

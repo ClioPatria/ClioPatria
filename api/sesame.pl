@@ -91,11 +91,15 @@ http_login(Request) :-
 %       HTTP handler to logout current user.
 
 http_logout(_Request) :-
-	logged_on(User),
+	logged_on(User), !,
 	logout(User),
 	reply_html_page(cliopatria(default),
 			title('Successful logout'),
-			p(['Logout succeeded for ', User])).
+			p(['Logout succeeded for ', User, '.'])).
+http_logout(_Request) :-
+	reply_html_page(cliopatria(default),
+			title('Successful logout'),
+			p(['Nobody was logged on.'])).
 
 %%	evaluate_query(+Request) is det.
 %

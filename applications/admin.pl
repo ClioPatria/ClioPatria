@@ -468,7 +468,7 @@ del_user(Request) :- !,
 %	Allow user to change the password
 
 change_password_form(_Request) :-
-	logged_on(User),
+	logged_on(User), !,
 	user_property(User, realname(RealName)),
 	reply_html_page(cliopatria(default),
 			title('Change password'),
@@ -476,6 +476,9 @@ change_password_form(_Request) :-
 
 			  \change_password_form(User)
 			]).
+change_password_form(_Request) :-
+	throw(error(context_error(not_logged_in), _)).
+
 
 %%	change_password_form(+UserID)//
 %
@@ -512,10 +515,10 @@ user_or_old(_) -->
 
 %%	change_password(+Request)
 %
-%	Actually change the password.  The user must be logged on.
+%	HTTP handler to change the password. The user must be logged on.
 
 change_password(Request) :-
-	logged_on(Login),
+	logged_on(Login), !,
 	http_parameters(Request,
 			[ user(User,     [ optional(true),
 					   description('User identifier-name')
@@ -547,6 +550,9 @@ change_password(Request) :-
 			[ h1(align(center), 'Password changed'),
 			  p([ 'Your password has been changed successfully' ])
 			]).
+change_password(_Request) :-
+	throw(error(context_error(not_logged_in), _)).
+
 
 
 		 /*******************************

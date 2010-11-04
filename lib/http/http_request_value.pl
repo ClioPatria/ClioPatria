@@ -41,7 +41,7 @@ meaningful Prolog terms. Some fields however are not frequently used and
 rather hard to parse. This library is intended  to grow in to a complete
 library for processing header fields.
 
-@tbd	Clients will frequently use same value for many of these
+@tbd	Clients will frequently use same the value for many of these
 	fields.  It is probably worthwhile to maintain a cache of
 	translations.
 */

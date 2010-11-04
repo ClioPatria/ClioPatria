@@ -63,6 +63,7 @@
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_openid)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_authenticate)).
 :- use_module(library(lists)).
 :- use_module(library(settings)).
 :- use_module(library(error)).
@@ -340,25 +341,28 @@ password_hash(Password, Hash) :-
 		 *	 LOGIN/PERMISSIONS	*
 		 *******************************/
 
-%%	logged_on(-User) is det.
+%%	logged_on(-User) is semidet.
 %
 %	True if User is the name of the currently logged in user.
-%
-%	@error	context_error(not_logged_in)
 
 logged_on(User) :-
 	http_session_id(SessionID),
 	user_property(User, session(SessionID)), !.
-logged_on(_) :-
-	throw(error(context_error(not_logged_in), _)).
+:- if(current_predicate(http_authorization_data/2)).
+logged_on(User) :-
+	http_current_request(Request),
+	memberchk(authorization(Text), Request),
+	http_authorization_data(Text, basic(User, Password)),
+	validate_password(User, Password), !.
+:- endif.
 
 %%	logged_on(-User, +Default) is det.
 %
-%	Get the current user or return Default.
+%	Get the current user or  unify   User  with  Default. Typically,
+%	Default is =anonymous=.
 
 logged_on(User, Default) :-
-	(   http_in_session(SessionID),
-	    user_property(User0, session(SessionID))
+	(   logged_on(User0)
 	->  User = User0
 	;   User = Default
 	).
