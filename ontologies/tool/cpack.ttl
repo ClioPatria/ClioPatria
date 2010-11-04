@@ -1,0 +1,76 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@base <http://www.swi-prolog.org/cliopatria/cpack#> .
+
+# Define packages and their dependencies
+
+# Classes
+
+<Package> a rdfs:Class ;
+	rdfs:label "package" ;
+	rdfs:comment "A ClioPatria installable package" .
+
+<Dependent> a rdfs:Class ;
+	rdfs:label "package dependent" ;
+	rdfs:comment "Indirect reference to a dependent package" .
+
+# Properties
+
+<name> a rdf:Property ;
+	rdfs:label "name" ;
+	rdfs:comment "Official identifier name of the package" ;
+	rdfs:domain <Package> .
+
+<git-repository> a rdf:Property ;
+	rdfs:label "GIT repository" ;
+	rdfs:comment "URL of the GIT repository from which to download" ;
+	rdfs:range <rdfs:resource> ;
+	rdfs:domain <Package> .
+
+<git-branch> a rdf:Property ;
+	rdfs:label "GIT branch" ;
+	rdfs:comment "Branch in the repository" ;
+	rdfs:range <rdfs:Literal> ;
+	rdfs:domain <Package> .
+
+<git-tag> a rdf:Property ;
+	rdfs:label "GIT tag" ;
+	rdfs:comment "Use a particular tag" ;
+	rdfs:range <rdfs:Literal> ;
+	rdfs:domain <Package> .
+
+<git-hash> a rdf:Property ;
+	rdfs:label "GIT hash" ;
+	rdfs:comment "Use a particular hash" ;
+	rdfs:range <rdfs:Literal> ;
+	rdfs:domain <Package> .
+
+<browse-repository> a rdf:Property ;
+	rdfs:label "browse repository URL" ;
+	rdfs:comment "Gitweb or similar url for the repository" ;
+	rdfs:range <rdfs:resource> ;
+	rdfs:domain <Package> .
+
+<home> a rdf:Property ;
+	rdfs:label "home" ;
+	rdfs:comment "URL of the project home page" ;
+	rdfs:range <rdfs:resource> ;
+	rdfs:domain <Package> .
+
+<author> a rdf:Property ;
+	rdfs:label "author" ;
+	rdfs:comment "Author of the package" ;
+	rdfs:range foaf:Person ;
+	rdfs:domain <Package> .
+
+<maintainer> a rdf:Property ;
+	rdfs:label "maintainer" ;
+	rdfs:comment "Official maintainer of the package" ;
+	rdfs:range foaf:Person ;
+	rdfs:domain <Package> .
+
+<depends-on> a rdf:Property ;
+	rdfs:label "depends on" ;
+	rdfs:comment "Packages on which I depend" ;
+	rdfs:domain <Dependent> .
