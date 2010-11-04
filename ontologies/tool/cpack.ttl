@@ -11,9 +11,48 @@
 	rdfs:label "package" ;
 	rdfs:comment "A ClioPatria installable package" .
 
+<Application> a rdfs:Class ;
+	rdfs:label "application" ;
+	rdfs:subClassOf <Package> ;
+	rdfs:comment "An application generates a web-page for user-interaction" .
+
+<Component> a rdfs:Class ;
+	rdfs:label "component" ;
+	rdfs:subClassOf <Package> ;
+	rdfs:comment "A component generates part of an HTML page" .
+
+<Skin> a rdfs:Class ;
+	rdfs:label "skin" ;
+	rdfs:subClassOf <Package> ;
+	rdfs:comment "Define (page) layout" .
+
+<API> a rdfs:Class ;
+	rdfs:label "API" ;
+	rdfs:subClassOf <Package> ;
+	rdfs:comment "An API serves data as JSON and/or XML" .
+
+<Library> a rdfs:Class ;
+	rdfs:label "library" ;
+	rdfs:subClassOf <Package> ;
+	rdfs:comment "A library returns results as Prolog terms" .
+
 <Dependent> a rdfs:Class ;
 	rdfs:label "package dependent" ;
-	rdfs:comment "Indirect reference to a dependent package" .
+	rdfs:comment "Requirement for the package" .
+
+<OrDependent> a rdfs:Class ;
+	rdfs:subClassOf <Dependent> ;
+	rdfs:label "package dependent (OR)" ;
+	rdfs:comment "Dependency choice for the package" .
+
+<Repository> a rdfs:Class ;
+	rdfs:label "Software repository" .
+
+<GitRepository> a rdfs:Class ;
+	rdfs:subClassOf <Repository> ;
+	rdfs:label "GIT Repository" ;
+	rdfs:comment "Repository hosted by GIT" .
+
 
 # Properties
 
@@ -22,39 +61,21 @@
 	rdfs:comment "Official identifier name of the package" ;
 	rdfs:domain <Package> .
 
-<git-repository> a rdf:Property ;
-	rdfs:label "GIT repository" ;
-	rdfs:comment "URL of the GIT repository from which to download" ;
-	rdfs:range <rdfs:resource> ;
-	rdfs:domain <Package> .
-
-<git-branch> a rdf:Property ;
-	rdfs:label "GIT branch" ;
-	rdfs:comment "Branch in the repository" ;
-	rdfs:range <rdfs:Literal> ;
-	rdfs:domain <Package> .
-
-<git-tag> a rdf:Property ;
-	rdfs:label "GIT tag" ;
-	rdfs:comment "Use a particular tag" ;
-	rdfs:range <rdfs:Literal> ;
-	rdfs:domain <Package> .
-
-<git-hash> a rdf:Property ;
-	rdfs:label "GIT hash" ;
-	rdfs:comment "Use a particular hash" ;
-	rdfs:range <rdfs:Literal> ;
-	rdfs:domain <Package> .
-
-<browse-repository> a rdf:Property ;
-	rdfs:label "browse repository URL" ;
-	rdfs:comment "Gitweb or similar url for the repository" ;
-	rdfs:range <rdfs:resource> ;
+<description> a rdf:Property ;
+	rdfs:label "description" ;
+	rdfs:subPropertyOf rdfs:comment ;
+	rdfs:comment "Short description of the package" ;
 	rdfs:domain <Package> .
 
 <home> a rdf:Property ;
 	rdfs:label "home" ;
 	rdfs:comment "URL of the project home page" ;
+	rdfs:range <rdfs:resource> ;
+	rdfs:domain <Package> .
+
+<screenShot> a rdf:Property ;
+	rdfs:label "screen shot" ;
+	rdfs:comment "URL holding a screenshot" ;
 	rdfs:range <rdfs:resource> ;
 	rdfs:domain <Package> .
 
@@ -70,7 +91,50 @@
 	rdfs:range foaf:Person ;
 	rdfs:domain <Package> .
 
-<depends-on> a rdf:Property ;
+<primaryRepository> a rdf:Property ;
+	rdfs:label "primary repository" ;
+	rdfs:comment "Main repository for the software" ;
+	rdfs:range <Repository> ;
+	rdfs:domain <Package> .
+
+<dependsOn> a rdf:Property ;
 	rdfs:label "depends on" ;
 	rdfs:comment "Packages on which I depend" ;
 	rdfs:domain <Dependent> .
+
+<suggests> a rdf:Property ;
+	rdfs:label "suggests" ;
+	rdfs:comment "Packages that are often used together" ;
+	rdfs:domain <Dependent> .
+
+# Repository properties
+
+<branch> a rdf:Property ;
+	rdfs:label "branch" ;
+	rdfs:comment "Branch in the repository" ;
+	rdfs:range <rdfs:Literal> ;
+	rdfs:domain <Repository> .
+
+<tag> a rdf:Property ;
+	rdfs:label "tag" ;
+	rdfs:comment "Tag (label) in the repository" ;
+	rdfs:range <rdfs:Literal> ;
+	rdfs:domain <Repository> .
+
+<browseURL> a rdf:Property ;
+	rdfs:label "browse repository URL" ;
+	rdfs:comment "URL to examine the repository with a browser" ;
+	rdfs:range <rdfs:resource> ;
+	rdfs:domain <Repository> .
+
+<hash> a rdf:Property ;
+	rdfs:label "hash" ;
+	rdfs:comment "World-wide unique identifier of a version" ;
+	rdfs:range <rdfs:Literal> ;
+	rdfs:domain <GitRepository> .
+
+# Dependent properties
+
+<packageName> a rdf:Property ;
+	rdfs:label "package name" ;
+	rdfs:comment "Name of the required package" .

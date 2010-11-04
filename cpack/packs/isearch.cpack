@@ -2,9 +2,15 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix cpack: <http://www.swi-prolog.org/cliopatria/cpack#> .
 
-<> a cpack:Package ;
+<> a cpack:Application ;
 	cpack:name "isearch" ;
+	cpack:description """The isearch package provides an interactive
+			     search application, including facetted search""" ;
 	cpack:author <http://homepages.cwi.nl/~hildebra/foaf.rdf#node12m2kdnsux1> ;
-	cpack:git-repository <git://eculture.cs.vu.nl/home/janw/git/ClioPatria/isearch.git> .
+	cpack:primaryRepository
+	    [ a <GitRepository> ;
+	      cpack:repoURL <git://eculture.cs.vu.nl/home/janw/git/ClioPatria/isearch.git>
+	    ] ;
+	cpack:code <applications/interactive_search.pl> .
 
 

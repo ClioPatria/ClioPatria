@@ -29,36 +29,86 @@
 */
 
 :- module(cpack,
-	  [ install_package_dir/1	% +Directory
+	  [ cpack_load_library/0,
+	    cpack_package/2,		% +Name, -Resource
+	    cpack_install/1,		% +Name
+	    cpack_add_dir/1		% +Directory
 	  ]).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
 :- use_module(library(uri)).
+:- use_module(library(git)).
 
 /** <module> The ClioPatria package manager
-
-
 
 */
 
 :- rdf_register_ns(cpack, 'http://www.swi-prolog.org/cliopatria/cpack#').
 
-%%	install_package_dir(+PackageDir)
+%%	cpack_load_library is det.
+%
+%	Load the package library.
+
+cpack_load_library :-
+	load_cpack_schema,
+	cpack_files(cpack(packs), Files),
+	forall(member(Pack, Files),
+	       rdf_load(Pack, [format(turtle)])).
+
+%%	cpack_package(+Name, -Package) is nondet.
+%
+%	True if Package is a ClioPatria package with Name.
+
+cpack_package(Name, Package) :-
+	rdf_has(Package, cpack:name, literal(Name)),
+	rdfs_individual_of(Package, cpack:'Package').
+
+%%	cpack_install(+Package) is det.
+%
+%	Install the package from its given URL
+
+cpack_install(Package) :-
+	cpack_install_dir(Package, Dir),
+	cpack_download(Package, Dir),
+	cpack_add_dir(Dir).
+
+%%	cpack_download(Package, Dir)
+%
+%	Download and/or update Package to Dir.
+%
+%	@tbd	Branches, trust
+
+cpack_download(_Package, Dir) :-
+	exists_directory(Dir), !,
+	git([pull],
+	    [ directory(Dir)
+	    ]).				% Too simplistic
+cpack_download(Package, Dir) :-
+	rdf_has(Package, cpack:primaryRepository, Repo),
+	rdf_has(Repo, cpack:repoURL, URL),
+	git([clone, URL, Dir], []).
+
+%%	cpack_add_dir(+PackageDir)
 %
 %	Install package located in directory PackageDir.
 
-install_package_dir(Dir) :-
+cpack_add_dir(Dir) :-
 	load_cpack_schema,
 	absolute_file_name(Dir, Path,
 			   [ file_type(directory),
 			     access(read)
 			   ]),
 	cpack_file(Path, File),
-	rdf_load(File, [graph(Graph)]),
+	rdf_load(File, [graph(Graph), format(turtle)]),
 	rdf_has(Graph, cpack:name, literal(Pack)),
 	assert(user:file_search_path(Pack, Path)),
 	DirAlias =.. [Pack,'.'],
-	assert(user:file_search_path(cpack, DirAlias)).
+	assert(user:file_search_path(cpacks, DirAlias)).
 
+
+		 /*******************************
+		 *	       UTIL		*
+		 *******************************/
 
 load_cpack_schema :-
 	rdf_load(ontology('tool/cpack.ttl')).
@@ -80,13 +130,25 @@ cpack_files(Dir, Files) :-
 	directory_file_path(Dir, '*.cpack', Pattern),
 	expand_file_name(Pattern, Files).
 
+%%	cpack_install_dir(+Package, -Dir)
+%
+%	Installation directory for Package
 
-		 /*******************************
-		 *	       UTIL		*
-		 *******************************/
+cpack_install_dir(Package, Dir) :-
+	rdf_has(Package, cpack:name, literal(Name)),
+	directory_file_path('cpack.d', Name, Dir).
+
+%%	directory_file_path(+Directory, +File, -Path) is det.
 
 directory_file_path(Dir, File, Path) :-
-	(   sub_atom(Dir, _, _, 0, /)
-	->  atom_concat(Dir, File, Path)
-	;   atomic_list_concat([Dir, /, File], Path)
+	(   compound(Dir)
+	->  absolute_file_name(Dir, TheDir,
+			       [ file_type(directory),
+				 access(read)
+			       ])
+	;   TheDir = Dir
+	),
+	(   sub_atom(TheDir, _, _, 0, /)
+	->  atom_concat(TheDir, File, Path)
+	;   atomic_list_concat([TheDir, /, File], Path)
 	).
