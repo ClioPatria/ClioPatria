@@ -73,33 +73,46 @@
 
 %%	http_login(+Request)
 %
-%	HTTP handler for SeRQL login.
+%	HTTP handler to associate the current session with a local user.
+%
+%	@see	help('howto/ClientAuth.txt') for additional information on
+%		authetication.
 
 http_login(Request) :-
 	http_parameters(Request,
-			[ user(User, []),
-			  password(Password, [])
+			[ user(User),
+			  password(Password),
+			  resultFormat(ResultFormat)
+			],
+			[ attribute_declarations(attribute_decl)
 			]),
-	validate_password(User, Password),
-	login(User),
-	reply_html_page(cliopatria(default),
-			title('Successful login'),
-			p(['Login succeeded for ', User])).
+	action(Request,
+	       (   validate_password(User, Password),
+		   login(User)
+	       ),
+	       ResultFormat,
+	       'Login ~w'-[User]).
 
 %%      http_logout(+Request)
 %
 %       HTTP handler to logout current user.
 
-http_logout(_Request) :-
+http_logout(Request) :-
+	http_parameters(Request,
+			[ resultFormat(ResultFormat)
+			],
+			[ attribute_declarations(attribute_decl)
+			]),
+	action(Request,
+	       logout_user(Message),
+	       ResultFormat,
+	       Message).
+
+logout_user('Logout ~w'-[User]) :-
 	logged_on(User), !,
-	logout(User),
-	reply_html_page(cliopatria(default),
-			title('Successful logout'),
-			p(['Logout succeeded for ', User, '.'])).
-http_logout(_Request) :-
-	reply_html_page(cliopatria(default),
-			title('Successful logout'),
-			p(['Nobody was logged on.'])).
+	logout(User).
+logout_user('Not logged on'-[]).
+
 
 %%	evaluate_query(+Request) is det.
 %
@@ -610,6 +623,13 @@ attribute_decl(niceOutput,
 	       | Options
 	       ]) :-
 	bool(off, Options).
+attribute_decl(user,
+	       [ description('User name')
+	       ]).
+attribute_decl(password,
+	       [ description('Clear-text password')
+	       ]).
+
 					% Our extensions
 attribute_decl(storeAs,
 	       [ default(''),
