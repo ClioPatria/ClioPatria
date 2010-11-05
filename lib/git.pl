@@ -29,11 +29,13 @@
 */
 
 :- module(git,
-	  [ git/2			% +Argv, +Options
+	  [ git/2,			% +Argv, +Options
+	    git_tags_on_branch/3	% +Dir, +Branch, -Tags
 	  ]).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(option)).
+:- use_module(library(http/dcg_basics)).
 
 /** <module> Run GIT commands
 */
@@ -81,6 +83,60 @@ print_error(OutCodes, Options) :-
 	Codes = OutCodes.
 print_error(OutCodes, _) :-
 	print_message(error, git(output(OutCodes))).
+
+%%	git_tags_on_branch(+Dir, +Branch, -Tags) is det.
+%
+%	Tags is a list of tags in Branch on the GIT repository Dir, most
+%	recent tag first.
+%
+%	@see Git tricks at http://mislav.uniqpath.com/2010/07/git-tips/
+
+git_tags_on_branch(Dir, Branch, Tags) :-
+	setup_call_cleanup(process_create(path(git),
+					  [ log, '--oneline', '--decorate',
+					    Branch
+					  ],
+                                          [ stdout(pipe(Out)),
+                                            process(PID),
+                                            cwd(Dir)
+                                          ]),
+                           (   log_to_tags(Out, Tags),
+                               process_wait(PID, Status)
+                           ),
+			   close(Out)),
+	(   Status = exit(0)
+	->  true
+	;   throw(error(process_error(git, Status)))
+	).
+
+log_to_tags(Out, Tags) :-
+	read_line_to_codes(Out, Line0),
+	log_to_tags(Line0, Out, Tags, []).
+
+log_to_tags(end_of_file, _, Tags, Tags) :- !.
+log_to_tags(Line, Out, Tags, Tail) :-
+	phrase(tags_on_line(Tags, Tail1), Line),
+	read_line_to_codes(Out, Line1),
+	log_to_tags(Line1, Out, Tail1, Tail).
+
+tags_on_line(Tags, Tail) -->
+	string_without(" ", _Hash),
+	tags(Tags, Tail),
+	skip_rest.
+
+tags(Tags, Tail) -->
+	whites,
+	"(tag: ",
+	string(Codes),
+	")", !,
+	{ atom_codes(Tag, Codes),
+	  Tags = [Tag|Rest]
+	},
+	tags(Rest, Tail).
+tags(Tags, Tags) -->
+	skip_rest.
+
+skip_rest(_,_).
 
 
 		 /*******************************

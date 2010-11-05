@@ -19,3 +19,10 @@
   - Compare library .pack with package one
 
 ---++ Trust management
+
+
+---++ GIT Tricks
+
+---+++ Find tags on a branch (ordered):
+
+    - git log --oneline --decorate (-z) <branch>
