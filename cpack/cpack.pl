@@ -29,7 +29,7 @@
 */
 
 :- module(cpack,
-	  [ cpack_load_library/0,
+	  [ cpack_discover/0,
 	    cpack_package/2,		% +Name, -Resource
 	    cpack_install/1,		% +Name
 	    cpack_add_dir/1		% +Directory
@@ -45,11 +45,11 @@
 
 :- rdf_register_ns(cpack, 'http://www.swi-prolog.org/cliopatria/cpack#').
 
-%%	cpack_load_library is det.
+%%	cpack_discover is det.
 %
-%	Load the package library.
+%	Discover cpack packages.  Currently simply loads the library.
 
-cpack_load_library :-
+cpack_discover :-
 	load_cpack_schema,
 	cpack_files(cpack(packs), Files),
 	forall(member(Pack, Files),
