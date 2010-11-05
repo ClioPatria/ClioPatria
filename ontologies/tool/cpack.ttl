@@ -1,9 +1,12 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix cpack: <http://www.swi-prolog.org/cliopatria/cpack#> .
 
 # Define packages and their dependencies
+#
+# Issues: How to represent version dependencies?
 
 # Classes
 
@@ -36,15 +39,6 @@ cpack:Library a rdfs:Class ;
 	rdfs:subClassOf cpack:Package ;
 	rdfs:comment "A library returns results as Prolog terms" .
 
-cpack:Dependent a rdfs:Class ;
-	rdfs:label "package dependent" ;
-	rdfs:comment "Requirement for the package" .
-
-cpack:OrDependent a rdfs:Class ;
-	rdfs:subClassOf cpack:Dependent ;
-	rdfs:label "package dependent (OR)" ;
-	rdfs:comment "Dependency choice for the package" .
-
 cpack:Repository a rdfs:Class ;
 	rdfs:label "Software repository" .
 
@@ -56,56 +50,71 @@ cpack:GitRepository a rdfs:Class ;
 
 # Properties
 
-cpack:name a rdf:Property ;
+cpack:name a owl:InverseFunctionalProperty ;
+	rdfs:subPropertyOf cpack:provides ;
 	rdfs:label "name" ;
 	rdfs:comment "Official identifier name of the package" ;
 	rdfs:domain cpack:Package .
 
-cpack:description a rdf:Property ;
+cpack:description a owl:DatatypeProperty ;
 	rdfs:label "description" ;
 	rdfs:subPropertyOf rdfs:comment ;
 	rdfs:comment "Short description of the package" ;
 	rdfs:domain cpack:Package .
 
-cpack:home a rdf:Property ;
+cpack:home a owl:ObjectProperty ;
 	rdfs:label "home" ;
 	rdfs:comment "URL of the project home page" ;
 	rdfs:range <rdfs:resource> ;
 	rdfs:domain cpack:Package .
 
-cpack:screenShot a rdf:Property ;
+cpack:screenShot a owl:ObjectProperty ;
 	rdfs:label "screen shot" ;
 	rdfs:comment "URL holding a screenshot" ;
 	rdfs:range <rdfs:resource> ;
 	rdfs:domain cpack:Package .
 
-cpack:author a rdf:Property ;
+cpack:author a owl:ObjectProperty ;
 	rdfs:label "author" ;
 	rdfs:comment "Author of the package" ;
 	rdfs:range foaf:Person ;
 	rdfs:domain cpack:Package .
 
-cpack:maintainer a rdf:Property ;
+cpack:maintainer a owl:ObjectProperty ;
 	rdfs:label "maintainer" ;
 	rdfs:comment "Official maintainer of the package" ;
 	rdfs:range foaf:Person ;
 	rdfs:domain cpack:Package .
 
-cpack:primaryRepository a rdf:Property ;
+cpack:primaryRepository a owl:ObjectProperty ;
 	rdfs:label "primary repository" ;
 	rdfs:comment "Main repository for the software" ;
 	rdfs:range cpack:Repository ;
 	rdfs:domain cpack:Package .
 
-cpack:dependsOn a rdf:Property ;
-	rdfs:label "depends on" ;
-	rdfs:comment "Packages on which I depend" ;
-	rdfs:domain cpack:Dependent .
+# Dependency relations are based on `tokens', which by default are
+# package-names.  What we still need are versions.  Versions are
+# either numeric (a GIT tag), GIT branches or GIT hashes
 
-cpack:suggests a rdf:Property ;
+cpack:provides a owl:DatatypeProperty ;
+	rdfs:label "provides" ;
+	rdfs:comment "Token(s) provided by this package" ;
+	rdfs:domain cpack:Package .
+
+cpack:requires a owl:DatatypeProperty ;
+	rdfs:label "requires" ;
+	rdfs:comment "Required token" ;
+	rdfs:domain cpack:Package .
+
+cpack:suggests a owl:DatatypeProperty ;
 	rdfs:label "suggests" ;
 	rdfs:comment "Packages that are often used together" ;
-	rdfs:domain cpack:Dependent .
+	rdfs:domain cpack:Package .
+
+cpack:conflicts a owl:DatatypeProperty ;
+	rdfs:label "conflicts" ;
+	rdfs:comment "Cannot work together with token" ;
+	rdfs:domain cpack:Package .
 
 # Repository properties
 
@@ -132,9 +141,3 @@ cpack:hash a rdf:Property ;
 	rdfs:comment "World-wide unique identifier of a version" ;
 	rdfs:range <rdfs:Literal> ;
 	rdfs:domain cpack:GitRepository .
-
-# Dependent properties
-
-cpack:packageName a rdf:Property ;
-	rdfs:label "package name" ;
-	rdfs:comment "Name of the required package" .
