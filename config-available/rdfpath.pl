@@ -1,6 +1,6 @@
-:- module(conf_ontopath, []).
+:- module(conf_rdfpath, []).
 
-/** <module> Configure location of the ontology (RDF) library
+/** <module> Configure location of the RDF (ontology) library
 
 This module uses user:file_search_path/2 to define locations for loading
 RDF data. Ontology library directories   contain  files =|Manifest.ttl|=
@@ -19,7 +19,7 @@ can also specify RDF from HTTP servers.
 :- dynamic
 	user:file_search_path/2.
 
-user:file_search_path(ontology, '../econnect/demo/vocs').
-user:file_search_path(ontology, '../econnect/demo/metadata').
+user:file_search_path(rdf, '../econnect/demo/vocs').
+user:file_search_path(rdf, '../econnect/demo/metadata').
 
 

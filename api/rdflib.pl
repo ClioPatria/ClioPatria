@@ -28,7 +28,7 @@
     the GNU General Public License.
 */
 
-:- module(api_ontolib,
+:- module(api_rdflib,
 	  [ library_ontology/1		% -Name
 	  ]).
 :- use_module(user(user_db)).
@@ -118,7 +118,7 @@ library_ontology(O) :-
 %	file_search_path/2 =ontology= alias.
 
 prepare_ontology_library :-
-	(   absolute_file_name(ontology(.), Dir,
+	(   absolute_file_name(rdf(.), Dir,
 			       [ file_type(directory),
 				 solutions(all)
 			       ]),

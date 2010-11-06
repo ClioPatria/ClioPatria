@@ -51,7 +51,7 @@
 
 cpack_discover :-
 	load_cpack_schema,
-	cpack_files(cpack(packs), Files),
+	cpack_files(rdf(cpack), Files),
 	forall(member(Pack, Files),
 	       rdf_load(Pack, [format(turtle)])).
 
@@ -111,7 +111,7 @@ cpack_add_dir(Dir) :-
 		 *******************************/
 
 load_cpack_schema :-
-	rdf_load(ontology('tool/cpack.ttl')).
+	rdf_load(rdf('tool/cpack.ttl')).
 
 %%	cpack_file(+Dir, -File) is det.
 %
@@ -136,7 +136,7 @@ cpack_files(Dir, Files) :-
 
 cpack_install_dir(Package, Dir) :-
 	rdf_has(Package, cpack:name, literal(Name)),
-	directory_file_path('cpack.d', Name, Dir).
+	directory_file_path('cpack', Name, Dir).
 
 %%	directory_file_path(+Directory, +File, -Path) is det.
 

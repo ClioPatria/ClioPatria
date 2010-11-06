@@ -67,7 +67,7 @@ user:file_search_path(cpack,	    cliopatria(cpack)).
 user:file_search_path(cpacks,	    cliopatria('.')).
 
 user:file_search_path(library,	    cpacks(lib)).
-user:file_search_path(ontology,	    cpacks(ontologies)).
+user:file_search_path(rdf,	    cpacks(rdf)).
 user:file_search_path(entailment,   cpacks(entailment)).
 user:file_search_path(components,   cpacks(components)).
 user:file_search_path(applications, cpacks(applications)).
