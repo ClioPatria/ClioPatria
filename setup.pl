@@ -124,7 +124,7 @@ make_runnable(_).
 
 
 substitutions(SrcDir, DstDir,
-	      [ 'SWIPL'=PL,		% Prolog executable (for
+	      [ 'SWIPL'=PL,		% Prolog executable (for #!...)
 		'CLIOPATRIA'=SrcDir,	% ClioPatria directory
 		'CWD'=DstDir,		% This directory
 		'PARENTDIR'=Parent	% Parent of CWD
@@ -152,54 +152,64 @@ prolog_executable(PL) :-
 
 which(File, Path) :-
 	catch(getenv('PATH', SearchPath), _, fail),
-	concat_atom(Parts, :, SearchPath),
+	atomic_list_concat(Parts, :, SearchPath),
 	member(Dir, Parts),
-	concat_atom([Dir, File], /, Path),
+	directory_file_path(Dir, File, Path),
 	access_file(Path, execute).
 
-%%	create_conf_d(SrcDir, DstDir)
+%%	create_conf_d(+ClioDir, +DstDir)
 %
 %	Create a new configure directory if it doesn't exist yet.
 
-create_conf_d(SrcDir, DstDir) :-
-	directory_file_path(DstDir, 'conf.d', ConfDir),
+create_conf_d(ClioDir, DstDir) :-
+	create_conf_enabled(ClioDir, DstDir, ConfEnabled),
+	directory_file_path(ClioDir, 'config-available', TemplDir),
+	default_config(ConfEnabled, TemplDir).
+
+
+create_conf_enabled(ClioDir, DstDir, ConfDir) :-
+	directory_file_path(DstDir, 'config-enabled', ConfDir),
 	(   exists_directory(ConfDir)
 	->  true
 	;   make_directory(ConfDir)
 	),
-	atom_concat(ConfDir, '/README.txt', Readme),
+	directory_file_path(ConfDir, 'README.txt', Readme),
 	(   exists_file(Readme)
 	->  true
-	;   format(user_error, 'Localizing conf.d ...', []),
-	    atom_concat(SrcDir, '/lib/APPCONF.txt.in', ReadmeIn),
-	    substitutions(SrcDir, DstDir, Vars),
+	;   format(user_error, 'Localizing config-enabled ...', []),
+	    atom_concat(ClioDir, '/lib/APPCONF.txt.in', ReadmeIn),
+	    substitutions(ClioDir, DstDir, Vars),
 	    install_file(Vars, Readme, ReadmeIn),
 	    format(user_error, ' done~n', [])
-	),
-	directory_file_path(SrcDir, 'examples/conf.d', TemplDir),
-	default_config(ConfDir, TemplDir).
-
-
-default_config(ConfDir, TemplateDir) :-
-	directory_file_path(ConfDir, '.config', File),
-	(   exists_file(File)
-	->  true
-	;   (   directory_file_path(TemplateDir, 'DEFAULTS', DefFile),
-	        access_file(DefFile, read)
-	    ->	read_file_to_terms(DefFile, Terms, []),
-		maplist(install_config(ConfDir, TemplateDir), Terms)
-	    ;	true
-	    ),
-	    open(File, write, Out),
-	    get_time(Now),
-	    format_time(Out, 'Configured at %+\n', Now),
-	    close(Out)
 	).
 
-install_config(ConfDir, TemplateDir, Term) :-
-	config_file(Term, File, How), !,
-	install_file(How, ConfDir, TemplateDir, File).
-install_config(_, _, _).
+default_config(ConfDir, TemplateDir) :-
+	directory_file_path(ConfDir, 'config.done', File),
+	(   exists_file(File)
+	->  read_file_to_terms(File, Installed, [])
+	;   Installed = []
+	),
+	(   directory_file_path(TemplateDir, 'DEFAULTS', DefFile),
+	    access_file(DefFile, read)
+	->  read_file_to_terms(DefFile, Defaults, []),
+	    setup_call_cleanup(open(File, append, Out),
+			       maplist(install_default(Installed,
+						       ConfDir,
+						       TemplateDir,
+						       Out),
+				       Defaults),
+			       close(Out))
+	;   true
+	).
+
+
+install_default(Installed, ConfDir, TemplateDir, Out, Term) :-
+	config_file(Term, File, How),
+	\+ memberchk(file(File,_), Installed),
+	install_file(How, ConfDir, TemplateDir, File),
+	get_time(Now),
+	format('~q.', [file(File, Now)], Out).
+install_default(_, _, _, _, _).
 
 config_file((Head:-Cond), File, How) :- !,
 	call(Cond),

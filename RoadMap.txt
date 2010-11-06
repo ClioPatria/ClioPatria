@@ -28,10 +28,10 @@ from the top-left menu.
     DCG-rules that produce HTML.  These are reusable components to
     build _applications_.
 
-    $ conf.d :
+    $ config-enabled :
     This directory holds (small) files that configure the server.
-    Example and template files are in examples/conf.d.  See
-    conf.d/README.txt and examples/conf.d/README.txt.
+    Example and template files are in config-available.  See
+    config-enabled/README.txt and config-available/README.txt.
 
     $ entailment :
     Entailment modules provide an alternative definition of rdf/3 that
@@ -39,7 +39,7 @@ from the top-left menu.
     modules provide a different amount of reasoning.
 
     $ examples :
-    Example files that use or extend ClioPatria. Notably examples/conf.d
+    Example files that use or extend ClioPatria. Notably config-available
     provides template configuration files.
 
     $ lib :

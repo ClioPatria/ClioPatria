@@ -73,7 +73,7 @@ server_address//0:
 
 The CSS file css('cliopatria.css') contains the ClioPatria style that is
 makes ClioPatria look pretty to our  eyes,   but  is  not essential. The
-plugin examples/conf.d/fix_menu.pl contains example code   to extend the
+plugin config-available/fix_menu.pl contains example code  to extend the
 ClioPatria skin.
 */
 

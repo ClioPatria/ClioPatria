@@ -10,4 +10,4 @@ ClioPatria plugins are Prolog source-files that can do two things:
     * Services that produce XML or JSON for machines.
 
 Plugins can be added to ClioPatria in   many different ways. To preserve
-best modularity, we suggest to use conf.d for loading plugins.
+best modularity, we suggest to use config-enabled for loading plugins.

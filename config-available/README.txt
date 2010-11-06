@@ -1,13 +1,13 @@
 ---+ Configuration examples
 
-The <cliopatria>/examples/conf.d provides example configuration modules.
-Some of them can simply be copied  to the target conf.d directory, while
-others should be copied and edited to  suit your needs because there are
-no sensible defaults. If the file  is   followed  by (edit), copying and
-subsequent editing is assumed.
+The   <cliopatria>/config-available   provides   example   configuration
+modules. Some of them can simply be  copied to the target config-enabled
+directory, while others should be copied and   edited to suit your needs
+because there are no sensible  defaults.  If   the  file  is followed by
+(edit), copying and subsequent editing is assumed.
 
-The  system  reads  config  files  from  *|conf.d|*  in  the  ClioPatria
-top-directory and *|conf.d|* in the local working directory.
+The system reads config files from  *|config-enabled|* in the ClioPatria
+top-directory and *|config-enabled|* in the local working directory.
 
 Files are loaded in alphabetical order (case sensitive). The config file
 prefixes is named =|00-prefixes.pl|= because it often needs to be loaded

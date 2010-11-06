@@ -30,7 +30,7 @@ in the settings.
 
     $ httpd.log :
     Keeps a log of HTTP interactions. It is enabled by linking or
-    copying cliopatria('examples/conf.d/logging.pl') into =|conf.d|=.
+    copying cliopatria('config-available/logging.pl') into =|config-enabled|=.
     Note that on heavily loaded servers this can be a significant
     slow-down and the file can become huge.
 

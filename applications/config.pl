@@ -45,7 +45,7 @@
 /** <module> ClioPatria configuration interface
 
 This application provides a web-interface   for configuration management
-by adding files to =|conf.d|=.
+by adding files to =|config-enabled|=.
 */
 
 :- http_handler(cliopatria('admin/config'),	 config,      []).
@@ -232,8 +232,8 @@ same_stream_content(C, C, In1, In2) :-
 %		conf_d_member_data/3.  The list is sorted on Key.
 
 config_files(Configs) :-
-	keyed_config(cliopatria('examples/conf.d'), Templ),
-	keyed_config('conf.d', Installed),
+	keyed_config(cliopatria('config-available'), Templ),
+	keyed_config('config-enabled', Installed),
 	merge_pairlists([Templ, Installed], Configs).
 
 
@@ -332,7 +332,7 @@ try_link_file(Source, Dest, How, Level) :-
 
 
 local_conf_dir(Dir) :-
-	absolute_file_name('conf.d', Dir,
+	absolute_file_name('config-enabled', Dir,
 			   [ file_type(directory),
 			     access(write)
 			   ]).

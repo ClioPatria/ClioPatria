@@ -51,7 +51,7 @@ Running ClioPatria as an application requires a few steps:
     Windows by double-clicking setup.pl.
 
     2. Optionally, pull in configuration files according to
-    conf.d/README.txt.  This can also be done later.
+    config-enabled/README.txt.  This can also be done later.
 
     3. Start run.pl as =|./run.pl|= on Unix or double-clicking run.pl
     on Windows and direct your browser to the indicated address (default
@@ -60,10 +60,10 @@ Running ClioPatria as an application requires a few steps:
     web-operations, such as managing settings and loading/unloading RDF.
 
 If you want to extend the application, there  are two options. One is to
-put a Prolog file with the desired  extensions in =|conf.d|=. Another is
-to run configure/setup from another directory.   This creates run.pl and
-conf.d in the current working directory,  after which the extensions can
-be placed in =|conf.d|=.
+put a Prolog file with  the   desired  extensions in =|config-enabled|=.
+Another is to run configure/setup from   another directory. This creates
+run.pl and config-enabled in the current  working directory, after which
+the extensions can be placed in =|config-enabled|=.
 
 
 ---+++ Use as library

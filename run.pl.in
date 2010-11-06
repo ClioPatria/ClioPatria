@@ -7,8 +7,8 @@ This file provides a skeleton startup file.  It can be localized by running
     % Double-clicking setup.pl		(Windows)
 
 After  that,  the  system  may  be  customized  by  copying  or  linking
-customization files from  examples/conf.d.   See  conf.d/README.txt  for
-details.
+customization  files  from  config-available    to  config-enabled.  See
+config-enabled/README.txt for details.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 % Setup search path for cliopatria.
@@ -32,16 +32,12 @@ file_search_path(cliopatria, '@CLIOPATRIA@').
 
 :- use_module(cliopatria(cliopatria)).
 
-% Load the remainder of the configuration. The directory conf.d can also
-% be used to load additional (plugin) functionality. It is *not* adviced
-% to put the actual code there,  but   merely  small files that load and
-% configure the code.
+% Load the remainder of the  configuration. The directory config-enabled
+% can also be used to  load   additional  (plugin)  functionality.
 
 :- use_module(library(conf_d)).
 
-:- load_conf_d([ 'conf.d'
-	       ],
-	       []).
+:- load_conf_d([ 'config-enabled' ], []).
 
 % Get back normal verbosity of the toplevel.
 
