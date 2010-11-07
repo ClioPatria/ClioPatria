@@ -204,18 +204,28 @@ default_config(ConfDir, TemplateDir) :-
 
 
 install_default(Installed, ConfDir, TemplateDir, Out, Term) :-
-	config_file(Term, File, How),
+	config_file(Term, TemplateDir, File, How),
 	\+ memberchk(file(File,_), Installed),
 	install_file(How, ConfDir, TemplateDir, File),
 	get_time(Now),
 	format('~q.', [file(File, Now)], Out).
 install_default(_, _, _, _, _).
 
-config_file((Head:-Cond), File, How) :- !,
+config_file((Head:-Cond), TemplateDir, File, How) :- !,
 	call(Cond),
-	config_file(Head, File, How).
-config_file(config(File, How), File, How) :- !.
-config_file(Term, _, _) :-
+	config_file(Head, TemplateDir, File, How).
+config_file(config(FileBase, How), TemplateDir, File, How) :- !,
+	(   (   File = FileBase
+	    ;	prolog_file_type(Ext, prolog),
+		file_name_extension(FileBase, Ext, File)
+	    ),
+	    directory_file_path(TemplateDir, File, Path),
+	    exists_file(Path)
+	->  true
+	;   print_message(warning, error(existence_error(config_file, FileBase))),
+	    fail
+	).
+config_file(Term, _, _, _) :-
 	domain_error(config_term, Term).
 
 install_file(_, ConfDir, _, File) :-
