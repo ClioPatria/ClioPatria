@@ -30,12 +30,16 @@
 
 :- module(git,
 	  [ git/2,			% +Argv, +Options
+	    git_process_output/3,	% +Argv, :OnOutput, +Options
 	    git_tags_on_branch/3	% +Dir, +Branch, -Tags
 	  ]).
 :- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(option)).
 :- use_module(library(http/dcg_basics)).
+
+:- meta_predicate
+	git_process_output(+, 1, +).
 
 /** <module> Run GIT commands
 */
@@ -84,6 +88,33 @@ print_error(OutCodes, Options) :-
 print_error(OutCodes, _) :-
 	print_message(error, git(output(OutCodes))).
 
+%%	git_process_output(+Argv, :OnOutput, +Options) is det.
+%
+%	Run a git-command and process the output with OnOutput, which is
+%	called as call(OnOutput, Stream).
+
+git_process_output(Argv, OnOutput, Options) :-
+	option(directory(Dir), Options, .),
+	setup_call_cleanup(process_create(path(git), Argv,
+                                          [ stdout(pipe(Out)),
+                                            stderr(pipe(Error)),
+                                            process(PID),
+                                            cwd(Dir)
+                                          ]),
+                           (   call(OnOutput, Out),
+			       read_stream_to_codes(Error, ErrorCodes, []),
+                               process_wait(PID, Status)
+                           ),
+			   (   close(Out),
+			       close(Error)
+			   )),
+	print_error(ErrorCodes, Options),
+	(   Status = exit(0)
+	->  true
+	;   throw(error(process_error(git, Status)))
+	).
+
+
 %%	git_tags_on_branch(+Dir, +Branch, -Tags) is det.
 %
 %	Tags is a list of tags in Branch on the GIT repository Dir, most
@@ -92,22 +123,9 @@ print_error(OutCodes, _) :-
 %	@see Git tricks at http://mislav.uniqpath.com/2010/07/git-tips/
 
 git_tags_on_branch(Dir, Branch, Tags) :-
-	setup_call_cleanup(process_create(path(git),
-					  [ log, '--oneline', '--decorate',
-					    Branch
-					  ],
-                                          [ stdout(pipe(Out)),
-                                            process(PID),
-                                            cwd(Dir)
-                                          ]),
-                           (   log_to_tags(Out, Tags),
-                               process_wait(PID, Status)
-                           ),
-			   close(Out)),
-	(   Status = exit(0)
-	->  true
-	;   throw(error(process_error(git, Status)))
-	).
+	git_process_output([ log, '--oneline', '--decorate', Branch ],
+			   log_to_tags(Tags),
+			   [ directory(Dir) ]).
 
 log_to_tags(Out, Tags) :-
 	read_line_to_codes(Out, Line0),
