@@ -29,6 +29,7 @@
 
 :- module(conf_d,
 	  [ load_conf_d/2,		% +Directories, +Options
+	    conf_d_enabled/1,		% -ConfDir
 	    conf_d_reload/0,
 	    conf_d_members/3,		% +Directory, -FileData, +Options
 	    conf_d_member_data/3	% ?Field, +FileData, -Value
@@ -134,6 +135,13 @@ update_conf_d(Dir, Files, Options) :-
 	;   true
 	),
 	assert(conf_d(Dir, Options, Files)).
+
+%%	conf_d_enabled(-Dir) is nondet.
+%
+%	True if Dir is a directory from which config files are loaded.
+
+conf_d_enabled(Dir) :-
+	conf_d(Dir, _, _).
 
 %%	conf_d_reload is det.
 %

@@ -175,7 +175,7 @@ open_done(DoneFile, Out) :-
 
 install_default(Installed, ConfigEnabled, ConfigAvail, Out, Term) :-
 	config_file(Term, ConfigAvail, File, How),
-	\+ memberchk(file(File,_,_), Installed),
+	\+ memberchk(file(File,_,_), Installed), !,
 	install_file(How, ConfigEnabled, ConfigAvail, File),
 	get_time(Now),
 	Stamp is round(Now),
@@ -324,8 +324,10 @@ copy_file(From, To) :-
 :- if(\+current_predicate(relative_file_name/3)).
 
 relative_file_name(Path, RelTo, RelPath) :-
-        atomic_list_concat(PL, /, Path),
-        atomic_list_concat(RL, /, RelTo),
+	absolute_file_name(Path, AbsPath),
+	absolute_file_name(RelTo, AbsRelTo),
+        atomic_list_concat(PL, /, AbsPath),
+        atomic_list_concat(RL, /, AbsRelTo),
         delete_common_prefix(PL, RL, PL1, PL2),
         to_dot_dot(PL2, DotDot, PL1),
         atomic_list_concat(DotDot, /, RelPath).

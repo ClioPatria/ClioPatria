@@ -39,6 +39,10 @@ file_search_path(cliopatria, '@CLIOPATRIA@').
 
 :- load_conf_d([ 'config-enabled' ], []).
 
+% Load package manager
+
+:- use_module(library(cpack/cpack)).
+
 % Get back normal verbosity of the toplevel.
 
 :- set_prolog_flag(verbose, normal).

@@ -32,12 +32,15 @@
 	  [ cpack_discover/0,
 	    cpack_package/2,		% +Name, -Resource
 	    cpack_install/1,		% +Name
-	    cpack_add_dir/1		% +Directory
+	    cpack_add_dir/2		% +ConfigEnabled, +Directory
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(uri)).
 :- use_module(library(git)).
+:- use_module(library(setup)).
+:- use_module(library(conf_d)).
+:- use_module(library(filesex)).
 
 /** <module> The ClioPatria package manager
 
@@ -55,6 +58,21 @@ cpack_discover :-
 	forall(member(Pack, Files),
 	       rdf_load(Pack, [format(turtle)])).
 
+%%	cpack_install(+Name) is det.
+%
+%	Install package by name
+
+cpack_install(Name) :-
+	cpack_discover,
+	findall(Package, cpack_package(Name, Package), Packages),
+	(   Packages == []
+	->  existence_error(cpack, Name)
+	;   Packages = [Package]
+	->  cpack_install_package(Package)
+	;   throw(error(ambiguity_error(Name, cpack, Packages),_))
+	).
+
+
 %%	cpack_package(+Name, -Package) is nondet.
 %
 %	True if Package is a ClioPatria package with Name.
@@ -67,10 +85,13 @@ cpack_package(Name, Package) :-
 %
 %	Install the package from its given URL
 
-cpack_install(Package) :-
+cpack_install_package(Package) :-
 	cpack_install_dir(Package, Dir),
 	cpack_download(Package, Dir),
-	cpack_add_dir(Dir).
+	(   conf_d_enabled(ConfigEnabled)
+	->  cpack_add_dir(ConfigEnabled, Dir)
+	;   existence_error(directory, 'config-enabled')
+	).
 
 %%	cpack_download(Package, Dir)
 %
@@ -88,22 +109,45 @@ cpack_download(Package, Dir) :-
 	rdf_has(Repo, cpack:repoURL, URL),
 	git([clone, URL, Dir], []).
 
-%%	cpack_add_dir(+PackageDir)
+%%	cpack_add_dir(+ConfigEnable, +PackageDir)
 %
 %	Install package located in directory PackageDir.
 
-cpack_add_dir(Dir) :-
-	load_cpack_schema,
-	absolute_file_name(Dir, Path,
-			   [ file_type(directory),
-			     access(read)
-			   ]),
-	cpack_file(Path, File),
-	rdf_load(File, [graph(Graph), format(turtle)]),
-	rdf_has(Graph, cpack:name, literal(Pack)),
-	assert(user:file_search_path(Pack, Path)),
-	DirAlias =.. [Pack,'.'],
-	assert(user:file_search_path(cpacks, DirAlias)).
+cpack_add_dir(ConfigEnable, Dir) :-
+	directory_file_path(ConfigEnable, '010-packs.pl', PacksFile),
+	directory_file_path(Dir, 'config-available', ConfigAvailable),
+	file_base_name(Dir, Pack),
+	add_pack_to_search_path(PacksFile, Pack, Dir),
+	setup_default_config(ConfigEnable, ConfigAvailable, []),
+	conf_d_reload.
+
+
+add_pack_to_search_path(PackFile, Pack, Dir) :-
+	exists_file(PackFile), !,
+	read_file_to_terms(PackFile, Terms, []),
+	(   memberchk(user:file_search_path(Pack, Dir), Terms)
+	->  true
+	;   memberchk(user:file_search_path(Pack, _Dir2), Terms),
+	    permission_error(add, pack, Pack)
+	;   open(PackFile, append, Out),
+	    extend_search_path(Out, Pack, Dir),
+	    close(Out)
+	).
+add_pack_to_search_path(PackFile, Pack, Dir) :-
+	open(PackFile, write, Out),
+	format(Out, '/* Generated file~n', []),
+	format(Out, '   This file defines the search-path for added packs~n', []),
+	format(Out, '*/~n~n', []),
+	format(Out, ':- module(conf_packs, []).~n~n', []),
+	format(Out, ':- multifile user:file_search_path/2.~n', []),
+	format(Out, ':- dynamic user:file_search_path/2.~n~n', []),
+	extend_search_path(Out, Pack, Dir),
+	close(Out).
+
+extend_search_path(Out, Pack, Dir) :-
+	Term =.. [Pack, '.'],
+	format(Out, '~q.~n', [user:file_search_path(Pack, Dir)]),
+	format(Out, '~q.~n', [user:file_search_path(cpacks, Term)]).
 
 
 		 /*******************************
@@ -113,20 +157,10 @@ cpack_add_dir(Dir) :-
 load_cpack_schema :-
 	rdf_load(rdf('tool/cpack.ttl')).
 
-%%	cpack_file(+Dir, -File) is det.
-%
-%	File is the pack information file for a package in Dir.
-
-cpack_file(Dir, File) :-
-	cpack_files(Dir, Files),
-	(   Files = [File]
-	->  true
-	;   File == []
-	->  existence_error(pack_file, Dir)
-	;   throw(error(ambiguity_error(pack_file, Dir)))
-	).
-
-cpack_files(Dir, Files) :-
+cpack_files(Spec, Files) :-
+	absolute_file_name(Spec, Dir,
+			   [ file_type(directory)
+			   ]),
 	directory_file_path(Dir, '*.cpack', Pattern),
 	expand_file_name(Pattern, Files).
 
@@ -136,19 +170,18 @@ cpack_files(Dir, Files) :-
 
 cpack_install_dir(Package, Dir) :-
 	rdf_has(Package, cpack:name, literal(Name)),
-	directory_file_path('cpack', Name, Dir).
+	directory_file_path('cpack', Name, Dir),
+	(   exists_directory(Dir)
+	->  true
+	;   make_directory(Dir)
+	).
 
-%%	directory_file_path(+Directory, +File, -Path) is det.
+:- if(\+current_predicate(directory_file_path/3)).
 
 directory_file_path(Dir, File, Path) :-
-	(   compound(Dir)
-	->  absolute_file_name(Dir, TheDir,
-			       [ file_type(directory),
-				 access(read)
-			       ])
-	;   TheDir = Dir
-	),
-	(   sub_atom(TheDir, _, _, 0, /)
-	->  atom_concat(TheDir, File, Path)
-	;   atomic_list_concat([TheDir, /, File], Path)
+	(   sub_atom(Dir, _, _, 0, /)
+	->  atom_concat(Dir, File, Path)
+	;   atomic_list_concat([Dir, /, File], Path)
 	).
+
+:- endif.

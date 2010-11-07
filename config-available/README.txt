@@ -14,8 +14,9 @@ prefixes is named =|00-prefixes.pl|= because it often needs to be loaded
 first. The ordering of the  other  files   in  this  directory  does not
 matter.
 
-  $ 00-prefixes.pl (edit) :
-  Configure RDF prefixes (namespaces).
+  $ 020-prefixes.pl (edit) :
+  Configure RDF prefixes (namespaces).  This should typically be loaded
+  early in the process.
 
   $ cache.pl (edit) :
   Control caching of RDF inputs.
