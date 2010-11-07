@@ -32,7 +32,8 @@
 	  [ cpack_discover/0,
 	    cpack_package/2,		% +Name, -Resource
 	    cpack_install/1,		% +Name
-	    cpack_add_dir/2		% +ConfigEnabled, +Directory
+	    cpack_add_dir/2,		% +ConfigEnabled, +Directory
+	    cpack_create/2		% +Name, +Options
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -152,6 +153,37 @@ extend_search_path(Out, Pack, Dir) :-
 
 
 		 /*******************************
+		 *	CREATE NEW PACKAGES	*
+		 *******************************/
+
+%%	cpack_create(+Name, +Options) is det.
+%
+%	Create a new package.
+
+cpack_create(Name, Options) :-
+	option(type(Type), Options, _),
+	cpack_package_dir(Name, Dir),
+	forall(cpack_dir(SubDir, Type),
+	       make_cpack_dir(Dir, SubDir)),
+	git([init], [directory(Dir)]).
+
+make_cpack_dir(Dir, SubDir) :-
+	directory_file_path(Dir, SubDir, New),
+	make_directory_path(New),
+	print_message(informational, cpack(create_directory(New))).
+
+cpack_dir(rdf, _).
+cpack_dir('rdf/cpack', _).
+cpack_dir('applications', code).
+cpack_dir('components', code).
+cpack_dir('lib', code).
+cpack_dir('web', web).
+cpack_dir('web/js', web).
+cpack_dir('web/css', web).
+cpack_dir('web/html', web).
+
+
+		 /*******************************
 		 *	       UTIL		*
 		 *******************************/
 
@@ -180,11 +212,19 @@ rdf_extension(ttl).
 
 cpack_install_dir(Package, Dir) :-
 	rdf_has(Package, cpack:name, literal(Name)),
+	cpack_package_dir(Name, Dir).
+
+cpack_package_dir(Name, Dir) :-
 	directory_file_path('cpack', Name, Dir),
 	(   exists_directory(Dir)
 	->  true
 	;   make_directory(Dir)
 	).
+
+:- multifile prolog:message//1.
+
+prolog:message(cpack(create_directory(New))) -->
+	[ 'Created directory ~w'-[New] ].
 
 :- if(\+current_predicate(directory_file_path/3)).
 
