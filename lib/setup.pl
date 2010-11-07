@@ -153,7 +153,7 @@ default_config(ConfigEnabled, ConfigAvail) :-
 	(   directory_file_path(ConfigAvail, 'DEFAULTS', DefFile),
 	    access_file(DefFile, read)
 	->  read_file_to_terms(DefFile, Defaults, []),
-	    setup_call_cleanup(open(DoneFile, append, Out),
+	    setup_call_cleanup(open_done(DoneFile, Out),
 			       maplist(install_default(Installed,
 						       ConfigEnabled,
 						       ConfigAvail,
@@ -164,12 +164,22 @@ default_config(ConfigEnabled, ConfigAvail) :-
 	).
 
 
+open_done(DoneFile, Out) :-
+	exists_file(DoneFile), !,
+	open(DoneFile, append, Out).
+open_done(DoneFile, Out) :-
+	open(DoneFile, write, Out),
+	format(Out, '/* Generated file~n', []),
+	format(Out, '   Keep track of installed config files~n', []),
+	format(Out, '*/~n~n', []).
+
 install_default(Installed, ConfigEnabled, ConfigAvail, Out, Term) :-
 	config_file(Term, ConfigAvail, File, How),
 	\+ memberchk(file(File,_,_), Installed),
 	install_file(How, ConfigEnabled, ConfigAvail, File),
 	get_time(Now),
-	format(Out, '~q.', [file(File, ConfigAvail, Now)]).
+	Stamp is round(Now),
+	format(Out, '~q.~n', [file(File, ConfigAvail, Stamp)]).
 install_default(_, _, _, _, _).
 
 config_file((Head:-Cond), ConfigAvail, File, How) :- !,
