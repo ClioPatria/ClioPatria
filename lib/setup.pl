@@ -1,4 +1,3 @@
-#!/usr/bin/swipl -q -g setup -s
 /*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
@@ -29,53 +28,24 @@
     the GNU General Public License.
 */
 
-:- module(cp_setup,
-	  [ setup/0
+:- module(setup,
+	  [ setup_scripts/2,		% +SrcDir, +DestDir
+	    setup_default_config/3,	% +SrcDir, +DestDir, +Options
+	    setup_prolog_executable/1,	% -Exec for #!
+	    setup_goodbye/0
 	  ]).
 :- use_module(library(apply)).
 :- if(exists_source(library(filesex))).
 :- use_module(library(filesex)).
 :- endif.
 
-/** <module> ClioPatria installation script
+/** <module> Library for building installation scripts
 */
 
 :- multifile
-	user:file_search_path/2.
-:- dynamic
-	user:file_search_path/2.
+	setup:substitutions/1.
 
-:- prolog_load_context(directory, Dir),
-   asserta(user:file_search_path(cliopatria, Dir)).
-
-
-%%	setup
-%
-%	Prepare current directory for running ClioPatria
-
-setup :-
-	absolute_file_name(cliopatria(.),
-			   ClioDir,
-			   [ file_type(directory),
-			     access(read)
-			   ]),
-	working_directory(CWD, CWD),
-	setup(ClioDir, CWD),
-	goodbye.
-
-
-%%	setup(SourceDir, DestDir)
-%
-%	Copy all *.pl.in to *.pl, while replacing @var@ constructs and
-%	make the result executable.
-%
-%	@tbd	Provide public interface for '$mark_executable'/1.
-
-setup(SrcDir, DstDir) :-
-	localize_scripts(SrcDir, DstDir),
-	create_conf_d(SrcDir, DstDir).
-
-%%	localize_scripts(+SrcDir, +DstDir)
+%%	setup_scripts(+SrcDir, +DstDir)
 %
 %	Copy all *.in files in SrcDir   into DstDir, replacing variables
 %	denoted as @NAME@. Defined variables are:
@@ -90,8 +60,8 @@ setup(SrcDir, DstDir) :-
 %	    Parent of CWD.  This can be useful if the startup-script
 %	    is located in a subdirectory of a project.
 
-localize_scripts(SrcDir, DstDir) :-
-	substitutions(SrcDir, DstDir, Vars),
+setup_scripts(SrcDir, DstDir) :-
+	substitutions(Vars),
 	format(user_error, 'Localizing scripts from ~w ...', [SrcDir]),
 	atom_concat(SrcDir, '/*.in', Pattern),
 	expand_file_name(Pattern, Files),
@@ -123,26 +93,17 @@ make_runnable(File) :-
 make_runnable(_).
 
 
-substitutions(SrcDir, DstDir,
-	      [ 'SWIPL'=PL,		% Prolog executable (for #!...)
-		'CLIOPATRIA'=SrcDir,	% ClioPatria directory
-		'CWD'=DstDir,		% This directory
-		'PARENTDIR'=Parent	% Parent of CWD
-	      ]) :-
-	prolog_executable(PL),
-	file_directory_name(DstDir, Parent).
-
-%%	prolog_executable(-Path)
+%%	setup_prolog_executable(?Var, ?Value)
 %
 %	Executable to put in #!Path. On Windows   this  is bogus, but it
 %	may not contain spaces,  so  we   include  the  default Unix RPM
 %	location.
 
-prolog_executable(PL) :-
+setup_prolog_executable(PL) :-
 	catch(getenv('SWIPL', PL), _, fail), !.
-prolog_executable('/usr/bin/swipl') :-
+setup_prolog_executable('/usr/bin/swipl') :-
 	current_prolog_flag(windows, true), !.
-prolog_executable(PL) :-
+setup_prolog_executable(PL) :-
 	current_prolog_flag(executable, Exe),
 	file_base_name(Exe, Base),
 	(   which(Base, PL)
@@ -157,45 +118,45 @@ which(File, Path) :-
 	directory_file_path(Dir, File, Path),
 	access_file(Path, execute).
 
-%%	create_conf_d(+ClioDir, +DstDir)
+%%	setup_default_config(+ConfigEnabled, +ConfigAvail, +Options)
 %
-%	Create a new configure directory if it doesn't exist yet.
+%	Setup  the  enabled  cofiguration  directory    from  the  given
+%	ConfigAvail.
 
-create_conf_d(ClioDir, DstDir) :-
-	create_conf_enabled(ClioDir, DstDir, ConfEnabled),
-	directory_file_path(ClioDir, 'config-available', TemplDir),
-	default_config(ConfEnabled, TemplDir).
+setup_default_config(ConfigEnabled, ConfigAvail, Options) :-
+	setup_config_enabled(ConfigEnabled, Options),
+	default_config(ConfigEnabled, ConfigAvail).
 
 
-create_conf_enabled(ClioDir, DstDir, ConfDir) :-
-	directory_file_path(DstDir, 'config-enabled', ConfDir),
-	(   exists_directory(ConfDir)
+setup_config_enabled(ConfigEnabled, Options) :-
+	(   exists_directory(ConfigEnabled)
 	->  true
-	;   make_directory(ConfDir)
+	;   make_directory(ConfigEnabled)
 	),
-	directory_file_path(ConfDir, 'README.txt', Readme),
+	directory_file_path(ConfigEnabled, 'README.txt', Readme),
 	(   exists_file(Readme)
 	->  true
-	;   format(user_error, 'Localizing config-enabled ...', []),
-	    atom_concat(ClioDir, '/lib/APPCONF.txt.in', ReadmeIn),
-	    substitutions(ClioDir, DstDir, Vars),
-	    install_file(Vars, Readme, ReadmeIn),
+	;   option(readme(ReadMeIn), Options)
+	->  file_base_name(ConfigEnabled, Base),
+	    format(user_error, 'Installing README.txt in ~w ...', [Base]),
+	    substitutions(Vars),
+	    install_file(Vars, Readme, ReadMeIn),
 	    format(user_error, ' done~n', [])
 	).
 
-default_config(ConfDir, TemplateDir) :-
-	directory_file_path(ConfDir, 'config.done', File),
-	(   exists_file(File)
-	->  read_file_to_terms(File, Installed, [])
+default_config(ConfigEnabled, ConfigAvail) :-
+	directory_file_path(ConfigEnabled, 'config.done', DoneFile),
+	(   exists_file(DoneFile)
+	->  read_file_to_terms(DoneFile, Installed, [])
 	;   Installed = []
 	),
-	(   directory_file_path(TemplateDir, 'DEFAULTS', DefFile),
+	(   directory_file_path(ConfigAvail, 'DEFAULTS', DefFile),
 	    access_file(DefFile, read)
 	->  read_file_to_terms(DefFile, Defaults, []),
-	    setup_call_cleanup(open(File, append, Out),
+	    setup_call_cleanup(open(DoneFile, append, Out),
 			       maplist(install_default(Installed,
-						       ConfDir,
-						       TemplateDir,
+						       ConfigEnabled,
+						       ConfigAvail,
 						       Out),
 				       Defaults),
 			       close(Out))
@@ -203,23 +164,23 @@ default_config(ConfDir, TemplateDir) :-
 	).
 
 
-install_default(Installed, ConfDir, TemplateDir, Out, Term) :-
-	config_file(Term, TemplateDir, File, How),
-	\+ memberchk(file(File,_), Installed),
-	install_file(How, ConfDir, TemplateDir, File),
+install_default(Installed, ConfigEnabled, ConfigAvail, Out, Term) :-
+	config_file(Term, ConfigAvail, File, How),
+	\+ memberchk(file(File,_,_), Installed),
+	install_file(How, ConfigEnabled, ConfigAvail, File),
 	get_time(Now),
-	format('~q.', [file(File, Now)], Out).
+	format(Out, '~q.', [file(File, ConfigAvail, Now)]).
 install_default(_, _, _, _, _).
 
-config_file((Head:-Cond), TemplateDir, File, How) :- !,
+config_file((Head:-Cond), ConfigAvail, File, How) :- !,
 	call(Cond),
-	config_file(Head, TemplateDir, File, How).
-config_file(config(FileBase, How), TemplateDir, File, How) :- !,
+	config_file(Head, ConfigAvail, File, How).
+config_file(config(FileBase, How), ConfigAvail, File, How) :- !,
 	(   (   File = FileBase
 	    ;	prolog_file_type(Ext, prolog),
 		file_name_extension(FileBase, Ext, File)
 	    ),
-	    directory_file_path(TemplateDir, File, Path),
+	    directory_file_path(ConfigAvail, File, Path),
 	    exists_file(Path)
 	->  true
 	;   print_message(warning, error(existence_error(config_file, FileBase))),
@@ -231,14 +192,14 @@ config_file(Term, _, _, _) :-
 install_file(_, ConfDir, _, File) :-
 	directory_file_path(ConfDir, File, Dest),
 	exists_file(Dest), !.
-install_file(link, ConfDir, TemplateDir, File) :-
-	directory_file_path(TemplateDir, File, Source),
+install_file(link, ConfDir, ConfigAvail, File) :-
+	directory_file_path(ConfigAvail, File, Source),
 	directory_file_path(ConfDir, File, Dest),
 	format(user_error, 'Install config file ~w ...', [File]),
 	try_link_file(Source, Dest, How),
 	format(user_error, ' ~w~n', [How]).
-install_file(copy, ConfDir, TemplateDir, File) :-
-	directory_file_path(TemplateDir, File, Source),
+install_file(copy, ConfDir, ConfigAvail, File) :-
+	directory_file_path(ConfigAvail, File, Source),
 	directory_file_path(ConfDir, File, Dest),
 	format(user_error, 'Copying config file ~w ...', [File]),
 	copy_file(Source, Dest),
@@ -255,24 +216,19 @@ try_link_file(Source, Dest, How) :-
 	;   throw(Error)
 	).
 
-directory_file_path(Dir, File, Path) :-
-	(   sub_atom(Dir, _, _, 0, /)
-	->  atom_concat(Dir, File, Path)
-	;   atomic_list_concat([Dir, /, File], Path)
-	).
 
-
-%%	goodbye
+%%	setup_goodbye
 %
-%	Say we are done
+%	Say we are done.  Waits for the user in Windows to allow the
+%	user read messages.
 
-goodbye :-
+setup_goodbye :-
 	current_prolog_flag(windows, true), !,
 	format(user_error, '~N~nReady.  Press any key to exit. ', []),
 	get_single_char(_),
 	format(' Goodbye!~n'),
 	halt.
-goodbye :-
+setup_goodbye :-
 	halt.
 
 
@@ -372,5 +328,15 @@ to_dot_dot([], Tail, Tail).
 to_dot_dot([_], Tail, Tail) :- !.
 to_dot_dot([_|T0], ['..'|T], Tail) :-
         to_dot_dot(T0, T, Tail).
+
+:- endif.
+
+:- if(\+current_predicate(directory_file_path/3)).
+
+directory_file_path(Dir, File, Path) :-
+	(   sub_atom(Dir, _, _, 0, /)
+	->  atom_concat(Dir, File, Path)
+	;   atomic_list_concat([Dir, /, File], Path)
+	).
 
 :- endif.
