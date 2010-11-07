@@ -37,6 +37,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(uri)).
+:- use_module(library(lists)).
 :- use_module(library(git)).
 :- use_module(library(setup)).
 :- use_module(library(conf_d)).
@@ -54,9 +55,9 @@
 
 cpack_discover :-
 	load_cpack_schema,
-	cpack_files(rdf(cpack), Files),
-	forall(member(Pack, Files),
-	       rdf_load(Pack, [format(turtle)])).
+	forall(cpack_files(rdf(cpack), Files),
+	       forall(member(Pack, Files),
+		      rdf_load(Pack))).
 
 %%	cpack_install(+Name) is det.
 %
@@ -159,10 +160,19 @@ load_cpack_schema :-
 
 cpack_files(Spec, Files) :-
 	absolute_file_name(Spec, Dir,
-			   [ file_type(directory)
+			   [ file_type(directory),
+			     solutions(all)
 			   ]),
-	directory_file_path(Dir, '*.cpack', Pattern),
-	expand_file_name(Pattern, Files).
+	directory_file_path(Dir, '*.*', Pattern), % must have some extension
+	expand_file_name(Pattern, AllFiles),
+	include(rdf_file, AllFiles, Files).
+
+rdf_file(File) :-
+	file_name_extension(_, Ext, File),
+	rdf_extension(Ext).
+
+rdf_extension(rdf).
+rdf_extension(ttl).
 
 %%	cpack_install_dir(+Package, -Dir)
 %
