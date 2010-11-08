@@ -32,6 +32,7 @@
 	  [ cpack_discover/0,
 	    cpack_package/2,		% +Name, -Resource
 	    cpack_install/1,		% +Name
+	    cpack_configure/1,		% +Name
 	    cpack_add_dir/2,		% +ConfigEnabled, +Directory
 	    cpack_create/2		% +Name, +Options
 	  ]).
@@ -73,6 +74,21 @@ cpack_install(Name) :-
 	->  cpack_install_package(Package)
 	;   throw(error(ambiguity_error(Name, cpack, Packages),_))
 	).
+
+
+%%	cpack_configure(+Name) is det.
+%
+%	Just configure a package.
+
+cpack_configure(Name) :-
+	cpack_install_dir(Name, Dir, false),  !,
+	exists_directory(Dir),
+	(   conf_d_enabled(ConfigEnabled)
+	->  cpack_add_dir(ConfigEnabled, Dir)
+	;   existence_error(directory, 'config-enabled')
+	).
+cpack_configure(Name) :-
+	existence_error(cpack, Name).
 
 
 %%	cpack_package(+Name, -Package) is nondet.
