@@ -29,6 +29,8 @@
 
 :- module(html_basics,
 	  [ hidden//2,			% +Name, +Value
+	    form_input//2,		% +Label, +Input
+	    form_submit//1,		% +Label
 	    n//2,			% +Format, +Value
 	    nc//2,			% +Format, +Value
 	    nc//3,			% +Format, +Value, +Options
@@ -41,8 +43,15 @@
 :- use_module(library(option)).
 :- use_module(library(occurs)).
 
+:- html_meta
+	form_input(html, html, ?, ?).
+
 /** <module> Simple Small HTML components
 */
+
+		 /*******************************
+		 *	       FORMS		*
+		 *******************************/
 
 %%	hidden(+Name, +Value)// is det.
 %
@@ -53,6 +62,28 @@ hidden(Name, Value) -->
 		     name(Name),
 		     value(Value)
 		   ])).
+
+
+%%	form_input(+Label, +Input)// is det.
+%%	form_submit(+Label)// is det.
+%
+%	Building blocks for HTML forms. The  form itself is a two-column
+%	table of class =form= with labels at  the left and inputs at the
+%	right. These rules create rows for input and submit.
+
+form_input(Label, Input) -->
+	html(tr([ th(class(label), Label),
+		  td(Input)
+		])).
+
+
+form_submit(Label) -->
+	html(tr(class(buttons),
+		[ th([align(right), colspan(2)],
+		     input([ type(submit),
+			     value(Label)
+			   ]))
+		])).
 
 
 		 /*******************************
