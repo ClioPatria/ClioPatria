@@ -16,7 +16,13 @@
 
   * Load unresolved resources through LOD (per graph)
 
+---+++ RDF Management
+
+  * Make it possible for code to demand RDF (from the library)
+  * Make it possible for RDF libraries to depend on other library
+  by `token' (or, at least not by Manifest path).
+
 ---+++ Config
 
-  * Web front end for setup
-  * Reload nicely.
+  * Extend config frontend to deal with CPACK
+
