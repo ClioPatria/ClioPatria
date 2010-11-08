@@ -88,7 +88,7 @@ cpack_package(Name, Package) :-
 %	Install the package from its given URL
 
 cpack_install_package(Package) :-
-	cpack_install_dir(Package, Dir),
+	cpack_install_dir(Package, Dir, false),
 	cpack_download(Package, Dir),
 	(   conf_d_enabled(ConfigEnabled)
 	->  cpack_add_dir(ConfigEnabled, Dir)
@@ -162,7 +162,7 @@ extend_search_path(Out, Pack, Dir) :-
 
 cpack_create(Name, Options) :-
 	option(type(Type), Options, _),
-	cpack_package_dir(Name, Dir),
+	cpack_package_dir(Name, Dir, true),
 	forall(cpack_dir(SubDir, Type),
 	       make_cpack_dir(Dir, SubDir)),
 	git([init], [directory(Dir)]).
@@ -206,17 +206,19 @@ rdf_file(File) :-
 rdf_extension(rdf).
 rdf_extension(ttl).
 
-%%	cpack_install_dir(+Package, -Dir)
+%%	cpack_install_dir(+Package, -Dir, +Create)
 %
 %	Installation directory for Package
 
-cpack_install_dir(Package, Dir) :-
+cpack_install_dir(Package, Dir, Create) :-
 	rdf_has(Package, cpack:name, literal(Name)),
-	cpack_package_dir(Name, Dir).
+	cpack_package_dir(Name, Dir, Create).
 
-cpack_package_dir(Name, Dir) :-
+cpack_package_dir(Name, Dir, Create) :-
 	directory_file_path('cpack', Name, Dir),
-	(   exists_directory(Dir)
+	(   (   Create == false
+	    ;	exists_directory(Dir)
+	    )
 	->  true
 	;   make_directory(Dir)
 	).
