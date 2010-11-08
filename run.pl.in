@@ -32,16 +32,16 @@ file_search_path(cliopatria, '@CLIOPATRIA@').
 
 :- use_module(cliopatria(cliopatria)).
 
+% Load package manager
+
+:- use_module(library(cpack/cpack)).
+
 % Load the remainder of the  configuration. The directory config-enabled
 % can also be used to  load   additional  (plugin)  functionality.
 
 :- use_module(library(conf_d)).
 
 :- load_conf_d([ 'config-enabled' ], []).
-
-% Load package manager
-
-:- use_module(library(cpack/cpack)).
 
 % Get back normal verbosity of the toplevel.
 
