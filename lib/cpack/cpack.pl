@@ -102,7 +102,8 @@ cpack_install_package(Package) :-
 %	@tbd	Branches, trust
 
 cpack_download(_Package, Dir) :-
-	exists_directory(Dir), !,
+	directory_file_path(Dir, '.git', GitRepo),
+	exists_directory(GitRepo), !,
 	git([pull],
 	    [ directory(Dir)
 	    ]).				% Too simplistic
