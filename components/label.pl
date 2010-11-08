@@ -111,7 +111,7 @@ literal_label(Value) -->
 bnode_label(R) -->
 	cliopatria:bnode_label(R), !.
 bnode_label(R) -->
-	{ rdf(R, rdf:value, Value),
+	{ rdf_has(R, rdf:value, Value),
 	  (   Value = literal(_)
 	  ;   \+ rdf_is_bnode(Value)
 	  )
