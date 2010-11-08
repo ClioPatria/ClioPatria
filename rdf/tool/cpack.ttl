@@ -47,6 +47,10 @@ cpack:GitRepository a rdfs:Class ;
 	rdfs:label "GIT Repository" ;
 	rdfs:comment "Repository hosted by GIT" .
 
+cpack:Submitter a rdfs:Class ;
+	rdfs:label "submitter" ;
+	rdfs:comment "Submitter of a CPACK" ;
+	rdfs:subClassOf foaf:Person .
 
 # Properties
 
@@ -86,6 +90,12 @@ cpack:maintainer a owl:ObjectProperty ;
 	rdfs:range foaf:Person ;
 	rdfs:domain cpack:Package .
 
+cpack:submittedBy a owl:ObjectProperty ;
+	rdfs:label "submitted by" ;
+	rdfs:comment "Person that submitted a pack" ;
+	rdfs:range pack:Submitter ;
+	rdfs:domain cpack:Repository .
+
 cpack:primaryRepository a owl:ObjectProperty ;
 	rdfs:label "primary repository" ;
 	rdfs:comment "Main repository for the software" ;
@@ -118,26 +128,44 @@ cpack:conflicts a owl:DatatypeProperty ;
 
 # Repository properties
 
-cpack:branch a rdf:Property ;
+cpack:branch a owl:DatatypeProperty ;
 	rdfs:label "branch" ;
 	rdfs:comment "Branch in the repository" ;
 	rdfs:range <rdfs:Literal> ;
 	rdfs:domain cpack:Repository .
 
-cpack:tag a rdf:Property ;
+cpack:tag a owl:DatatypeProperty ;
 	rdfs:label "tag" ;
 	rdfs:comment "Tag (label) in the repository" ;
 	rdfs:range <rdfs:Literal> ;
 	rdfs:domain cpack:Repository .
 
-cpack:browseURL a rdf:Property ;
+cpack:repoURL a owl:ObjectProperty ;
+	rdfs:label "SCM URL" ;
+	rdfs:comment "URL to download/clone the repository" ;
+	rdfs:subPropertyOf rdf:value ;
+	rdfs:range <rdfs:resource> ;
+	rdfs:domain cpack:Repository .
+
+cpack:gitURL a owl:ObjectProperty ;
+	rdfs:label "GIT URL" ;
+	rdfs:comment "URL to clone the repository using git" ;
+	rdfs:subPropertyOf cpack:repoURL ;
+	rdfs:range <rdfs:resource> ;
+	rdfs:domain cpack:Repository .
+
+cpack:browseURL a owl:ObjectProperty ;
 	rdfs:label "browse repository URL" ;
 	rdfs:comment "URL to examine the repository with a browser" ;
 	rdfs:range <rdfs:resource> ;
 	rdfs:domain cpack:Repository .
 
-cpack:hash a rdf:Property ;
+cpack:hash a owl:DatatypeProperty ;
 	rdfs:label "hash" ;
 	rdfs:comment "World-wide unique identifier of a version" ;
 	rdfs:range <rdfs:Literal> ;
 	rdfs:domain cpack:GitRepository .
+
+# Submitter properties
+
+
