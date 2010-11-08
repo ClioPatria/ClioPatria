@@ -81,7 +81,7 @@ cpack_install(Name) :-
 %	Just configure a package.
 
 cpack_configure(Name) :-
-	cpack_install_dir(Name, Dir, false),  !,
+	cpack_package_dir(Name, Dir, false),  !,
 	exists_directory(Dir),
 	(   conf_d_enabled(ConfigEnabled)
 	->  cpack_add_dir(ConfigEnabled, Dir)
