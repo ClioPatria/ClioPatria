@@ -290,8 +290,12 @@ uprop(Prop, User) :-
 	(   user(User, Properties)
 	->  true
 	;   openid_server(User, OpenID, Server),
-	    openid_server_properties(Server, Properties0)
-	->  Properties = [type(openid),openid(OpenID),openid_server(Server)|Properties0]
+	    openid_server_properties(Server, ServerProperties)
+	->  Properties = [ type(openid),
+			   openid(OpenID),
+			   openid_server(Server)
+			 | ServerProperties
+			 ]
 	),
 	(   nonvar(Prop)
 	->  memberchk(Prop, Properties)
