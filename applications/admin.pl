@@ -329,7 +329,7 @@ edit_user_form(User) -->
 		    [ \hidden(user, User),
 		      table([ class((form))
 			    ],
-			    [ \user_property(User, realname, 'Realname', []),
+			    [ \user_property(User, realname, 'Real name', []),
 			      \permissions(User),
 			      tr(class(buttons),
 				 td([ colspan(2),
