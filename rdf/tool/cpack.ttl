@@ -56,6 +56,7 @@ cpack:Submitter a rdfs:Class ;
 
 cpack:name a owl:InverseFunctionalProperty ;
 	rdfs:subPropertyOf cpack:provides ;
+	rdfs:subPropertyOf rdfs:label ;
 	rdfs:label "name" ;
 	rdfs:comment "Official identifier name of the package" ;
 	rdfs:domain cpack:Package .
