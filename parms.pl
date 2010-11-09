@@ -60,26 +60,27 @@ not be necessary to modify this file:
 	user:file_search_path/2.
 
 % ClioPatria specific ones
-user:file_search_path(rdfql,	    cliopatria(rdfql)).
-user:file_search_path(cpack,	    cliopatria(cpack)).
+user:file_search_path(rdfql,	        cliopatria(rdfql)).
+user:file_search_path(cpack,	        cliopatria(cpack)).
 
 % Package merge
-user:file_search_path(cpacks,	    cliopatria('.')).
+user:file_search_path(cpacks,	        cliopatria('.')).
 
-user:file_search_path(library,	    cpacks(lib)).
-user:file_search_path(rdf,	    cpacks(rdf)).
-user:file_search_path(entailment,   cpacks(entailment)).
-user:file_search_path(components,   cpacks(components)).
-user:file_search_path(applications, cpacks(applications)).
-user:file_search_path(api,	    cpacks(api)).
-user:file_search_path(user,	    cpacks(user)).
-user:file_search_path(web,	    cpacks(web)).
-user:file_search_path(css,	    web(css)).
-user:file_search_path(icons,	    web(icons)).
-user:file_search_path(yui,	    web('yui/2.7.0')).
-user:file_search_path(js,	    web(js)).
-user:file_search_path(html,	    web(html)).
-user:file_search_path(help,	    web(help)).
+user:file_search_path(library,		cpacks(lib)).
+user:file_search_path(rdf,		cpacks(rdf)).
+user:file_search_path(entailment,	cpacks(entailment)).
+user:file_search_path(components,	cpacks(components)).
+user:file_search_path(applications,	cpacks(applications)).
+user:file_search_path(api,		cpacks(api)).
+user:file_search_path(user,		cpacks(user)).
+user:file_search_path(config_available,	cpacks('config-available')).
+user:file_search_path(web,		cpacks(web)).
+user:file_search_path(css,		web(css)).
+user:file_search_path(icons,		web(icons)).
+user:file_search_path(yui,		web('yui/2.7.0')).
+user:file_search_path(js,		web(js)).
+user:file_search_path(html,		web(html)).
+user:file_search_path(help,		web(help)).
 
 
 		 /*******************************
