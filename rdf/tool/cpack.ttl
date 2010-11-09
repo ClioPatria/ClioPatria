@@ -39,6 +39,11 @@ cpack:Library a rdfs:Class ;
 	rdfs:subClassOf cpack:Package ;
 	rdfs:comment "A library returns results as Prolog terms" .
 
+cpack:Ontology a rdfs:Class ;
+	rdfs:label "RDF/OWL schema" ;
+	rdfs:subClassOf cpack:Package ;
+	rdfs:comment "Set of RDF/OWL files, often with Prolog prefixex" .
+
 cpack:Repository a rdfs:Class ;
 	rdfs:label "Software repository" .
 
