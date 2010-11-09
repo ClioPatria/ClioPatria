@@ -113,11 +113,26 @@ cpack:submittedDate a owl:DatatypeProperty ;
 	rdfs:range xsd:dateTime ;
 	rdfs:domain cpack:Package .
 
-cpack:primaryRepository a owl:ObjectProperty ;
-	rdfs:label "primary repository" ;
-	rdfs:comment "Main repository for the software" ;
+cpack:repository a owl:ObjectProperty ;
+	rdfs:label "repository" ;
+	rdfs:comment "Reposigtory where software can be found" ;
 	rdfs:range cpack:Repository ;
 	rdfs:domain cpack:Package .
+
+cpack:primaryRepository a owl:ObjectProperty ;
+	rdfs:subPropertyOf cpack:repository ;
+	rdfs:label "primary repository" ;
+	rdfs:comment "Main repository for the software" .
+
+cpack:clonedRepository a owl:ObjectProperty ;
+	rdfs:subPropertyOf cpack:repository ;
+	rdfs:label "cloned repository" ;
+	rdfs:comment "Repository from which we cloned" .
+
+cpack:mirrorRepository a owl:ObjectProperty ;
+	rdfs:subPropertyOf cpack:repository ;
+	rdfs:label "mirror repository" ;
+	rdfs:comment "Our mirror of the repository" .
 
 # Dependency relations are based on `tokens', which by default are
 # package-names.  What we still need are versions.  Versions are
