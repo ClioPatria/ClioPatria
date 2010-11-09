@@ -1,6 +1,7 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .
 @prefix cpack: <http://www.swi-prolog.org/cliopatria/cpack#> .
 
@@ -46,6 +47,10 @@ cpack:Ontology a rdfs:Class ;
 
 cpack:Repository a rdfs:Class ;
 	rdfs:label "Software repository" .
+
+cpack:File a rdfs:Class ;
+	rdfs:label "file" ;
+	rdfs:comment "File in a package" .
 
 cpack:GitRepository a rdfs:Class ;
 	rdfs:subClassOf cpack:Repository ;
@@ -100,7 +105,13 @@ cpack:submittedBy a owl:ObjectProperty ;
 	rdfs:label "submitted by" ;
 	rdfs:comment "Person that submitted a pack" ;
 	rdfs:range cpack:Submitter ;
-	rdfs:domain cpack:Repository .
+	rdfs:domain cpack:Package .
+
+cpack:submittedDate a owl:DatatypeProperty ;
+	rdfs:label "submitted at" ;
+	rdfs:comment "Data of submission" ;
+	rdfs:range xsd:dateTime ;
+	rdfs:domain cpack:Package .
 
 cpack:primaryRepository a owl:ObjectProperty ;
 	rdfs:label "primary repository" ;
@@ -174,4 +185,15 @@ cpack:hash a owl:DatatypeProperty ;
 
 # Submitter properties
 
+cpack:inPack a owl:ObjectProperty ;
+	rdfs:label "in pack" ;
+	rdfs:comment "Places a file inside a package" ;
+	rdfs:range cpack:Package ;
+	rdfs:domain cpack:File .
+
+cpack:path a owl:DatatypeProperty ;
+	rdfs:label "path" ;
+	rdfs:comment "Full path of a file in a package" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
 
