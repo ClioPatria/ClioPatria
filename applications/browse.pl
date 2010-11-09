@@ -941,14 +941,20 @@ list_resource(Request) :-
 			  graph(Graph,
 				[ optional(true),
 				  description('Limit to properties from graph')
-				])
+				]),
+			  raw(Raw,
+			      [ default(false),
+				boolean,
+				description('If true, omit application hook')
+			      ])
 			]),
 	label_of(URI, Label),
 	reply_html_page(cliopatria(default),
 			title('Resource ~w'-[Label]),
 			\list_resource(URI,
 				       [ graph(Graph),
-					 sorted(Sorted)
+					 sorted(Sorted),
+					 raw(Raw)
 				       ])).
 
 %%	list_resource(+URI, +Options)// is det.
@@ -966,6 +972,9 @@ list_resource(Request) :-
 %	@see	list_resource/1 is the corresponding HTTP handler.  The
 %		component rdf_link//1 creates a link to list_resource/1.
 
+list_resource(URI, Options) -->
+	{ \+ option(raw(true), Options) },
+	cliopatria:list_resource(URI), !.
 list_resource(URI, Options) -->
 	{ option(graph(Graph), Options, _),
 	  option(sorted(Sorted), Options, default)
