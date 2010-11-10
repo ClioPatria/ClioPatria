@@ -131,6 +131,8 @@ cpack_download(Package, Dir) :-
 %%	cpack_add_dir(+ConfigEnable, +PackageDir)
 %
 %	Install package located in directory PackageDir.
+%
+%	@tbd	Register version-tracking with register_git_module/3.
 
 cpack_add_dir(ConfigEnable, Dir) :-
 	directory_file_path(ConfigEnable, '010-packs.pl', PacksFile),
