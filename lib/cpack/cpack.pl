@@ -44,10 +44,14 @@
 :- use_module(library(setup)).
 :- use_module(library(conf_d)).
 :- use_module(library(filesex)).
+:- use_module(library(settings)).
 
 /** <module> The ClioPatria package manager
 
 */
+
+:- setting(cpack:package_directory, atom, cpack,
+	   'Directory where packages are downloaded').
 
 :- rdf_register_ns(cpack, 'http://www.swi-prolog.org/cliopatria/cpack#').
 
@@ -234,7 +238,8 @@ cpack_install_dir(Package, Dir, Create) :-
 	cpack_package_dir(Name, Dir, Create).
 
 cpack_package_dir(Name, Dir, Create) :-
-	directory_file_path('cpack', Name, Dir),
+	setting(cpack:package_directory, PackageDir),
+	directory_file_path(PackageDir, Name, Dir),
 	(   (   Create == false
 	    ;	exists_directory(Dir)
 	    )

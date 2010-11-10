@@ -52,6 +52,11 @@ cpack:File a rdfs:Class ;
 	rdfs:label "file" ;
 	rdfs:comment "File in a package" .
 
+cpack:PrologFile a rdfs:Class ;
+	rdfs:subClassOf cpack:File ;
+	rdfs:label "Prolog file" ;
+	rdfs:comment "Prolog source file" .
+
 cpack:GitRepository a rdfs:Class ;
 	rdfs:subClassOf cpack:Repository ;
 	rdfs:label "GIT Repository" ;
@@ -205,7 +210,7 @@ cpack:hash a owl:DatatypeProperty ;
 	rdfs:range <rdfs:Literal> ;
 	rdfs:domain cpack:GitRepository .
 
-# Submitter properties
+# File properties
 
 cpack:inPack a owl:ObjectProperty ;
 	rdfs:label "in pack" ;
@@ -216,6 +221,45 @@ cpack:inPack a owl:ObjectProperty ;
 cpack:path a owl:DatatypeProperty ;
 	rdfs:label "path" ;
 	rdfs:comment "Full path of a file in a package" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:module a owl:DatatypeProperty ;
+	rdfs:label "Prolog module" ;
+	rdfs:comment "Prolog module defined in the file" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:exportsPredicate a owl:DatatypeProperty ;
+	rdfs:label "exported predicate" ;
+	rdfs:comment "Predicate indicator of exported predicate" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:usesFile a owl:DatatypeProperty ;
+	rdfs:label "uses file" ;
+	rdfs:comment "Reference to a file used by this file" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:usesSystemFile a owl:DatatypeProperty ;
+	rdfs:subPropertyOf cpack:usesFile ;
+	rdfs:label "uses prolog file" ;
+	rdfs:comment "Reference to a used Prolog system file" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:usesClioPatriaFile a owl:DatatypeProperty ;
+	rdfs:subPropertyOf cpack:usesFile ;
+	rdfs:label "uses prolog file" ;
+	rdfs:comment "Reference to a used ClioPatria file" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:usesPackageFile a owl:DatatypeProperty ;
+	rdfs:subPropertyOf cpack:usesFile ;
+	rdfs:label "uses package file" ;
+	rdfs:comment "Reference to a used file from a package" ;
 	rdfs:range rdfs:Literal ;
 	rdfs:domain cpack:File .
 
