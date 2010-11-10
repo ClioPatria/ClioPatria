@@ -62,11 +62,18 @@ cpack:Submitter a rdfs:Class ;
 	rdfs:comment "Submitter of a CPACK" ;
 	rdfs:subClassOf foaf:Person .
 
-# Properties
+# General properties
 
 cpack:name a owl:InverseFunctionalProperty ;
-	rdfs:subPropertyOf cpack:provides ;
 	rdfs:subPropertyOf rdfs:label ;
+	rdfs:label "name" ;
+	rdfs:comment "Name of a package or file" .
+
+# Package properties
+
+cpack:packageName a owl:InverseFunctionalProperty ;
+	rdfs:subPropertyOf cpack:provides ;
+	rdfs:subPropertyOf cpack:name ;
 	rdfs:label "name" ;
 	rdfs:comment "Official identifier name of the package" ;
 	rdfs:domain cpack:Package .
