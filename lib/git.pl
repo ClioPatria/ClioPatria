@@ -31,6 +31,7 @@
 :- module(git,
 	  [ git/2,			% +Argv, +Options
 	    git_process_output/3,	% +Argv, :OnOutput, +Options
+	    git_open_file/4,		% +Dir, +File, +Branch, -Stream
 	    git_tags_on_branch/3	% +Dir, +Branch, -Tags
 	  ]).
 :- use_module(library(process)).
@@ -113,6 +114,22 @@ git_process_output(Argv, OnOutput, Options) :-
 	->  true
 	;   throw(error(process_error(git, Status)))
 	).
+
+
+%%	git_open_file(+GitRepoDir, +File, +Branch, -Stream) is det.
+%
+%	Open the file File in the given bare GIT repository on the given
+%	branch (treeisch).
+%
+%	@bug	We cannot tell whether opening failed for some reason.
+
+git_open_file(Dir, File, Branch, In) :-
+	atomic_list_concat([Branch, :, File], Ref),
+	process_create(path(git),
+		       [ show, Ref ],
+		       [ stdout(pipe(In)),
+			 cwd(Dir)
+		       ]).
 
 
 %%	git_tags_on_branch(+Dir, +Branch, -Tags) is det.
