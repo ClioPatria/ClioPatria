@@ -269,3 +269,12 @@ cpack:usesPackageFile a owl:DatatypeProperty ;
 	rdfs:range rdfs:Literal ;
 	rdfs:domain cpack:File .
 
+# Properties for class Submitter
+
+cpack:submitted a owl:ObjectProperty ;
+	rdfs:label "submitted" ;
+	owl:inverseOf cpack:submittedBy ;
+	rdfs:comment "submitted package" ;
+	rdfs:domain cpack:Submitter ;
+	rdfs:range cpack:Package .
+
