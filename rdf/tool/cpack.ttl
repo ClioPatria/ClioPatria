@@ -236,6 +236,12 @@ cpack:exportsPredicate a owl:DatatypeProperty ;
 	rdfs:range rdfs:Literal ;
 	rdfs:domain cpack:File .
 
+cpack:requiresPredicate a owl:DatatypeProperty ;
+	rdfs:label "requires predicate" ;
+	rdfs:comment "Predicate indicator of non-local predicate" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
 cpack:usesFile a owl:DatatypeProperty ;
 	rdfs:label "uses file" ;
 	rdfs:comment "Reference to a file used by this file" ;
