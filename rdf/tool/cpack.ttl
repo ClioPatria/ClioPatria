@@ -48,6 +48,10 @@ cpack:Ontology a rdfs:Class ;
 cpack:Repository a rdfs:Class ;
 	rdfs:label "Software repository" .
 
+cpack:FileRef a rdfs:Class ;
+	rdfs:label "file reference" ;
+	rdfs:comment "Symbolic file reference as found in Prolog source files" .
+
 cpack:File a rdfs:Class ;
 	rdfs:label "file" ;
 	rdfs:comment "File in a package" .
@@ -224,10 +228,24 @@ cpack:path a owl:DatatypeProperty ;
 	rdfs:range rdfs:Literal ;
 	rdfs:domain cpack:File .
 
+cpack:base a owl:DatatypeProperty ;
+	rdfs:label "base" ;
+	rdfs:comment "Name of the file without path or extension" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain [ a owl:Class ;
+		      owl:unionOf ( cpack:File cpack:FileRef )
+		    ] .
+
 cpack:module a owl:DatatypeProperty ;
 	rdfs:label "Prolog module" ;
 	rdfs:comment "Prolog module defined in the file" ;
 	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:resolves a owl:ObjectProperty ;
+	rdfs:label "resolves" ;
+	rdfs:comment "File can be located through FileRef" ;
+	rdfs:range cpack:FileRef ;
 	rdfs:domain cpack:File .
 
 cpack:exportsPredicate a owl:DatatypeProperty ;
@@ -242,10 +260,14 @@ cpack:requiresPredicate a owl:DatatypeProperty ;
 	rdfs:range rdfs:Literal ;
 	rdfs:domain cpack:File .
 
-cpack:usesFile a owl:DatatypeProperty ;
+cpack:usesFile a owl:ObjectProperty ;
 	rdfs:label "uses file" ;
 	rdfs:comment "Reference to a file used by this file" ;
-	rdfs:range rdfs:Literal ;
+	rdfs:range [ a owl:Class ;
+		     owl:unionOf ( cpack:FileRef
+				   cpack:File
+				 )
+		   ] ;
 	rdfs:domain cpack:File .
 
 cpack:usesSystemFile a owl:DatatypeProperty ;
@@ -268,6 +290,15 @@ cpack:usesPackageFile a owl:DatatypeProperty ;
 	rdfs:comment "Reference to a used file from a package" ;
 	rdfs:range rdfs:Literal ;
 	rdfs:domain cpack:File .
+
+# Properties for class FileRef
+
+cpack:resolvesAs a owl:ObjectProperty ;
+	rdfs:label "resolves as" ;
+	owl:inverseOf cpack:resolves ;
+	rdfs:comment "FileRef can be resolved by the given File" ;
+	rdfs:domain cpack:FileRef ;
+	rdfs:range cpack:File .
 
 # Properties for class Submitter
 
