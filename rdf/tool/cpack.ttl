@@ -1,9 +1,10 @@
-@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
-@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
-@prefix cpack: <http://www.swi-prolog.org/cliopatria/cpack#> .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf:     <http://xmlns.com/foaf/0.1/> .
+@prefix cpack:    <http://www.swi-prolog.org/cliopatria/cpack#> .
+@prefix graphviz: <http://www.graphviz.org/> .
 
 # Define packages and their dependencies
 #
@@ -13,7 +14,10 @@
 
 cpack:Package a rdfs:Class ;
 	rdfs:label "package" ;
-	rdfs:comment "A ClioPatria installable package" .
+	rdfs:comment "A ClioPatria installable package" ;
+	graphviz:style "filled" ;
+	graphviz:fillcolor "#6ad476" ;
+	graphviz:shape "box3d" .
 
 cpack:Application a rdfs:Class ;
 	rdfs:label "application" ;
@@ -173,6 +177,13 @@ cpack:conflicts a owl:DatatypeProperty ;
 	rdfs:label "conflicts" ;
 	rdfs:comment "Cannot work together with token" ;
 	rdfs:domain cpack:Package .
+
+cpack:requiresPackage a owl:ObjectProperty ;
+	rdfs:label "requires" ;
+	rdfs:comment "Inferred package dependency" ;
+	rdfs:range cpack:Package ;
+	rdfs:domain cpack:Package .
+
 
 # Repository properties
 
