@@ -8,7 +8,6 @@
 @prefix	dctypes: <http://purl.org/dc/dcmitype/> .
 @prefix	   dcam: <http://purl.org/dc/dcam/> .
 @prefix	    eor: <http://dublincore.org/2000/03/13/eor#> .
-@prefix	   foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix	   skos: <http://www.w3.org/2004/02/skos/core#> .
 
 :rdfs
@@ -154,15 +153,6 @@
 	lib:source skos: ;
 	owl:imports <skos.rdf>, <dcterms>, <owl> ;
 	lib:providesNamespace :skos .
-
-<foaf>
-	a lib:Schema ;
-	a lib:Virtual ;
-	dcterms:title "Friend of a Friend (FOAF) vocabulary" ;
-	lib:source <http://xmlns.com/foaf/spec/index.rdf> ;
-	lib:usesNamespace :owl ;
-	owl:imports
-		<foaf.owl>, <owl> .
 
 <vra>
 	a lib:Schema ;
