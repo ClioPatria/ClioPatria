@@ -75,7 +75,10 @@ git(Argv, Options) :-
 			   )),
 	print_error(ErrorCodes, Options),
 	print_output(OutCodes, Options),
-	Status = exit(0).
+	(   Status == exit(0)
+	->  true
+	;   throw(error(process_error(git(Argv), Status), _))
+	).
 
 print_output(OutCodes, Options) :-
 	option(output(Codes), Options), !,

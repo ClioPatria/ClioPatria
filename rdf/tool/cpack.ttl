@@ -75,12 +75,21 @@ cpack:Submitter a rdfs:Class ;
 	rdfs:comment "Submitter of a CPACK" ;
 	rdfs:subClassOf foaf:Person .
 
+cpack:Profile a rdfs:Class ;
+	rdfs:label "profile" ;
+	rdfs:comment "Profile for installing and creating CPACKs" .
+
 # General properties
 
 cpack:name a owl:InverseFunctionalProperty ;
 	rdfs:subPropertyOf rdfs:label ;
 	rdfs:label "name" ;
-	rdfs:comment "Name of a package or file" .
+	rdfs:comment "Name of a package or file" ;
+	rdfs:domain [ a owl:Class ;
+		      owl:unionOf ( cpack:File
+				    cpack:Profile
+				  )
+		    ] .
 
 # Package properties
 
@@ -319,4 +328,35 @@ cpack:submitted a owl:ObjectProperty ;
 	rdfs:comment "submitted package" ;
 	rdfs:domain cpack:Submitter ;
 	rdfs:range cpack:Package .
+
+# Properties for class Profile
+
+cpack:URLTemplate a owl:DatatypeProperty ;
+	rdfs:label "URL template" ;
+	rdfs:comment """Template URL holding a @VAR@ string""" .
+
+cpack:fetchRepositoryTemplate a owl:DatatypeProperty ;
+	rdfs:label "fetch repository template" ;
+	rdfs:subPropertyOf cpack:URLTemplate ;
+	rdfs:comment """This template is used to setup the default primary
+			repository of a package.  The string @CPACK@ is
+			replaced by the name of the package being created""" ;
+	rdfs:domain cpack:Profile .
+
+cpack:pushRepositoryTemplate a owl:DatatypeProperty ;
+	rdfs:label "push repository template" ;
+	rdfs:comment """This template is used to setup an origin for a
+			created pack""" ;
+	rdfs:domain cpack:Profile .
+
+cpack:servers a owl:ObjectProperty ;
+	rdfs:label "servers" ;
+	rdfs:comment "List of servers from which to fetch packages" ;
+	rdfs:domain cpack:Profile .
+
+cpack:defaultAuthor a owl:ObjectProperty ;
+	rdfs:label "author" ;
+	rdfs:comment "Default author for new packages" ;
+	rdfs:range foaf:Person ;
+	rdfs:domain cpack:Profile .
 

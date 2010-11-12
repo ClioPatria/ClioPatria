@@ -11,20 +11,20 @@
 # this.  Otherwise you can specify the information inline as done below.
 # See http://xmlns.com/foaf/spec/ for defines fields.
 
-<> a cpack:Ontology ;
+<> a @PKGCLASS@ ;
 	cpack:packageName "@NAME@" ;
 	dcterms:title "@TITLE@" ;
 	cpack:author [ a foaf:Person ;
-		       foaf:name "@AUTHOR@" ;
-		       foaf:mbox "@AUTHORMAIL@ ;
+		       foaf:name "@FOAFNAME@" ;
+		       foaf:mbox "@FOAFMBOX@ ;
 		     ] ;
 	cpack:primaryRepository
 	    [ a cpack:GitRepository ;
-	      cpack:gitURL <@GITPREFIX@@NAME@.git>
+	      cpack:gitURL <@FETCHREPOSITORY@>
 	    ] ;
 	cpack:description
 
-"""<Describe the package here>
+"""The package description goes here.  You can use PlDoc Wiki markup.
 """ .
 
 
