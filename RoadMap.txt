@@ -38,10 +38,6 @@ from the top-left menu.
     included triples entailed by reasoning.  The various entailment
     modules provide a different amount of reasoning.
 
-    $ examples :
-    Example files that use or extend ClioPatria. Notably config-available
-    provides template configuration files.
-
     $ lib :
     Reusable code which we envision might become part of the SWI-Prolog
     libraries.  This directory is made available through the alias
