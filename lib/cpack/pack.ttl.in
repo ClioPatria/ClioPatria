@@ -16,7 +16,7 @@
 	dcterms:title "@TITLE@" ;
 	cpack:author [ a foaf:Person ;
 		       foaf:name "@FOAFNAME@" ;
-		       foaf:mbox "@FOAFMBOX@ ;
+		       foaf:mbox "@FOAFMBOX@" ;
 		     ] ;
 	cpack:primaryRepository
 	    [ a cpack:GitRepository ;
