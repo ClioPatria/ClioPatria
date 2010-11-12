@@ -60,6 +60,10 @@ from the top-left menu.
     Implementation for RDF query languages: SPARQL and SeRQL. The
     provided functionality is typically only used through the HTTP-API.
 
+    $ skin :
+    Defined skins.  Notable skins/cliopatria.pl defines the (hookable)
+    overall ClioPatria page-layout.
+
     $ test :
     Test-framework, notably to verify SPARQL compliance.
 
@@ -89,9 +93,6 @@ from the top-left menu.
     Localization script to create <file> from <file>.in.  Used to create
     run.pl from run.pl.in.  Can be used to localise your new application
     startup.
-
-    $ skin.pl :
-    Defines the overall page-layout for ClioPatria development pages.
 
 ---++ Other toplevel files
 

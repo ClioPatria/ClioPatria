@@ -54,6 +54,7 @@
 	   'Directory where packages are downloaded').
 
 :- rdf_register_ns(cpack, 'http://www.swi-prolog.org/cliopatria/cpack#').
+:- rdf_register_ns(foaf,  'http://xmlns.com/foaf/0.1/').
 
 %%	cpack_discover is det.
 %

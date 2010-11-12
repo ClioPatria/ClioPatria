@@ -38,7 +38,7 @@
 :- include(library(pldoc/hooks)).
 
 :- use_module(cliopatria(parms)).	% Get paths
-:- use_module(cliopatria(skin)).	% Skinning primitives
+:- use_module(skin(cliopatria)).	% Skinning primitives
 :- use_module(wiki).			% Our own help-pages
 :- use_module(http_help).		% Help on HTTP server
 :- use_module(ac_predicate).		% Predicate autocompletion

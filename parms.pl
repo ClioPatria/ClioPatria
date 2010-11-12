@@ -74,6 +74,7 @@ user:file_search_path(applications,	cpacks(applications)).
 user:file_search_path(api,		cpacks(api)).
 user:file_search_path(user,		cpacks(user)).
 user:file_search_path(config_available,	cpacks('config-available')).
+user:file_search_path(skin,		cpacks(skin)).
 user:file_search_path(web,		cpacks(web)).
 user:file_search_path(css,		web(css)).
 user:file_search_path(icons,		web(icons)).
