@@ -1,0 +1,30 @@
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix cpack:   <http://www.swi-prolog.org/cliopatria/cpack#> .
+
+# This file is a Turtle-format RDF file that describes the package.  It
+# *must* be located in rdf/cpack/@NAME@.ttl
+#
+# Author is a FOAF Person. If you have a FOAF profile, you can link to
+# this.  Otherwise you can specify the information inline as done below.
+# See http://xmlns.com/foaf/spec/ for defines fields.
+
+<> a cpack:Ontology ;
+	cpack:packageName "@NAME@" ;
+	dcterms:title "@TITLE@" ;
+	cpack:author [ a foaf:Person ;
+		       foaf:name "@AUTHOR@" ;
+		       foaf:mbox "@AUTHORMAIL@ ;
+		     ] ;
+	cpack:primaryRepository
+	    [ a cpack:GitRepository ;
+	      cpack:gitURL <@GITPREFIX@@NAME@.git>
+	    ] ;
+	cpack:description
+
+"""<Describe the package here>
+""" .
+
+

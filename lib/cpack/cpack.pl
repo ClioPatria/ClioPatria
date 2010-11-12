@@ -181,22 +181,50 @@ extend_search_path(Out, Pack, Dir) :-
 
 %%	cpack_create(+Name, +Options) is det.
 %
-%	Create a new package.
+%	Create a new package.  Options include
+%
+%	  * type(Type)
+%	  Type of application (currenrly ignored)
+%	  * title(Title)
+%	  * author(Author)
+%	  * authoremail(Email)
 
 cpack_create(Name, Options) :-
 	option(type(Type), Options, _),
 	cpack_package_dir(Name, Dir, true),
 	forall(cpack_dir(SubDir, Type),
 	       make_cpack_dir(Dir, SubDir)),
-	git([init], [directory(Dir)]).
+	forall(cpack_template(In, Out),
+	       install_template_file(In, Out, [name(Name)|Options])),
+	git([init], [directory(Dir)]),
+	git([add, '.'], [directory(Dir)]),
+	git([commit, '-m', 'Installed template'], [directory(Dir)]),
+	git([tag, epoch], [directory(Dir)]).
 
 make_cpack_dir(Dir, SubDir) :-
 	directory_file_path(Dir, SubDir, New),
 	make_directory_path(New),
 	print_message(informational, cpack(create_directory(New))).
 
+install_template_file(In, Out, Vars) :-
+	option(name(Name), Vars),
+	absolute_file_name(In, InFile, [access(read)]),
+	substitute(Out, '@NAME@', Name, OutFile),
+	cpack_package_dir(Name, Dir, true),
+	directory_file_path(Dir, OutFile, OutPath),
+	copy_file_with_vars(InFile, OutPath, Vars),
+	print_message(informational, cpack(installed_template(OutFile))).
+
+substitute(In, From, To, Out) :-
+	sub_atom(In, B, _, A, From), !,
+	sub_atom(In, 0, B, _, Start),
+	sub_atom(In, _, A, 0, End),
+	atomic_list_concat([Start, To, End], Out).
+substitute(In, _, _, In).
+
 cpack_dir(rdf, _).
 cpack_dir('rdf/cpack', _).
+cpack_dir('config-available', _).
 cpack_dir('applications', code).
 cpack_dir('components', code).
 cpack_dir('lib', code).
@@ -204,6 +232,13 @@ cpack_dir('web', web).
 cpack_dir('web/js', web).
 cpack_dir('web/css', web).
 cpack_dir('web/html', web).
+
+cpack_template(library('cpack/config-available.pl.in'),
+	       'config-available/@NAME@.pl').
+cpack_template(library('cpack/DEFAULTS.in'),
+	       'config-available/DEFAULTS').
+cpack_template(library('cpack/pack.ttl.in'),
+	       'rdf/cpack/@NAME@.ttl').
 
 
 		 /*******************************
@@ -251,6 +286,8 @@ cpack_package_dir(Name, Dir, Create) :-
 
 prolog:message(cpack(create_directory(New))) -->
 	[ 'Created directory ~w'-[New] ].
+prolog:message(cpack(installed_template(File))) -->
+	[ 'Installed template ~w'-[File] ].
 
 :- if(\+current_predicate(directory_file_path/3)).
 

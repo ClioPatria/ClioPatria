@@ -32,7 +32,8 @@
 	  [ setup_scripts/2,		% +SrcDir, +DestDir
 	    setup_default_config/3,	% +SrcDir, +DestDir, +Options
 	    setup_prolog_executable/1,	% -Exec for #!
-	    setup_goodbye/0
+	    setup_goodbye/0,
+	    copy_file_with_vars/3	% +In, +Out, +Vars
 	  ]).
 :- use_module(library(apply)).
 :- if(exists_source(library(filesex))).
@@ -267,10 +268,12 @@ destination_file(Dest, _, Dest).
 %%	copy_stream_with_vars(+In:stream, +Out:stream,
 %%			      +Bindings:list(Var=Name)) is det.
 %
-%	Copy all data from In to Out, while replacing =|@var@|=
-%	with a binding from Bindings.
+%	Copy all data from In to Out,   while replacing =|@var@|= with a
+%	binding from Bindings. In addition, =|!var!|= is replaced with a
+%	Prolog-quoted version of the variable content.
 %
-%	@param Bindings	List of Var=Name
+%	@param Bindings	List of Var=Name or Var(Name).  If exact case
+%	match fails, the match is retried with the lowercase name.
 
 copy_stream_with_vars(In, Out, []) :- !,
 	copy_stream_data(In, Out).
@@ -280,27 +283,46 @@ copy_stream_with_vars(In, Out, Bindings) :-
 
 copy_with_vars(-1, _, _, _) :- !.
 copy_with_vars(0'@, In, Out, Bindings) :- !,
-	get_code(In, C0),
-	read_var_name(C0, In, VarNameS, C1),
-	atom_codes(VarName, VarNameS),
-	(   C1 == 0'@,
-	    memberchk(VarName=Value, Bindings)
-	->  write(Out, Value),
-	    get_code(In, C2)
-	;   format(Out, '@~w', [VarName]),
-	    C2 = C1
-	),
+	insert_var(0'@, C2, In, Out, Bindings),
+	copy_with_vars(C2, In, Out, Bindings).
+copy_with_vars(0'!, In, Out, Bindings) :- !,
+	insert_var(0'!, C2, In, Out, Bindings),
 	copy_with_vars(C2, In, Out, Bindings).
 copy_with_vars(C0, In, Out, Bindings) :-
 	put_code(Out, C0),
 	get_code(In, C1),
 	copy_with_vars(C1, In, Out, Bindings).
 
+insert_var(Mark, C2, In, Out, Bindings) :-
+	get_code(In, C0),
+	read_var_name(C0, In, VarNameS, C1),
+	atom_codes(VarName, VarNameS),
+	(   C1 == Mark,
+	    var_value(VarName, Value, Bindings)
+	->  (   Mark == 0'@
+	    ->  format(Out, '~w', [Value])
+	    ;   format(Out, '~q', [Value])
+	    ),
+	    get_code(In, C2)
+	;   format(Out, '@~w', [VarName]),
+	    C2 = C1
+	).
+
 read_var_name(C0, In, [C0|T], End) :-
 	code_type(C0, alpha), !,
 	get_code(In, C1),
 	read_var_name(C1, In, T, End).
 read_var_name(C0, _In, [], C0).
+
+var_value(Name, Value, Vars) :-
+	memberchk(Name=Value, Vars), !.
+var_value(Name, Value, Vars) :-
+	Term =.. [Name,Value],
+	memberchk(Term, Vars), !.
+var_value(Name, Value, Vars) :-
+	downcase_atom(Name, Lwr),
+	Lwr \== Name,
+	var_value(Lwr, Value, Vars).
 
 
 		 /*******************************
