@@ -321,11 +321,14 @@ substitute(In, From, To, Out) :-
 	atomic_list_concat([Start, To, End], Out).
 substitute(In, _, _, In).
 
-cpack_dir(rdf, _).
+cpack_dir('rdf', _).
 cpack_dir('rdf/cpack', _).
 cpack_dir('config-available', _).
+cpack_dir('entailment', _).
 cpack_dir('applications', _).
+cpack_dir('api', _).
 cpack_dir('components', _).
+cpack_dir('skin', _).
 cpack_dir('lib', _).
 cpack_dir('web', _).
 cpack_dir('web/js', _).
