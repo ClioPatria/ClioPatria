@@ -65,6 +65,16 @@ cpack:PrologFile a rdfs:Class ;
 	rdfs:label "Prolog file" ;
 	rdfs:comment "Prolog source file" .
 
+cpack:SystemFile a rdfs:Class ;
+	rdfs:subClassOf cpack:PrologFile ;
+	rdfs:label "Prolog system file" ;
+	rdfs:comment "Prolog source file from the Prolog system library" .
+
+cpack:ClioPatriaFile a rdfs:Class ;
+	rdfs:subClassOf cpack:PrologFile ;
+	rdfs:label "ClioPatria Prolog file" ;
+	rdfs:comment "Prolog source file from the ClioPatria library" .
+
 cpack:GitRepository a rdfs:Class ;
 	rdfs:subClassOf cpack:Repository ;
 	rdfs:label "GIT Repository" ;
