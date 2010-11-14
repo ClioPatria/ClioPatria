@@ -1114,7 +1114,8 @@ local_view(URI, Graph, Options) -->
 lview_header(Options) -->
 	{ option(sorted(Sorted), Options, default),
 	  alt_sorted(Sorted, Alt),
-	  re_link([sorted(Alt)], HREF)
+	  http_current_request(Request),
+	  http_reload_with_parameters(Request, [sorted(Alt)], HREF)
 	},
 	html(tr([ th('Predicate'),
 		  th(['Value (sorted: ', a(href(HREF), Sorted), ')'])
@@ -1603,26 +1604,6 @@ p_label(predicate_count(G),
 p_label(type_count(G),
       ['# Referenced ', a(href(Link), classes)]) :-
 	http_link_to_id(list_classes, [graph=G], Link).
-
-
-%%	re_link(+NewParams, -HREF) is det.
-%
-%	HREF is a link to the  location   that  is  handling the current
-%	request. NewParams is used to modify  or extend the current list
-%	of parameters.
-
-re_link(NewParams, HREF) :-
-	http_current_request(Request),
-	memberchk(path(Path), Request),
-	(   memberchk(search(Params), Request)
-	->  true
-	;   Params = []
-	),
-	merge_options(NewParams, Params, AllParams),
-	uri_query_components(Search, AllParams),
-	uri_data(path, Data, Path),
-	uri_data(search, Data, Search),
-	uri_components(HREF, Data).
 
 
 		 /*******************************
