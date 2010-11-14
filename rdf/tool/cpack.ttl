@@ -193,6 +193,16 @@ cpack:requiresPackage a owl:ObjectProperty ;
 	rdfs:range cpack:Package ;
 	rdfs:domain cpack:Package .
 
+cpack:requiresPackageByToken a owl:ObjectProperty ;
+	rdfs:subPropertyOf cpack:requiresPackage ;
+	rdfs:label "requires (token)" ;
+	rdfs:comment "Token-based package dependency".
+
+cpack:requiresPackageByFile a owl:ObjectProperty ;
+	rdfs:subPropertyOf cpack:requiresPackage ;
+	rdfs:label "requires (file)" ;
+	rdfs:comment "File import/export based package dependency" .
+
 
 # Repository properties
 
