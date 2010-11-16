@@ -290,7 +290,13 @@ cpack:resolves a owl:ObjectProperty ;
 
 cpack:exportsPredicate a owl:DatatypeProperty ;
 	rdfs:label "exported predicate" ;
-	rdfs:comment "Predicate indicator of exported predicate" ;
+	rdfs:comment "Predicate indicator of an exported predicate" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:publicPredicate a owl:DatatypeProperty ;
+	rdfs:label "public predicate" ;
+	rdfs:comment "Predicate indicator of a public predicate" ;
 	rdfs:range rdfs:Literal ;
 	rdfs:domain cpack:File .
 
