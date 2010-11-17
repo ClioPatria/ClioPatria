@@ -29,15 +29,14 @@
 */
 
 :- module(cpack,
-	  [ cpack_discover/0,
-	    cpack_package/2,		% +Name, -Resource
-	    cpack_install/1,		% +Name
+	  [ cpack_install/1,		% +NameOrURL
 	    cpack_configure/1,		% +Name
 	    cpack_add_dir/2,		% +ConfigEnabled, +Directory
 	    cpack_create/3		% +Name, +Title, +Options
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(http/http_open)).
 :- use_module(library(uri)).
 :- use_module(library(lists)).
 :- use_module(library(git)).
@@ -56,30 +55,59 @@
 :- rdf_register_ns(cpack, 'http://www.swi-prolog.org/cliopatria/cpack#').
 :- rdf_register_ns(foaf,  'http://xmlns.com/foaf/0.1/').
 
-%%	cpack_discover is det.
+%%	cpack_install(+NameOrURL) is det.
 %
-%	Discover cpack packages.  Currently simply loads the library.
+%	Install package by name or URL.
 
-cpack_discover :-
-	load_cpack_schema,
-	forall(cpack_files(rdf(cpack), Files),
-	       forall(member(Pack, Files),
-		      rdf_load(Pack))).
-
-%%	cpack_install(+Name) is det.
-%
-%	Install package by name
-
-cpack_install(Name) :-
-	cpack_discover,
-	findall(Package, cpack_package(Name, Package), Packages),
-	(   Packages == []
+cpack_install(URL) :-
+	uri_is_global(URL), !,
+	setup_call_cleanup(http_open(URL, In, []),
+			   read_stream_to_terms(In, Terms),
+			   close(In)),
+	(   Terms = cpack(Name, Packages)
+	->  length(Packages, Count),
+	    print_message(information, cpack(install(Name, Count))),
+	    maplist(install_package, Packages)
+	;   Terms = no_cpack(Name)
 	->  existence_error(cpack, Name)
-	;   Packages = [Package]
-	->  cpack_install_package(Package)
-	;   throw(error(ambiguity_error(Name, cpack, Packages),_))
+	;   domain_error(cpack_reply, Terms)
 	).
 
+read_stream_to_terms(In, Terms) :-
+	read_term(In, Term0, []),
+	read_stream_to_terms(Term0, In, Terms).
+
+read_stream_to_terms(end_of_file, _, []) :- !.
+read_stream_to_terms(Term, In, [Term|T]) :-
+	read_term(In, Term1, []),
+	read_stream_to_terms(Term1, In, T).
+
+install_package(cpack(Package, Options)) :-
+	option(pack_repository(Repository), Options),
+	cpack_install_dir(Package, Dir, false),
+	cpack_download(Repository, Dir).
+
+%%	cpack_download(Package, Dir)
+%
+%	Download and/or update Package to Dir.
+%
+%	@tbd	Branches, trust
+
+cpack_download(_Package, Dir) :-
+	directory_file_path(Dir, '.git', GitRepo),
+	exists_directory(GitRepo), !,
+	git([pull],
+	    [ directory(Dir)
+	    ]).				% Too simplistic
+cpack_download(git(GitURL, Options), Dir) :-
+	findall(O, git_clone_option(O, Options), OL),
+	append([ [clone, GitURL, Dir]
+	       | OL
+	       ], GitOptions),
+	git(GitOptions, []).
+
+git_clone_option(['-b', Branch], Options) :-
+	option(branch(Branch), Options).
 
 %%	cpack_configure(+Name) is det.
 %
@@ -95,43 +123,6 @@ cpack_configure(Name) :-
 cpack_configure(Name) :-
 	existence_error(cpack, Name).
 
-
-%%	cpack_package(+Name, -Package) is nondet.
-%
-%	True if Package is a ClioPatria package with Name.
-
-cpack_package(Name, Package) :-
-	rdf_has(Package, cpack:name, literal(Name)),
-	rdfs_individual_of(Package, cpack:'Package').
-
-%%	cpack_install(+Package) is det.
-%
-%	Install the package from its given URL
-
-cpack_install_package(Package) :-
-	cpack_install_dir(Package, Dir, false),
-	cpack_download(Package, Dir),
-	(   conf_d_enabled(ConfigEnabled)
-	->  cpack_add_dir(ConfigEnabled, Dir)
-	;   existence_error(directory, 'config-enabled')
-	).
-
-%%	cpack_download(Package, Dir)
-%
-%	Download and/or update Package to Dir.
-%
-%	@tbd	Branches, trust
-
-cpack_download(_Package, Dir) :-
-	directory_file_path(Dir, '.git', GitRepo),
-	exists_directory(GitRepo), !,
-	git([pull],
-	    [ directory(Dir)
-	    ]).				% Too simplistic
-cpack_download(Package, Dir) :-
-	rdf_has(Package, cpack:primaryRepository, Repo),
-	rdf_has(Repo, cpack:repoURL, URL),
-	git([clone, URL, Dir], []).
 
 %%	cpack_add_dir(+ConfigEnable, +PackageDir)
 %
