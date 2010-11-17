@@ -64,11 +64,11 @@ cpack_install(URL) :-
 	setup_call_cleanup(http_open(URL, In, []),
 			   read_stream_to_terms(In, Terms),
 			   close(In)),
-	(   Terms = cpack(Name, Packages)
-	->  length(Packages, Count),
-	    print_message(information, cpack(install(Name, Count))),
-	    maplist(install_package, Packages)
-	;   Terms = no_cpack(Name)
+	(   Terms = [cpack(Name, Packages)]
+	->  print_message(informational, cpack(install(Name, Packages))),
+	    maplist(download_package, Packages),
+	    maplist(configure_package, Packages)
+	;   Terms = [no_cpack(Name)]
 	->  existence_error(cpack, Name)
 	;   domain_error(cpack_reply, Terms)
 	).
@@ -82,10 +82,13 @@ read_stream_to_terms(Term, In, [Term|T]) :-
 	read_term(In, Term1, []),
 	read_stream_to_terms(Term1, In, T).
 
-install_package(cpack(Package, Options)) :-
+download_package(cpack(Package, Options)) :-
 	option(pack_repository(Repository), Options),
-	cpack_install_dir(Package, Dir, false),
+	cpack_package_dir(Package, Dir, false),
 	cpack_download(Repository, Dir).
+
+configure_package(cpack(Package, _Options)) :-
+	cpack_configure(Package).
 
 %%	cpack_download(Package, Dir)
 %
@@ -338,32 +341,9 @@ cpack_template(library('cpack/pack.ttl.in'),
 		 *	       UTIL		*
 		 *******************************/
 
-load_cpack_schema :-
-	rdf_load(rdf('tool/cpack.ttl')).
-
-cpack_files(Spec, Files) :-
-	absolute_file_name(Spec, Dir,
-			   [ file_type(directory),
-			     solutions(all)
-			   ]),
-	directory_file_path(Dir, '*.*', Pattern), % must have some extension
-	expand_file_name(Pattern, AllFiles),
-	include(rdf_file, AllFiles, Files).
-
-rdf_file(File) :-
-	file_name_extension(_, Ext, File),
-	rdf_extension(Ext).
-
-rdf_extension(rdf).
-rdf_extension(ttl).
-
-%%	cpack_install_dir(+Package, -Dir, +Create)
+%%	cpack_package_dir(+PackageName, -Dir, +Create)
 %
 %	Installation directory for Package
-
-cpack_install_dir(Package, Dir, Create) :-
-	rdf_has(Package, cpack:name, literal(Name)),
-	cpack_package_dir(Name, Dir, Create).
 
 cpack_package_dir(Name, Dir, Create) :-
 	setting(cpack:package_directory, PackageDir),
@@ -381,6 +361,18 @@ prolog:message(cpack(create_directory(New))) -->
 	[ 'Created directory ~w'-[New] ].
 prolog:message(cpack(installed_template(File))) -->
 	[ 'Installed template ~w'-[File] ].
+prolog:message(cpack(install(Name, Packages))) -->
+	[ 'Installing package ~w:'-[Name] ],
+	sub_packages(Packages).
+
+sub_packages([]) --> [].
+sub_packages([H|T]) --> sub_package(H), sub_packages(T).
+
+sub_package(cpack(Name, Options)) -->
+	{ option(title(Title), Options) }, !,
+	[ nl, '   ~w -- ~w'-[Name, Title] ].
+sub_package(cpack(Name, _)) -->
+	[ nl, '   ~w -- ~w'-[Name] ].
 
 :- if(\+current_predicate(directory_file_path/3)).
 
