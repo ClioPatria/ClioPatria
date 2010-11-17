@@ -1,8 +1,7 @@
-#!/usr/bin/swipl -q -g setup -s
 :- module(cp_setup,
 	  [ setup/0
 	  ]).
-:- use_module('lib/setup').
+:- load_files('lib/setup', [silent(true)]).
 
 :- multifile
 	user:file_search_path/2.
@@ -11,6 +10,10 @@
 
 :- prolog_load_context(directory, Dir),
    asserta(user:file_search_path(cliopatria, Dir)).
+
+:- initialization
+	set_prolog_flag(verbose, normal),
+	setup.
 
 %%	setup
 %

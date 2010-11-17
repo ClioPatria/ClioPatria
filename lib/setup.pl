@@ -44,7 +44,7 @@
 */
 
 :- multifile
-	setup:substitutions/1.
+	substitutions/1.
 
 %%	setup_scripts(+SrcDir, +DstDir)
 %
@@ -63,11 +63,10 @@
 
 setup_scripts(SrcDir, DstDir) :-
 	substitutions(Vars),
-	format(user_error, 'Localizing scripts from ~w ...', [SrcDir]),
+	print_message(informational, setup(localize_dir(SrcDir))),
 	atom_concat(SrcDir, '/*.in', Pattern),
 	expand_file_name(Pattern, Files),
-	maplist(install_file(Vars, DstDir), Files),
-	format(user_error, ' done~n', []).
+	maplist(install_file(Vars, DstDir), Files).
 
 install_file(Vars, Dest, InFile) :-
 	(   exists_directory(Dest)
@@ -78,8 +77,7 @@ install_file(Vars, Dest, InFile) :-
 	),
 	copy_file_with_vars(InFile, DstFile, Vars),
 	make_runnable(DstFile),
-	file_base_name(DstFile, Print),
-	format(user_error, ' (~w)', [Print]).
+	print_message(informational, setup(install_file(DstFile))).
 
 %%	make_runnable(+File)
 %
@@ -138,11 +136,10 @@ setup_config_enabled(ConfigEnabled, Options) :-
 	(   exists_file(Readme)
 	->  true
 	;   option(readme(ReadMeIn), Options)
-	->  file_base_name(ConfigEnabled, Base),
-	    format(user_error, 'Installing README.txt in ~w ...', [Base]),
+	->  print_message(informational,
+			  setup(install_file('README.txt', ConfigEnabled))),
 	    substitutions(Vars),
-	    install_file(Vars, Readme, ReadMeIn),
-	    format(user_error, ' done~n', [])
+	    install_file(Vars, Readme, ReadMeIn)
 	).
 
 default_config(ConfigEnabled, ConfigAvail) :-
@@ -206,15 +203,13 @@ install_file(_, ConfDir, _, File) :-
 install_file(link, ConfDir, ConfigAvail, File) :-
 	directory_file_path(ConfigAvail, File, Source),
 	directory_file_path(ConfDir, File, Dest),
-	format(user_error, 'Install config file ~w ...', [File]),
-	try_link_file(Source, Dest, How),
-	format(user_error, ' ~w~n', [How]).
+	print_message(informational, setup(install_file(File))),
+	try_link_file(Source, Dest, _How).
 install_file(copy, ConfDir, ConfigAvail, File) :-
 	directory_file_path(ConfigAvail, File, Source),
 	directory_file_path(ConfDir, File, Dest),
-	format(user_error, 'Copying config file ~w ...', [File]),
-	copy_file(Source, Dest),
-	format(user_error, ' ok~n', []).
+	print_message(informational, setup(install_file(File))),
+	copy_file(Source, Dest).
 
 try_link_file(Source, Dest, How) :-
 	relative_file_name(Source, Dest, Rel),
@@ -326,51 +321,16 @@ var_value(Name, Value, Vars) :-
 
 
 		 /*******************************
-		 *	  COMPATIBILITY		*
+		 *	      MESSAGES		*
 		 *******************************/
 
-:- if(\+current_predicate(link_file/3)).
+:- multifile
+	prolog:message//1.
 
-link_file(From, To, symbolic) :-
-	process_create(path(ln), ['-s', file(From), file(To)], []).
-
-:- endif.
-
-:- if(\+current_predicate(copy_file/2)).
-
-copy_file(From, To) :-
-	copy_file_with_vars(From, To, []).
-
-:- endif.
-
-:- if(\+current_predicate(relative_file_name/3)).
-
-relative_file_name(Path, RelTo, RelPath) :-
-	absolute_file_name(Path, AbsPath),
-	absolute_file_name(RelTo, AbsRelTo),
-        atomic_list_concat(PL, /, AbsPath),
-        atomic_list_concat(RL, /, AbsRelTo),
-        delete_common_prefix(PL, RL, PL1, PL2),
-        to_dot_dot(PL2, DotDot, PL1),
-        atomic_list_concat(DotDot, /, RelPath).
-
-delete_common_prefix([H|T01], [H|T02], T1, T2) :- !,
-        delete_common_prefix(T01, T02, T1, T2).
-delete_common_prefix(T1, T2, T1, T2).
-
-to_dot_dot([], Tail, Tail).
-to_dot_dot([_], Tail, Tail) :- !.
-to_dot_dot([_|T0], ['..'|T], Tail) :-
-        to_dot_dot(T0, T, Tail).
-
-:- endif.
-
-:- if(\+current_predicate(directory_file_path/3)).
-
-directory_file_path(Dir, File, Path) :-
-	(   sub_atom(Dir, _, _, 0, /)
-	->  atom_concat(Dir, File, Path)
-	;   atomic_list_concat([Dir, /, File], Path)
-	).
-
-:- endif.
+prolog:message(setup(localize_dir(SrcDir))) -->
+	[ 'Localizing scripts from ~p ...'-[SrcDir] ].
+prolog:message(setup(install_file(File, Dir))) -->
+	[ 'Installing ~w in ~w ...'-[File, Dir] ].
+prolog:message(setup(install_file(File))) -->
+	{ file_base_name(File, Base) },
+	[ '    Installing ~w ...'-[Base] ].

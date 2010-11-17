@@ -139,23 +139,28 @@ cpack_add_dir(ConfigEnable, Dir) :-
 	directory_file_path(ConfigEnable, '010-packs.pl', PacksFile),
 	directory_file_path(Dir, 'config-available', ConfigAvailable),
 	file_base_name(Dir, Pack),
-	add_pack_to_search_path(PacksFile, Pack, Dir),
+	add_pack_to_search_path(PacksFile, Pack, Dir, Modified),
 	setup_default_config(ConfigEnable, ConfigAvailable, []),
+	(   Modified == true		% Update paths first!
+	->  load_files(PacksFile, [if(true)])
+	;   true
+	),
 	conf_d_reload.
 
 
-add_pack_to_search_path(PackFile, Pack, Dir) :-
+add_pack_to_search_path(PackFile, Pack, Dir, Modified) :-
 	exists_file(PackFile), !,
 	read_file_to_terms(PackFile, Terms, []),
 	(   memberchk(user:file_search_path(Pack, Dir), Terms)
-	->  true
+	->  Modified = false
 	;   memberchk(user:file_search_path(Pack, _Dir2), Terms),
 	    permission_error(add, pack, Pack)
 	;   open(PackFile, append, Out),
 	    extend_search_path(Out, Pack, Dir),
-	    close(Out)
+	    close(Out),
+	    Modified = true
 	).
-add_pack_to_search_path(PackFile, Pack, Dir) :-
+add_pack_to_search_path(PackFile, Pack, Dir, true) :-
 	open(PackFile, write, Out),
 	format(Out, '/* Generated file~n', []),
 	format(Out, '   This file defines the search-path for added packs~n', []),
