@@ -70,6 +70,8 @@ cpack_install(URL) :-
 	    maplist(configure_package, Packages)
 	;   Terms = [no_cpack(Name)]
 	->  existence_error(cpack, Name)
+	;   Terms = [error(Error)]
+	->  throw(Error)
 	;   domain_error(cpack_reply, Terms)
 	).
 
@@ -355,7 +357,9 @@ cpack_package_dir(Name, Dir, Create) :-
 	;   make_directory(Dir)
 	).
 
-:- multifile prolog:message//1.
+:- multifile
+	prolog:message//1,
+	prolog:error_message//1.
 
 prolog:message(cpack(create_directory(New))) -->
 	[ 'Created directory ~w'-[New] ].
@@ -373,6 +377,29 @@ sub_package(cpack(Name, Options)) -->
 	[ nl, '   ~w -- ~w'-[Name, Title] ].
 sub_package(cpack(Name, _)) -->
 	[ nl, '   ~w -- ~w'-[Name] ].
+
+prolog:error_message(cpack_error(Error)) -->
+	cpack_error(Error).
+
+cpack_error(not_satisfied(Pack, Reasons)) -->
+	[ 'Package not satisfied: ~p'-[Pack] ],
+	not_satisfied_list(Reasons).
+
+not_satisfied_list([]) --> [].
+not_satisfied_list([H|T]) --> not_satisfied(H), not_satisfied_list(T).
+
+not_satisfied(no_token(Token)) -->
+	[ nl, '   Explicit requirement not found: ~w'-[Token] ].
+not_satisfied(file(File, Problems)) -->
+	[ nl, '   File ~p'-[File] ],
+	file_problems(Problems).
+
+file_problems([]) --> [].
+file_problems([H|T]) --> file_problem(H), file_problems(T).
+
+file_problem(predicate_not_found(PI)) -->
+	[ nl, '        Predicate not resolved: ~w'-[PI] ].
+
 
 :- if(\+current_predicate(directory_file_path/3)).
 
