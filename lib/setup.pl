@@ -304,7 +304,7 @@ insert_var(Mark, C2, In, Out, Bindings) :-
 	    ;   format(Out, '~q', [Value])
 	    ),
 	    get_code(In, C2)
-	;   format(Out, '@~w', [VarName]),
+	;   format(Out, '~c~w', [Mark, VarName]),
 	    C2 = C1
 	).
 
