@@ -61,9 +61,37 @@
 
 cpack_install(URL) :-
 	uri_is_global(URL), !,
+	cpack_package_data(URL, Terms),
+	cpack_install_terms(Terms).
+cpack_install(Name) :-
+	cpack_load_profile,
+	rdf_has(_, cpack:servers, List),
+	rdfs_member(Server, List),
+	atomic_list_concat([Server, cpack, /, Name], URL),
+	print_message(informational, cpack(probe(URL))),
+	catch(cpack_package_data(URL, Terms), E, true),
+	(   var(E)
+	->  !, cpack_install_terms(Terms)
+	;   print_message(error, E),
+	    fail
+	).
+
+cpack_package_data(URL, Terms) :-
 	setup_call_cleanup(http_open(URL, In, []),
 			   read_stream_to_terms(In, Terms),
-			   close(In)),
+			   close(In)).
+
+read_stream_to_terms(In, Terms) :-
+	read_term(In, Term0, []),
+	read_stream_to_terms(Term0, In, Terms).
+
+read_stream_to_terms(end_of_file, _, []) :- !.
+read_stream_to_terms(Term, In, [Term|T]) :-
+	read_term(In, Term1, []),
+	read_stream_to_terms(Term1, In, T).
+
+
+cpack_install_terms(Terms) :-
 	(   Terms = [cpack(Name, Packages)]
 	->  print_message(informational, cpack(install(Name, Packages))),
 	    maplist(download_package, Packages),
@@ -74,15 +102,6 @@ cpack_install(URL) :-
 	->  throw(Error)
 	;   domain_error(cpack_reply, Terms)
 	).
-
-read_stream_to_terms(In, Terms) :-
-	read_term(In, Term0, []),
-	read_stream_to_terms(Term0, In, Terms).
-
-read_stream_to_terms(end_of_file, _, []) :- !.
-read_stream_to_terms(Term, In, [Term|T]) :-
-	read_term(In, Term1, []),
-	read_stream_to_terms(Term1, In, T).
 
 download_package(cpack(Package, Options)) :-
 	option(pack_repository(Repository), Options),
@@ -345,6 +364,25 @@ cpack_template(library('cpack/pack.ttl.in'),
 
 
 		 /*******************************
+		 *	      PROFILE		*
+		 *******************************/
+
+%%	cpack_load_profile is det.
+%
+%	Try to load the profile from user_profile('.cpack.ttl').
+%
+%	@tbd Prompt for a default profile (notably fill in the servers).
+
+cpack_load_profile :-
+	absolute_file_name(user_profile('.cpack.ttl'), Path,
+			   [ access(read),
+			     file_errors(fail)
+			   ]), !,
+	rdf_load(Path).
+cpack_load_profile.
+
+
+		 /*******************************
 		 *	       UTIL		*
 		 *******************************/
 
@@ -373,6 +411,8 @@ prolog:message(cpack(installed_template(File))) -->
 prolog:message(cpack(install(Name, Packages))) -->
 	[ 'Installing package ~w:'-[Name] ],
 	sub_packages(Packages).
+prolog:message(cpack(probe(URL))) -->
+	[ 'Trying CPACK server at ~w ...'-[URL] ].
 
 sub_packages([]) --> [].
 sub_packages([H|T]) --> sub_package(H), sub_packages(T).
