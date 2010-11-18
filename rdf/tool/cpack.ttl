@@ -285,6 +285,12 @@ cpack:base a owl:DatatypeProperty ;
 		      owl:unionOf ( cpack:File cpack:FileRef )
 		    ] .
 
+cpack:size a owl:DatatypeProperty ;
+	rdfs:label "size" ;
+	rdfs:comment "Size of the file in bytes" ;
+	rdfs:range xsd:integer ;
+	rdfs:domain cpack:File .
+
 cpack:module a owl:DatatypeProperty ;
 	rdfs:label "Prolog module" ;
 	rdfs:comment "Prolog module defined in the file" ;

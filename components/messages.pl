@@ -31,6 +31,8 @@
 	  [ call_showing_messages/2
 	  ]).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_wrapper)).
+:- use_module(library(http/http_dispatch)).
 :- use_module(library(option)).
 
 /** <module> Run goals that produce messages
@@ -62,8 +64,18 @@ messages appear in the browser.
 call_showing_messages(Goal, Options) :-
 	option(style(Style), Options, cliopatria(default)),
 	option(head(Head), Options, title('ClioPatria')),
-	option(header(Header), Options, h4('Messages ...')),
-	option(footer(Footer), Options, h4('Done')),
+	option(header(Header), Options,
+	       div(class(msg_header),
+		   h4('Messages ...'))),
+	(   option(footer(Footer), Options)
+	->  true
+	;   (   option(return_to(ReturnURI), Options)
+	    ->  FooterRest = [ p(['Go ', a(href(ReturnURI), 'back'),
+				  ' to the previous page']) ]
+	    ;	FooterRest = []
+	    ),
+	    Footer = div(class(msg_footer), [ h4('Done') | FooterRest ])
+	),
 	format('Content-Type: text/html~n'),
 	format('Transfer-Encoding: chunked~n~n'),
 	header(Style, Head, Header, Footer, FooterTokens),
