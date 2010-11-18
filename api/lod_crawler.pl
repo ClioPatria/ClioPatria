@@ -69,3 +69,8 @@ lod_uri_graph(URI, Graph) :-
 	uri_data(fragment, Components, _, NewComponents),
 	uri_components(Graph, NewComponents).
 lod_uri_graph(URI, URI).
+
+:- multifile
+	rdf_http_plugin:rdf_content_type/2.
+
+rdf_http_plugin:rdf_content_type('text/xml', xml).
