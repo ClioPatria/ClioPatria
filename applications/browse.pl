@@ -1526,7 +1526,7 @@ list_triples_with_object(Request) :-
 	sort(Pairs0, Pairs),
 	sort_pairs_by_label(Pairs, Sorted),
 	length(Pairs, Count),
-	rdf_display_label(Object, OLabel),
+	label_of(Object, OLabel),
 	reply_html_page(cliopatria(default),
 			title('Triples with object ~w'-[OLabel]),
 			[ h1(\otriple_header(Count, Object, P, Graph)),
@@ -1597,12 +1597,15 @@ sort_by_label(URIs, Sorted) :-
 	pairs_values(SortedPairs, Sorted).
 
 label_sort_key(URI, Key) :-
-	rdf_is_resource(URI), !,
-	rdf_display_label(URI, Label),
+	label_of(URI, Label),
 	collation_key(Label, Key).
-label_sort_key(Literal, Key) :-
-	literal_text(Literal, Text),
-	collation_key(Text, Key).
+
+label_of(URI, Label) :-
+	rdf_is_resource(URI), !,
+	rdf_display_label(URI, Label).
+label_of(Literal, Label) :-
+	literal_text(Literal, Label).
+
 
 %%	sort_triples_by_label(+Triples, -Sorted)
 %
