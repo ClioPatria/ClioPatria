@@ -61,6 +61,7 @@
 :- use_module(components(simple_search)).
 :- use_module(components(graphviz)).
 :- use_module(components(basics)).
+:- use_module(api(lod_crawler)).
 :- use_module(library(semweb/rdf_abstract)).
 :- use_module(library(semweb/rdf_label)).
 
@@ -1102,14 +1103,35 @@ local_view(URI, Graph, Options) -->
 	  po_pairs(URI, Graph, Pairs, Options),
 	  lview_graphs(URI, Graph, Graphs)
 	},
-	html_requires(css('rdf.css')),
-	html(table(class(block),
-		   [ \lview_header(Options)
-		   | \table_rows_top_bottom(lview_row(Options, URI, Graphs),
-					    Pairs,
-					    TopMax, BottomMax)
-		   ])),
-	graph_footnotes(Graphs, Options).
+	(   { Pairs \== []
+	    }
+	->  html_requires(css('rdf.css')),
+	    html(table(class(block),
+		       [ \lview_header(Options)
+		       | \table_rows_top_bottom(lview_row(Options, URI, Graphs),
+						Pairs,
+						TopMax, BottomMax)
+		       ])),
+	    graph_footnotes(Graphs, Options)
+	;   { lod_uri_graph(URI, LODGraph),
+	      rdf_graph(LODGraph)
+	    }
+	->  html(p([ 'No triples for this URI. ',
+		     'Linked Data was loaded into ', \graph_link(LODGraph),
+		     '.'
+		   ]))
+	;   { http_link_to_id(lod_crawl, [], FetchURL)
+	    },
+	    html(form(action(FetchURL),
+		      [ \hidden(r, URI),
+			'No triples for this URI.  Would you like to ',
+			input([ type(submit),
+				value('Query the Linked Data cloud')
+			      ]),
+			'?'
+		      ]))
+	).
+
 
 lview_header(Options) -->
 	{ option(sorted(Sorted), Options, default),
@@ -1165,7 +1187,12 @@ graphs([H|T], Graphs) -->
 	    graphs(T, Graphs)
 	).
 
+%%	graph_footnotes(+GraphList, +Options)//
+%
+%	Describe footnote marks in the local   view  table that indicate
+%	the origin of triples.
 
+graph_footnotes([], _Options) --> !.
 graph_footnotes([Graph], _Options) --> !,
 	html(p(class('graphs-used'),
 	       [ 'All properties reside in the graph ',
