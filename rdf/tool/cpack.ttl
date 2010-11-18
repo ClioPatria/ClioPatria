@@ -2,13 +2,16 @@
 @prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl:      <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms:  <http://purl.org/dc/terms/> .
 @prefix foaf:     <http://xmlns.com/foaf/0.1/> .
 @prefix cpack:    <http://www.swi-prolog.org/cliopatria/cpack#> .
 @prefix graphviz: <http://www.graphviz.org/> .
 
 # Define packages and their dependencies
 #
-# Issues: How to represent version dependencies?
+# Issues:
+#	- How to represent version dependencies?
+# 	- Can we use from Web-Of-Trust (http://xmlns.com/wot/0.1/)
 
 # Classes
 
@@ -128,8 +131,14 @@ cpack:screenShot a owl:ObjectProperty ;
 	rdfs:range rdfs:Resource ;
 	rdfs:domain cpack:Package .
 
+cpack:foafData a owl:ObjectProperty ;
+	rdfs:label "foaf data" ;
+	rdfs:comment "Location from which to collect FOAF data" ;
+	rdfs:domain foaf:Person .
+
 cpack:author a owl:ObjectProperty ;
 	rdfs:label "author" ;
+	rdfs:subPropertyOf dcterms:creator ;
 	rdfs:comment "Author of the package" ;
 	rdfs:range foaf:Person ;
 	rdfs:domain cpack:Package .
