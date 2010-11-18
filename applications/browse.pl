@@ -199,7 +199,7 @@ graph_info(Graph) -->
 
 graph_property(Graph, source, Source) :-
 	rdf_source(Graph, Source).
-graph_property(Graph, triples, int(Triples)) :-
+graph_property(Graph, triples(Graph), int(Triples)) :-
 	rdf_statistics(triples_by_file(Graph, Triples)).
 graph_property(Graph, predicate_count(Graph), int(Count)) :-
 	aggregate_all(count, predicate_in_graph(Graph, _P), Count).
@@ -517,7 +517,7 @@ instance_table_title(Graph, Class, Sort) -->
 	html('Instances in ~w sorted by ~w'-
 	     [Graph, Sort]).
 instance_table_title(Graph, Class, Sort) -->
-	{ label_of(Class, Label) },
+	{ rdf_display_label(Class, Label) },
 	html('Instances of ~w in ~w sorted by ~w'-
 	     [Label, Graph, Sort]).
 
@@ -754,7 +754,7 @@ do_skos(false, _, _).
 
 
 resource_table_title(Graph, Pred, Which, Sort) -->
-	{ label_of(Pred, PLabel)
+	{ rdf_display_label(Pred, PLabel)
 	},
 	html('Distinct ~ws for ~w in ~w sorted by ~w'-
 	     [Which, PLabel, Graph, Sort]
@@ -949,7 +949,7 @@ list_resource(Request) :-
 				description('If true, omit application hook')
 			      ])
 			]),
-	label_of(URI, Label),
+	rdf_display_label(URI, Label),
 	reply_html_page(cliopatria(default),
 			title('Resource ~w'-[Label]),
 			\list_resource(URI,
@@ -1393,8 +1393,9 @@ context(skos:mappingRelation).
 
 list_triples(Request) :-
 	http_parameters(Request,
-			[ predicate(Pred,
-				    [ description('Predicate to list triples for')]),
+			[ predicate(P,
+				    [ optional(true),
+				      description('Limit triples to this pred')]),
 			  graph(Graph, [ optional(true),
 					 description('Limit triples to this graph')
 				       ]),
@@ -1406,19 +1407,23 @@ list_triples(Request) :-
 				       ])
 			]),
 	(   atom(Dom)
-	->  findall(S-O, rdf_in_domain(S,Pred,O,Dom,Graph), Pairs0)
+	->  findall(rdf(S,P,O), rdf_in_domain(S,P,O,Dom,Graph), Triples0)
 	;   atom(Range)
-	->  findall(S-O, rdf_in_range(S,Pred,O,Range,Graph), Pairs0)
-	;   findall(S-O, rdf(S,Pred,O,Graph), Pairs0)
+	->  findall(rdf(S,P,O), rdf_in_range(S,P,O,Range,Graph), Triples0)
+	;   findall(rdf(S,P,O), rdf(S,P,O,Graph), Triples0)
 	),
-	sort(Pairs0, Pairs),
-	sort_pairs_by_label(Pairs, Sorted),
-	length(Pairs, Count),
-	label_of(Pred, PLabel),
+	sort(Triples0, Triples),
+	sort_triples_by_label(Triples, Sorted),
+	length(Sorted, Count),
+	(   var(P)
+	->  Title = 'Triples in graph ~w'-[Graph]
+	;   rdf_display_label(P, PLabel),
+	    Title = 'Triples for ~w in graph ~w'-[PLabel, Graph]
+	),
 	reply_html_page(cliopatria(default),
-			title('Triples for ~w in graph ~w'-[PLabel, Graph]),
-			[ h1(\triple_header(Count, Pred, Dom, Range, Graph)),
-			  \triple_table(Sorted, Pred, [])
+			title(Title),
+			[ h1(\triple_header(Count, P, Dom, Range, Graph)),
+			  \triple_table(Sorted, P, [])
 			]).
 
 rdf_in_domain(S,P,O,Dom,Graph) :-
@@ -1456,25 +1461,41 @@ with_range(Range) -->
 with_range(Range) -->
 	html([' with range ', \rdf_link(Range, [])]).
 
+%%	triple_table(+Triples, +Predicate, +Options)// is det.
+%
+%	Show a list  of  triples.  If   Predicate  is  given,  omit  the
+%	predicate from the table.
 
-triple_table(SOList, Pred, Options) -->
+triple_table(Triples, Pred, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(top_max(BottomMax), Options, 500)
 	},
 	html(table(class(block),
-		   [ \so_header(Pred)
-		   | \table_rows_top_bottom(so_row(Pred), SOList,
+		   [ \spo_header(Pred)
+		   | \table_rows_top_bottom(spo_row(Pred), Triples,
 					    TopMax, BottomMax)
 		   ])).
 
-so_header(_) -->
+spo_header(P) -->
+	{ nonvar(P) },
 	html(tr([ th('Subject'),
 		  th('Object')
 		])).
+spo_header(_) -->
+	html(tr([ th('Subject'),
+		  th('Predicate'),
+		  th('Object')
+		])).
 
-so_row(_P, S-O) -->
+spo_row(Pred, rdf(S,_,O)) -->
+	{ nonvar(Pred) }, !,
 	html([ td(class(subject), \rdf_link(S)),
 	       td(class(object),  \rdf_link(O))
+	     ]).
+spo_row(_, rdf(S,P,O)) -->
+	html([ td(class(subject),   \rdf_link(S)),
+	       td(class(predicate), \rdf_link(P)),
+	       td(class(object),    \rdf_link(O))
 	     ]).
 
 
@@ -1505,7 +1526,7 @@ list_triples_with_object(Request) :-
 	sort(Pairs0, Pairs),
 	sort_pairs_by_label(Pairs, Sorted),
 	length(Pairs, Count),
-	label_of(Object, OLabel),
+	rdf_display_label(Object, OLabel),
 	reply_html_page(cliopatria(default),
 			title('Triples with object ~w'-[OLabel]),
 			[ h1(\otriple_header(Count, Object, P, Graph)),
@@ -1576,8 +1597,26 @@ sort_by_label(URIs, Sorted) :-
 	pairs_values(SortedPairs, Sorted).
 
 label_sort_key(URI, Key) :-
-	label_of(URI, Label),
+	rdf_is_resource(URI), !,
+	rdf_display_label(URI, Label),
 	collation_key(Label, Key).
+label_sort_key(Literal, Key) :-
+	literal_text(Literal, Text),
+	collation_key(Text, Key).
+
+%%	sort_triples_by_label(+Triples, -Sorted)
+%
+%	Sort a list of rdf(S,P,O) by the labels.
+
+sort_triples_by_label(Pairs, Sorted) :-
+	map_list_to_pairs(sort_triples_by_label, Pairs, LabelPairs),
+	keysort(LabelPairs, SortedPairs),
+	pairs_values(SortedPairs, Sorted).
+
+sort_triples_by_label(rdf(S,P,O), rdf(SK,PK,OK)) :-
+	label_sort_key(S, SK),
+	label_sort_key(P, PK),
+	label_sort_key(O, OK).
 
 %%	sort_pairs_by_label(+Pairs, -Sorted)
 %
@@ -1591,21 +1630,6 @@ sort_pairs_by_label(Pairs, Sorted) :-
 key_label_sort_key(R-_, Key) :-
 	label_sort_key(R, Key).
 
-%%	label_of(+RDFvalue, -Label) is det.
-%
-%	Provide a resource for something in the RDF graph.
-%
-%	@tbd	Support SKOS, deal with type and language, etc.
-%		Shouldn't this be a rule?
-
-label_of(literal(Literal), Label) :- !,
-	literal_label(Literal, Label).
-label_of(URI, Label) :-
-	rdfs_label(URI, Label).
-
-literal_label(type(_, Value), Value) :- !.
-literal_label(lang(_, Value), Value) :- !.
-literal_label(Value, Value).
 
 		 /*******************************
 		 *	  CUSTOMIZATION		*
@@ -1618,18 +1642,20 @@ literal_label(Value, Value).
 %	@see	html_property_table//2.
 
 p_label(source,	       'Source URL').
-p_label(triples,	       'Triple count').
+p_label(triples(G),
+	['# ', a(href(Link), triples)]) :-
+	http_link_to_id(list_triples, [graph=G], Link).
 p_label(subject_count(G),
-      ['# ', a(href(Link), subjects)]) :-
+	['# ', a(href(Link), subjects)]) :-
 	http_link_to_id(list_instances, [graph=G], Link).
 p_label(bnode_count(G),
-      ['# ', a(href(Link), 'bnode subjects')]) :-
+	['# ', a(href(Link), 'bnode subjects')]) :-
 	http_link_to_id(list_instances, [graph=G, type=bnode], Link).
 p_label(predicate_count(G),
-      ['# ', a(href(Link), predicates)]) :-
+	['# ', a(href(Link), predicates)]) :-
 	http_link_to_id(list_predicates, [graph=G], Link).
 p_label(type_count(G),
-      ['# Referenced ', a(href(Link), classes)]) :-
+	['# Referenced ', a(href(Link), classes)]) :-
 	http_link_to_id(list_classes, [graph=G], Link).
 
 

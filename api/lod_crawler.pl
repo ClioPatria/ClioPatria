@@ -50,7 +50,7 @@ lod_crawl(Request) :-
 			    ])
 			]),
 	lod_uri_graph(URI, Graph),
-	call_showing_messages(rdf_load(URI,
+	call_showing_messages(rdf_load(Graph,
 				       [ graph(Graph)
 				       ]),
 			      [
