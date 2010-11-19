@@ -29,7 +29,7 @@
     the GNU General Public License.
 */
 
-:- module(rdfql_openid,
+:- module(cliopatria_openid,
 	  [ openid_for_local_user/2
 	  ]).
 :- use_module(library(http/http_dispatch)).
@@ -51,6 +51,8 @@
 
 
 /** <module> OpenID server and client access
+
+This module customizes login and OpenID handling for ClioPatria.
 
 @author	Jan Wielemaker
 */
@@ -86,7 +88,7 @@ http_openid:openid_hook(trusted(OpenID, Server)) :-
 %%	login_page(+Request)
 %
 %	HTTP Handler that shows both OpenID   login and local login-page
-%	to the user.
+%	to the user. This handler overrules the default OpenID handler.
 
 login_page(Request) :-
 	http_parameters(Request,
@@ -97,7 +99,7 @@ login_page(Request) :-
 	reply_html_page(cliopatria(default),
 			title('Login'),
 			[ \explain_login(ReturnTo),
-			  \openid_login_form(ReturnTo, []),
+			  \cond_openid_login_form(ReturnTo),
 			  \local_login(ReturnTo)
 			]).
 
@@ -106,17 +108,27 @@ explain_login(ReturnTo) -->
 	  memberchk(path(Path), Parts)
 	},
 	html(div(class('rdfql-login'),
-		 [ p([ 'You are trying to access a page (~w) that requires authorization.'-[Path],
-		       'You can either login using an ', a(href('http://www.openid.net'), 'OpenID'),
-		       \explain_trusted_openid
+		 [ p([ 'You are trying to access a page (~w) that requires authorization. '-[Path],
+		       \explain_open_id_login
 		     ])
 		 ])).
 
-explain_trusted_openid -->
-	{ openid_current_server(*) }, !,
-	html(' or a local login.').
-explain_trusted_openid -->
-	html([' from one of our ', a(href(list_trusted_servers), 'trusted providers'), ' or a local login']).
+explain_open_id_login -->
+	{ \+ openid_current_server(_) }, !.
+explain_open_id_login -->
+	html([ 'You can login either as a local user',
+	       ' or with your ', a(href('http://www.openid.net'), 'OpenID'), '.']),
+	(   { openid_current_server(*) }
+	->  []
+	;   { http_link_to_id(trusted_openid_servers, [], HREF) },
+	    html([ ' from one of our ', a(href(HREF), 'trusted providers')])
+	).
+
+cond_openid_login_form(_) -->
+	{ \+ openid_current_server(_) }, !.
+cond_openid_login_form(ReturnTo) -->
+	openid_login_form(ReturnTo, []).
+
 
 local_login(ReturnTo) -->
 	html(div(class('local-login'),
