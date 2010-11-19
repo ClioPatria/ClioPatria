@@ -51,6 +51,8 @@
 
 :- setting(cpack:package_directory, atom, cpack,
 	   'Directory where packages are downloaded').
+:- setting(cpack:server, atom, 'http://cliopatria.swi-prolog.org/',
+	   'Address of the fallback server').
 
 :- rdf_register_ns(cpack, 'http://www.swi-prolog.org/cliopatria/cpack#').
 :- rdf_register_ns(foaf,  'http://xmlns.com/foaf/0.1/').
@@ -65,15 +67,24 @@ cpack_install(URL) :-
 	cpack_install_terms(Terms).
 cpack_install(Name) :-
 	cpack_load_profile,
-	rdf_has(_, cpack:servers, List),
-	rdfs_member(Server, List),
-	atomic_list_concat([Server, cpack, /, Name], URL),
+	(   rdf_has(_, cpack:servers, List),
+	    rdfs_member(Server, List)
+	;   setting(cpack:server, Server)
+	),
+	ensure_slash(Server, ServerDir),
+	atomic_list_concat([ServerDir, cpack, /, Name], URL),
 	print_message(informational, cpack(probe(URL))),
 	catch(cpack_package_data(URL, Terms), E, true),
 	(   var(E)
 	->  !, cpack_install_terms(Terms)
 	;   print_message(error, E),
 	    fail
+	).
+
+ensure_slash(Server, ServerDir) :-
+	(   sub_atom(Server, _, _, 0, /)
+	->  ServerDir = Server
+	;   atom_concat(Server, /, ServerDir)
 	).
 
 cpack_package_data(URL, Terms) :-
