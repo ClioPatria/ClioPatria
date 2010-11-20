@@ -54,12 +54,35 @@
 :- setting(cpack:server, atom, 'http://cliopatria.swi-prolog.org/',
 	   'Address of the fallback server').
 
-:- rdf_register_ns(cpack, 'http://www.swi-prolog.org/cliopatria/cpack#').
+:- rdf_register_ns(cpack, 'http://cliopatria.swi-prolog.org/schema/cpack#').
 :- rdf_register_ns(foaf,  'http://xmlns.com/foaf/0.1/').
 
 %%	cpack_install(+NameOrURL) is det.
 %
-%	Install package by name or URL.
+%	Install package by name or URL. The URL  of a CPACK can be found
+%	on  the  web-page  of  the  package.   If  a  *name*  is  given,
+%	cpack_install/1 queries the configured servers  for the package.
+%	For example:
+%
+%	  ==
+%	  ?- cpack_install('EDM').
+%	  % Trying CPACK server at http://cliopatria.swi-prolog.org/cpack/EDM ...
+%	  % Installing package EDM:
+%	  %    EDM -- View Europeana Data Model
+%	  % Initialized empty Git repository in /home/jan/tmp/test/cpack/EDM/.git/
+%	  %     Installing EDM.pl ...
+%	  % /home/jan/tmp/test/config-enabled/010-packs.pl compiled into conf_packs 0.00 sec, 1,480 bytes
+%	  % Added the following config files:
+%	  %     /home/jan/tmp/test/config-enabled/010-packs.pl
+%	  %     /home/jan/tmp/test/config-enabled/EDM.pl
+%	  %   library(count) compiled into count 0.02 sec, 13,280 bytes
+%	  %  skin(EDM) compiled into edm 0.02 sec, 52,984 bytes
+%	  % /home/jan/tmp/test/config-enabled/EDM.pl compiled into conf_EDM 0.02 sec, 56,112 bytes
+%	  true.
+%	  ==
+%
+%	@see	http://cliopatria.swi-prolog.org is the central package
+%		repository.
 
 cpack_install(URL) :-
 	uri_is_global(URL), !,

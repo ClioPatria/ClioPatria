@@ -1,0 +1,9 @@
+---+ The package metadata file
+
+The package metadata file is a Turtle file at a fixed location in the
+package: =|<pack>/rdf/cpack/<pack>.ttl|=.  A template metadata file
+can be created using cpack_create/3. See also [[creating][Creating.txt]]
+a CPACK.  This file documents the most important properties.
+
+The schema for CPACKS is described in =|rdf/cpack/cpack.ttl|=
+

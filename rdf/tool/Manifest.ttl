@@ -5,7 +5,3 @@
 	a lib:Schema ;
 	dcterms:title "Customise GraphViz rendering of resources" .
 
-<cpack.ttl>
-	a lib:Schema ;
-	dcterms:title "ClioPatria package vocabulary" .
-

@@ -1,0 +1,16 @@
+---+ Finding a CPACK
+
+Available packages can be searched for on a CPACK server.  The central
+server is
+
+    * http://cliopatria.swi-prolog.org/
+
+After locating the name of the desired package, it can be added to your
+running ClioPatria instance using the command below.  This automatically
+installs dependencies that might be required by the package.  See
+[[installing][Installing.txt]] for details.
+
+    ==
+    ?- cpack_install(<name>).
+    ==
+

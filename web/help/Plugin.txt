@@ -3,11 +3,35 @@
 ClioPatria plugins are Prolog source-files that can do two things:
 
   * Define hooks to alter the behavior of the existing application.
-  Supported hooks are documented in hooks.pl.  An example is provided
-  by examples/customise/EDM.pl.
+  Supported hooks are documented in hooks.pl.
   * Create an HTTP service.  Such services come in two types:
     * Services that produce HTML for human consumption
     * Services that produce XML or JSON for machines.
 
-Plugins can be added to ClioPatria in   many different ways. To preserve
-best modularity, we suggest to use config-enabled for loading plugins.
+Plugins can be added to ClioPatria in many different ways. To preserve
+best modularity, we suggest to add plugins to the configuration
+directory =|config-enabled|=.  Standard plugins are provided in the
+directory =|config-available|=.  In addition, most packages come with
+a =|config-available|= directory.
+
+If ClioPatria is configures (using configure (Unix) or setup.pl
+(Windows), it installs a default configuration of plugins in
+=|config-enabled|=.  This default is determined by the file *DEFAULTS*,
+in the directory =|config-available|=.  This file contains Prolog terms
+of the format:
+
+    ==
+    config(File, Action).
+    ==
+
+Here, File is a reference to a file in the config directory and Action
+is one of
+
+    * link
+    Try to install the file using a _link_.  This is used for plugin
+    files that are typically need no further editing.  If linking is
+    not provided by the platform, the file is _copied_.
+
+    * copy
+    Install the file by copying.  This is typically used for files that
+    need further configuration.
