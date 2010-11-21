@@ -68,7 +68,7 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
    ).
 
 :- load_files([lib/version], [silent(true), if(not_loaded)]).
-:- check_prolog_version(51106).		% Demand >= 5.11.6
+:- check_prolog_version(51109).		% Demand >= 5.11.9
 :- register_git_module('ClioPatria',
 		       [ home_url('http://www.swi-prolog.org/web/ClioPatria')
 		       ]).
