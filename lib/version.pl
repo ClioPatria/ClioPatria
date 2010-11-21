@@ -47,6 +47,8 @@ server. Modules that want  their  version   info  available  through the
 web-page can do so using a call to register_git_module/2.
 */
 
+:- multifile
+	git_module_hook/3.		% Name, Dir, Options
 
 %%	check_prolog_version(+Required)
 %
@@ -128,6 +130,25 @@ git_describe(Version, Options) :-
 			       process_wait(PID, Status)
 			   ),
 			   close(Out)),
+	Status = exit(0), !,
+	atom_codes(V1, V0),
+	normalize_space(atom(Plain), V1),
+	(   git_is_clean(Dir)
+	->  Version = Plain
+	;   atom_concat(Plain, '-DIRTY', Version)
+	).
+git_describe(Version, Options) :-
+	option(directory(Dir), Options, .),
+	setup_call_cleanup(process_create(path(git), ['rev-parse', 'HEAD'],
+					  [ stdout(pipe(Out)),
+					    stderr(null),
+					    process(PID),
+					    cwd(Dir)
+					  ]),
+			   (   read_stream_to_codes(Out, V0, []),
+			       process_wait(PID, Status)
+			   ),
+			   close(Out)),
 	Status = exit(0),
 	atom_codes(V1, V0),
 	normalize_space(atom(Plain), V1),
@@ -200,17 +221,25 @@ register_git_module(Name, Options) :-
 	assert(git_module(Name, AbsDir, RestOptions)).
 
 git_update_versions(Name) :-
-	catch(forall(git_module(Name, _, _),
+	catch(forall(current_git_module(Name, _, _),
 		     update_version(Name)),
 	      _,
 	      print_message(warning, git(no_version))).
 
 update_version(Name) :-
-	git_module(Name, Dir, Options),
-	catch(git_describe(GitVersion, [directory(Dir)|Options]), _,
-	      GitVersion = unknown),
+	current_git_module(Name, Dir, Options),
+	(   catch(git_describe(GitVersion, [directory(Dir)|Options]), _, fail)
+	->  true
+	;   GitVersion = unknown
+	),
 	retractall(git_module_version(Name, _)),
 	assert(git_module_version(Name, GitVersion)).
+
+current_git_module(Name, Dir, Options) :-
+	git_module(Name, Dir, Options).
+current_git_module(Name, Dir, Options) :-
+	git_module_hook(Name, Dir, Options).
+
 
 %%	git_module_property(?Name, ?Property) is nondet.
 %
@@ -226,7 +255,7 @@ update_version(Name) :-
 
 git_module_property(Name, Property) :-
 	var(Name), !,
-	git_module(Name, _, _),
+	current_git_module(Name, _, _),
 	git_module_property(Name, Property).
 git_module_property(Name, version(Version)) :-
 	(   git_module_version(Name, Version0)
@@ -237,9 +266,9 @@ git_module_property(Name, version(Version)) :-
 	Version0 \== unknown,
 	Version = Version0.
 git_module_property(Name, directory(Dir)) :-
-	git_module(Name, Dir, _).
+	current_git_module(Name, Dir, _).
 git_module_property(Name, Term) :-
-	git_module(Name, _, Options),
+	current_git_module(Name, _, Options),
 	member(Term, Options).
 
 

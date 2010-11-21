@@ -276,6 +276,18 @@ property_cpack(directory(Dir), Name) :-
 	registered_cpack(Name, LocalDir),
 	absolute_file_name(LocalDir, Dir).
 
+%%	prolog_version:git_module_hook(?Name, ?Directory, ?Options) is
+%%	nondet.
+%
+%	Make packages available for the   version management implemented
+%	by library(version).
+
+:- multifile
+	prolog_version:git_module_hook/3.
+
+prolog_version:git_module_hook(Name, Directory, []) :-
+	cpack_property(Name, directory(Directory)).
+
 
 		 /*******************************
 		 *	CREATE NEW PACKAGES	*
