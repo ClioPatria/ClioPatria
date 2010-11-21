@@ -240,7 +240,7 @@ add_pack_to_search_path(PackFile, Pack, Dir, true, Options) :-
 	format(Out, '*/~n~n', []),
 	format(Out, ':- module(conf_packs, []).~n~n', []),
 	format(Out, ':- multifile user:file_search_path/2.~n', []),
-	format(Out, ':- dynamic user:file_search_path/2.~n~n', []),
+	format(Out, ':- dynamic user:file_search_path/2.~n', []),
 	format(Out, ':- multifile cpack:registered_cpack/2.~n~n', []),
 	extend_search_path(Out, Pack, Dir, Options),
 	close(Out).
