@@ -33,7 +33,7 @@
 	    cpack_configure/1,		% +Name
 	    cpack_add_dir/2,		% +ConfigEnabled, +Directory
 	    cpack_create/3,		% +Name, +Title, +Options
-	    cpack_register/2,		% +Name, +Dir
+	    cpack_register/3,		% +Name, +Dir, +Options
 	    current_cpack/1,		% ?Name
 	    cpack_property/2		% ?Name, ?Property
 	  ]).
@@ -145,8 +145,19 @@ download_package(cpack(Package, Options)) :-
 	cpack_package_dir(Package, Dir, false),
 	cpack_download(Repository, Dir).
 
-configure_package(cpack(Package, _Options)) :-
-	cpack_configure(Package).
+configure_package(cpack(Package, Options)) :-
+	cpack_module_options(Options, ModuleOptions),
+	cpack_configure(Package, ModuleOptions).
+
+cpack_module_options([], []).
+cpack_module_options([H0|T0], [H|T]) :-
+	cpack_module_option(H0, H), !,
+	cpack_module_options(T0, T).
+cpack_module_options([_|T0], T) :-
+	cpack_module_options(T0, T).
+
+cpack_module_option(url(URL), home_url(URL)).
+
 
 %%	cpack_download(Package, Dir)
 %
@@ -175,13 +186,16 @@ git_clone_option(['-b', Branch], Options) :-
 %	Just configure a package.
 
 cpack_configure(Name) :-
+	cpack_configure(Name, []).
+
+cpack_configure(Name, Options) :-
 	cpack_package_dir(Name, Dir, false),  !,
 	exists_directory(Dir),
 	(   conf_d_enabled(ConfigEnabled)
-	->  cpack_add_dir(ConfigEnabled, Dir)
+	->  cpack_add_dir(ConfigEnabled, Dir, Options)
 	;   existence_error(directory, 'config-enabled')
 	).
-cpack_configure(Name) :-
+cpack_configure(Name, _) :-
 	existence_error(cpack, Name).
 
 
@@ -192,10 +206,13 @@ cpack_configure(Name) :-
 %	@tbd	Register version-tracking with register_git_module/3.
 
 cpack_add_dir(ConfigEnable, Dir) :-
+	cpack_add_dir(ConfigEnable, Dir, []).
+
+cpack_add_dir(ConfigEnable, Dir, Options) :-
 	directory_file_path(ConfigEnable, '010-packs.pl', PacksFile),
 	directory_file_path(Dir, 'config-available', ConfigAvailable),
 	file_base_name(Dir, Pack),
-	add_pack_to_search_path(PacksFile, Pack, Dir, Modified),
+	add_pack_to_search_path(PacksFile, Pack, Dir, Modified, Options),
 	setup_default_config(ConfigEnable, ConfigAvailable, []),
 	(   Modified == true		% Update paths first!
 	->  load_files(PacksFile, [if(true)])
@@ -204,7 +221,7 @@ cpack_add_dir(ConfigEnable, Dir) :-
 	conf_d_reload.
 
 
-add_pack_to_search_path(PackFile, Pack, Dir, Modified) :-
+add_pack_to_search_path(PackFile, Pack, Dir, Modified, Options) :-
 	exists_file(PackFile), !,
 	read_file_to_terms(PackFile, Terms, []),
 	(   memberchk(user:file_search_path(Pack, Dir), Terms)
@@ -212,11 +229,11 @@ add_pack_to_search_path(PackFile, Pack, Dir, Modified) :-
 	;   memberchk(user:file_search_path(Pack, _Dir2), Terms),
 	    permission_error(add, pack, Pack)
 	;   open(PackFile, append, Out),
-	    extend_search_path(Out, Pack, Dir),
+	    extend_search_path(Out, Pack, Dir, Options),
 	    close(Out),
 	    Modified = true
 	).
-add_pack_to_search_path(PackFile, Pack, Dir, true) :-
+add_pack_to_search_path(PackFile, Pack, Dir, true, Options) :-
 	open(PackFile, write, Out),
 	format(Out, '/* Generated file~n', []),
 	format(Out, '   This file defines the search-path for added packs~n', []),
@@ -225,42 +242,42 @@ add_pack_to_search_path(PackFile, Pack, Dir, true) :-
 	format(Out, ':- multifile user:file_search_path/2.~n', []),
 	format(Out, ':- dynamic user:file_search_path/2.~n~n', []),
 	format(Out, ':- multifile cpack:registered_cpack/2.~n~n', []),
-	extend_search_path(Out, Pack, Dir),
+	extend_search_path(Out, Pack, Dir, Options),
 	close(Out).
 
-extend_search_path(Out, Pack, Dir) :-
-	format(Out, '~q.~n', [:- cpack_register(Pack, Dir)]).
+extend_search_path(Out, Pack, Dir, Options) :-
+	format(Out, ':- ~q.~n', [cpack_register(Pack, Dir, Options)]).
 
 
 		 /*******************************
 		 *	   REGISTRATION		*
 		 *******************************/
 
-%%	cpack_register(+PackName, +Dir)
+%%	cpack_register(+PackName, +Dir, +Options)
 %
 %	Attach a CPACK to the search paths
 
-cpack_register(PackName, Dir) :-
+cpack_register(PackName, Dir, Options) :-
 	throw(error(context_error(nodirective,
-				  cpack_register(PackName, Dir)), _)).
+				  cpack_register(PackName, Dir, Options)), _)).
 
 
-user:term_expansion((:-cpack_register(PackName, Dir)), Clauses) :-
+user:term_expansion((:-cpack_register(PackName, Dir, Options)), Clauses) :-
 	Term =.. [PackName,'.'],
 	Clauses = [ user:file_search_path(PackName, Dir),
 		    user:file_search_path(cpacks, Term),
-		    cpack:registered_cpack(PackName, Dir)
+		    cpack:registered_cpack(PackName, Dir, Options)
 		  ].
 
 :- multifile
-	registered_cpack/2.
+	registered_cpack/3.
 
 %%	current_cpack(-Name) is nondet.
 %
 %	True when Name is the name of a registered package.
 
 current_cpack(Name) :-
-	registered_cpack(Name, _).
+	registered_cpack(Name, _, _).
 
 %%	cpack_property(Name, Property) is nondet.
 %
@@ -273,8 +290,11 @@ cpack_property(Name, Property) :-
 	property_cpack(Property, Name).
 
 property_cpack(directory(Dir), Name) :-
-	registered_cpack(Name, LocalDir),
+	registered_cpack(Name, LocalDir, _),
 	absolute_file_name(LocalDir, Dir).
+property_cpack(Option, Name) :-
+	registered_cpack(Name, _, Options),
+	member(Option, Options).
 
 %%	prolog_version:git_module_hook(?Name, ?Directory, ?Options) is
 %%	nondet.
@@ -285,8 +305,9 @@ property_cpack(directory(Dir), Name) :-
 :- multifile
 	prolog_version:git_module_hook/3.
 
-prolog_version:git_module_hook(Name, Directory, []) :-
-	cpack_property(Name, directory(Directory)).
+prolog_version:git_module_hook(Name, Directory, Options) :-
+	registered_cpack(Name, LocalDir, Options),
+	absolute_file_name(LocalDir, Directory).
 
 
 		 /*******************************
