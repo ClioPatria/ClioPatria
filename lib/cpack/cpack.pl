@@ -32,7 +32,10 @@
 	  [ cpack_install/1,		% +NameOrURL
 	    cpack_configure/1,		% +Name
 	    cpack_add_dir/2,		% +ConfigEnabled, +Directory
-	    cpack_create/3		% +Name, +Title, +Options
+	    cpack_create/3,		% +Name, +Title, +Options
+	    cpack_register/2,		% +Name, +Dir
+	    current_cpack/1,		% ?Name
+	    cpack_property/2		% ?Name, ?Property
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -221,13 +224,57 @@ add_pack_to_search_path(PackFile, Pack, Dir, true) :-
 	format(Out, ':- module(conf_packs, []).~n~n', []),
 	format(Out, ':- multifile user:file_search_path/2.~n', []),
 	format(Out, ':- dynamic user:file_search_path/2.~n~n', []),
+	format(Out, ':- multifile cpack:registered_cpack/2.~n~n', []),
 	extend_search_path(Out, Pack, Dir),
 	close(Out).
 
 extend_search_path(Out, Pack, Dir) :-
-	Term =.. [Pack, '.'],
-	format(Out, '~q.~n', [user:file_search_path(Pack, Dir)]),
-	format(Out, '~q.~n', [user:file_search_path(cpacks, Term)]).
+	format(Out, '~q.~n', [:- cpack_register(Pack, Dir)]).
+
+
+		 /*******************************
+		 *	   REGISTRATION		*
+		 *******************************/
+
+%%	cpack_register(+PackName, +Dir)
+%
+%	Attach a CPACK to the search paths
+
+cpack_register(PackName, Dir) :-
+	throw(error(context_error(nodirective,
+				  cpack_register(PackName, Dir)), _)).
+
+
+user:term_expansion((:-cpack_register(PackName, Dir)), Clauses) :-
+	Term =.. [PackName,'.'],
+	Clauses = [ user:file_search_path(PackName, Dir),
+		    user:file_search_path(cpacks, Term),
+		    cpack:registered_cpack(PackName, Dir)
+		  ].
+
+:- multifile
+	registered_cpack/2.
+
+%%	current_cpack(-Name) is nondet.
+%
+%	True when Name is the name of a registered package.
+
+current_cpack(Name) :-
+	registered_cpack(Name, _).
+
+%%	cpack_property(Name, Property) is nondet.
+%
+%	True when Property is a property of the CPACK Name.  Defined
+%	properties are:
+%
+%	  * directory(Dir)
+
+cpack_property(Name, Property) :-
+	property_cpack(Property, Name).
+
+property_cpack(directory(Dir), Name) :-
+	registered_cpack(Name, LocalDir),
+	absolute_file_name(LocalDir, Dir).
 
 
 		 /*******************************
