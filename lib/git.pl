@@ -132,7 +132,8 @@ git_open_file(Dir, File, Branch, In) :-
 		       [ show, Ref ],
 		       [ stdout(pipe(In)),
 			 cwd(Dir)
-		       ]).
+		       ]),
+	set_stream(In, file_name(File)).
 
 
 %%	git_tags_on_branch(+Dir, +Branch, -Tags) is det.
