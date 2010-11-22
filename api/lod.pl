@@ -218,7 +218,7 @@ handler_location(Request, Location) :-
 redirect(URI, AcceptList, To) :-
 	lod_resource(URI),
 	preferred_format(AcceptList, Format),
-	(   cliopatria:redirect_url(Format, URI, To)
+	(   cliopatria:redirect_uri(Format, URI, To)
 	->  true
 	;   uri_components(URI, URIComponents),
 	    uri_data(path, URIComponents, Path0),
