@@ -197,7 +197,7 @@ digits(Count, N) :-
 		 *	   INCLUDE FILES	*
 		 *******************************/
 
-%%	insert_html_file(+Specification)
+%%	insert_html_file(+Specification)//
 %
 %	Insert the content of an HTML   file  into the current document.
 %	Only the content of the =body= element is included.
