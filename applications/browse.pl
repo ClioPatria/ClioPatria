@@ -1356,11 +1356,11 @@ shape(Start, _Options, Start,
 %
 %	This predicate can be hooked using cliopatria:context_graph/2.
 
-context_graph(URI, RDF, Options) :-
+context_graph(URI, Options, RDF) :-
 	cliopatria:context_graph(URI, RDF, Options), !.
-context_graph(URI, RDF, _Options) :-		% Compatibility
+context_graph(URI, _Options, RDF) :-		% Compatibility
 	cliopatria:context_graph(URI, RDF), !.
-context_graph(URI, RDF, _) :-
+context_graph(URI, _, RDF) :-
 	findall(T, context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
 	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
