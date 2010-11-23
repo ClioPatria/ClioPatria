@@ -333,6 +333,7 @@ prolog_version:git_module_hook(Name, Directory, Options) :-
 %	@tbd	Allow selection profile, auto-loading of profile, etc.
 
 cpack_create(Name, Title, Options) :-
+	cpack_load_profile,
 	option(type(Type), Options, package),
 	package_class_id(Type, PkgClass),
 	default_bindings(default, Name, DefaultBindings),
