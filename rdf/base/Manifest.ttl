@@ -8,7 +8,6 @@
 @prefix	dctypes: <http://purl.org/dc/dcmitype/> .
 @prefix	   dcam: <http://purl.org/dc/dcam/> .
 @prefix	    eor: <http://dublincore.org/2000/03/13/eor#> .
-@prefix	   skos: <http://www.w3.org/2004/02/skos/core#> .
 
 :rdfs
 	a lib:Namespace ;
@@ -49,11 +48,6 @@
 	a lib:Namespace ;
 	lib:mnemonic "eor" ;
 	lib:namespace eor: .
-
-:skos
-	a lib:Namespace ;
-	lib:mnemonic "skos" ;
-	lib:namespace skos: .
 
 #	RDFS
 
@@ -144,26 +138,3 @@
 	owl:versionInfo "1.0" ;
 	lib:providesNamespace :eor ;
 	lib:usesNamespace :rdfs .
-
-<skos>
-	a lib:Schema ;
-	a lib:Virtual ;
-	dcterms:title "SKOS Simple Knowledge Organization System RDF Schema" ;
-	owl:versionInfo "18 August 2009 REC Edition" ;
-	lib:source skos: ;
-	owl:imports <skos.rdf>, <dcterms>, <owl> ;
-	lib:providesNamespace :skos .
-
-<vra>
-	a lib:Schema ;
-	a lib:Virtual ;
-	dcterms:title "Visual Resource Annotation" ;
-	owl:versionInfo "3" ;
-	lib:source <http://e-culture.multimedian.nl/vocabularies/vra/> ;
-	owl:imports <rdfs> ;
-	lib:schema
-		<vracore3.rdfs> ,
-		<vracore3-en.rdfs> ,
-		<vracore3-nl.rdfs> ,
-		<vracore3-ru.rdfs> ,
-		<vracore3-ua.rdfs> .
