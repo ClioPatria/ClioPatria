@@ -1309,31 +1309,44 @@ uri_predicate_info(_, _) --> [].
 
 %%	context_graph(+URI, +Options)// is det.
 %
-%	Show graph with the context of URI
+%	Show graph with  the  context  of   URI.  Options  is  passed to
+%	cliopatria:context_graph/3  and  cliopatria:node_shape/3.    Two
+%	options have special meaning:
+%
+%	    * style(?Style)
+%	    If this option is not specified, it is passed as a variable.
+%	    It can be tested or filled by cliopatria:context_graph/3 and
+%	    subsequently used by cliopatria:node_shape/3.
+%
+%	    * start(+URI)
+%	    Passed to cliopatria:node_shape/3 to indicate the origin of
+%	    the context graph.
 
-context_graph(URI, _Options) -->
+context_graph(URI, Options) -->
+	{ merge_options(Options, [style(_)], GraphOption)
+	},
 	html([ h2('Context graph'),
-	       \graphviz_graph(context_graph(URI),
+	       \graphviz_graph(context_graph(URI, GraphOption),
 			       [ object_attributes([width('100%')]),
 				 wrap_url(resource_link),
 				 graph_attributes([ rankdir('RL')
 						  ]),
-				 shape_hook(shape(URI))
+				 shape_hook(shape(URI, GraphOption))
 			       ])
 	     ]).
 
 
-%%	shape(+Start, +URI, -Shape) is semidet.
+%%	shape(+Start, +Options, +URI, -Shape) is semidet.
 %
 %	Specify GraphViz shape for URI. This   predicate  calls the hook
 %	cliopatria:node_shape/3.
 
-shape(Start, URI, Shape) :-
-	cliopatria:node_shape(URI, Shape, [start(Start)]), !.
-shape(Start, Start,
+shape(Start, Options, URI, Shape) :-
+	cliopatria:node_shape(URI, Shape, [start(Start)|Options]), !.
+shape(Start, _Options, Start,
       [ shape(tripleoctagon),style(filled),fillcolor('#ff85fd') ]).
 
-%%	context_graph(+URI, -Triples) is det.
+%%	context_graph(+URI, -Triples, +Options) is det.
 %
 %	Triples is a graph  that  describes   the  environment  of  URI.
 %	Currently, the environment is defined as:
@@ -1343,9 +1356,11 @@ shape(Start, Start,
 %
 %	This predicate can be hooked using cliopatria:context_graph/2.
 
-context_graph(URI, RDF) :-
+context_graph(URI, RDF, Options) :-
+	cliopatria:context_graph(URI, RDF, Options), !.
+context_graph(URI, RDF, _Options) :-		% Compatibility
 	cliopatria:context_graph(URI, RDF), !.
-context_graph(URI, RDF) :-
+context_graph(URI, RDF, _) :-
 	findall(T, context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
 	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
