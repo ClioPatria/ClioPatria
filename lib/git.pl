@@ -90,7 +90,18 @@ print_error(OutCodes, Options) :-
 	option(error(Codes), Options), !,
 	Codes = OutCodes.
 print_error(OutCodes, _) :-
-	print_message(error, git(output(OutCodes))).
+	phrase(classify_message(Level), OutCodes, _),
+	print_message(Level, git(output(OutCodes))).
+
+classify_message(error) -->
+	string(_), "fatal:", !.
+classify_message(error) -->
+	string(_), "error:", !.
+classify_message(warning) -->
+	string(_), "warning:", !.
+classify_message(informational) -->
+	[].
+
 
 %%	git_process_output(+Argv, :OnOutput, +Options) is det.
 %

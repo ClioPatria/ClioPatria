@@ -44,8 +44,8 @@ div.messages pre
 }
 
 .msg_error
-{ background-color: #ff5959;
-  color: #0000ff;
+{ color: #ca0000;
+  font-weight: bold;
 }
 
 p.footnote
