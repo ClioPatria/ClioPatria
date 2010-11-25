@@ -68,11 +68,10 @@ turtle_label(R) -->
 	html(['<', span(class(prefix), NS), ':', span(class(local), Local), '>']).
 turtle_label(R) -->
 	{ atom(R),
-	  label_property(P),
-	  rdf_has(R, P, Value),
-	  literal_text(Value, Label), !
+	  rdf_label(R, Label),
+	  literal_text(Label, LabelText), !
 	},
-	html(Label).
+	html(LabelText).
 turtle_label(R) -->
 	{ rdf_is_bnode(R) },
 	bnode_label(R), !.
