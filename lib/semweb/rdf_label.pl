@@ -111,6 +111,7 @@ rdf_display_label(R, Label) :-
 rdf_display_label(R, Lang, Label) :-
 	display_label_hook(R, Lang, Label), !.
 rdf_display_label(R, Lang, Label) :-
+	rdf_is_resource(R),
 	(   nonvar(Lang)
 	->  rdf_label(R, Literal),
 	    Literal = literal(lang(L, _)),
@@ -131,6 +132,10 @@ rdf_display_label(BNode, Lang, Label) :-
 	rdf_has(BNode, rdf:value, Value), !,
 	rdf_display_label(Value, Lang, Label0),
 	format(atom(Label), '[~a..]', Label0).
+rdf_display_label(Literal, Lang, Label) :-
+	rdf_is_literal(Literal), !,
+	literal_lang(Literal, Lang),
+	literal_text(Literal, Label).
 rdf_display_label(Resource, _, Label) :-
 	(   after_char(Resource, '#', Local)
 	->  Label = Local
@@ -149,7 +154,8 @@ after_char(Atom, Char, Rest) :-
 	),
 	sub_atom(Atom, _, L, 0, Rest).
 
-literal_lang(literal(Lang, _), Lang) :- !.
+literal_lang(literal(Lang0, _), Lang) :- !,
+	Lang = Lang0.
 literal_lang(_, _).
 
 %%	literal_text(+Object, -Text:atom) is semidet.
