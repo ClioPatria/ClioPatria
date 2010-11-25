@@ -224,10 +224,10 @@ cpack_add_dir(ConfigEnable, Dir, Options) :-
 add_pack_to_search_path(PackFile, Pack, Dir, Modified, Options) :-
 	exists_file(PackFile), !,
 	read_file_to_terms(PackFile, Terms, []),
-	(   memberchk(user:file_search_path(Pack, Dir), Terms)
+	(   memberchk((:- cpack_register(Pack, Dir, Options)), Terms)
 	->  Modified = false
-	;   memberchk(user:file_search_path(Pack, _Dir2), Terms),
-	    permission_error(add, pack, Pack)
+	;   memberchk((:- cpack_register(Pack, _Dir2, _)), Terms),
+	    permission_error(add, pack, Pack) 		% TBD: Update?
 	;   open(PackFile, append, Out),
 	    extend_search_path(Out, Pack, Dir, Options),
 	    close(Out),
