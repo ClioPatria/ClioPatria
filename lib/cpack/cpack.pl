@@ -48,6 +48,9 @@
 :- use_module(library(conf_d)).
 :- use_module(library(filesex)).
 :- use_module(library(settings)).
+:- use_module(library(error)).
+:- use_module(library(apply)).
+:- use_module(library(option)).
 
 /** <module> The ClioPatria package manager
 
@@ -129,10 +132,15 @@ read_stream_to_terms(Term, In, [Term|T]) :-
 	read_stream_to_terms(Term1, In, T).
 
 
+%%	cpack_install_terms(+Terms) is det.
+%
+%	Install from the server reply.
+
 cpack_install_terms(Terms) :-
 	(   Terms = [cpack(Name, Packages)]
-	->  print_message(informational, cpack(install(Name, Packages))),
-	    maplist(download_package, Packages),
+	->  print_message(informational, cpack(requires(Name, Packages))),
+	    maplist(package_status, Packages, Status),
+	    maplist(download_package, Status),
 	    maplist(configure_package, Packages)
 	;   Terms = [no_cpack(Name)]
 	->  existence_error(cpack, Name)
@@ -141,8 +149,41 @@ cpack_install_terms(Terms) :-
 	;   domain_error(cpack_reply, Terms)
 	).
 
-download_package(cpack(Package, Options)) :-
+%%	package_status(+CpackTerm, -Status)
+%
+%	@param	Status is a term cpack(Package, State), where State is
+%		one of =no_change=, upgrade(Old, New) or =new=.
+
+package_status(cpack(Package, Options),
+	       cpack(Package, Options, Status)) :-
+	cpack_package_dir(Package, Dir, false),
+	directory_file_path(Dir, '.git', GitRepo),
+	(   exists_directory(GitRepo)
+	->  option(branch(Branch), Options, master),
+	    atom_concat('origin/', Branch, Commit),
+	    git_describe(OldVersion, [directory(Dir)]),
+	    git([fetch], [ directory(Dir) ]),
+	    git_describe(NewVersion, [directory(Dir),commit(Commit)]),
+	    (	OldVersion == NewVersion
+	    ->	Status = no_change(OldVersion)
+	    ;	Status = upgrade(OldVersion, NewVersion)
+	    )
+	;   Status = new
+	).
+
+download_package(cpack(Package, _, no_change(OldVersion))) :- !,
+	print_message(informational, cpack(no_change(Package, OldVersion))).
+download_package(cpack(Package, Options, upgrade(Old, New))) :- !,
+	print_message(informational, cpack(upgrade(Package, Old, New))),
+	option(branch(Branch), Options, master),
+	cpack_package_dir(Package, Dir, false),
+	atom_concat('origin/', Branch, Commit),
+	git([merge, Commit],
+	    [ directory(Dir)
+	    ]).
+download_package(cpack(Package, Options, new)) :-
 	option(pack_repository(Repository), Options),
+	print_message(informational, cpack(download(Package, Repository))),
 	cpack_package_dir(Package, Dir, false),
 	cpack_download(Repository, Dir).
 
@@ -160,9 +201,9 @@ cpack_module_options([_|T0], T) :-
 cpack_module_option(url(URL), home_url(URL)).
 
 
-%%	cpack_download(Package, Dir)
+%%	cpack_download(+Repository, +TargetDir)
 %
-%	Download and/or update Package to Dir.
+%	Download Repository to Dir.
 %
 %	@tbd	Branches, trust
 
@@ -531,14 +572,24 @@ cpack_package_dir(Name, Dir, Create) :-
 	prolog:message//1,
 	prolog:error_message//1.
 
-prolog:message(cpack(create_directory(New))) -->
+prolog:message(cpack(Message)) -->
+	message(Message).
+
+message(create_directory(New)) -->
 	[ 'Created directory ~w'-[New] ].
-prolog:message(cpack(installed_template(File))) -->
+message(installed_template(File)) -->
 	[ 'Installed template ~w'-[File] ].
-prolog:message(cpack(install(Name, Packages))) -->
-	[ 'Installing package ~w:'-[Name] ],
-	sub_packages(Packages).
-prolog:message(cpack(probe(URL))) -->
+message(requires(Name, Packages)) -->
+	[ 'Package ~w requires the following packages:'-[Name] ],
+	sub_packages(Packages),
+	[ nl, 'Querying package status ...'-[] ].
+message(no_change(Name, Version)) -->
+	[ '   ~w: no change (~w)'-[Name, Version] ].
+message(upgrade(Name, Old, New)) -->
+	[ '   ~w: upgrading (~w..~w) ...'-[Name, Old, New] ].
+message(download(Name, git(Url, _))) -->
+	[ '   ~w: downloading from ~w ...'-[Name, Url] ].
+message(probe(URL)) -->
 	[ 'Trying CPACK server at ~w ...'-[URL] ].
 
 sub_packages([]) --> [].

@@ -32,6 +32,7 @@
 	  [ git/2,			% +Argv, +Options
 	    git_process_output/3,	% +Argv, :OnOutput, +Options
 	    git_open_file/4,		% +Dir, +File, +Branch, -Stream
+	    git_describe/2,		% -Version, +Options
 	    git_tags_on_branch/3	% +Dir, +Branch, -Tags
 	  ]).
 :- use_module(library(process)).
@@ -145,6 +146,109 @@ git_open_file(Dir, File, Branch, In) :-
 			 cwd(Dir)
 		       ]),
 	set_stream(In, file_name(File)).
+
+
+%%	git_describe(-Version, +Options) is semidet.
+%
+%	Describe the running version  based  on   GIT  tags  and hashes.
+%	Options:
+%
+%	    * match(+Pattern)
+%	    Only use tags that match Pattern (a Unix glob-pattern; e.g.
+%	    =|V*|=)
+%	    * directory(Dir)
+%	    Provide the version-info for a directory that is part of
+%	    a GIT-repository.
+%	    * commit(+Commit)
+%	    Describe Commit rather than =HEAD=
+%
+%	@see git describe
+
+git_describe(Version, Options) :-
+	(   option(match(Pattern), Options)
+	->  true
+	;   git_version_pattern(Pattern)
+	),
+	(   option(commit(Commit), Options)
+	->  Extra = [Commit]
+	;   Extra = []
+	),
+	option(directory(Dir), Options, .),
+	setup_call_cleanup(process_create(path(git),
+					  [ 'describe',
+					    '--match', Pattern
+					  | Extra
+					  ],
+					  [ stdout(pipe(Out)),
+					    stderr(null),
+					    process(PID),
+					    cwd(Dir)
+					  ]),
+			   (   read_stream_to_codes(Out, V0, []),
+			       process_wait(PID, Status)
+			   ),
+			   close(Out)),
+	Status = exit(0), !,
+	atom_codes(V1, V0),
+	normalize_space(atom(Plain), V1),
+	(   git_is_clean(Dir)
+	->  Version = Plain
+	;   atom_concat(Plain, '-DIRTY', Version)
+	).
+git_describe(Version, Options) :-
+	option(directory(Dir), Options, .),
+	option(commit(Commit), Options, 'HEAD'),
+	setup_call_cleanup(process_create(path(git),
+					  [ 'rev-parse', '--short',
+					    Commit
+					  ],
+					  [ stdout(pipe(Out)),
+					    stderr(null),
+					    process(PID),
+					    cwd(Dir)
+					  ]),
+			   (   read_stream_to_codes(Out, V0, []),
+			       process_wait(PID, Status)
+			   ),
+			   close(Out)),
+	Status = exit(0),
+	atom_codes(V1, V0),
+	normalize_space(atom(Plain), V1),
+	(   git_is_clean(Dir)
+	->  Version = Plain
+	;   atom_concat(Plain, '-DIRTY', Version)
+	).
+
+
+:- multifile
+	git_version_pattern/1.
+
+git_version_pattern('V*').
+git_version_pattern('*').
+
+
+%%	git_is_clean(+Dir) is semidet.
+%
+%	True if the given directory is in   a git module and this module
+%	is clean. To us, clean only   implies that =|git diff|= produces
+%	no output.
+
+git_is_clean(Dir) :-
+	setup_call_cleanup(process_create(path(git), ['diff'],
+					  [ stdout(pipe(Out)),
+					    stderr(null),
+					    cwd(Dir)
+					  ]),
+			   stream_char_count(Out, Count),
+			   close(Out)),
+	Count == 0.
+
+stream_char_count(Out, Count) :-
+	setup_call_cleanup(open_null_stream(Null),
+			   (   copy_stream_data(Out, Null),
+			       character_count(Null, Count)
+			   ),
+			   close(Null)).
 
 
 %%	git_tags_on_branch(+Dir, +Branch, -Tags) is det.
