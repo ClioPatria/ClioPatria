@@ -30,6 +30,8 @@
 
 :- module(cpack,
 	  [ cpack_install/1,		% +NameOrURL
+	    cpack_upgrade/0,
+	    cpack_upgrade/1,		% +Name
 	    cpack_configure/1,		% +Name
 	    cpack_add_dir/2,		% +ConfigEnabled, +Directory
 	    cpack_create/3,		% +Name, +Title, +Options
@@ -64,7 +66,7 @@
 :- rdf_register_ns(cpack, 'http://cliopatria.swi-prolog.org/schema/cpack#').
 :- rdf_register_ns(foaf,  'http://xmlns.com/foaf/0.1/').
 
-%%	cpack_install(+NameOrURL) is det.
+%%	cpack_install(+Install) is det.
 %
 %	Install package by name or URL. The URL  of a CPACK can be found
 %	on  the  web-page  of  the  package.   If  a  *name*  is  given,
@@ -90,8 +92,13 @@
 %
 %	@see	http://cliopatria.swi-prolog.org is the central package
 %		repository.
+%	@param	Install is either a URL on the server that returns the
+%		installation parameter (this is shown in the info box
+%		of the package), or the name of a package or a list of
+%		package names.
 
 cpack_install(URL) :-
+	\+ is_list(URL),
 	uri_is_global(URL), !,
 	cpack_package_data(URL, Terms),
 	cpack_install_terms(Terms).
@@ -102,7 +109,7 @@ cpack_install(Name) :-
 	;   setting(cpack:server, Server)
 	),
 	ensure_slash(Server, ServerDir),
-	atomic_list_concat([ServerDir, cpack, /, Name], URL),
+	pack_data_url(ServerDir, Name, URL),
 	print_message(informational, cpack(probe(URL))),
 	catch(cpack_package_data(URL, Terms), E, true),
 	(   var(E)
@@ -110,6 +117,17 @@ cpack_install(Name) :-
 	;   print_message(error, E),
 	    fail
 	).
+
+pack_data_url(ServerDir, Names, URL) :-
+	is_list(Names), !,
+	maplist(pack_param, Names, Params),
+	uri_query_components(Query, Params),
+	atomic_list_concat([ServerDir, cpack, /?, Query], URL).
+pack_data_url(ServerDir, Name, URL) :-
+	atomic_list_concat([ServerDir, cpack, /, Name], URL).
+
+pack_param(Name, p(Name)).
+
 
 ensure_slash(Server, ServerDir) :-
 	(   sub_atom(Server, _, _, 0, /)
@@ -222,6 +240,21 @@ cpack_download(git(GitURL, Options), Dir) :-
 
 git_clone_option(['-b', Branch], Options) :-
 	option(branch(Branch), Options).
+
+%%	cpack_upgrade
+%
+%	Upgrade all packages to the server versions.
+
+cpack_upgrade :-
+	findall(Name, current_cpack(Name), Names),
+	cpack_install(Names).
+
+%%	cpack_upgrade(Package)
+%
+%	Upgrade Package.  This is the same as cpack_install(Package).
+
+cpack_upgrade(Name) :-
+	cpack_install(Name).
 
 %%	cpack_configure(+Name) is det.
 %
@@ -580,15 +613,18 @@ message(create_directory(New)) -->
 message(installed_template(File)) -->
 	[ 'Installed template ~w'-[File] ].
 message(requires(Name, Packages)) -->
-	[ 'Package ~w requires the following packages:'-[Name] ],
+	(   { is_list(Name) }
+	->  [ 'Packages ~w require the following packages:'-[Name] ]
+	;   [ 'Package ~w requires the following packages:'-[Name] ]
+	),
 	sub_packages(Packages),
 	[ nl, 'Querying package status ...'-[] ].
 message(no_change(Name, Version)) -->
-	[ '   ~w: no change (~w)'-[Name, Version] ].
+	[ '   ~w: ~t~30|no change (~w)'-[Name, Version] ].
 message(upgrade(Name, Old, New)) -->
-	[ '   ~w: upgrading (~w..~w) ...'-[Name, Old, New] ].
+	[ '   ~w: ~t~30|upgrading (~w..~w) ...'-[Name, Old, New] ].
 message(download(Name, git(Url, _))) -->
-	[ '   ~w: downloading from ~w ...'-[Name, Url] ].
+	[ '   ~w: ~t~30|downloading from ~w ...'-[Name, Url] ].
 message(probe(URL)) -->
 	[ 'Trying CPACK server at ~w ...'-[URL] ].
 
@@ -597,9 +633,9 @@ sub_packages([H|T]) --> sub_package(H), sub_packages(T).
 
 sub_package(cpack(Name, Options)) -->
 	{ option(title(Title), Options) }, !,
-	[ nl, '   ~w -- ~w'-[Name, Title] ].
+	[ nl, '   ~w: ~t~30|~w'-[Name, Title] ].
 sub_package(cpack(Name, _)) -->
-	[ nl, '   ~w -- ~w'-[Name] ].
+	[ nl, '   ~w: ~t~30|~w'-[Name] ].
 
 prolog:error_message(cpack_error(Error)) -->
 	cpack_error(Error).
