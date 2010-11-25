@@ -39,6 +39,7 @@
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
+:- use_module(library(semweb/rdf_library)).
 :- use_module(library(http/http_open)).
 :- use_module(library(uri)).
 :- use_module(library(lists)).
@@ -333,6 +334,7 @@ prolog_version:git_module_hook(Name, Directory, Options) :-
 %	@tbd	Allow selection profile, auto-loading of profile, etc.
 
 cpack_create(Name, Title, Options) :-
+	cpack_load_schema,
 	cpack_load_profile,
 	option(type(Type), Options, package),
 	package_class_id(Type, PkgClass),
@@ -495,6 +497,16 @@ cpack_load_profile :-
 			   ]), !,
 	rdf_load(Path).
 cpack_load_profile.
+
+
+%%	cpack_load_schema
+%
+%	Ensure the CPACK schema data is loaded.
+
+cpack_load_schema :-
+	rdf_attach_library(rdf(cpack)),
+	rdf_load_library(cpack).
+
 
 
 		 /*******************************
