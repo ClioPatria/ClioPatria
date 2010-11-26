@@ -299,10 +299,18 @@ cpack_add_dir(ConfigEnable, Dir, Options) :-
 add_pack_to_search_path(PackFile, Pack, Dir, Modified, Options) :-
 	exists_file(PackFile), !,
 	read_file_to_terms(PackFile, Terms, []),
-	(   memberchk((:- cpack_register(Pack, Dir, Options)), Terms)
+	New = (:- cpack_register(Pack, Dir, Options)),
+	(   memberchk(New, Terms)
 	->  Modified = false
-	;   memberchk((:- cpack_register(Pack, _Dir2, _)), Terms),
-	    permission_error(add, pack, Pack) 		% TBD: Update?
+	;   Old = (:- cpack_register(Pack, _, _)),
+	    memberchk(Old, Terms)
+	->  selectchk(Old, Terms, New, Terms2),
+	    open(PackFile, write, Out),
+	    write_search_path_header(Out),
+	    Templ = cpack_register(_, _, _),
+	    forall(member((:-Templ), Terms2),
+		   format(Out, ':- ~q.~n', [Templ])),
+	    close(Out)
 	;   open(PackFile, append, Out),
 	    extend_search_path(Out, Pack, Dir, Options),
 	    close(Out),
@@ -310,15 +318,18 @@ add_pack_to_search_path(PackFile, Pack, Dir, Modified, Options) :-
 	).
 add_pack_to_search_path(PackFile, Pack, Dir, true, Options) :-
 	open(PackFile, write, Out),
+	write_search_path_header(Out),
+	extend_search_path(Out, Pack, Dir, Options),
+	close(Out).
+
+write_search_path_header(Out) :-
 	format(Out, '/* Generated file~n', []),
 	format(Out, '   This file defines the search-path for added packs~n', []),
 	format(Out, '*/~n~n', []),
 	format(Out, ':- module(conf_packs, []).~n~n', []),
 	format(Out, ':- multifile user:file_search_path/2.~n', []),
 	format(Out, ':- dynamic user:file_search_path/2.~n', []),
-	format(Out, ':- multifile cpack:registered_cpack/2.~n~n', []),
-	extend_search_path(Out, Pack, Dir, Options),
-	close(Out).
+	format(Out, ':- multifile cpack:registered_cpack/2.~n~n', []).
 
 extend_search_path(Out, Pack, Dir, Options) :-
 	format(Out, ':- ~q.~n', [cpack_register(Pack, Dir, Options)]).
@@ -660,12 +671,27 @@ file_problem(predicate_not_found(PI)) -->
 	[ nl, '        Predicate not resolved: ~w'-[PI] ].
 
 
-:- if(\+current_predicate(directory_file_path/3)).
+		 /*******************************
+		 *	  COMPATIBILITY		*
+		 *******************************/
 
-directory_file_path(Dir, File, Path) :-
-	(   sub_atom(Dir, _, _, 0, /)
-	->  atom_concat(Dir, File, Path)
-	;   atomic_list_concat([Dir, /, File], Path)
-	).
+:- if(\+current_predicate(selectchk/4)).
+
+select(X, XList, Y, YList) :-
+	select_(XList, X, Y, YList).
+
+select_([], _, _, []).
+select_([X|XList], X, Y, [Y|YList]) :-
+	select_(XList, X, Y, YList).
+select_([X0|XList], X, Y, [X0|YList]) :-
+	select_(XList, X, Y, YList).
+
+%%	selectchk(X, XList, Y, YList) is semidet.
+%
+%	Semi-deterministic version of select/4.
+
+selectchk(X, XList, Y, YList) :-
+	select(X, XList, Y, YList), !.
 
 :- endif.
+
