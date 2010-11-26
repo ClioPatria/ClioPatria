@@ -65,7 +65,7 @@ turtle_label(R) -->
 	{ atom(R),
 	  rdf_global_id(NS:Local, R), !
 	},
-	html(['<', span(class(prefix), NS), ':', span(class(local), Local), '>']).
+	html([span(class(prefix), NS), ':', span(class(local), Local)]).
 turtle_label(R) -->
 	{ atom(R),
 	  rdf_label(R, Label),
@@ -77,7 +77,7 @@ turtle_label(R) -->
 	bnode_label(R), !.
 turtle_label(R) -->
 	{ atom(R) }, !,
-	html(R).
+	html(['<',R,'>']).
 turtle_label(literal(Lit)) --> !,
 	literal_label(Lit).
 
