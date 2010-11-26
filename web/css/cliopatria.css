@@ -184,7 +184,7 @@ span.acmatch
 { background-color: #bbf;
 }
 
-#ac_predicate_complete .yui-ac-content
+#ac_find_literal_complete .yui-ac-content
 { max-height:30em;
   overflow:auto;
   overflow-x:hidden; /* set scrolling */
