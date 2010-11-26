@@ -29,7 +29,9 @@
 */
 
 :- module(cp_simple_search,
-	  [ simple_search_form//0
+	  [ simple_search_form//0,
+	    simple_search_form//1,	% +Options
+	    search_filter/2
 	  ]).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_parameters)).
@@ -43,6 +45,7 @@
 :- use_module(library(semweb/rdf_label)).
 
 :- use_module(library(option)).
+:- use_module(components(basics)).
 
 
 :- http_handler(api(ac_find_literal), ac_find_literal, []).
@@ -50,20 +53,48 @@
 /** <module> Simple literal search
 */
 
-%%	simple_search_form//
+%%	simple_search_form// is det.
+%%	simple_search_form(+Options)// is det.
 %
-%	Provide a search form to find literals in the database.
+%	Provide a search form to find  literals in the database. Options
+%	processed:
+%
+%	  * id(ID)
+%	  Identifier-base for the search-box.  The actual box is called
+%	  ID_<complete>
+%	  * filter(+Filter)
+%	  Restrict results to resources that satisfy filter.   Filtering
+%	  is implemented by search_filter/2.
+%	  * label(Label)
+%	  Label of the search-button.  Default is _Search_.
+%	  * width(Width)
+%	  Width of the input box (default is =25em=). Must be a CSS
+%	  width.
 
 simple_search_form -->
+	simple_search_form([]).
+
+simple_search_form(Options) -->
+	{ option(label(Label), Options, 'Search')
+	},
 	html(form([ id(search_form),
 		    action(location_by_id(search))
 		  ],
-		  [ div([ \search_box([ name(q) ]),
+		  [ div([ \search_box([ name(q) | Options ]),
+			  \filter(Options),
 			  input([ type(submit),
-				  value('Search')
+				  value(Label)
 				])
 			])
 		  ])).
+
+filter(Options) -->
+	{ option(filter(Filter), Options), !,
+	  term_to_atom(Filter, FilterAtom)
+	},
+	hidden(filter, FilterAtom).
+filter(_) --> [].
+
 
 max_results_displayed(100).
 
@@ -92,17 +123,19 @@ search_box(Options) -->
 %	    the query to the server.
 
 autocomplete(Handler, Options) -->
-	{ http_location_by_id(Handler, Path),
-	  atom_concat(Handler, '_complete', CompleteID),
-	  atom_concat(Handler, '_input', InputID),
-	  atom_concat(Handler, '_container', ContainerID),
+	{ option(id(ID), Options, ac_find_literal),
+	  atom_concat(ID, '_complete', CompleteID),
+	  atom_concat(ID, '_input', InputID),
+	  atom_concat(ID, '_container', ContainerID),
 	  select_option(width(Width), Options, Options1, '25em'),
 	  select_option(name(Name), Options1, Options2, predicate),
 	  select_option(value(Value), Options2, Options3, '')
 	},
 	html([ \html_requires(yui('autocomplete/autocomplete.js')),
 	       \html_requires(yui('autocomplete/assets/skins/sam/autocomplete.css')),
-	       div(id(CompleteID),
+	       div([ id(CompleteID),
+		     class(ac_input)
+		   ],
 		   [ input([ id(InputID),
 			     name(Name),
 			     value(Value),
@@ -114,7 +147,7 @@ autocomplete(Handler, Options) -->
 		     [ '#', CompleteID, '\n',
 		       '{ width:~w; padding-bottom:0em; display:inline-block; vertical-align:top}'-[Width]
 		     ]),
-	       \autocomplete_script(Path, InputID, ContainerID, Options3)
+	       \autocomplete_script(Handler, InputID, ContainerID, Options3)
 	     ]).
 
 highlight -->
@@ -141,7 +174,10 @@ highlight -->
  ])).
 
 autocomplete_script(HandlerID, Input, Container, Options) -->
-	{ http_absolute_location(HandlerID, Path, [])
+	{ http_link_to_id(HandlerID, [], Path),
+	  option(filter(Filter), Options, true),
+	  term_to_atom(Filter, FilterAtom),
+	  uri_query_components(QS, [filter(FilterAtom)])
 	},
 	highlight,
 	html(script(type('text/javascript'), \[
@@ -165,7 +201,10 @@ autocomplete_script(HandlerID, Input, Container, Options) -->
      var oData = aArgs[2];
      window.location.href = oData.href;
    });\n',
-\ac_options(Options),
+'  oAC.generateRequest = function(sQuery) {
+        return "?~w&query=" + sQuery ;
+    };\n'-[QS],
+    \ac_options(Options),
 '}\n'
 					     ])).
 ac_options([]) -->
@@ -178,10 +217,9 @@ ac_option(query_delay(Time)) --> !,
 	html([ '  oAC.queryDelay = ~w;\n'-[Time] ]).
 ac_option(auto_highlight(Bool)) --> !,
 	html([ '  oAC.autoHighlight = ~w;\n'-[Bool] ]).
-ac_option(max_results_displayed(Max)) -->
+ac_option(max_results_displayed(Max)) --> !,
 	html([ '  oAC.maxResultsDisplayed = ~w;\n'-[Max] ]).
-ac_option(O) -->
-	{ domain_error(yui_autocomplete_option, O) }.
+ac_option(_) --> [].
 
 %%	ac_find_literal(+Request)
 %
@@ -195,30 +233,39 @@ ac_find_literal(Request) :-
 			[ query(Query,
 				[ description('Prefix for literals to find')
 				]),
+			  filter(FilterAtom,
+				 [ optional(true),
+				   description('Filter on raw matches (a Prolog term)')
+				 ]),
 			  maxResultsDisplayed(Max,
 					      [ integer, default(DefMax),
 						description('Maximum number of results displayed')
 					      ])
 			]),
-	autocompletions(Query, Max, Count, Completions),
+	(   var(FilterAtom)
+	->  Filter = true
+	;   atom_to_term(FilterAtom, Filter0, []),
+	    rdf_global_term(Filter0, Filter)
+	),
+	autocompletions(Query, Filter, Max, Count, Completions),
 	reply_json(json([ query = json([ count=Count
 				       ]),
 			  results = Completions
 			])).
 
-autocompletions(Query, Max, Count, Completions)  :-
-	autocompletions(prefix(label), Query, Max, BNC, ByName),
+autocompletions(Query, Filter, Max, Count, Completions)  :-
+	autocompletions(prefix(label), Query, Filter, Max, BNC, ByName),
 	(   BNC > Max
 	->  Completions = ByName,
 	    Count = BNC
 	;   TMax is Max-BNC,
-	    autocompletions(prefix(other), Query, TMax, BTC, ByToken),
+	    autocompletions(prefix(other), Query, Filter, TMax, BTC, ByToken),
 	    append(ByName, ByToken, Completions),
 	    Count is BNC+BTC
 	).
 
-autocompletions(How, Query, Max, Count, Completions) :-
-	ac_objects(How, Query, Completions0),
+autocompletions(How, Query, Filter, Max, Count, Completions) :-
+	ac_objects(How, Query, Filter, Completions0),
 	length(Completions0, Count),
 	first_n(Max, Completions0, Completions1),
 	maplist(obj_result, Completions1, Completions).
@@ -241,12 +288,12 @@ first_n(N, [H|T0], [H|T]) :-
 	first_n(N2, T0, T).
 
 
-%%	ac_objects(+How, +Query, -Objects)
+%%	ac_objects(+How, +Query, +Filter, -Objects)
 %
 %	@param Objects is a list of Text-Count pairs
 
-ac_objects(How, Query, Objects) :-
-	findall(Pair, ac_object(How, Query, Pair), Pairs),
+ac_objects(How, Query, Filter, Objects) :-
+	findall(Pair, ac_object(How, Query, Filter, Pair), Pairs),
 	keysort(Pairs, KSorted),
 	group_pairs_by_key(KSorted, Grouped),
 	maplist(hit_count, Grouped, Objects).
@@ -255,20 +302,35 @@ hit_count(Text-Resources, Text-Count) :-
 	length(Resources, Count).	% duplicates?
 
 
-%%	ac_object(+How, +Query, -Object)
+%%	ac_object(+How, +Query, +Filter, -Object)
 
-ac_object(prefix(label), Query, Text-Resource) :-
-	rdf(Resource, P, literal(prefix(Query), Literal)),
+ac_object(prefix(label), Query, Filter, Text-Resource) :-
+	ac_candidate(Query, Filter, Resource, P, Literal),
 	(   label_property(LP),
 	    rdfs_subproperty_of(P, LP)
 	->  literal_text(Literal, Text)
 	).
-ac_object(prefix(other), Query, Text-Resource) :-
-	rdf(Resource, P, literal(prefix(Query), Literal)),
-	(   label_property(LP),
-	    rdfs_subproperty_of(P, LP)
-	->  fail
-	;   literal_text(Literal, Text)
-	).
+ac_object(prefix(other), Query, Filter, Text-Resource) :-
+	ac_candidate(Query, Filter, Resource, _, Literal),
+	literal_text(Literal, Text).
 
+ac_candidate(Query, Filter, R, P, Literal) :-
+	(   sub_term(graph(Graph), Filter)
+	->  rdf(R, P, literal(prefix(Query), Literal), Graph)
+	;   rdf(R, P, literal(prefix(Query), Literal))
+	),
+	search_filter(Filter, R).
 
+%%	search_filter(+Filter, +Resource) is semidet.
+%
+%	True if Filter holds for Resource.  Defined filters are:
+%
+%	  * true
+%	  Always true
+%	  * graph(Graph)
+%	  The triple providing the literal must reside in Graph.
+
+search_filter(true, _) :- !.
+search_filter(graph(_), _) :- !.		% already filtered
+search_filter(Filter, _) :-
+	domain_error(filter, Filter).

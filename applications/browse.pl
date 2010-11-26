@@ -183,6 +183,10 @@ list_graph(Request) :-
 	reply_html_page(cliopatria(default),
 			title('RDF Graph ~w'-[Graph]),
 			[ h1('Summary information for graph "~w"'-[Graph]),
+			  \simple_search_form([ id(ac_find_in_graph),
+						filter(graph(Graph)),
+						label('Search this graph')
+					      ]),
 			  \graph_info(Graph),
 			  \graph_as_resource(Graph, []),
 			  \graph_actions(Graph)
@@ -1706,11 +1710,22 @@ p_label(type_count(G),
 
 search(Request) :-
 	http_parameters(Request,
-			[ q(QueryText, [length>=1])
+			[ q(QueryText,
+			    [ description('Query to search for')
+			    ]),
+			  filter(FilterAtom,
+				 [ optional(true),
+				   description('Filter on raw matches (a Prolog term)')
+				 ])
 			]),
+	(   var(FilterAtom)
+	->  Filter = true
+	;   atom_to_term(FilterAtom, Filter0, []),
+	    rdf_global_term(Filter0, Filter)
+	),
 	literal_query(QueryText, Query),
 	rdf_find_literals(Query, Literals),
-	phrase(ltriples(Literals), Triples),
+	literal_triples(Literals, Filter, Triples),
 	reply_html_page(cliopatria(default),
 			title('Search results for ~q'-[Query]),
 			[ h1('Search results for token "~q"'-[Query]),
@@ -1739,11 +1754,33 @@ simple_query(not(Token)) -->
 simple_query(case(Token)) -->
 	[Token].
 
-ltriples([]) -->
-	[].
-ltriples([H|T]) -->
-	findall(rdf(S,P,literal(L)), rdf(S,P,literal(exact(H), L))),
-	ltriples(T).
+%%	literal_triples(+ListOfLiterals, +Filter, -Triples) is det.
+%
+%	Find the list of triples with   a  literal in ListOfLiterals and
+%	whose subject satisfies Filter.
+
+literal_triples(Literals, Filter, Triples) :-
+	sub_term(graph(Graph), Filter), !,
+	phrase(ltriples(Literals, Graph, Filter), Triples).
+literal_triples(Literals, Filter, Triples) :-
+	phrase(ltriples(Literals, Filter), Triples).
+
+
+ltriples([], _, _) --> [].
+ltriples([H|T], G, F) -->
+	findall(rdf(S,P,literal(L)),
+		(   rdf(S,P,literal(exact(H), L),G),
+		    search_filter(F, S)
+		)),
+	ltriples(T, G, F).
+
+ltriples([], _) --> [].
+ltriples([H|T], F) -->
+	findall(rdf(S,P,literal(L)),
+		(   rdf(S,P,literal(exact(H), L)),
+		    search_filter(F, S)
+		)),
+	ltriples(T, F).
 
 %%	rdf_table(+Triples, +Options)// is det.
 %
