@@ -82,6 +82,8 @@ prolog:message(required_prolog_version(Required)) -->
 	].
 prolog:message(git(no_version)) -->
 	[ 'Sorry, cannot retrieve version stamp from GIT.' ].
+prolog:message(git(update_versions)) -->
+	[ 'Updating GIT version stamps in the background.' ].
 
 
 user_version(N, Version) :-
@@ -185,12 +187,18 @@ git_module_property(Name, Term) :-
 		 *	  KEEP UP-TO-DATE	*
 		 *******************************/
 
+bg_git_update_versions :-
+	print_message(informational, git(update_versions)),
+	thread_create(git_update_versions(_), _,
+		      [ detached(true)
+		      ]).
+
 :- multifile
 	user:message_hook/3.
 
 user:message_hook(make(done(_)), _, _) :-
-	git_update_versions(_),
+	bg_git_update_versions,
 	fail.
 
 :- initialization
-	git_update_versions(_).
+	bg_git_update_versions.
