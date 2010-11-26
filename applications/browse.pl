@@ -197,17 +197,33 @@ graph_info(Graph) -->
 	html_property_table(row(P,V),
 			    graph_property(Graph,P,V)).
 
-graph_property(Graph, source, Source) :-
+:- dynamic
+	graph_property_cache/3.
+
+graph_property(Graph, P, V) :-
+	graph_property_cache(Graph, MD5, Pairs),
+	rdf_md5(Graph, MD5), !,
+	member(P0-V, Pairs),
+	P =.. [P0,Graph].
+graph_property(Graph, P, V) :-
+	retractall(graph_property_cache(Graph, _, _)),
+	findall(P-V, graph_property_nc(Graph, P, V), Pairs),
+	rdf_md5(Graph, MD5),
+	assert(graph_property_cache(Graph, MD5, Pairs)),
+	member(P0-V, Pairs),
+	P =.. [P0,Graph].
+
+graph_property_nc(Graph, source, Source) :-
 	rdf_source(Graph, Source).
-graph_property(Graph, triples(Graph), int(Triples)) :-
+graph_property_nc(Graph, triples, int(Triples)) :-
 	rdf_statistics(triples_by_file(Graph, Triples)).
-graph_property(Graph, predicate_count(Graph), int(Count)) :-
+graph_property_nc(Graph, predicate_count, int(Count)) :-
 	aggregate_all(count, predicate_in_graph(Graph, _P), Count).
-graph_property(Graph, subject_count(Graph), int(Count)) :-
+graph_property_nc(Graph, subject_count, int(Count)) :-
 	aggregate_all(count, subject_in_graph(Graph, _P), Count).
-graph_property(Graph, bnode_count(Graph), int(Count)) :-
+graph_property_nc(Graph, bnode_count, int(Count)) :-
 	aggregate_all(count, bnode_in_graph(Graph, _P), Count).
-graph_property(Graph, type_count(Graph), int(Count)) :-
+graph_property_nc(Graph, type_count, int(Count)) :-
 	aggregate_all(count, type_in_graph(Graph, _P), Count).
 
 predicate_in_graph(Graph, P) :-
@@ -1659,7 +1675,7 @@ key_label_sort_key(R-_, Key) :-
 %
 %	@see	html_property_table//2.
 
-p_label(source,	       'Source URL').
+p_label(source(_), 'Source URL').
 p_label(triples(G),
 	['# ', a(href(Link), triples)]) :-
 	http_link_to_id(list_triples, [graph=G], Link).
