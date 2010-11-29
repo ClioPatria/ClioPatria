@@ -182,7 +182,7 @@ http_settings:input_item(uri, Value, Name) -->
 	   'Optimise queries before execution').
 :- setting(cliopatria:rdf_db_namespaces, boolean, true,
 	   'Allow registered namespaces in queries').
-:- setting(cliopatria:persistent_store, atom, 'RDF-store',
+:- setting(cliopatria:persistent_store, atom, '',
 	   'Directory for persistent copy of in-memory RDF').
 
 
