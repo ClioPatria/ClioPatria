@@ -64,6 +64,9 @@ issues.
 	rdf_display_label(r,?,-),
 	label_property(r).
 
+					% this dependency is not ideal ...
+:- rdf_register_ns(foaf, 'http://xmlns.com/foaf/0.1/').
+
 %%	label_property(?Property) is nondet.
 %
 %	True if Property is  used  to   represent  labels.  The  default
@@ -71,6 +74,7 @@ issues.
 %	rdfs:label. This predicate is defined as =multifile=.
 
 label_property(skos:prefLabel).
+label_property(foaf:name).
 label_property(dc:title).
 label_property(skos:altLabel).
 label_property(rdfs:label).
