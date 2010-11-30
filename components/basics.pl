@@ -35,6 +35,7 @@
 	    nc//2,			% +Format, +Value
 	    nc//3,			% +Format, +Value, +Options
 	    odd_even_row//3,		% +Row, -Next, :Content
+	    sort_th//3,			% +Field, +ByNow, :Content
 	    insert_html_file//1		% +FileSpec
 	  ]).
 :- use_module(library(http/html_write)).
@@ -42,9 +43,13 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(occurs)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_wrapper)).
 
 :- html_meta
-	form_input(html, html, ?, ?).
+	form_input(html, html, ?, ?),
+	odd_even_row(+, -, html, ?, ?),
+	sort_th(+, +, html, ?, ?).
 
 /** <module> Simple Small HTML components
 */
@@ -129,12 +134,6 @@ class(Value, Class) :-
 %
 %	Create odd/even alternating table rows from a DCG.
 
-:- if(current_predicate((html_meta)/1)).
-:- html_meta(odd_even_row(+,-,html,?,?)).
-:- else.
-:- meta_predicate odd_even_row(+,-,:,?,?).
-:- endif.
-
 odd_even_row(Row, Next, Content) -->
 	{ (   Row mod 2 =:= 0
 	  ->  Class = even
@@ -143,6 +142,29 @@ odd_even_row(Row, Next, Content) -->
 	  Next is Row+1
 	},
 	html(tr(class(Class), Content)).
+
+%%	sort_th(+Field, +ByNow, :Label)
+%
+%	Provide a column-header for a table   that can be resorted. This
+%	call creates a =th= element holding an   =a=. The =a= has either
+%	CSS class =sorted= if the column is   sorted  or =resort= if the
+%	column can be sorted on this column.   The use of this component
+%	demands that the handler processes the parameter =sort_by= using
+%	the field-name as argument.
+%
+%	@param	Field is the field-name that describes the sort on this
+%		column.
+%	@param	ByNow is the field on which the table is currently
+%		sorted.
+%	@param  Label is the label of the =a= element
+
+sort_th(Name, Name, Label) -->
+	html(th(a([class(sorted)], Label))).
+sort_th(Name, _By, Label) -->
+	{ http_current_request(Request),
+	  http_reload_with_parameters(Request, [sort_by(Name)], HREF)
+	},
+	html(th(a([href(HREF), class(resort)], Label))).
 
 
 		 /*******************************

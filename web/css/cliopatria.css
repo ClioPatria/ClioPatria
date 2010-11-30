@@ -155,8 +155,19 @@ table.block th.total
   background: transparent;
 }
 
-table.block th.sorted
-{
+table.block a.resort
+{ color: #000;
+  text-decoration: none;
+}
+
+table.block a.resort:hover
+{ color: #00f;
+  text-decoration: underline;
+}
+
+table.block a.sorted
+{ color: #000;
+  text-decoration: underline;
 }
 
 table.block th.p_name
