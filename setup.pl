@@ -235,11 +235,13 @@ try_link_file(Source, Dest, How) :-
 	;   throw(Error)
 	).
 
+:- if(\+current_predicate(directory_file_path/3)).
 directory_file_path(Dir, File, Path) :-
 	(   sub_atom(Dir, _, _, 0, /)
 	->  atom_concat(Dir, File, Path)
 	;   atomic_list_concat([Dir, /, File], Path)
 	).
+:- endif.
 
 
 %%	goodbye
