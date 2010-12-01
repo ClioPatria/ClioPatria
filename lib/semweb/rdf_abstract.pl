@@ -1142,9 +1142,16 @@ broader(Term, Broader) :-
 %
 %	@tbd	Think about the function.  Use sum of logs or sum of sqrt?
 
-rdf_representative([H], Representative) :- !,
+rdf_representative(List, Representative) :-
+	(   exclude(rdf_is_bnode, List, NonBNodes),
+	    NonBNodes \== []
+	->  representative(NonBNodes, Representative)
+	;   representative(List, Representative)
+	).
+
+representative([H], Representative) :- !,
 	Representative = H.
-rdf_representative([H|T], Representative) :-
+representative([H|T], Representative) :-
 	fan_in_out(H, Fan0),
 	best(T, Fan0, H, Representative).
 
