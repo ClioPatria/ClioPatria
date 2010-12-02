@@ -65,6 +65,12 @@
 %	  * filter(+Filter)
 %	  Restrict results to resources that satisfy filter.   Filtering
 %	  is implemented by search_filter/2.
+%	  * select_handler(+HandlerID)
+%	  ID of the handler called if the user selects a completion. The
+%	  handler is called with q=<Selected>
+%	  * submit_handler(+HandlerID)
+%	  ID of the handler called if the user submits using the button.
+%	  The handler is called with q=<Typed>
 %	  * label(Label)
 %	  Label of the search-button.  Default is _Search_.
 %	  * width(Width)
@@ -75,13 +81,15 @@ simple_search_form -->
 	simple_search_form([]).
 
 simple_search_form(Options) -->
-	{ option(label(Label), Options, 'Search')
+	{ option(label(Label), Options, 'Search'),
+	  option(submit_handler(Search), Options, search)
 	},
 	html(form([ id(search_form),
-		    action(location_by_id(search))
+		    action(location_by_id(Search))
 		  ],
 		  [ div([ \search_box([ name(q) | Options ]),
 			  \filter(Options),
+			  \select_handler(Options),
 			  input([ type(submit),
 				  value(Label)
 				])
@@ -94,6 +102,11 @@ filter(Options) -->
 	},
 	hidden(filter, FilterAtom).
 filter(_) --> [].
+
+select_handler(Options) -->
+	{ option(select_handler(Handler), Options) }, !,
+	hidden(handler, Handler).
+select_handler(_) --> [].
 
 
 max_results_displayed(100).
@@ -237,6 +250,10 @@ ac_find_literal(Request) :-
 				 [ optional(true),
 				   description('Filter on raw matches (a Prolog term)')
 				 ]),
+			  handler(Handler,
+				  [ default(list_triples_with_literal),
+				    description('Callback handler on selection')
+				  ]),
 			  maxResultsDisplayed(Max,
 					      [ integer, default(DefMax),
 						description('Maximum number of results displayed')
@@ -247,38 +264,40 @@ ac_find_literal(Request) :-
 	;   atom_to_term(FilterAtom, Filter0, []),
 	    rdf_global_term(Filter0, Filter)
 	),
-	autocompletions(Query, Filter, Max, Count, Completions),
+	autocompletions(Query, Filter, Handler, Max, Count, Completions),
 	reply_json(json([ query = json([ count=Count
 				       ]),
 			  results = Completions
 			])).
 
-autocompletions(Query, Filter, Max, Count, Completions)  :-
-	autocompletions(prefix(label), Query, Filter, Max, BNC, ByName),
+autocompletions(Query, Filter, Handler, Max, Count, Completions)  :-
+	autocompletions(prefix(label), Query, Filter,
+			Handler, Max, BNC, ByName),
 	(   BNC > Max
 	->  Completions = ByName,
 	    Count = BNC
 	;   TMax is Max-BNC,
-	    autocompletions(prefix(other), Query, Filter, TMax, BTC, ByToken),
+	    autocompletions(prefix(other), Query, Filter,
+			    Handler, TMax, BTC, ByToken),
 	    append(ByName, ByToken, Completions),
 	    Count is BNC+BTC
 	).
 
-autocompletions(How, Query, Filter, Max, Count, Completions) :-
+autocompletions(How, Query, Filter, Handler, Max, Count, Completions) :-
 	ac_objects(How, Query, Filter, Completions0),
 	length(Completions0, Count),
 	first_n(Max, Completions0, Completions1),
-	maplist(obj_result, Completions1, Completions).
+	maplist(obj_result(Handler), Completions1, Completions).
 
-obj_result(Text-Count,
+obj_result(Handler, Text-Count,
 	   json([ label=Text,
 		  count=Count,
 		  href=Href
 		])) :-
-	object_href(Text, Href).
+	object_href(Handler, Text, Href).
 
-object_href(Text, Link) :- !,
-	http_link_to_id(list_triples_with_literal, [ q=Text ], Link).
+object_href(Handler, Text, Link) :- !,
+	http_link_to_id(Handler, [ q=Text ], Link).
 
 first_n(0, _, []) :- !.
 first_n(_, [], []) :- !.

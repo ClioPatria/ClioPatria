@@ -1813,7 +1813,7 @@ rdf_table(Triples, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(top_max(BottomMax), Options, 500)
 	},
-	html(table(class(rdf_browse),
+	html(table(class(block),
 		   [ tr([ th('Subject'), th('Predicate'), th('Object') ])
 		   | \table_rows_top_bottom(triple, Triples,
 					    TopMax, BottomMax)
