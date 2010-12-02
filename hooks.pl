@@ -77,6 +77,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 	user_preference_default/2,	% ?Property, ?Value
 
 	page_body//1,			% +Body
+	page_body//2,			% +Style, +Body
 	server_address//0,
 
 	predicate_order/2,		% +P, -Order
@@ -198,10 +199,15 @@ The example below adds an item to =Help= popup of ClioPatria:
 		 *	       SKINS		*
 		 *******************************/
 
-%%	page_body(+Body)//
+%%	page_body(+Body)// is semidet.
+%%	page_body(+Style, +Body)// is semidet.
 %
 %	Emit the body of  the  page.  This   can  be  used  to provide a
-%	different skin for ClioPatria.
+%	different skin for ClioPatria. The Style argument is passed from
+%	reply_html_page/3. The file skin(cliopatria) defines the overall
+%	skin and first calls  cliopatria:page_body//2,   if  this  fails
+%	cliopatria:page_body//1 and if  this  fails   too  it  uses  the
+%	default page.
 
 %%	server_address//
 %

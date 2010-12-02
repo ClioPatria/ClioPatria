@@ -95,11 +95,13 @@ ClioPatria skin.
 :- multifile
 	user:body//2.
 
+user:body(cliopatria(Style), Body) -->
+	cliopatria:page_body(cliopatria(Style), Body), !.
 user:body(cliopatria(_), Body) -->
 	cliopatria:page_body(Body), !.
 user:body(cliopatria(_), Body) -->
 	html_requires(cliopatria),
-	html(body(class('yui-skin-sam cliopatria'), % TBD: Use a list
+	html(body(class(['yui-skin-sam', cliopatria]),
 		  [ div(class(menu), \cp_menu),
 		    \simple_search_form,
 		    br(clear(all)),
