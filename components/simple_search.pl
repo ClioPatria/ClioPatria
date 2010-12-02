@@ -278,8 +278,7 @@ obj_result(Text-Count,
 	object_href(Text, Href).
 
 object_href(Text, Link) :- !,
-	term_to_atom(literal(Text), Atom),
-	http_link_to_id(list_triples_with_object, [ l=Atom ], Link).
+	http_link_to_id(list_triples_with_literal, [ q=Text ], Link).
 
 first_n(0, _, []) :- !.
 first_n(_, [], []) :- !.

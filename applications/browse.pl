@@ -101,6 +101,8 @@ that allow back-office applications to reuse this infrastructure.
 :- http_handler(rdf_browser(list_triples),    list_triples,    []).
 :- http_handler(rdf_browser(list_triples_with_object),
 					      list_triples_with_object,	[]).
+:- http_handler(rdf_browser(list_triples_with_literal),
+					      list_triples_with_literal, []).
 
 :- http_handler(rdf_browser(search),          search,	       []).
 
@@ -1557,6 +1559,33 @@ list_triples_with_object(Request) :-
 				       ])
 			]),
 	target_object(RObject, LObject, Object),
+	list_triples_with_object(Object, P, Graph).
+
+target_object(RObject, _LObject, RObject) :-
+	atom(RObject), !.
+target_object(_, LObject, Object) :-
+	atom(LObject), !,
+	term_to_atom(Object, LObject).
+target_object(_, _, _) :-
+	throw(existence_error(http_parameter, r)).
+
+%%	list_triples_with_literal(+Request)
+%
+%	List triples that have a literal   that matches the q-parameter.
+%	This is used for  finding   objects  through  the autocompletion
+%	interface.
+
+list_triples_with_literal(Request) :-
+	http_parameters(Request,
+			[ q(Text,
+			    [optional(true),
+			     description('Object as resource (URI)')
+			    ])
+			]),
+	list_triples_with_object(literal(Text), _, _).
+
+
+list_triples_with_object(Object, P, Graph) :-
 	findall(S-P, rdf(S,P,Object,Graph), Pairs0),
 	sort(Pairs0, Pairs),
 	sort_pairs_by_label(Pairs, Sorted),
@@ -1567,14 +1596,6 @@ list_triples_with_object(Request) :-
 			[ h1(\otriple_header(Count, Object, P, Graph)),
 			  \otriple_table(Sorted, Object, [])
 			]).
-
-target_object(RObject, _LObject, RObject) :-
-	atom(RObject), !.
-target_object(_, LObject, Object) :-
-	atom(LObject), !,
-	term_to_atom(Object, LObject).
-target_object(_, _, _) :-
-	throw(existence_error(http_parameter, r)).
 
 otriple_header(Count, Object, Pred, Graph) -->
 	html([ 'Table for the ~D triples'-[Count],
