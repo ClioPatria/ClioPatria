@@ -172,10 +172,13 @@ autocomplete(Handler, Options) -->
 %	Allow for e.g., p(q) to use   the  value from the HTTP-parameter
 %	=q=.
 
-expand_value(p(Name), Value) :-
-	http_current_request(Request),
-	memberchk(search(Search), Request),
-	memberchk(Name=Value, Search), !.
+expand_value(p(Name), Value) :- !,
+	(   http_current_request(Request),
+	    memberchk(search(Search), Request),
+	    memberchk(Name=PValue, Search)
+	->  Value = PValue
+	;   Value = ''
+	).
 expand_value(Value, Value).
 
 
