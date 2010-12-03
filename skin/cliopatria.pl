@@ -103,7 +103,7 @@ user:body(cliopatria(_), Body) -->
 	html_requires(cliopatria),
 	html(body(class(['yui-skin-sam', cliopatria]),
 		  [ div(class(menu), \cp_menu),
-		    \simple_search_form,
+		    \simple_search_form([value(p(q))]),
 		    br(clear(all)),
 		    div(class(content), Body),
 		    br(clear(all)),

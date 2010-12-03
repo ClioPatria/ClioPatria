@@ -37,6 +37,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_wrapper)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 
@@ -73,6 +74,8 @@
 %	  The handler is called with q=<Typed>
 %	  * label(Label)
 %	  Label of the search-button.  Default is _Search_.
+%	  * value(Value)
+%	  Initial value of the search-box
 %	  * width(Width)
 %	  Width of the input box (default is =25em=). Must be a CSS
 %	  width.
@@ -142,7 +145,8 @@ autocomplete(Handler, Options) -->
 	  atom_concat(ID, '_container', ContainerID),
 	  select_option(width(Width), Options, Options1, '25em'),
 	  select_option(name(Name), Options1, Options2, predicate),
-	  select_option(value(Value), Options2, Options3, '')
+	  select_option(value(PValue), Options2, Options3, ''),
+	  expand_value(PValue, Value)
 	},
 	html([ \html_requires(yui('autocomplete/autocomplete.js')),
 	       \html_requires(yui('autocomplete/assets/skins/sam/autocomplete.css')),
@@ -162,6 +166,18 @@ autocomplete(Handler, Options) -->
 		     ]),
 	       \autocomplete_script(Handler, InputID, ContainerID, Options3)
 	     ]).
+
+%%	expand_value(ValueIn, Value)
+%
+%	Allow for e.g., p(q) to use   the  value from the HTTP-parameter
+%	=q=.
+
+expand_value(p(Name), Value) :-
+	http_current_request(Request),
+	memberchk(search(Search), Request),
+	memberchk(Name=Value, Search), !.
+expand_value(Value, Value).
+
 
 highlight -->
 	html(script(type('text/javascript'),
