@@ -321,6 +321,12 @@ cpack:requiresPredicate a owl:DatatypeProperty ;
 	rdfs:range rdfs:Literal ;
 	rdfs:domain cpack:File .
 
+cpack:lastModifiedTime a owl:DatatypeProperty ;
+	rdfs:label "last modified" ;
+	rdfs:comment "Last modification stamp" ;
+	rdfs:range xsd:dateTime ;
+	rdfs:domain cpack:File .
+
 cpack:usesFile a owl:ObjectProperty ;
 	rdfs:label "uses file" ;
 	rdfs:comment "Reference to a file used by this file" ;
