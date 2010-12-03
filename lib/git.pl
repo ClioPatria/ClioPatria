@@ -33,6 +33,8 @@
 	    git_process_output/3,	% +Argv, :OnOutput, +Options
 	    git_open_file/4,		% +Dir, +File, +Branch, -Stream
 	    git_describe/2,		% -Version, +Options
+	    git_remote_url/3,		% +Remote, -URL, +Options
+	    git_default_branch/2,	% -DefaultBranch, +Options
 	    git_tags_on_branch/3	% +Dir, +Branch, -Tags
 	  ]).
 :- use_module(library(process)).
@@ -249,6 +251,50 @@ stream_char_count(Out, Count) :-
 			       character_count(Null, Count)
 			   ),
 			   close(Null)).
+
+
+%%	git_remote_url(+Remote, -URL, +Options) is det.
+%
+%	URL is the remote (fetch) URL for the given Remote.
+
+git_remote_url(Remote, URL, Options) :-
+	git_process_output([remote, show, Remote],
+			   read_url("Fetch URL:", URL),
+			   Options).
+
+read_url(Tag, URL, In) :-
+	repeat,
+	    read_line_to_codes(In, Line),
+	    (	Line == end_of_file
+	    ->	!, fail
+	    ;	phrase(url_codes(Tag, Codes), Line)
+	    ->	!, atom_codes(URL, Codes)
+	    ).
+
+url_codes(Tag, Rest) -->
+	whites, string(Tag), whites, string(Rest).
+
+
+%%	git_default_branch(-BranchName, +Options) is det.
+%
+%	True if BranchName is the default branch of a repository.
+
+git_default_branch(BranchName, Options) :-
+	git_process_output([branch],
+			   read_default_branch(BranchName),
+			   Options).
+
+read_default_branch(BranchName, In) :-
+	repeat,
+	    read_line_to_codes(In, Line),
+	    (	Line == end_of_file
+	    ->	!, fail
+	    ;	phrase(default_branch(Codes), Line)
+	    ->	!, atom_codes(BranchName, Codes)
+	    ).
+
+default_branch(Rest) -->
+	"*", whites, string(Rest).
 
 
 %%	git_tags_on_branch(+Dir, +Branch, -Tags) is det.
