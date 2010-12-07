@@ -206,7 +206,7 @@ human_count(Number, HTML) :-
 human_count(Number, HTML) :-
 	TB is Number/(1024*1024*1024),
 	digits(TB, N),
-	HTML = '~*fT'-[N, TB].
+	HTML = '~*fG'-[N, TB].
 
 digits(Count, N) :-
 	(   Count < 100
