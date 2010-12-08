@@ -62,40 +62,52 @@ This module provides HTML components to display labels for resources.
 %	@tbd	Implement possibility for a summary.
 
 turtle_label(R) -->
+	turtle_label(R, []).
+
+turtle_label(R, _) -->
 	{ atom(R),
 	  rdf_global_id(NS:Local, R), !
 	},
 	html([span(class(prefix), NS), ':', span(class(local), Local)]).
-turtle_label(R) -->
+turtle_label(R, Options) -->
 	{ atom(R),
 	  rdf_label(R, Label),
-	  literal_text(Label, LabelText), !
+	  literal_text(Label, LabelText),
+	  truncate_text(LabelText, Show, Options)
 	},
-	html(LabelText).
-turtle_label(R) -->
+	html(Show).
+turtle_label(R, Options) -->
 	{ rdf_is_bnode(R) },
-	bnode_label(R), !.
-turtle_label(R) -->
+	bnode_label(R, Options), !.
+turtle_label(R, _) -->
 	{ atom(R) }, !,
 	html(['<',R,'>']).
-turtle_label(literal(Lit)) --> !,
-	literal_label(Lit).
+turtle_label(literal(Lit), Options) --> !,
+	literal_label(Lit, Options).
 
 
-literal_label(type(Type, Value)) --> !,
+literal_label(type(Type, Value), Options) --> !,
+	{ truncate_text(Value, Show, Options) },
 	html(span(class(literal),
-		  ['"', span(class(l_text), Value),
+		  ['"', span(class(l_text), Show),
 		   '"', span(class(l_type), '^^'), \turtle_label(Type)])).
-literal_label(lang(Lang, Value)) --> !,
+literal_label(lang(Lang, Value), Options) --> !,
+	{ truncate_text(Value, Show, Options) },
 	html(span(class(literal),
-		  ['"', span(class(l_text), Value), '"',
+		  ['"', span(class(l_text), Show), '"',
 		   span(class(l_lang), '@'), span(class(lang), Lang)])).
-literal_label(Value) -->
+literal_label(Value, Options) -->
+	{ truncate_text(Value, Show, Options) },
 	html(span(class(literal),
-		  ['"', span(class(l_text), Value), '"'])).
+		  ['"', span(class(l_text), Show), '"'])).
+
+truncate_text(Text, Text, []) :- !.
+truncate_text(Text, Truncated, Options) :-
+	option(max_length(Len), Options),
+	truncate_atom(Text, Len, Truncated).
 
 
-%%	bnode_label(+Resource)// is semidet.
+%%	bnode_label(+Resource, +Options)// is semidet.
 %
 %	Display an HTML label for an  RDF   blank  node.  This DCG rules
 %	first  calls  the  hook  cliopatria:bnode_label//1.  On  failure
@@ -107,9 +119,9 @@ literal_label(Value) -->
 %	    * If the bnode is an RDF collection, display its first 5
 %	    members as (<member-1>, <member-2, ...)
 
-bnode_label(R) -->
+bnode_label(R, _) -->
 	cliopatria:bnode_label(R), !.
-bnode_label(R) -->
+bnode_label(R, Options) -->
 	{ rdf_has(R, rdf:value, Value),
 	  (   Value = literal(_)
 	  ;   \+ rdf_is_bnode(Value)
@@ -118,8 +130,8 @@ bnode_label(R) -->
 	html(span([ class(rdf_bnode),
 		    title('RDF bnode using rdf:value')
 		  ],
-		  ['[', \turtle_label(Value), '...]'])).
-bnode_label(R) -->
+		  ['[', \turtle_label(Value, Options), '...]'])).
+bnode_label(R, Options) -->
 	{ rdf_collection_list(R, List), !,
 	  length(List, Len),
 	  format(string(Title), 'RDF collection with ~D members', Len)
@@ -127,19 +139,19 @@ bnode_label(R) -->
 	html(span([ class(rdf_list),
 		    title(Title)
 		  ],
-		  ['(', \collection_members(List, 0, Len, 5), ')'])).
+		  ['(', \collection_members(List, 0, Len, 5, Options), ')'])).
 
-collection_members([], _, _, _) --> [].
-collection_members(_, Max, Total, Max) --> !,
+collection_members([], _, _, _, _) --> [].
+collection_members(_, Max, Total, Max, _) --> !,
 	{ Left is Total - Max },
 	html('... ~D more'-[Left]).
-collection_members([H|T], I, Total, Max) -->
-	turtle_label(H),
+collection_members([H|T], I, Total, Max, Options) -->
+	turtle_label(H, Options),
 	(   { T == [] }
 	->  []
 	;   html(','),
 	    { I2 is I + 1 },
-	    collection_members(T, I2, Total, Max)
+	    collection_members(T, I2, Total, Max, Options)
 	).
 
 
@@ -166,6 +178,9 @@ rdf_collection_list(R, [H|T]) :-
 %	        Try to display a resource using its label
 %	        * nslabel
 %	        Try to display a resource as <prefix>:<Label>
+%	    * max_length(+Len)
+%	    Truncate long texts to Len characters, using ellipses to
+%	    indicate that the text is truncated.
 %
 %	This predicate creates two types of  links. Resources are linked
 %	to the handler implementing   =list_resource= using r=<resource>
@@ -228,23 +243,25 @@ resource_link(R, HREF) :-
 
 resource_label(R, Options) -->
 	{ option(resource_format(Format), Options) }, !,
-	resource_flabel(Format, R).
-resource_label(R, _) -->
-	turtle_label(R).
+	resource_flabel(Format, R, Options).
+resource_label(R, Options) -->
+	turtle_label(R, Options).
 
-resource_flabel(plain, R) --> !,
+resource_flabel(plain, R, _) --> !,
 	html(R).
-resource_flabel(label, R) --> !,
-	(   { rdf_display_label(R, Label) }
-	->  html([span(class(r_label),Label)])
+resource_flabel(label, R, Options) --> !,
+	(   { rdf_display_label(R, Label),
+	      truncate_text(Label, Show, Options)
+	    }
+	->  html([span(class(r_label), Show)])
 	;   turtle_label(R)
 	).
-resource_flabel(nslabel, R) --> !,
+resource_flabel(nslabel, R, Options) --> !,
 	(   { rdf_global_id(NS:_Local, R), !,
 	      rdf_display_label(R, Label)
 	    }
 	->  html([span(class(prefix),NS),':',span(class(r_label),Label)])
-	;   turtle_label(R)
+	;   turtle_label(R, Options)
 	).
-resource_flabel(_, R) -->
-	turtle_label(R).
+resource_flabel(_, R, Options) -->
+	turtle_label(R, Options).
