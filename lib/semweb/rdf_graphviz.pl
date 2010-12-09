@@ -34,6 +34,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_path)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/url_cache)).
 :- use_module(library(assoc)).
@@ -205,7 +206,8 @@ write_edge(rdf(S,P,O), Done0, Done2, Stream, Options) :-
 	    target_option([href(URL), label(Label)], Attrs, Options),
 	    write_attributes(Attrs, Stream)
 	;   write_attributes([label(Label)], Stream)
-	).
+	),
+	nl(Stream).
 
 write_node_id(S, Done, Done, Stream) :-
 	get_assoc(S, Done, Id), !,
@@ -237,7 +239,8 @@ write_node_attributes(R, Stream, Options) :-
 	option(bags(Bags), Options),
 	get_assoc(R, Bags, Members), !,
 	Members = [First|_],
-	shape(First, MemberShape, Options),
+	shape(First, MemberShape0, Options),
+	exclude(no_bag_option, MemberShape0, MemberShape),
 	option(bags(merge(BagShape, Max)), Options,
 	       merge([ shape(box),
 		       style('rounded,filled,bold'),
@@ -267,6 +270,8 @@ target_option(Attrs0, Attrs, Options) :-
 	option(target(Target), Options), !,
 	Attrs = [target(Target)|Attrs0].
 target_option(Attrs, Attrs, _).
+
+no_bag_option(img(_)).
 
 %%	bag_label(+Members, +Max, -Label, +Options) is det.
 %
@@ -306,11 +311,20 @@ html_resource_label(Resource, Options) -->
 
 %%	write_image_node(+ImgAttrs, +Attrs, +Stream, +Options) is det.
 %
-%	Render a node using an image.
+%	Render a node using an image. The   image  location is either an
+%	external URL or a local file   specification  using the notation
+%	icons(File), a term that must  resolve   in  an image file using
+%	absolute_file_name/3. In the default setup,  this means that the
+%	image must be in the directory =|web/icons|= of a package.
 
 write_image_node(ImgAttrs, Attrs, Stream, _Options) :-
-	select(src(URL), ImgAttrs, ImgAttrs1),
-	url_cache(URL, File, _MimeType),
+	selectchk(src(Src), ImgAttrs, ImgAttrs1),
+	(   Src = icons(_)
+	->  absolute_file_name(Src, AbsFile, [access(read)]),
+	    working_directory(CWD, CWD),
+	    relative_file_name(AbsFile, CWD, File)
+	;   url_cache(Src, File, _MimeType)
+	),
 	filter_attributes(Attrs, td, TDAttrs, _Attrs1),
 	html_current_option(dialect(Dialect)),
 	html_set_options([dialect(xhtml)]),
@@ -493,7 +507,6 @@ shape(Resource, Attrs, _Options) :-
                        rdf_has(P, rdfs:label, literal(A)) ),
                 Pairs),
         maplist(v_term, Pairs, Attrs).
-shape(_, [], _).
 
 v_term(A-V, T) :-
         T =.. [A,V].
@@ -503,16 +516,20 @@ v_term(A-V, T) :-
 		 *	   IMAGE SERVER		*
 		 *******************************/
 
-:- http_handler(root('cache/url/'), image_in_svg, [prefix]).
+% These handlers are relative to the handler of send_graph.  Possibly
+% it would be better to merge that code.
 
-%%	image_in_svg(+Request)
+:- http_handler(root('graphviz/cache/url/'), cached_image_in_svg, [prefix]).
+:- http_handler(root('graphviz/'),	     local_image_in_svg,  [prefix]).
+
+%%	cached_image_in_svg(+Request)
 %
 %	HTTP handler to serve an image we have included in an SVG file.
 %
 %	@tbd	Should we restrict files served to files that are part of
 %		recently served SVG files?
 
-image_in_svg(Request) :-
+cached_image_in_svg(Request) :-
 	memberchk(path_info(PathInfo), Request),
 	atom_concat('cache/url/', PathInfo, File),
 	url_cached(URL, file(File)),
@@ -522,6 +539,12 @@ image_in_svg(Request) :-
 			  unsafe(true)
 			],
 			Request).
+
+local_image_in_svg(Request) :-
+	memberchk(path_info(PathInfo), Request),
+	file_base_name(PathInfo, ImageFile),
+	http_reply_file(icons(ImageFile), [], Request).
+
 
 
 		 /*******************************
