@@ -31,7 +31,8 @@
 :- module(prolog_version,
 	  [ check_prolog_version/1,	% +NumericVersion
 	    register_git_module/2,	% +Name, +Options
-	    git_module_property/2	% ?Name, ?Property
+	    git_module_property/2,	% ?Name, ?Property
+	    git_update_versions/1	% ?Name
 	  ]).
 :- use_module(library(process)).
 :- use_module(library(option)).

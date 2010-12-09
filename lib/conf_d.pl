@@ -38,6 +38,7 @@
 :- use_module(library(ordsets)).
 :- use_module(library(lists)).
 :- use_module(library(apply)).
+:- use_module(library(version)).
 :- use_module(library(prolog_xref)).
 :- use_module(pldoc(doc_process)).
 
@@ -73,6 +74,10 @@ another, there are two solutions:
 %	@param	Spec is either the specification of a directory according
 %		to absolute_file_name/3 or a list thereof.  Duplicate
 %		directories are removed.
+%	@tbd	There is a but forking processes in one thread and
+%		waiting for X11 in another, which deadlocks in
+%		fork_atfree().  So, we must ensure we have the git
+%		versions in time :-(
 
 load_conf_d(Spec, Options) :-
 	select_option(solutions(Sols), Options, LoadOptions0, all),
@@ -82,7 +87,8 @@ load_conf_d(Spec, Options) :-
 		      ], LoadOptions),
 	phrase(collect_dirs(Spec, Sols), Dirs),
 	list_to_set(Dirs, Set),
-	maplist(load_conf_dir(LoadOptions), Set).
+	maplist(load_conf_dir(LoadOptions), Set),
+	git_update_versions(_).		% See above
 
 collect_dirs([], _) --> !.
 collect_dirs([H|T], Sols) --> !,
