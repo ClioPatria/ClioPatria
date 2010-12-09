@@ -1312,6 +1312,7 @@ p_order(rdfs:isDefinedBy, 320).
 uri_info(URI, Graph) -->
 	uri_class_info(URI, Graph),
 	uri_predicate_info(URI, Graph),
+	html(h2('Context graph')),
 	context_graph(URI, []).
 
 uri_class_info(URI, Graph) -->
@@ -1347,8 +1348,7 @@ uri_predicate_info(_, _) --> [].
 context_graph(URI, Options) -->
 	{ merge_options(Options, [style(_)], GraphOption)
 	},
-	html([ h2('Context graph'),
-	       \graphviz_graph(context_graph(URI, GraphOption),
+	html([ \graphviz_graph(context_graph(URI, GraphOption),
 			       [ object_attributes([width('100%')]),
 				 wrap_url(resource_link),
 				 graph_attributes([ rankdir('RL')
@@ -1357,6 +1357,8 @@ context_graph(URI, Options) -->
 			       ])
 	     ]).
 
+:- public
+	shape/4.
 
 %%	shape(+Start, +Options, +URI, -Shape) is semidet.
 %
