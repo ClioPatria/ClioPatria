@@ -114,7 +114,7 @@ gviz_write_rdf(Stream, Graph0, Options0) :-
 	combine_bags(Graph, Triples, Bags, Options),
 	gv_write_edges(Triples, Done, Stream, Options),
 	assoc_to_list(Done, Nodes),
-	gv_write_nodes(Nodes, Stream, [bags(Bags)|Options]),
+	gv_write_nodes(Nodes, Stream, [bag_assoc(Bags)|Options]),
 	format(Stream, '~n}~n', []).
 
 is_meta(wrap_url).
@@ -236,7 +236,7 @@ gv_write_nodes([RDF-ID|T], Stream, Options) :-
 
 write_node_attributes(R, Stream, Options) :-
 	rdf_is_resource(R),
-	option(bags(Bags), Options),
+	option(bag_assoc(Bags), Options),
 	get_assoc(R, Bags, Members), !,
 	Members = [First|_],
 	shape(First, MemberShape0, Options),
