@@ -909,7 +909,7 @@ flip_pairs([Key-Val|Pairs], [Val-Key|Flipped]) :-
 
 predicate_resource(Graph, Pred, subject, R) :- !,
 	rdf(R, Pred, _, Graph).
-predicate_resource(Graph, Pred, object, R) :-
+predicate_resource(Graph, Pred, object, R) :- !,
 	rdf(_, Pred, R, Graph).
 predicate_resource(Graph, Pred, domain, D) :- !,
 	rdf(R, Pred, _, Graph),
