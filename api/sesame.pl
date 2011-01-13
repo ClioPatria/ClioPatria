@@ -396,12 +396,19 @@ unload_graph(Request) :-
 
 %%	upload_data(Request).
 %
-%	Add data to the repository
+%	Sesame compliant method  to  upload   data  to  the  repository,
+%	typically used to handle a POST-form   from a web-browser (e.g.,
+%	_|Load local file|_ in the ClioPatria  menu). If =dataFormat= is
+%	omitted, the format of the data is guessed from the data itself.
+%	Currently, this possitively identifies valid RDF/XML and assumes
+%	that anything else is Turtle.
 
 upload_data(Request) :- !,
 	http_parameters(Request,
 			[ repository(Repository),
-			  data(Data, []),
+			  data(Data,
+			       [ description('RDF data to be loaded')
+			       ]),
 			  dataFormat(DataFormat),
 			  baseURI(BaseURI),
 			  verifyData(_Verify),
@@ -414,13 +421,74 @@ upload_data(Request) :- !,
 	atom_to_memory_file(Data, MemFile),
 	action(Request,
 	       setup_call_cleanup(open_memory_file(MemFile, read, Stream),
-				  rdf_load(stream(Stream), Options),
+				  guess_format_and_load(Stream, Options),
 				  ( close(Stream),
 				    free_memory_file(MemFile)
 				  )),
 	       ResultFormat,
 	       'Loaded data from POST'-[]).
 
+guess_format_and_load(Stream, Options) :-
+	option(format(_), Options), !,
+	rdf_load(stream(Stream), Options).
+guess_format_and_load(Stream, Options) :-
+	guess_rdf_data_format(Stream, Format),
+	rdf_load(stream(Stream), [format(Format)|Options]).
+
+
+%%	guess_rdf_data_format(+Stream, ?Format)
+%
+%	Guess the format  of  an  RDF   file  from  the  actual content.
+%	Currently, this seeks for a valid  XML document upto the rdf:RDF
+%	element before concluding that the file is RDF/XML. Otherwise it
+%	assumes that the document is Turtle.
+
+guess_rdf_data_format(_, Format) :-
+	nonvar(Format), !.
+guess_rdf_data_format(Stream, xml) :-
+	xml_doctype(Stream, _), !.
+guess_rdf_data_format(_, turtle).
+
+
+%%	xml_doctype(+Stream, -DocType) is semidet.
+%
+%	Parse a _repositional_ stream and get the  name of the first XML
+%	element *and* demand that this   element defines XML namespaces.
+%	Fails if the document is illegal XML before the first element.
+%
+%	Note that it is not  possible   to  define valid RDF/XML without
+%	namespaces, while it is not possible  to define a valid absolute
+%	Turtle URI (using <URI>) with a valid xmlns declaration.
+
+xml_doctype(Stream, DocType) :-
+	catch(setup_call_cleanup(make_parser(Stream, Parser, State),
+				 sgml_parse(Parser,
+					    [ source(Stream),
+					      max_errors(1),
+					      syntax_errors(quiet),
+					      call(begin, on_begin),
+					      call(cdata, on_cdata)
+					    ]),
+				 cleanup_parser(Stream, Parser, State)),
+	      E, true),
+	nonvar(E),
+	E = tag(DocType).
+
+make_parser(Stream, Parser, state(Pos)) :-
+	stream_property(Stream, position(Pos)),
+	new_sgml_parser(Parser, []),
+	set_sgml_parser(Parser, dialect(xmlns)).
+
+cleanup_parser(Stream, Parser, state(Pos)) :-
+	free_sgml_parser(Parser),
+	set_stream_position(Stream, Pos).
+
+on_begin(Tag, Attributes, _Parser) :-
+	memberchk(xmlns:_=_, Attributes),
+	throw(tag(Tag)).
+
+on_cdata(_CDATA, _Parser) :-
+	throw(error(cdata)).
 
 %%	upload_url(+Request)
 %
@@ -436,12 +504,7 @@ upload_data(Request) :- !,
 upload_url(Request) :-
 	http_parameters(Request,
 			[ url(URL, []),
-			  dataFormat(DataFormat,
-				     [ optional(true),
-				       oneof([rdfxml, ntriples]),
-				       description('Serialization of the data')
-				     ]
-				    ),
+			  dataFormat(DataFormat),
 			  baseURI(BaseURI,
 				  [ optional(true)
 				  ]),
@@ -462,9 +525,10 @@ load_option(DataFormat, BaseURI) -->
 	data_format_option(DataFormat),
 	base_uri_option(BaseURI).
 
-data_format_option(Var) --> {var(Var)}, !.
-data_format_option(rdfxml) --> [format(xml)].
+data_format_option(Var)      --> {var(Var)}, !.
+data_format_option(rdfxml)   --> [format(xml)].
 data_format_option(ntriples) --> [format(turtle)].
+data_format_option(turtle)   --> [format(turtle)].
 
 base_uri_option(Var) --> {var(Var)}, !.
 base_uri_option(URI) --> [base_uri(URI)].
@@ -495,16 +559,19 @@ remove_statements(Request) :-
 	authorized(write(Repository, remove_statements(SI, PI, OI))),
 
 	(   nonvar(Data)
-	->  atom_to_memory_file(Data, MemFile),
-	    open_memory_file(MemFile, read, Stream),
-	    call_cleanup(get_triples(stream(Stream),
-				     Triples,
-				     [ base_uri(BaseURI),
-				       data_format(DataFormat)
-				     ]),
-			 (   close(Stream),
-			     free_memory_file(MemFile)
-			 )),
+	->  setup_call_cleanup(( atom_to_memory_file(Data, MemFile),
+	    			 open_memory_file(MemFile, read, Stream,
+						  [ free_on_close(true)
+						  ])
+			       ),
+			       ( guess_rdf_data_format(Stream, DataFormat),
+			         get_triples(stream(Stream),
+					     Triples,
+					     [ base_uri(BaseURI),
+					       data_format(DataFormat)
+					     ])
+			       ),
+			       close(Stream)),
 	    length(Triples, NTriples),
 	    debug(removeStatements, 'Removing ~D statements', [NTriples]),
 	    action(Request, remove_triples(Triples),
@@ -590,8 +657,8 @@ attribute_decl(entailment,		% cache?
 	setting(cliopatria:default_entailment, Default),
 	findall(E, cliopatria:entailment(E, _), Es).
 attribute_decl(dataFormat,
-	       [ default(rdfxml),
-		 oneof([rdfxml, ntriples]),
+	       [ optional(true),
+		 oneof([rdfxml, ntriples, turtle]),
 		 description('Serialization of the data')
 	       ]).
 attribute_decl(baseURI,
@@ -601,7 +668,10 @@ attribute_decl(baseURI,
 attribute_decl(source,
 	       [ description('Name of the graph')
 	       ]).
-attribute_decl(verifyData, Options) :-
+attribute_decl(verifyData,
+	       [ description('Verify the data (ignored)')
+	       | Options
+	       ]) :-
 	bool(off, Options).
 attribute_decl(schema,
 	       [ description('Include schema RDF in downloaded graph')
