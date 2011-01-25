@@ -72,7 +72,7 @@ install_file(Vars, Dest, InFile) :-
 	(   exists_directory(Dest)
 	->  file_name_extension(File, in, InFile),
 	    file_base_name(File, Base),
-	    atom_concat(Dest, Base, DstFile)
+	    directory_file_path(Dest, Base, DstFile)
 	;   DstFile = Dest
 	),
 	copy_file_with_vars(InFile, DstFile, Vars),
