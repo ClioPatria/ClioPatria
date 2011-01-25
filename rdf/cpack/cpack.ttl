@@ -163,7 +163,7 @@ cpack:submittedDate a owl:DatatypeProperty ;
 
 cpack:repository a owl:ObjectProperty ;
 	rdfs:label "repository" ;
-	rdfs:comment "Reposigtory where software can be found" ;
+	rdfs:comment "Repository where software can be found" ;
 	rdfs:range cpack:Repository ;
 	rdfs:domain cpack:Package .
 
@@ -174,12 +174,12 @@ cpack:primaryRepository a owl:ObjectProperty ;
 
 cpack:clonedRepository a owl:ObjectProperty ;
 	rdfs:subPropertyOf cpack:repository ;
-	rdfs:label "cloned repository" ;
+	rdfs:label "original repository" ;
 	rdfs:comment "Repository from which we cloned" .
 
 cpack:mirrorRepository a owl:ObjectProperty ;
 	rdfs:subPropertyOf cpack:repository ;
-	rdfs:label "mirror repository" ;
+	rdfs:label "CPACK mirror repository" ;
 	rdfs:comment "Our mirror of the repository" .
 
 # Dependency relations are based on `tokens', which by default are
