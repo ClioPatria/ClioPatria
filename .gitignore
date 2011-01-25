@@ -10,3 +10,5 @@ doc/config.log
 doc/config.status
 doc/serql.tex
 run.pl
+config-enabled
+cpack-mirrors

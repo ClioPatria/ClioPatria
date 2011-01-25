@@ -1,0 +1,70 @@
+---+ Creating a CPACK
+
+A CPACK is a directory with a subdirectory structure that is equivalent
+to the structure used by ClioPatria (see [[RoadMap][RoadMap.txt]]).  The
+*name* of the directory is the package name.
+
+---++ Using cpack_create/3.
+
+The predicate cpack_create/3 requires a bit of setup. First of all, it
+works best if you have a machine on which you can login through *ssh*
+and from which GIT repositories can be accessed through the *|git://|*
+protocol. If you have that, create a CPACK [[profile][profile.txt]],
+notably fill out the defaultAuthor and repository-templates. Now simply
+run e.g.,:
+
+  ==
+  ?- cpack_create(my_package, 'My first package', []).
+  ==
+
+This creates a package skeleton in cpack/my_package and initialises this
+as a GIT repository. If ssh setup is properly configured, it will also
+create the remote repository and setup the proper git remotes to allow
+you pushing into it.
+
+Next, complete the skeleton and add your files. Then configure the
+package and install it in your ClioPatria copy using cpack_configure/1
+as illustrated below. This adds the new package to the search-paths
+defined in =|config-enabled/010-packs.pl|=, installs the configuration
+defaults into =|config-enabled|= and loads these.
+
+  ==
+  ?- cpack_configure(<name>).
+  ==
+
+From this point you can create and edit files to complete and debug
+the package.  Once satisfied, you can make the new package available
+to others using the following steps:
+
+  $ Upload the package :
+  To upload the package, go the the server, login and select
+  *|CPACK/Submit pack|*.  Fill in the GIT URL above and optionally
+  a branch-name.
+
+  $ Verify the package :
+  Go to the page of the package and examine the results from the
+  package analysis.  Fix possible problems by updating the public
+  git and using the update-link at the top-right corner of the
+  package-page.
+
+---++ Creating packages without cpack_create/3
+
+A new package is typically created in a directory *|cpack/<name>|*,
+relative to your current ClioPatria working directory. Here are the
+components that turn this into a CPACK:
+
+  $ A file rdf/cpack/<name>.ttl :
+  This file provides the meta-data for the package.  The details are
+  described in [[metadata][metadata.txt]].
+
+  $ The directory config-available :
+  This allows you to specify which files are loaded, setup menus,
+  etc.  If nothing needs to be loaded or can be configured (e.g.,
+  packages that only provide libraries), this can be omitted.
+  See [[config-available][ConfigAvailable.txt]] for details.
+
+From this point, you can run cpack_configure/1 as described above
+and further develop the package.  At some point, you need to turn
+it into a publically available GIT repository and make this known
+to the package manager as described above.
+

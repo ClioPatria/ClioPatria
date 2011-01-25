@@ -20,6 +20,7 @@ loaded RDF.
 
   * *|Getting ClioPatria|*
     * Download.txt ClioPatria
+    * Add [[packages][cpack/Finding.txt]] to ClioPatria
     * Install.txt or restart.txt ClioPatria
 
   * *|Using ClioPatria|*
@@ -32,5 +33,6 @@ loaded RDF.
 
   * *|Development with ClioPatria|*
     * The ClioPatria [[plugin architecture][Plugin.txt]]
+    * The ClioPatria package manager [[CPACK][cpack/index.txt]]
     * Developing.txt applications with ClioPatria
 

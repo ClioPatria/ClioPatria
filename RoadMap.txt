@@ -28,19 +28,15 @@ from the top-left menu.
     DCG-rules that produce HTML.  These are reusable components to
     build _applications_.
 
-    $ conf.d :
+    $ config-enabled :
     This directory holds (small) files that configure the server.
-    Example and template files are in examples/conf.d.  See
-    conf.d/README.txt and examples/conf.d/README.txt.
+    Example and template files are in config-available.  See
+    config-enabled/README.txt and config-available/README.txt.
 
     $ entailment :
     Entailment modules provide an alternative definition of rdf/3 that
     included triples entailed by reasoning.  The various entailment
     modules provide a different amount of reasoning.
-
-    $ examples :
-    Example files that use or extend ClioPatria. Notably examples/conf.d
-    provides template configuration files.
 
     $ lib :
     Reusable code which we envision might become part of the SWI-Prolog
@@ -59,6 +55,10 @@ from the top-left menu.
     $ rdfql :
     Implementation for RDF query languages: SPARQL and SeRQL. The
     provided functionality is typically only used through the HTTP-API.
+
+    $ skin :
+    Defined skins.  Notable skins/cliopatria.pl defines the (hookable)
+    overall ClioPatria page-layout.
 
     $ test :
     Test-framework, notably to verify SPARQL compliance.
@@ -89,9 +89,6 @@ from the top-left menu.
     Localization script to create <file> from <file>.in.  Used to create
     run.pl from run.pl.in.  Can be used to localise your new application
     startup.
-
-    $ skin.pl :
-    Defines the overall page-layout for ClioPatria development pages.
 
 ---++ Other toplevel files
 

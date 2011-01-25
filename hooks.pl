@@ -71,14 +71,18 @@ The example below adds an item to =Help= popup of ClioPatria:
 	display_link//2,		% +RDFObject, +Options
 	resource_link/2,		% +URI, -URL
 
+	list_resource//1,		% +URI
+
 	user_preference_db/2,		% ?Property, ?Value
 	user_preference_default/2,	% ?Property, ?Value
 
 	page_body//1,			% +Body
+	page_body//2,			% +Style, +Body
 	server_address//0,
 
 	predicate_order/2,		% +P, -Order
 	context_graph/2,		% +R, -RDF
+	context_graph/3,		% +R, -RDF, +Options
 	node_shape/3.			% +R, -Shape, +Options
 
 
@@ -161,6 +165,18 @@ The example below adds an item to =Help= popup of ClioPatria:
 
 
 		 /*******************************
+		 *	    LOCAL VIEW		*
+		 *******************************/
+
+%%	list_resource(+URI)//
+%
+%	This  hook  is  called   by  cpa_browse:list_resource//2,  which
+%	display the `local view' page for a   resource. This can be used
+%	to create a different page for   describing a resource and still
+%	using overall infrastructure such as rdf_link//1.
+
+
+		 /*******************************
 		 *   USER/SESSION PREFERENCES	*
 		 *******************************/
 
@@ -183,10 +199,15 @@ The example below adds an item to =Help= popup of ClioPatria:
 		 *	       SKINS		*
 		 *******************************/
 
-%%	page_body(+Body)//
+%%	page_body(+Body)// is semidet.
+%%	page_body(+Style, +Body)// is semidet.
 %
 %	Emit the body of  the  page.  This   can  be  used  to provide a
-%	different skin for ClioPatria.
+%	different skin for ClioPatria. The Style argument is passed from
+%	reply_html_page/3. The file skin(cliopatria) defines the overall
+%	skin and first calls  cliopatria:page_body//2,   if  this  fails
+%	cliopatria:page_body//1 and if  this  fails   too  it  uses  the
+%	default page.
 
 %%	server_address//
 %
@@ -208,7 +229,11 @@ The example below adds an item to =Help= popup of ClioPatria:
 %
 %	Predicates that have order `0' are _deleted_ from the table.
 
-%%	context_graph(+R, -RDF) is semidet.
+%%	context_graph(+R, -RDF, +Options) is semidet.
+%
+%	@deprecated Use context_graph/3.
+
+%%	context_graph(+R, -RDF, +Options) is semidet.
 %
 %	This hook redefines the context graph   shown by the RDF browser
 %	for the resource R. RDF is  a   list  of rdf(S,P,O) triples that
@@ -218,6 +243,8 @@ The example below adds an item to =Help= popup of ClioPatria:
 %	@see	This predicate hooks cpa_browse:context_graph/2.  Please
 %		visit the soure to learn about available building
 %		blocks.
+
+
 
 %%	node_shape(+URI, -Shape, +Options) is semidet.
 %

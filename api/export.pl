@@ -77,7 +77,10 @@ send_graph(Graph, Format, MimeType) :- !,
 	send_graph(Graph, Format).
 
 send_graph(Graph, turtle) :- !,
-	rdf_save_turtle(stream(current_output), [graph(Graph)]).
+	rdf_save_turtle(stream(current_output),
+			[ graph(Graph),
+			  base(Graph)
+			]).
 send_graph(Graph, canonical_turtle) :- !,
 	rdf_save_canonical_turtle(stream(current_output), [graph(Graph)]).
 send_graph(Graph, rdfxml) :- !,

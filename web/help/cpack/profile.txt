@@ -1,0 +1,52 @@
+---+ Your CPACK Profile
+
+Creating a CPACK profile is needed if
+
+  * You want to [[install][Installing.txt]] from another server than the default
+    http://cliopatria.swi-prolog.org.
+  * You want to use the [[package setup][Creating.txt]] support from
+    cpack_create/3.
+
+Your CPACK profile is an RDF instance of the class cpack:Profile. The
+system tries to load a Turtle file =|.cpack.ttl|= from the search-path
+=user_profile= (i.e., =|~/.cpack.ttl|= on Unix-based systems. Below is
+an example profile.  Here are the key properties:
+
+  * General properties
+    * *|cpack:name|* is the name of the profile (currently not used)
+  * Properties for using packages
+    * *|cpack:servers|* is an RDF _collection_ (list) that specifies
+      the servers that are searched by cpack_install/1.
+  * Properties for creating packages using cpack_create/3
+    * *|cpack:defaultAuthor|* Reference to a FOAF profile.  If you
+    have an external one, just put the reference here.  Otherwise
+    you can define a simple profile here.  This *must* include =|foaf:mbox|=
+    or =|foaf:mbox_sha1sum|=.
+    * *|cpack:fetchRepositoryTemplate|* Used to instantiate the
+    default GIT URL from which the new package is publically available
+    * *|cpack:pushRepositoryTemplate|* Used to setup a remote respository
+    for pushing to the repository above.
+
+==
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix cpack:   <http://cliopatria.swi-prolog.org/schema/cpack#> .
+
+<john> a foaf:Person ;
+	foaf:name "John Programmer" ;
+	foaf:mbox "john@programmers.org" .
+
+[ a cpack:Profile ;
+  cpack:name "default" ;
+  cpack:defaultAuthor <john> ;
+  cpack:fetchRepositoryTemplate
+	"git://server.programmers.org/git/ClioPatria/@CPACK@.git" ;
+  cpack:pushRepositoryTemplate
+	"ssh://john@server:git/ClioPatria/@CPACK@.git" ;
+  cpack:servers
+	( <http://cliopatria.swi-prolog.org>
+	) ;
+] .
+==

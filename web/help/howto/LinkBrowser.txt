@@ -28,7 +28,7 @@ fragment:
 To see the program in action, make sure   to have some RDF loaded (e.g.,
 OWL from the library; see LoadRDF.txt).  Now, load prophier.pl. This can
 be done using the command below from   the  Prolog console or by copying
-prophier.pl into =|conf.d|= and restarting ClioPatria.
+prophier.pl into =|config-enabled|= and restarting ClioPatria.
 
     ==
     ?- use_module(web/help/howto/prophier).

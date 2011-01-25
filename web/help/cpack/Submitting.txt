@@ -1,0 +1,37 @@
+---+ Submitting a CPACK
+
+A CPACK is uploaded by making its publically accessible GIT repository
+known to a CPACK repository server, e.g.,
+http://cliopatria.swi-prolog.org. Submitting or upgrading a pack
+requires you to logged on.  This is done using the form accessible
+through *|CPACK/Submit pack|*. Optionally, you may direct the server to
+a specific _branch_.
+
+The repository server clones (using =|git clone --mirror|=) your
+repository and makes the mirror available though the =|git://|=
+protocol.  In addition, it performs the following steps:
+
+  1. Fetch the metadata from =|<pack>/rdf/cpack/<pack>.ttl|=, which
+  must be a valid RDF/Turtle file.  Details on this file are in
+  [[metadata][metadata.txt]].
+
+  2. Perform a cross-reference analysis on all Prolog (*.pl) files.
+  This analysis tries to find possible issues with the package:
+
+    * Files using the same *module* as used by some other file.
+    Such files cannot be loaded together, so the packages are
+    reported as _conflicting_.
+    * Files appearing in the same *location* as files from other
+    packages.  This makes file-search ambiguous and is again reported
+    as a _conflict_.
+    * Validate that all *|file referenced|* can be resolved, either by
+    the package itself, another package (a _dependency_), ClioPatria
+    or the Prolog libraries.
+    * Validate that all *|predicate calls|* can be resolved, either from
+    the files themselves, one of the imported files or Prolog.
+    * Validate that imports from different files to not try to import
+    the *|same predicate|* into the same module.
+
+  If any problem is found, the package is flagged with an `alert' icon
+  and the package page provides additional information on the conflict.
+  Please try to resolve the conflict and upgrade the affected packages.

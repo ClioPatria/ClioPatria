@@ -1,0 +1,90 @@
+---+ The package metadata file
+
+The package metadata file is a Turtle file at a fixed location in the
+package: =|<pack>/rdf/cpack/<pack>.ttl|=.  A template metadata file
+can be created using cpack_create/3. See also [[creating][Creating.txt]]
+a CPACK.  This file documents the most important properties.
+
+The schema for CPACKS is described in =|rdf/cpack/cpack.ttl|=
+
+The metadata file provides a single resource denotes as =|<>|= (i.e.,
+the file itself).  Here are the most important properties
+
+  $ rdf:type <Class> :
+  The class is a subclass of cpack:Package. Currently defined subclasses
+  are:
+
+    - a *|cpack:Application|* provides human-readable web-pages
+    - a *|cpack:Component|* provides a library for building human-readable web-pages
+    - a *|cpack:Skin|* specialises layout and presentatio of resources
+    - a *|cpack:API|* provides HTTP services (with JSON/XML output)
+    - a *|cpack:Library|* provides general computation libraries
+    - a *|cpack:Ontology|* provides RDF/OWL schemas
+
+  Many packages provide a mixture. We propose to use the principal role.
+  Notably an _application_ may require all the other categories. If some
+  of these facilities are considered a candidate for reuse in other
+  packages it is better to put these in their own package.
+
+  $ cpack:packageName :
+  A literal that gives the package name.  This must match the base-name
+  of the GIT repository (without =|.git|= extension).
+
+  $ dcterms:title :
+  Short (20-40 character) description of the package that appears in
+  the overview table.  Also used for the =description= file of the
+  git mirror.
+
+  $ cpack:description :
+  Longer text that appears on the package page.
+
+  $ cpack:author :
+  Either a URL of a FOAF profile that may be fetched as linked data
+  or a blank-node providing at least the author name and foaf:mbox.
+  Note that the ClioPatria package server also provides URLs that
+  describe users with an account.  The address thereof is the
+  address of the server, followed by =|user/<nick>|=.
+
+  $ cpack:primaryRepository :
+  Blank node of type cpack:GitRepository, providing the URL
+  of the primary GIT repository as cpack:gitURL.
+
+  $ cpack:requires :
+  Explicit requirements.  Currently this is a blank node holding a
+  cpack:name with the name of the required _token_.  This must be
+  matched by another package that _provides_ this token.  Note that
+  requirements that can be deduced because one package loads a file
+  provided by another package are computed automatically.  Currently
+  this is limited to Prolog source-files.
+
+  $ cpack:provides :
+  Sub-property of cpack:packageName that provide the name of a
+  required _token_.
+
+Below is an example from the package =foaf_user=, which requires =foaf=.
+
+==
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix cpack:   <http://cliopatria.swi-prolog.org/schema/cpack#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<> a cpack:Application ;
+        cpack:packageName "foaf_user" ;
+        dcterms:title "FOAF profiles for accounts" ;
+        cpack:author [ foaf:name "Jan Wielemaker" ;
+                       foaf:mbox <mailto:j.wielemaker@cs.vu.nl> ;
+                     ] ;
+        cpack:primaryRepository
+            [ a cpack:GitRepository ;
+              cpack:gitURL <git://eculture.cs.vu.nl/home/janw/git/ClioPatria/foaf_user.git>
+            ] ;
+        cpack:requires [ cpack:name "foaf" ] ;
+        cpack:description
+
+"""Manage and view local accounts as FOAF profiles
+""" .
+==
+
+@see Creating.txt, Submitting.txt, index.txt

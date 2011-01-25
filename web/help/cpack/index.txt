@@ -1,0 +1,12 @@
+---+ CPACK: the ClioPatria package management system
+
+CPACK is the ClioPatria package management system, i.e., the CPAN, CTAN,
+... for ClioPatria. The central package server is located at
+http://cliopatria.swi-prolog.org
+
+  * The [[rationale][rationale.txt]] behind CPACK
+  * [[Finding][Finding.txt]] a CPACK
+  * [[Installing][Installing.txt]] a CPACK
+  * [[Creating][Creating.txt]] a CPACK
+  * [[Submitting][Submitting.txt]] a CPACK
+  * The [[granularity][granularity.txt]] of a CPACK

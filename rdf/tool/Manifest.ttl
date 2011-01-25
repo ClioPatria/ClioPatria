@@ -1,0 +1,7 @@
+@prefix	    lib: <http://www.swi-prolog.org/rdf/library/> .
+@prefix	dcterms: <http://purl.org/dc/terms/> .
+
+<graphviz.ttl>
+	a lib:Schema ;
+	dcterms:title "Customise GraphViz rendering of resources" .
+

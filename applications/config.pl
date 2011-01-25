@@ -45,20 +45,20 @@
 /** <module> ClioPatria configuration interface
 
 This application provides a web-interface   for configuration management
-by adding files to =|conf.d|=.
+by adding files to =|config-enabled|=.
 */
 
-:- http_handler(cliopatria('admin/config'),	 config,      []).
-:- http_handler(cliopatria('admin/reconfigure'), reconfigure, []).
+:- http_handler(cliopatria('admin/configuration'), configuration, []).
+:- http_handler(cliopatria('admin/reconfigure'),   reconfigure,	  []).
 
-cliopatria:menu_item(250=admin/config,  'Plugins').
+cliopatria:menu_item(250=admin/configuration,  'Plugins').
 
-%%	config(+Request)
+%%	configuration(+Request)
 %
 %	HTTP handler that shows the  current   status  of  available and
 %	installed configuration modules.
 
-config(_Request) :-
+configuration(_Request) :-
 	if_allowed(admin(config), [edit(true)], Options),
 	reply_html_page(cliopatria(admin),
 			title('Server plugin configuration'),
@@ -232,8 +232,8 @@ same_stream_content(C, C, In1, In2) :-
 %		conf_d_member_data/3.  The list is sorted on Key.
 
 config_files(Configs) :-
-	keyed_config(cliopatria('examples/conf.d'), Templ),
-	keyed_config('conf.d', Installed),
+	keyed_config(config_available(.), Templ),
+	keyed_config('config-enabled', Installed),
 	merge_pairlists([Templ, Installed], Configs).
 
 
@@ -253,7 +253,7 @@ key_by_file(Data, Key) :-
 
 reconfigure(Request) :-
 	authorized(admin(reconfigure)),
-	http_link_to_id(config, [], HREF),
+	http_link_to_id(configuration, [], HREF),
 	http_parameters(Request, [], [form_data(Form)]),
 	call_showing_messages(update_config(Form),
 			      [ footer(h4(['Done. ',
@@ -332,7 +332,7 @@ try_link_file(Source, Dest, How, Level) :-
 
 
 local_conf_dir(Dir) :-
-	absolute_file_name('conf.d', Dir,
+	absolute_file_name('config-enabled', Dir,
 			   [ file_type(directory),
 			     access(write)
 			   ]).

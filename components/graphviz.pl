@@ -65,7 +65,10 @@ terms as a graph.
 			    ])
 		 ]).
 
-:- http_handler(root(graphviz_send_graph), send_graph, []).
+% Note that images are requested relative to this URL.  Changing this
+% also requires changing the `image server' in graphviz.pl
+
+:- http_handler(root('graphviz/send_graph'), send_graph, []).
 
 %%	graphviz_graph(:Closure, +Options)//
 %
@@ -214,7 +217,7 @@ target_option(Target, GraphOptions0, GraphOptions) :-
 
 
 graph_mime_type(xdot, 'text/plain; charset=UTF-8') :- !.
-graph_mime_type(svg,  'image/svg+xml') :- !.
+graph_mime_type(svg,  'image/svg+xml; charset=UTF-8') :- !.
 graph_mime_type(Lang, 'text/plain; charset=UTF-8') :-
 	print_message(warning,
 		      format('Do not know content-type for grapviz \
@@ -222,8 +225,13 @@ graph_mime_type(Lang, 'text/plain; charset=UTF-8') :-
 			     Lang)).
 
 send_to_dot(Graph, Options, Out) :-
+	(   debugging(dot)
+	->  retractall(user:graphviz(_,_)),
+	    assert(user:graphviz(Graph, Options))
+	;   true
+	),
 	gviz_write_rdf(Out, Graph, Options),
-	close(Out, [force(true)]).
+	close(Out).
 
 copy_graph_data(Out) :-
 	debugging(graphviz), !,

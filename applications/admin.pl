@@ -329,7 +329,7 @@ edit_user_form(User) -->
 		    [ \hidden(user, User),
 		      table([ class((form))
 			    ],
-			    [ \user_property(User, realname, 'Realname', []),
+			    [ \user_property(User, realname, 'Real name', []),
 			      \permissions(User),
 			      tr(class(buttons),
 				 td([ colspan(2),
@@ -638,11 +638,23 @@ reply_login(_) :-
 %	Logout the current user
 
 user_logout(_Request) :-
-	logged_on(User),
+	logged_on(User), !,
 	logout(User),
 	reply_html_page(cliopatria(default),
 			title('Logout'),
 			h1(align(center), ['Logged out ', User])).
+user_logout(_Request) :-
+	reply_html_page(cliopatria(default),
+			title('Logout'),
+			[ h1(align(center), ['Not logged on']),
+			  p(['Possibly you are logged out because the session ',
+			     'has timed out.'])
+			]).
+
+%%	attribute_decl(+Param, -DeclObtions) is semidet.
+%
+%	Provide   reusable   parameter   declarations   for   calls   to
+%	http_parameters/3.
 
 attribute_decl(user,
 	       [ description('User identifier-name'),

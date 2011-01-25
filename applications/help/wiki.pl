@@ -54,7 +54,13 @@ over the associated X.txt file.
 @see The file load.pl binds this functionality to cliopatria(web/help).
 */
 
-%%	serve_page(+Alias, +Request)
+:- setting(http:index_files,
+	   list(atom),
+	   [ 'index.txt', 'index.html' ],
+	   'List of files that provide a directory index').
+
+%
+%	serve_page(+Alias, +Request)
 %
 %	HTTP handler for files below the file-path Alias. .txt files are
 %	served as Wiki-pages. All other files   are  served according to

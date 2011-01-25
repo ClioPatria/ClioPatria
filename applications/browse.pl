@@ -61,6 +61,7 @@
 :- use_module(components(simple_search)).
 :- use_module(components(graphviz)).
 :- use_module(components(basics)).
+:- use_module(api(lod_crawler)).
 :- use_module(library(semweb/rdf_abstract)).
 :- use_module(library(semweb/rdf_label)).
 
@@ -100,6 +101,8 @@ that allow back-office applications to reuse this infrastructure.
 :- http_handler(rdf_browser(list_triples),    list_triples,    []).
 :- http_handler(rdf_browser(list_triples_with_object),
 					      list_triples_with_object,	[]).
+:- http_handler(rdf_browser(list_triples_with_literal),
+					      list_triples_with_literal, []).
 
 :- http_handler(rdf_browser(search),          search,	       []).
 
@@ -182,6 +185,10 @@ list_graph(Request) :-
 	reply_html_page(cliopatria(default),
 			title('RDF Graph ~w'-[Graph]),
 			[ h1('Summary information for graph "~w"'-[Graph]),
+			  \simple_search_form([ id(ac_find_in_graph),
+						filter(graph(Graph)),
+						label('Search this graph')
+					      ]),
 			  \graph_info(Graph),
 			  \graph_as_resource(Graph, []),
 			  \graph_actions(Graph)
@@ -196,17 +203,33 @@ graph_info(Graph) -->
 	html_property_table(row(P,V),
 			    graph_property(Graph,P,V)).
 
-graph_property(Graph, source, Source) :-
+:- dynamic
+	graph_property_cache/3.
+
+graph_property(Graph, P, V) :-
+	graph_property_cache(Graph, MD5, Pairs),
+	rdf_md5(Graph, MD5), !,
+	member(P0-V, Pairs),
+	P =.. [P0,Graph].
+graph_property(Graph, P, V) :-
+	retractall(graph_property_cache(Graph, _, _)),
+	findall(P-V, graph_property_nc(Graph, P, V), Pairs),
+	rdf_md5(Graph, MD5),
+	assert(graph_property_cache(Graph, MD5, Pairs)),
+	member(P0-V, Pairs),
+	P =.. [P0,Graph].
+
+graph_property_nc(Graph, source, Source) :-
 	rdf_source(Graph, Source).
-graph_property(Graph, triples, int(Triples)) :-
+graph_property_nc(Graph, triples, int(Triples)) :-
 	rdf_statistics(triples_by_file(Graph, Triples)).
-graph_property(Graph, predicate_count(Graph), int(Count)) :-
+graph_property_nc(Graph, predicate_count, int(Count)) :-
 	aggregate_all(count, predicate_in_graph(Graph, _P), Count).
-graph_property(Graph, subject_count(Graph), int(Count)) :-
+graph_property_nc(Graph, subject_count, int(Count)) :-
 	aggregate_all(count, subject_in_graph(Graph, _P), Count).
-graph_property(Graph, bnode_count(Graph), int(Count)) :-
+graph_property_nc(Graph, bnode_count, int(Count)) :-
 	aggregate_all(count, bnode_in_graph(Graph, _P), Count).
-graph_property(Graph, type_count(Graph), int(Count)) :-
+graph_property_nc(Graph, type_count, int(Count)) :-
 	aggregate_all(count, type_in_graph(Graph, _P), Count).
 
 predicate_in_graph(Graph, P) :-
@@ -516,7 +539,7 @@ instance_table_title(Graph, Class, Sort) -->
 	html('Instances in ~w sorted by ~w'-
 	     [Graph, Sort]).
 instance_table_title(Graph, Class, Sort) -->
-	{ label_of(Class, Label) },
+	{ rdf_display_label(Class, Label) },
 	html('Instances of ~w in ~w sorted by ~w'-
 	     [Label, Graph, Sort]).
 
@@ -753,7 +776,7 @@ do_skos(false, _, _).
 
 
 resource_table_title(Graph, Pred, Which, Sort) -->
-	{ label_of(Pred, PLabel)
+	{ rdf_display_label(Pred, PLabel)
 	},
 	html('Distinct ~ws for ~w in ~w sorted by ~w'-
 	     [Which, PLabel, Graph, Sort]
@@ -886,7 +909,7 @@ flip_pairs([Key-Val|Pairs], [Val-Key|Flipped]) :-
 
 predicate_resource(Graph, Pred, subject, R) :- !,
 	rdf(R, Pred, _, Graph).
-predicate_resource(Graph, Pred, object, R) :-
+predicate_resource(Graph, Pred, object, R) :- !,
 	rdf(_, Pred, R, Graph).
 predicate_resource(Graph, Pred, domain, D) :- !,
 	rdf(R, Pred, _, Graph),
@@ -941,14 +964,20 @@ list_resource(Request) :-
 			  graph(Graph,
 				[ optional(true),
 				  description('Limit to properties from graph')
-				])
+				]),
+			  raw(Raw,
+			      [ default(false),
+				boolean,
+				description('If true, omit application hook')
+			      ])
 			]),
-	label_of(URI, Label),
+	rdf_display_label(URI, Label),
 	reply_html_page(cliopatria(default),
 			title('Resource ~w'-[Label]),
 			\list_resource(URI,
 				       [ graph(Graph),
-					 sorted(Sorted)
+					 sorted(Sorted),
+					 raw(Raw)
 				       ])).
 
 %%	list_resource(+URI, +Options)// is det.
@@ -966,6 +995,9 @@ list_resource(Request) :-
 %	@see	list_resource/1 is the corresponding HTTP handler.  The
 %		component rdf_link//1 creates a link to list_resource/1.
 
+list_resource(URI, Options) -->
+	{ \+ option(raw(true), Options) },
+	cliopatria:list_resource(URI), !.
 list_resource(URI, Options) -->
 	{ option(graph(Graph), Options, _),
 	  option(sorted(Sorted), Options, default)
@@ -1093,19 +1125,41 @@ local_view(URI, Graph, Options) -->
 	  po_pairs(URI, Graph, Pairs, Options),
 	  lview_graphs(URI, Graph, Graphs)
 	},
-	html_requires(css('rdf.css')),
-	html(table(class(block),
-		   [ \lview_header(Options)
-		   | \table_rows_top_bottom(lview_row(Options, URI, Graphs),
-					    Pairs,
-					    TopMax, BottomMax)
-		   ])),
-	graph_footnotes(Graphs, Options).
+	(   { Pairs \== []
+	    }
+	->  html_requires(css('rdf.css')),
+	    html(table(class(block),
+		       [ \lview_header(Options)
+		       | \table_rows_top_bottom(lview_row(Options, URI, Graphs),
+						Pairs,
+						TopMax, BottomMax)
+		       ])),
+	    graph_footnotes(Graphs, Options)
+	;   { lod_uri_graph(URI, LODGraph),
+	      rdf_graph(LODGraph)
+	    }
+	->  html(p([ 'No triples for this URI. ',
+		     'Linked Data was loaded into ', \graph_link(LODGraph),
+		     '.'
+		   ]))
+	;   { http_link_to_id(lod_crawl, [], FetchURL)
+	    },
+	    html(form(action(FetchURL),
+		      [ \hidden(r, URI),
+			'No triples for this URI.  Would you like to ',
+			input([ type(submit),
+				value('Query the Linked Data cloud')
+			      ]),
+			'?'
+		      ]))
+	).
+
 
 lview_header(Options) -->
 	{ option(sorted(Sorted), Options, default),
 	  alt_sorted(Sorted, Alt),
-	  re_link([sorted(Alt)], HREF)
+	  http_current_request(Request),
+	  http_reload_with_parameters(Request, [sorted(Alt)], HREF)
 	},
 	html(tr([ th('Predicate'),
 		  th(['Value (sorted: ', a(href(HREF), Sorted), ')'])
@@ -1155,7 +1209,12 @@ graphs([H|T], Graphs) -->
 	    graphs(T, Graphs)
 	).
 
+%%	graph_footnotes(+GraphList, +Options)//
+%
+%	Describe footnote marks in the local   view  table that indicate
+%	the origin of triples.
 
+graph_footnotes([], _Options) --> !.
 graph_footnotes([Graph], _Options) --> !,
 	html(p(class('graphs-used'),
 	       [ 'All properties reside in the graph ',
@@ -1253,6 +1312,7 @@ p_order(rdfs:isDefinedBy, 320).
 uri_info(URI, Graph) -->
 	uri_class_info(URI, Graph),
 	uri_predicate_info(URI, Graph),
+	html(h2('Context graph')),
 	context_graph(URI, []).
 
 uri_class_info(URI, Graph) -->
@@ -1272,31 +1332,45 @@ uri_predicate_info(_, _) --> [].
 
 %%	context_graph(+URI, +Options)// is det.
 %
-%	Show graph with the context of URI
+%	Show graph with  the  context  of   URI.  Options  is  passed to
+%	cliopatria:context_graph/3  and  cliopatria:node_shape/3.    Two
+%	options have special meaning:
+%
+%	    * style(?Style)
+%	    If this option is not specified, it is passed as a variable.
+%	    It can be tested or filled by cliopatria:context_graph/3 and
+%	    subsequently used by cliopatria:node_shape/3.
+%
+%	    * start(+URI)
+%	    Passed to cliopatria:node_shape/3 to indicate the origin of
+%	    the context graph.
 
-context_graph(URI, _Options) -->
-	html([ h2('Context graph'),
-	       \graphviz_graph(context_graph(URI),
+context_graph(URI, Options) -->
+	{ merge_options(Options, [style(_)], GraphOption)
+	},
+	html([ \graphviz_graph(context_graph(URI, GraphOption),
 			       [ object_attributes([width('100%')]),
 				 wrap_url(resource_link),
 				 graph_attributes([ rankdir('RL')
 						  ]),
-				 shape_hook(shape(URI))
+				 shape_hook(shape(URI, GraphOption))
 			       ])
 	     ]).
 
+:- public
+	shape/4.
 
-%%	shape(+Start, +URI, -Shape) is semidet.
+%%	shape(+Start, +Options, +URI, -Shape) is semidet.
 %
 %	Specify GraphViz shape for URI. This   predicate  calls the hook
 %	cliopatria:node_shape/3.
 
-shape(Start, URI, Shape) :-
-	cliopatria:node_shape(URI, Shape, [start(Start)]), !.
-shape(Start, Start,
+shape(Start, Options, URI, Shape) :-
+	cliopatria:node_shape(URI, Shape, [start(Start)|Options]), !.
+shape(Start, _Options, Start,
       [ shape(tripleoctagon),style(filled),fillcolor('#ff85fd') ]).
 
-%%	context_graph(+URI, -Triples) is det.
+%%	context_graph(+URI, -Triples, +Options) is det.
 %
 %	Triples is a graph  that  describes   the  environment  of  URI.
 %	Currently, the environment is defined as:
@@ -1306,9 +1380,11 @@ shape(Start, Start,
 %
 %	This predicate can be hooked using cliopatria:context_graph/2.
 
-context_graph(URI, RDF) :-
+context_graph(URI, Options, RDF) :-
+	cliopatria:context_graph(URI, RDF, Options), !.
+context_graph(URI, _Options, RDF) :-		% Compatibility
 	cliopatria:context_graph(URI, RDF), !.
-context_graph(URI, RDF) :-
+context_graph(URI, _, RDF) :-
 	findall(T, context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
 	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
@@ -1356,8 +1432,9 @@ context(skos:mappingRelation).
 
 list_triples(Request) :-
 	http_parameters(Request,
-			[ predicate(Pred,
-				    [ description('Predicate to list triples for')]),
+			[ predicate(P,
+				    [ optional(true),
+				      description('Limit triples to this pred')]),
 			  graph(Graph, [ optional(true),
 					 description('Limit triples to this graph')
 				       ]),
@@ -1369,19 +1446,23 @@ list_triples(Request) :-
 				       ])
 			]),
 	(   atom(Dom)
-	->  findall(S-O, rdf_in_domain(S,Pred,O,Dom,Graph), Pairs0)
+	->  findall(rdf(S,P,O), rdf_in_domain(S,P,O,Dom,Graph), Triples0)
 	;   atom(Range)
-	->  findall(S-O, rdf_in_range(S,Pred,O,Range,Graph), Pairs0)
-	;   findall(S-O, rdf(S,Pred,O,Graph), Pairs0)
+	->  findall(rdf(S,P,O), rdf_in_range(S,P,O,Range,Graph), Triples0)
+	;   findall(rdf(S,P,O), rdf(S,P,O,Graph), Triples0)
 	),
-	sort(Pairs0, Pairs),
-	sort_pairs_by_label(Pairs, Sorted),
-	length(Pairs, Count),
-	label_of(Pred, PLabel),
+	sort(Triples0, Triples),
+	sort_triples_by_label(Triples, Sorted),
+	length(Sorted, Count),
+	(   var(P)
+	->  Title = 'Triples in graph ~w'-[Graph]
+	;   rdf_display_label(P, PLabel),
+	    Title = 'Triples for ~w in graph ~w'-[PLabel, Graph]
+	),
 	reply_html_page(cliopatria(default),
-			title('Triples for ~w in graph ~w'-[PLabel, Graph]),
-			[ h1(\triple_header(Count, Pred, Dom, Range, Graph)),
-			  \triple_table(Sorted, Pred, [])
+			title(Title),
+			[ h1(\triple_header(Count, P, Dom, Range, Graph)),
+			  \triple_table(Sorted, P, [])
 			]).
 
 rdf_in_domain(S,P,O,Dom,Graph) :-
@@ -1419,25 +1500,41 @@ with_range(Range) -->
 with_range(Range) -->
 	html([' with range ', \rdf_link(Range, [])]).
 
+%%	triple_table(+Triples, +Predicate, +Options)// is det.
+%
+%	Show a list  of  triples.  If   Predicate  is  given,  omit  the
+%	predicate from the table.
 
-triple_table(SOList, Pred, Options) -->
+triple_table(Triples, Pred, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(top_max(BottomMax), Options, 500)
 	},
 	html(table(class(block),
-		   [ \so_header(Pred)
-		   | \table_rows_top_bottom(so_row(Pred), SOList,
+		   [ \spo_header(Pred)
+		   | \table_rows_top_bottom(spo_row(Pred), Triples,
 					    TopMax, BottomMax)
 		   ])).
 
-so_header(_) -->
+spo_header(P) -->
+	{ nonvar(P) },
 	html(tr([ th('Subject'),
 		  th('Object')
 		])).
+spo_header(_) -->
+	html(tr([ th('Subject'),
+		  th('Predicate'),
+		  th('Object')
+		])).
 
-so_row(_P, S-O) -->
+spo_row(Pred, rdf(S,_,O)) -->
+	{ nonvar(Pred) }, !,
 	html([ td(class(subject), \rdf_link(S)),
 	       td(class(object),  \rdf_link(O))
+	     ]).
+spo_row(_, rdf(S,P,O)) -->
+	html([ td(class(subject),   \rdf_link(S)),
+	       td(class(predicate), \rdf_link(P)),
+	       td(class(object),    \rdf_link(O))
 	     ]).
 
 
@@ -1464,6 +1561,33 @@ list_triples_with_object(Request) :-
 				       ])
 			]),
 	target_object(RObject, LObject, Object),
+	list_triples_with_object(Object, P, Graph).
+
+target_object(RObject, _LObject, RObject) :-
+	atom(RObject), !.
+target_object(_, LObject, Object) :-
+	atom(LObject), !,
+	term_to_atom(Object, LObject).
+target_object(_, _, _) :-
+	throw(existence_error(http_parameter, r)).
+
+%%	list_triples_with_literal(+Request)
+%
+%	List triples that have a literal   that matches the q-parameter.
+%	This is used for  finding   objects  through  the autocompletion
+%	interface.
+
+list_triples_with_literal(Request) :-
+	http_parameters(Request,
+			[ q(Text,
+			    [optional(true),
+			     description('Object as resource (URI)')
+			    ])
+			]),
+	list_triples_with_object(literal(Text), _, _).
+
+
+list_triples_with_object(Object, P, Graph) :-
 	findall(S-P, rdf(S,P,Object,Graph), Pairs0),
 	sort(Pairs0, Pairs),
 	sort_pairs_by_label(Pairs, Sorted),
@@ -1474,14 +1598,6 @@ list_triples_with_object(Request) :-
 			[ h1(\otriple_header(Count, Object, P, Graph)),
 			  \otriple_table(Sorted, Object, [])
 			]).
-
-target_object(RObject, _LObject, RObject) :-
-	atom(RObject), !.
-target_object(_, LObject, Object) :-
-	atom(LObject), !,
-	term_to_atom(Object, LObject).
-target_object(_, _, _) :-
-	throw(existence_error(http_parameter, r)).
 
 otriple_header(Count, Object, Pred, Graph) -->
 	html([ 'Table for the ~D triples'-[Count],
@@ -1542,6 +1658,27 @@ label_sort_key(URI, Key) :-
 	label_of(URI, Label),
 	collation_key(Label, Key).
 
+label_of(URI, Label) :-
+	rdf_is_resource(URI), !,
+	rdf_display_label(URI, Label).
+label_of(Literal, Label) :-
+	literal_text(Literal, Label).
+
+
+%%	sort_triples_by_label(+Triples, -Sorted)
+%
+%	Sort a list of rdf(S,P,O) by the labels.
+
+sort_triples_by_label(Pairs, Sorted) :-
+	map_list_to_pairs(sort_triples_by_label, Pairs, LabelPairs),
+	keysort(LabelPairs, SortedPairs),
+	pairs_values(SortedPairs, Sorted).
+
+sort_triples_by_label(rdf(S,P,O), rdf(SK,PK,OK)) :-
+	label_sort_key(S, SK),
+	label_sort_key(P, PK),
+	label_sort_key(O, OK).
+
 %%	sort_pairs_by_label(+Pairs, -Sorted)
 %
 %	Sort a pair-list where the keys are resources by their label.
@@ -1554,21 +1691,6 @@ sort_pairs_by_label(Pairs, Sorted) :-
 key_label_sort_key(R-_, Key) :-
 	label_sort_key(R, Key).
 
-%%	label_of(+RDFvalue, -Label) is det.
-%
-%	Provide a resource for something in the RDF graph.
-%
-%	@tbd	Support SKOS, deal with type and language, etc.
-%		Shouldn't this be a rule?
-
-label_of(literal(Literal), Label) :- !,
-	literal_label(Literal, Label).
-label_of(URI, Label) :-
-	rdfs_label(URI, Label).
-
-literal_label(type(_, Value), Value) :- !.
-literal_label(lang(_, Value), Value) :- !.
-literal_label(Value, Value).
 
 		 /*******************************
 		 *	  CUSTOMIZATION		*
@@ -1580,40 +1702,22 @@ literal_label(Value, Value).
 %
 %	@see	html_property_table//2.
 
-p_label(source,	       'Source URL').
-p_label(triples,	       'Triple count').
+p_label(source(_), 'Source URL').
+p_label(triples(G),
+	['# ', a(href(Link), triples)]) :-
+	http_link_to_id(list_triples, [graph=G], Link).
 p_label(subject_count(G),
-      ['# ', a(href(Link), subjects)]) :-
+	['# ', a(href(Link), subjects)]) :-
 	http_link_to_id(list_instances, [graph=G], Link).
 p_label(bnode_count(G),
-      ['# ', a(href(Link), 'bnode subjects')]) :-
+	['# ', a(href(Link), 'bnode subjects')]) :-
 	http_link_to_id(list_instances, [graph=G, type=bnode], Link).
 p_label(predicate_count(G),
-      ['# ', a(href(Link), predicates)]) :-
+	['# ', a(href(Link), predicates)]) :-
 	http_link_to_id(list_predicates, [graph=G], Link).
 p_label(type_count(G),
-      ['# Referenced ', a(href(Link), classes)]) :-
+	['# Referenced ', a(href(Link), classes)]) :-
 	http_link_to_id(list_classes, [graph=G], Link).
-
-
-%%	re_link(+NewParams, -HREF) is det.
-%
-%	HREF is a link to the  location   that  is  handling the current
-%	request. NewParams is used to modify  or extend the current list
-%	of parameters.
-
-re_link(NewParams, HREF) :-
-	http_current_request(Request),
-	memberchk(path(Path), Request),
-	(   memberchk(search(Params), Request)
-	->  true
-	;   Params = []
-	),
-	merge_options(NewParams, Params, AllParams),
-	uri_query_components(Search, AllParams),
-	uri_data(path, Data, Path),
-	uri_data(search, Data, Search),
-	uri_components(HREF, Data).
 
 
 		 /*******************************
@@ -1629,11 +1733,22 @@ re_link(NewParams, HREF) :-
 
 search(Request) :-
 	http_parameters(Request,
-			[ q(QueryText, [length>=1])
+			[ q(QueryText,
+			    [ description('Query to search for')
+			    ]),
+			  filter(FilterAtom,
+				 [ optional(true),
+				   description('Filter on raw matches (a Prolog term)')
+				 ])
 			]),
+	(   var(FilterAtom)
+	->  Filter = true
+	;   atom_to_term(FilterAtom, Filter0, []),
+	    rdf_global_term(Filter0, Filter)
+	),
 	literal_query(QueryText, Query),
 	rdf_find_literals(Query, Literals),
-	phrase(ltriples(Literals), Triples),
+	literal_triples(Literals, Filter, Triples),
 	reply_html_page(cliopatria(default),
 			title('Search results for ~q'-[Query]),
 			[ h1('Search results for token "~q"'-[Query]),
@@ -1662,11 +1777,33 @@ simple_query(not(Token)) -->
 simple_query(case(Token)) -->
 	[Token].
 
-ltriples([]) -->
-	[].
-ltriples([H|T]) -->
-	findall(rdf(S,P,literal(L)), rdf(S,P,literal(exact(H), L))),
-	ltriples(T).
+%%	literal_triples(+ListOfLiterals, +Filter, -Triples) is det.
+%
+%	Find the list of triples with   a  literal in ListOfLiterals and
+%	whose subject satisfies Filter.
+
+literal_triples(Literals, Filter, Triples) :-
+	sub_term(graph(Graph), Filter), !,
+	phrase(ltriples(Literals, Graph, Filter), Triples).
+literal_triples(Literals, Filter, Triples) :-
+	phrase(ltriples(Literals, Filter), Triples).
+
+
+ltriples([], _, _) --> [].
+ltriples([H|T], G, F) -->
+	findall(rdf(S,P,literal(L)),
+		(   rdf(S,P,literal(exact(H), L),G),
+		    search_filter(F, S)
+		)),
+	ltriples(T, G, F).
+
+ltriples([], _) --> [].
+ltriples([H|T], F) -->
+	findall(rdf(S,P,literal(L)),
+		(   rdf(S,P,literal(exact(H), L)),
+		    search_filter(F, S)
+		)),
+	ltriples(T, F).
 
 %%	rdf_table(+Triples, +Options)// is det.
 %
@@ -1678,7 +1815,7 @@ rdf_table(Triples, Options) -->
 	{ option(top_max(TopMax), Options, 500),
 	  option(top_max(BottomMax), Options, 500)
 	},
-	html(table(class(rdf_browse),
+	html(table(class(block),
 		   [ tr([ th('Subject'), th('Predicate'), th('Object') ])
 		   | \table_rows_top_bottom(triple, Triples,
 					    TopMax, BottomMax)

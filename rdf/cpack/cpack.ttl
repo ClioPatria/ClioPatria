@@ -1,0 +1,409 @@
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms:  <http://purl.org/dc/terms/> .
+@prefix foaf:     <http://xmlns.com/foaf/0.1/> .
+@prefix cpack:    <http://cliopatria.swi-prolog.org/schema/cpack#> .
+@prefix graphviz: <http://www.graphviz.org/> .
+
+# Define packages and their dependencies
+#
+# Issues:
+#	- How to represent version dependencies?
+# 	- Can we use from Web-Of-Trust (http://xmlns.com/wot/0.1/)
+
+# Classes
+
+cpack:Package a rdfs:Class ;
+	rdfs:label "package" ;
+	rdfs:comment "A ClioPatria installable package" ;
+	graphviz:style "filled" ;
+	graphviz:fillcolor "#6ad476" ;
+	graphviz:shape "box3d" .
+
+cpack:Application a rdfs:Class ;
+	rdfs:label "application" ;
+	rdfs:subClassOf cpack:Package ;
+	rdfs:comment "An application generates a web-page for user-interaction" .
+
+cpack:Component a rdfs:Class ;
+	rdfs:label "component" ;
+	rdfs:subClassOf cpack:Package ;
+	rdfs:comment "A component generates part of an HTML page" .
+
+cpack:Skin a rdfs:Class ;
+	rdfs:label "skin" ;
+	rdfs:subClassOf cpack:Package ;
+	rdfs:comment "Define (page) layout" .
+
+cpack:API a rdfs:Class ;
+	rdfs:label "API" ;
+	rdfs:subClassOf cpack:Package ;
+	rdfs:comment "An API serves data as JSON and/or XML" .
+
+cpack:Library a rdfs:Class ;
+	rdfs:label "library" ;
+	rdfs:subClassOf cpack:Package ;
+	rdfs:comment "A library returns results as Prolog terms" .
+
+cpack:Ontology a rdfs:Class ;
+	rdfs:label "schema" ;
+	rdfs:subClassOf cpack:Package ;
+	rdfs:comment "Set of RDF/OWL files, often with Prolog prefixes" .
+
+cpack:Repository a rdfs:Class ;
+	rdfs:label "Software repository" .
+
+cpack:FileRef a rdfs:Class ;
+	rdfs:label "file reference" ;
+	rdfs:comment "Symbolic file reference as found in Prolog source files" .
+
+cpack:File a rdfs:Class ;
+	rdfs:label "file" ;
+	rdfs:comment "File in a package" .
+
+cpack:PrologFile a rdfs:Class ;
+	rdfs:subClassOf cpack:File ;
+	rdfs:label "Prolog file" ;
+	rdfs:comment "Prolog source file" .
+
+cpack:SystemFile a rdfs:Class ;
+	rdfs:subClassOf cpack:PrologFile ;
+	rdfs:label "Prolog system file" ;
+	rdfs:comment "Prolog source file from the Prolog system library" .
+
+cpack:ClioPatriaFile a rdfs:Class ;
+	rdfs:subClassOf cpack:PrologFile ;
+	rdfs:label "ClioPatria Prolog file" ;
+	rdfs:comment "Prolog source file from the ClioPatria library" .
+
+cpack:GitRepository a rdfs:Class ;
+	rdfs:subClassOf cpack:Repository ;
+	rdfs:label "GIT Repository" ;
+	rdfs:comment "Repository hosted by GIT" .
+
+cpack:Submitter a rdfs:Class ;
+	rdfs:label "submitter" ;
+	rdfs:comment "Submitter of a CPACK" ;
+	rdfs:subClassOf foaf:Person .
+
+cpack:Profile a rdfs:Class ;
+	rdfs:label "profile" ;
+	rdfs:comment "Profile for installing and creating CPACKs" .
+
+# General properties
+
+cpack:name a owl:InverseFunctionalProperty ;
+	rdfs:subPropertyOf rdfs:label ;
+	rdfs:label "name" ;
+	rdfs:comment "Name of a package or file" ;
+	rdfs:domain [ a owl:Class ;
+		      owl:unionOf ( cpack:File
+				    cpack:Profile
+				  )
+		    ] .
+
+# Package properties
+
+cpack:packageName a owl:InverseFunctionalProperty ;
+	rdfs:subPropertyOf cpack:provides ;
+	rdfs:subPropertyOf cpack:name ;
+	rdfs:label "name" ;
+	rdfs:comment "Official identifier name of the package" ;
+	rdfs:domain cpack:Package .
+
+cpack:description a owl:DatatypeProperty ;
+	rdfs:label "description" ;
+	rdfs:subPropertyOf rdfs:comment ;
+	rdfs:comment "Short description of the package" ;
+	rdfs:domain cpack:Package .
+
+cpack:home a owl:ObjectProperty ;
+	rdfs:label "home" ;
+	rdfs:comment "URL of the project home page" ;
+	rdfs:range rdfs:Resource ;
+	rdfs:domain cpack:Package .
+
+cpack:screenShot a owl:ObjectProperty ;
+	rdfs:label "screen shot" ;
+	rdfs:comment "URL holding a screenshot" ;
+	rdfs:range rdfs:Resource ;
+	rdfs:domain cpack:Package .
+
+cpack:foafData a owl:ObjectProperty ;
+	rdfs:label "foaf data" ;
+	rdfs:comment "Location from which to collect FOAF data" ;
+	rdfs:domain foaf:Person .
+
+cpack:author a owl:ObjectProperty ;
+	rdfs:label "author" ;
+	rdfs:subPropertyOf dcterms:creator ;
+	rdfs:comment "Author of the package" ;
+	rdfs:range foaf:Person ;
+	rdfs:domain cpack:Package .
+
+cpack:maintainer a owl:ObjectProperty ;
+	rdfs:label "maintainer" ;
+	rdfs:comment "Official maintainer of the package" ;
+	rdfs:range foaf:Person ;
+	rdfs:domain cpack:Package .
+
+cpack:submittedBy a owl:ObjectProperty ;
+	rdfs:label "submitted by" ;
+	rdfs:comment "Person that submitted a pack" ;
+	rdfs:range cpack:Submitter ;
+	rdfs:domain cpack:Package .
+
+cpack:submittedDate a owl:DatatypeProperty ;
+	rdfs:label "submitted at" ;
+	rdfs:comment "Data of submission" ;
+	rdfs:range xsd:dateTime ;
+	rdfs:domain cpack:Package .
+
+cpack:repository a owl:ObjectProperty ;
+	rdfs:label "repository" ;
+	rdfs:comment "Reposigtory where software can be found" ;
+	rdfs:range cpack:Repository ;
+	rdfs:domain cpack:Package .
+
+cpack:primaryRepository a owl:ObjectProperty ;
+	rdfs:subPropertyOf cpack:repository ;
+	rdfs:label "primary repository" ;
+	rdfs:comment "Main repository for the software" .
+
+cpack:clonedRepository a owl:ObjectProperty ;
+	rdfs:subPropertyOf cpack:repository ;
+	rdfs:label "cloned repository" ;
+	rdfs:comment "Repository from which we cloned" .
+
+cpack:mirrorRepository a owl:ObjectProperty ;
+	rdfs:subPropertyOf cpack:repository ;
+	rdfs:label "mirror repository" ;
+	rdfs:comment "Our mirror of the repository" .
+
+# Dependency relations are based on `tokens', which by default are
+# package-names.  What we still need are versions.  Versions are
+# either numeric (a GIT tag), GIT branches or GIT hashes
+
+cpack:provides a owl:DatatypeProperty ;
+	rdfs:label "provides" ;
+	rdfs:comment "Token(s) provided by this package" ;
+	rdfs:domain cpack:Package .
+
+cpack:requires a owl:DatatypeProperty ;
+	rdfs:label "requires" ;
+	rdfs:comment "Required token" ;
+	rdfs:domain cpack:Package .
+
+cpack:suggests a owl:DatatypeProperty ;
+	rdfs:label "suggests" ;
+	rdfs:comment "Packages that are often used together" ;
+	rdfs:domain cpack:Package .
+
+cpack:conflicts a owl:DatatypeProperty ;
+	rdfs:label "conflicts" ;
+	rdfs:comment "Cannot work together with token" ;
+	rdfs:domain cpack:Package .
+
+cpack:requiresPackage a owl:ObjectProperty ;
+	rdfs:label "requires" ;
+	rdfs:comment "Inferred package dependency" ;
+	rdfs:range cpack:Package ;
+	rdfs:domain cpack:Package .
+
+cpack:requiresPackageByToken a owl:ObjectProperty ;
+	rdfs:subPropertyOf cpack:requiresPackage ;
+	rdfs:label "requires (token)" ;
+	rdfs:comment "Token-based package dependency".
+
+cpack:requiresPackageByFile a owl:ObjectProperty ;
+	rdfs:subPropertyOf cpack:requiresPackage ;
+	rdfs:label "requires (file)" ;
+	rdfs:comment "File import/export based package dependency" .
+
+
+# Repository properties
+
+cpack:branch a owl:DatatypeProperty ;
+	rdfs:label "branch" ;
+	rdfs:comment "Branch in the repository" ;
+	rdfs:range <rdfs:Literal> ;
+	rdfs:domain cpack:Repository .
+
+cpack:tag a owl:DatatypeProperty ;
+	rdfs:label "tag" ;
+	rdfs:comment "Tag (label) in the repository" ;
+	rdfs:range <rdfs:Literal> ;
+	rdfs:domain cpack:Repository .
+
+cpack:repoURL a owl:ObjectProperty ;
+	rdfs:label "SCM URL" ;
+	rdfs:comment "URL to download/clone the repository" ;
+	rdfs:subPropertyOf rdf:value ;
+	rdfs:range rdfs:Resource ;
+	rdfs:domain cpack:Repository .
+
+cpack:gitURL a owl:ObjectProperty ;
+	rdfs:label "GIT URL" ;
+	rdfs:comment "URL to clone the repository using git" ;
+	rdfs:subPropertyOf cpack:repoURL ;
+	rdfs:range rdfs:Resource ;
+	rdfs:domain cpack:Repository .
+
+cpack:browseURL a owl:ObjectProperty ;
+	rdfs:label "browse repository URL" ;
+	rdfs:comment "URL to examine the repository with a browser" ;
+	rdfs:range rdfs:Resource ;
+	rdfs:domain cpack:Repository .
+
+cpack:hash a owl:DatatypeProperty ;
+	rdfs:label "hash" ;
+	rdfs:comment "World-wide unique identifier of a version" ;
+	rdfs:range <rdfs:Literal> ;
+	rdfs:domain cpack:GitRepository .
+
+# File properties
+
+cpack:inPack a owl:ObjectProperty ;
+	rdfs:label "in pack" ;
+	rdfs:comment "Places a file inside a package" ;
+	rdfs:range cpack:Package ;
+	rdfs:domain cpack:File .
+
+cpack:path a owl:DatatypeProperty ;
+	rdfs:label "path" ;
+	rdfs:comment "Full path of a file in a package" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:base a owl:DatatypeProperty ;
+	rdfs:label "base" ;
+	rdfs:comment "Name of the file without path or extension" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain [ a owl:Class ;
+		      owl:unionOf ( cpack:File cpack:FileRef )
+		    ] .
+
+cpack:size a owl:DatatypeProperty ;
+	rdfs:label "size" ;
+	rdfs:comment "Size of the file in bytes" ;
+	rdfs:range xsd:integer ;
+	rdfs:domain cpack:File .
+
+cpack:module a owl:DatatypeProperty ;
+	rdfs:label "Prolog module" ;
+	rdfs:comment "Prolog module defined in the file" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:resolves a owl:ObjectProperty ;
+	rdfs:label "resolves" ;
+	rdfs:comment "File can be located through FileRef" ;
+	rdfs:range cpack:FileRef ;
+	rdfs:domain cpack:File .
+
+cpack:exportsPredicate a owl:DatatypeProperty ;
+	rdfs:label "exported predicate" ;
+	rdfs:comment "Predicate indicator of an exported predicate" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:publicPredicate a owl:DatatypeProperty ;
+	rdfs:label "public predicate" ;
+	rdfs:comment "Predicate indicator of a public predicate" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:requiresPredicate a owl:DatatypeProperty ;
+	rdfs:label "requires predicate" ;
+	rdfs:comment "Predicate indicator of non-local predicate" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:lastModifiedTime a owl:DatatypeProperty ;
+	rdfs:label "last modified" ;
+	rdfs:comment "Last modification stamp" ;
+	rdfs:range xsd:dateTime ;
+	rdfs:domain cpack:File .
+
+cpack:usesFile a owl:ObjectProperty ;
+	rdfs:label "uses file" ;
+	rdfs:comment "Reference to a file used by this file" ;
+	rdfs:range [ a owl:Class ;
+		     owl:unionOf ( cpack:FileRef
+				   cpack:File
+				 )
+		   ] ;
+	rdfs:domain cpack:File .
+
+cpack:usesSystemFile a owl:DatatypeProperty ;
+	rdfs:subPropertyOf cpack:usesFile ;
+	rdfs:label "uses prolog file" ;
+	rdfs:comment "Reference to a used Prolog system file" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:usesClioPatriaFile a owl:DatatypeProperty ;
+	rdfs:subPropertyOf cpack:usesFile ;
+	rdfs:label "uses prolog file" ;
+	rdfs:comment "Reference to a used ClioPatria file" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+cpack:usesPackageFile a owl:DatatypeProperty ;
+	rdfs:subPropertyOf cpack:usesFile ;
+	rdfs:label "uses package file" ;
+	rdfs:comment "Reference to a used file from a package" ;
+	rdfs:range rdfs:Literal ;
+	rdfs:domain cpack:File .
+
+# Properties for class FileRef
+
+cpack:resolvesAs a owl:ObjectProperty ;
+	rdfs:label "resolves as" ;
+	owl:inverseOf cpack:resolves ;
+	rdfs:comment "FileRef can be resolved by the given File" ;
+	rdfs:domain cpack:FileRef ;
+	rdfs:range cpack:File .
+
+# Properties for class Submitter
+
+cpack:submitted a owl:ObjectProperty ;
+	rdfs:label "submitted" ;
+	owl:inverseOf cpack:submittedBy ;
+	rdfs:comment "submitted package" ;
+	rdfs:domain cpack:Submitter ;
+	rdfs:range cpack:Package .
+
+# Properties for class Profile
+
+cpack:URLTemplate a owl:DatatypeProperty ;
+	rdfs:label "URL template" ;
+	rdfs:comment """Template URL holding a @VAR@ string""" .
+
+cpack:fetchRepositoryTemplate a owl:DatatypeProperty ;
+	rdfs:label "fetch repository template" ;
+	rdfs:subPropertyOf cpack:URLTemplate ;
+	rdfs:comment """This template is used to setup the default primary
+			repository of a package.  The string @CPACK@ is
+			replaced by the name of the package being created""" ;
+	rdfs:domain cpack:Profile .
+
+cpack:pushRepositoryTemplate a owl:DatatypeProperty ;
+	rdfs:label "push repository template" ;
+	rdfs:comment """This template is used to setup an origin for a
+			created pack""" ;
+	rdfs:domain cpack:Profile .
+
+cpack:servers a owl:ObjectProperty ;
+	rdfs:label "servers" ;
+	rdfs:comment "List of servers from which to fetch packages" ;
+	rdfs:domain cpack:Profile .
+
+cpack:defaultAuthor a owl:ObjectProperty ;
+	rdfs:label "author" ;
+	rdfs:comment "Default author for new packages" ;
+	rdfs:range foaf:Person ;
+	rdfs:domain cpack:Profile .
+

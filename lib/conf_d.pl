@@ -29,6 +29,7 @@
 
 :- module(conf_d,
 	  [ load_conf_d/2,		% +Directories, +Options
+	    conf_d_enabled/1,		% -ConfDir
 	    conf_d_reload/0,
 	    conf_d_members/3,		% +Directory, -FileData, +Options
 	    conf_d_member_data/3	% ?Field, +FileData, -Value
@@ -37,6 +38,7 @@
 :- use_module(library(ordsets)).
 :- use_module(library(lists)).
 :- use_module(library(apply)).
+:- use_module(library(version)).
 :- use_module(library(prolog_xref)).
 :- use_module(pldoc(doc_process)).
 
@@ -72,6 +74,10 @@ another, there are two solutions:
 %	@param	Spec is either the specification of a directory according
 %		to absolute_file_name/3 or a list thereof.  Duplicate
 %		directories are removed.
+%	@tbd	There is a but forking processes in one thread and
+%		waiting for X11 in another, which deadlocks in
+%		fork_atfree().  So, we must ensure we have the git
+%		versions in time :-(
 
 load_conf_d(Spec, Options) :-
 	select_option(solutions(Sols), Options, LoadOptions0, all),
@@ -81,7 +87,8 @@ load_conf_d(Spec, Options) :-
 		      ], LoadOptions),
 	phrase(collect_dirs(Spec, Sols), Dirs),
 	list_to_set(Dirs, Set),
-	maplist(load_conf_dir(LoadOptions), Set).
+	maplist(load_conf_dir(LoadOptions), Set),
+	git_update_versions(_).		% See above
 
 collect_dirs([], _) --> !.
 collect_dirs([H|T], Sols) --> !,
@@ -135,6 +142,13 @@ update_conf_d(Dir, Files, Options) :-
 	),
 	assert(conf_d(Dir, Options, Files)).
 
+%%	conf_d_enabled(-Dir) is nondet.
+%
+%	True if Dir is a directory from which config files are loaded.
+
+conf_d_enabled(Dir) :-
+	conf_d(Dir, _, _).
+
 %%	conf_d_reload is det.
 %
 %	Reload configuration files  after  adding   or  deleting  config
@@ -158,20 +172,22 @@ conf_d_reload :-
 %	terms.
 
 conf_d_members(DirSpec, InfoRecords, Options) :-
-	absolute_file_name(DirSpec, Dir,
-			   [ file_type(directory)
-			   ]),
-	conf_d_files(Dir, Files, Options),
+	findall(Files,
+		( absolute_file_name(DirSpec, Dir,
+				     [ file_type(directory),
+				       solutions(all)
+				     ]),
+		  conf_d_files(Dir, Files, Options)
+		), FileLists),
+	append(FileLists, Files),
 	maplist(conf_file, Files, InfoRecords).
 
-:- if(current_predicate(xref_public_list/6)).
 conf_file(File, config_file(Path, Module, Title)) :-
 	xref_public_list(File, Path, Module, _Public, _Meta, []), !,
 	(   doc_comment(_:module(Title), Path:_, _Summary, _Comment)
 	->  true
 	;   true
 	).
-:- endif.
 conf_file(File, config_file(File, _Module, _Title)).
 
 %%	conf_d_member_data(?Field, +ConfigInfo, ?Value) is nondet.

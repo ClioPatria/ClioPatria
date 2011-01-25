@@ -58,4 +58,4 @@ Last updated:
     mv newcert.pem server/server-cert.pem
     ==
 
-@see examples/conf.d/https.pl
+@see config-available/https.pl

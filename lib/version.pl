@@ -31,11 +31,13 @@
 :- module(prolog_version,
 	  [ check_prolog_version/1,	% +NumericVersion
 	    register_git_module/2,	% +Name, +Options
-	    git_module_property/2	% ?Name, ?Property
+	    git_module_property/2,	% ?Name, ?Property
+	    git_update_versions/1	% ?Name
 	  ]).
 :- use_module(library(process)).
 :- use_module(library(option)).
 :- use_module(library(readutil)).
+:- use_module(library(git)).
 
 
 /** <module> Manage software versions
@@ -47,6 +49,8 @@ server. Modules that want  their  version   info  available  through the
 web-page can do so using a call to register_git_module/2.
 */
 
+:- multifile
+	git_module_hook/3.		% Name, Dir, Options
 
 %%	check_prolog_version(+Required)
 %
@@ -79,6 +83,8 @@ prolog:message(required_prolog_version(Required)) -->
 	].
 prolog:message(git(no_version)) -->
 	[ 'Sorry, cannot retrieve version stamp from GIT.' ].
+prolog:message(git(update_versions)) -->
+	[ 'Updating GIT version stamps in the background.' ].
 
 
 user_version(N, Version) :-
@@ -86,80 +92,6 @@ user_version(N, Version) :-
         Minor is (N // 100) mod 100,
         Patch is N mod 100,
         atomic_list_concat([Major, Minor, Patch], '.', Version).
-
-
-		 /*******************************
-		 *	    GIT VERSION		*
-		 *******************************/
-
-:- multifile
-	git_version_pattern/1.
-
-git_version_pattern('V*').
-git_version_pattern('*').
-
-%%	git_describe(-Version, +Options) is semidet.
-%
-%	Describe the running version  based  on   GIT  tags  and hashes.
-%	Options:
-%
-%	    * match(+Pattern)
-%	    Only use tags that match Pattern (a Unix glob-pattern; e.g.
-%	    =|V*|=)
-%	    * directory(Dir)
-%	    Provide the version-info for a directory that is part of
-%	    a GIT-repository.
-%
-%	@see git describe
-
-git_describe(Version, Options) :-
-	(   option(match(Pattern), Options)
-	->  true
-	;   git_version_pattern(Pattern)
-	),
-	option(directory(Dir), Options, .),
-	setup_call_cleanup(process_create(path(git), ['describe', '--match', Pattern],
-					  [ stdout(pipe(Out)),
-					    stderr(null),
-					    process(PID),
-					    cwd(Dir)
-					  ]),
-			   (   read_stream_to_codes(Out, V0, []),
-			       process_wait(PID, Status)
-			   ),
-			   close(Out)),
-	Status = exit(0),
-	atom_codes(V1, V0),
-	normalize_space(atom(Plain), V1),
-	(   git_is_clean(Dir)
-	->  Version = Plain
-	;   atom_concat(Plain, '-DIRTY', Version)
-	).
-
-
-%%	git_is_clean(+Dir) is semidet.
-%
-%	True if the given directory is in   a git module and this module
-%	is clean. To us, clean only   implies that =|git diff|= produces
-%	no output.
-
-git_is_clean(Dir) :-
-	setup_call_cleanup(process_create(path(git), ['diff'],
-					  [ stdout(pipe(Out)),
-					    stderr(null),
-					    cwd(Dir)
-					  ]),
-			   stream_char_count(Out, Count),
-			   close(Out)),
-	Count == 0.
-
-stream_char_count(Out, Count) :-
-	setup_call_cleanup(open_null_stream(Null),
-			   (   copy_stream_data(Out, Null),
-			       character_count(Null, Count)
-			   ),
-			   close(Null)).
-
 
 
 		 /*******************************
@@ -200,17 +132,25 @@ register_git_module(Name, Options) :-
 	assert(git_module(Name, AbsDir, RestOptions)).
 
 git_update_versions(Name) :-
-	catch(forall(git_module(Name, _, _),
+	catch(forall(current_git_module(Name, _, _),
 		     update_version(Name)),
 	      _,
 	      print_message(warning, git(no_version))).
 
 update_version(Name) :-
-	git_module(Name, Dir, Options),
-	catch(git_describe(GitVersion, [directory(Dir)|Options]), _,
-	      GitVersion = unknown),
+	current_git_module(Name, Dir, Options),
+	(   catch(git_describe(GitVersion, [directory(Dir)|Options]), _, fail)
+	->  true
+	;   GitVersion = unknown
+	),
 	retractall(git_module_version(Name, _)),
 	assert(git_module_version(Name, GitVersion)).
+
+current_git_module(Name, Dir, Options) :-
+	git_module(Name, Dir, Options).
+current_git_module(Name, Dir, Options) :-
+	git_module_hook(Name, Dir, Options).
+
 
 %%	git_module_property(?Name, ?Property) is nondet.
 %
@@ -226,7 +166,7 @@ update_version(Name) :-
 
 git_module_property(Name, Property) :-
 	var(Name), !,
-	git_module(Name, _, _),
+	current_git_module(Name, _, _),
 	git_module_property(Name, Property).
 git_module_property(Name, version(Version)) :-
 	(   git_module_version(Name, Version0)
@@ -237,9 +177,9 @@ git_module_property(Name, version(Version)) :-
 	Version0 \== unknown,
 	Version = Version0.
 git_module_property(Name, directory(Dir)) :-
-	git_module(Name, Dir, _).
+	current_git_module(Name, Dir, _).
 git_module_property(Name, Term) :-
-	git_module(Name, _, Options),
+	current_git_module(Name, _, Options),
 	member(Term, Options).
 
 
@@ -248,12 +188,18 @@ git_module_property(Name, Term) :-
 		 *	  KEEP UP-TO-DATE	*
 		 *******************************/
 
+bg_git_update_versions :-
+	print_message(informational, git(update_versions)),
+	thread_create(git_update_versions(_), _,
+		      [ detached(true)
+		      ]).
+
 :- multifile
 	user:message_hook/3.
 
 user:message_hook(make(done(_)), _, _) :-
-	git_update_versions(_),
+	bg_git_update_versions,
 	fail.
 
 :- initialization
-	git_update_versions(_).
+	bg_git_update_versions.

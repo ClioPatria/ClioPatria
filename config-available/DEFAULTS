@@ -1,0 +1,12 @@
+% Default action when creating an empty configuration directory.
+
+config('debug.pl', link).
+config('config.pl', link).
+config('store.pl', link).
+config('network.pl', copy).
+config('winpath.pl', link) :-
+	current_prolog_flag(windows, true).
+config('zlib.pl', link) :-
+	exists_source(library(zlib)).
+
+

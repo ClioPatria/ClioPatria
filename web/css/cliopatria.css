@@ -44,8 +44,8 @@ div.messages pre
 }
 
 .msg_error
-{ background-color: #ca0000;
-  color: blue;
+{ color: #ca0000;
+  font-weight: bold;
 }
 
 p.footnote
@@ -155,8 +155,19 @@ table.block th.total
   background: transparent;
 }
 
-table.block th.sorted
-{
+table.block a.resort
+{ color: #000;
+  text-decoration: none;
+}
+
+table.block a.resort:hover
+{ color: #00f;
+  text-decoration: underline;
+}
+
+table.block a.sorted
+{ color: #000;
+  text-decoration: underline;
 }
 
 table.block th.p_name
@@ -184,7 +195,7 @@ span.acmatch
 { background-color: #bbf;
 }
 
-#ac_predicate_complete .yui-ac-content
+div.ac_input .yui-ac-content
 { max-height:30em;
   overflow:auto;
   overflow-x:hidden; /* set scrolling */

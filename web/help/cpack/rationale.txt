@@ -1,0 +1,102 @@
+---+ The rationale behind CPACK
+
+CPACK is inspired by the various _Comprehensive_ _XYZ_ _Archive_
+_Networks_ around, such as CTAN (TeX) and CPAN (Perl), as well as the
+various package management systems around in the Linux world.  Below
+we will motivate the choices behind CPACK in a question-answer style.
+
+---++ Why is a package system needed?
+
+Without it, ClioPatria 2 would be a monolotic library like ClioPatria 1
+as it was developed in the MultiMediaN project. As applications require
+new functionality of this library the library grows and interfaces get
+modified. Many of the additions and changes are _|ad-hoc|_, project
+specific and poorly documented. As the poorly documented and poorly
+structured library gets fatter and fatter it becomes unusable.
+
+That is why we started ClioPatria 2, which removed most of the fat,
+provided some structure to the remainder and documented a lot more of
+the code. So it becomes understandable again ... but it has limited
+functionality.  We cannot just start filling it the way we did in
+ClioPatria 1 because a lot of the code underlying ClioPatria 1 was
+poorly understood and it contains a lot of project-specific code, often
+intertwined with more reusable code.  Within months we would be back at
+square one.
+
+Instead, we provide a package system. Packages are sets of files,
+structured according to the ClioPatria 2 guidelines that belong
+together. Lessons learned from ClioPatria 1 allow for minimal and well
+defined dependencies between the packages. The split has several
+advantanges:
+
+  1. As files that belong together are in a package, the dependencies
+     become clear and the smaller set of files that forms a package is
+     easier to understand.
+
+  2. We can prevent project-specific code entering the main code-base,
+     while we do provide structuring guidelines for such code.
+
+  3. _Everyone_ can contribute a package.  There is no need to consider
+     whether it is worthwhile and generic enough to be added to the
+     ClioPatria kernel.
+
+  4. User-oriented packages (_applications_ and _components_) may be
+     developed using different visible styles and different techniques
+     (e.g., server-side vs. AJAX).  Using packages, we can accept that
+     different sets evolve independently.
+
+
+---++ Why do you not use an existing package system?
+
+Various aspects are vital to a good package system, notable dependency
+tracking, automated downloading and automatic installation.
+
+  1. Notably dependency tracking is language-specific. Prolog's reflexive
+     capabilities allow for exhaustive an alysis that is not provided by
+     existing package managers.
+
+  2. Existing package managers come with their own infrastructure and
+     system dependencies. Prolog has all the required scripting
+     capabilities, is already known by ClioPatria developers, portable
+     over the target platforms for ClioPatria and is much better capable
+     of operating on and reasoning about Prolog files.
+
+  3. As a semantic we platform, ClioPatria must be well suited to deal
+     with (package) metadata.  In other words, _|eat your own dogfood|_.
+
+  4. Modern technology, such as distributed source code management
+     systems (SCM) allow for distributed package management.
+
+
+---++ GIT is so complicated.  Why is CPACK based on GIT?
+
+Old package systems were often based on _|tar-balls|_, more modern ones
+combined the archiving with recorded meta-data and digital signatures
+(e.g., RPM and DEB). While this provides progress, there are still some
+important requiments not fullfilled, notably because we want to avoid
+formal package managers. These things are provided by GIT:
+
+  1. Distribution.  GIT repositories can be cloned and, while managed at
+     different locations independently, they can always be reunited as
+     _branches_ that can be compared and (selectively) merged.  Based
+     on GIT, we can easily clone entire CPACK package servers!
+
+  2. Cryptographic-hash based guarantee that files are unmodified.
+     Versions (tags) can be signed using PGP.  Signatures can be
+     given by authors or package servers.  These things allow is
+     to provide trust, where you can even trust code on cloned
+     package servers because signatures allow for tracking the
+     origin.
+
+  3. Different physical transport protocols: ssh (secure), git (fast
+     read-only), http (portable and friendly to firewalls and proxies)
+     and more.
+
+  4. As your downloaded and installed package is a GIT repository, you
+     can easily track changes that you made and feed enhancements back
+     to the developers.
+
+  5. GIT is (nowadays) well portable.
+
+Not all facilities are available in the current package manager, but at
+least GIT supports them by design.

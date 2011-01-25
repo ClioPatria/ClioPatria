@@ -1,0 +1,80 @@
+---+ Package management TODO list
+
+---++ Installation
+
+  - Load files
+  - Install config components
+
+---++ Dependency tracking
+
+  -
+
+---++ Examine package status
+
+  - Run git fetch only
+  - Find labels between status and HEAD
+    - If named VX.Y.Z, say there is a new version
+  - Find log messages between status and HEAD
+    - Scan for FIXED, etc.
+  - Compare library .pack with package one
+
+---++ Trust management
+
+---+++ The CPAN model
+
+CPAN introduces some level of trust using  the following steps below. We
+assume that this level of trust is sufficient for us too. GIT gives us a
+few free extras.
+
+  - To be able to upload a package, you must register as a user with
+  PAUSE, the [Perl programming] Authors Upload Server.
+  - Files are uploaded (typically) as package-<version>.tgz
+  - Files cannot be overwritten
+
+---+++ The CPACK model
+
+We rely on GIT repositories. This  allows   for  distribution and we can
+express our trust in several  ways  as   listed  below.  Note that these
+trust-levels go from low to high.
+
+  1. Trust a server
+  2. Trust a repository
+  3. Trust a signed commit
+  4. Trust a hash
+
+We need a reliable URL for a   submitter. I.e., OpenID. Using OpenID, we
+could establish a `network of trust' using   e.g.,  FOAF? An OpenID user
+can submit:
+
+    - Submit a git repository holding a pack.  This downloads the
+    metadata and adds this to the server.
+    - Update their git repository. This fetches a new copy of the
+    metadata.
+    - Show trust
+	- in another user
+	- in a server
+	- in a repository
+	- in a hash
+    - Discover packages from a *name*
+	- Find packages
+	- Find trust for a package
+
+Additional services:
+
+    - Provide source, so others can setup such as server.
+    - Provide copying between servers.
+    - Optionally clone the repo.
+    - Form to create meta-data
+    - Create directory hierarchy
+    - Find/reserve a PACK name
+
+---++ GIT Tricks
+
+---+++ Find tags on a branch (ordered):
+
+    - git log --oneline --decorate (-z) <branch>
+
+---+++ Get a single file from a remote repo
+
+    git archive --remote=url://to.git.repo branch path/to/dir | tar -x file
+

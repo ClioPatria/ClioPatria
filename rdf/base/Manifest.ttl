@@ -1,0 +1,140 @@
+@prefix	    lib: <http://www.swi-prolog.org/rdf/library/> .
+@prefix     owl: <http://www.w3.org/2002/07/owl#> .
+@prefix     rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix    rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix     xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix      dc: <http://purl.org/dc/elements/1.1/> .
+@prefix	dcterms: <http://purl.org/dc/terms/> .
+@prefix	dctypes: <http://purl.org/dc/dcmitype/> .
+@prefix	   dcam: <http://purl.org/dc/dcam/> .
+@prefix	    eor: <http://dublincore.org/2000/03/13/eor#> .
+
+:rdfs
+	a lib:Namespace ;
+	lib:mnemonic "rdfs" ;
+	lib:namespace rdfs: .
+
+:owl
+	a lib:Namespace ;
+	lib:mnemonic "owl" ;
+	lib:namespace owl: .
+
+:xsd
+	a lib:Namespace ;
+	lib:mnemonic "xsd" ;
+	lib:namespace xsd: .
+
+:dc
+	a lib:Namespace ;
+	lib:mnemonic "dc" ;
+	lib:namespace dc: .
+
+:dcterms
+	a lib:Namespace ;
+	lib:mnemonic "dcterms" ;
+	lib:namespace dcterms: .
+
+:dctypes
+	a lib:Namespace ;
+	lib:mnemonic "dctypes" ;
+	lib:namespace dctypes: .
+
+:dcam
+	a lib:Namespace ;
+	lib:mnemonic "dcam" ;
+	lib:namespace dcam: .
+
+:eor
+	a lib:Namespace ;
+	lib:mnemonic "eor" ;
+	lib:namespace eor: .
+
+#	RDFS
+
+<rdfs>
+	a lib:Schema ;
+	a lib:Virtual ;
+	dcterms:title "RDF Schema" ;
+	lib:source rdfs: ;
+	lib:providesNamespace :rdfs ;
+	lib:schema <rdfs.rdfs> .
+
+#	OWL
+
+<owl>
+	a lib:Schema ;
+	a lib:Virtual ;
+	dcterms:title "Web Ontology Language (DL)" ;
+	lib:schema
+		<owl.owl> ;
+	owl:imports
+		<rdfs>;
+	lib:source owl: ;
+	lib:providesNamespace owl: ;
+	lib:usesNamespace :xsd ;
+	lib:usesNamespace :rdfs .
+
+<owlfull>
+	a lib:Schema ;
+	a lib:Virtual ;
+	dcterms:title "Web Ontology Language (Full)" ;
+	owl:imports
+		<owl> ,
+		<owlfull.owl> ;
+	lib:providesNamespace :owl ;
+	lib:usesNamespace :xsd ;
+	lib:usesNamespace :rdfs .
+
+
+# Dublin core
+
+<dc>
+	a lib:Schema ;
+	a lib:Virtual ;
+	lib:providesNamespace dc: ;
+	lib:source dc: ;
+	owl:imports <dcelements.rdf> ;
+	owl:imports <dcterms>, <dctypes>, <dcam> .
+
+<dcterms>
+	a lib:Schema ;
+	a lib:Virtual ;
+	dcterms:title "Dublin Core Terms Namespace" ;
+	owl:imports <dcterms.rdf>, <rdfs>;
+	lib:source dcterms: ;
+	lib:providesNamespace dcterms: ;
+	lib:usesNamespace :rdfs .
+
+<dctypes>
+	a lib:Schema ;
+	a lib:Virtual ;
+	dcterms:title "DCMI Types namespace" ;
+	owl:imports <dctype.rdf>, <rdfs>;
+	lib:source dctypes: ;
+	lib:providesNamespace dctypes: ;
+	lib:usesNamespace :rdfs .
+
+<dcam>
+	a lib:Schema ;
+	a lib:Virtual ;
+	dcterms:title "Dublin Core Abstract Model Namespace" ;
+	owl:imports <dcam.rdf>, <rdfs>;
+	lib:source dcam: ;
+	lib:providesNamespace dcam: ;
+	lib:usesNamespace :rdfs .
+
+<dcelements>
+	a lib:Schema ;
+	a lib:Virtual ;
+	dcterms:title "(Old) Dublin Core 1.1 Elements Model Namespace" ;
+	owl:imports <dcelements.rdf>, <rdfs>;
+	lib:source dc: ;
+	lib:providesNamespace dc: ;
+	lib:usesNamespace :rdfs .
+
+<eor.rdfs>
+	a lib:Ontology ;
+	dcterms:title "EOR Vocabulary" ;
+	owl:versionInfo "1.0" ;
+	lib:providesNamespace :eor ;
+	lib:usesNamespace :rdfs .

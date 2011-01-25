@@ -29,10 +29,13 @@
 
 :- module(html_basics,
 	  [ hidden//2,			% +Name, +Value
+	    form_input//2,		% +Label, +Input
+	    form_submit//1,		% +Label
 	    n//2,			% +Format, +Value
 	    nc//2,			% +Format, +Value
 	    nc//3,			% +Format, +Value, +Options
 	    odd_even_row//3,		% +Row, -Next, :Content
+	    sort_th//3,			% +Field, +ByNow, :Content
 	    insert_html_file//1		% +FileSpec
 	  ]).
 :- use_module(library(http/html_write)).
@@ -40,9 +43,20 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(occurs)).
+:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_wrapper)).
+
+:- html_meta
+	form_input(html, html, ?, ?),
+	odd_even_row(+, -, html, ?, ?),
+	sort_th(+, +, html, ?, ?).
 
 /** <module> Simple Small HTML components
 */
+
+		 /*******************************
+		 *	       FORMS		*
+		 *******************************/
 
 %%	hidden(+Name, +Value)// is det.
 %
@@ -53,6 +67,28 @@ hidden(Name, Value) -->
 		     name(Name),
 		     value(Value)
 		   ])).
+
+
+%%	form_input(+Label, +Input)// is det.
+%%	form_submit(+Label)// is det.
+%
+%	Building blocks for HTML forms. The  form itself is a two-column
+%	table of class =form= with labels at  the left and inputs at the
+%	right. These rules create rows for input and submit.
+
+form_input(Label, Input) -->
+	html(tr([ th(class(label), Label),
+		  td(Input)
+		])).
+
+
+form_submit(Label) -->
+	html(tr(class(buttons),
+		[ th([align(right), colspan(2)],
+		     input([ type(submit),
+			     value(Label)
+			   ]))
+		])).
 
 
 		 /*******************************
@@ -98,12 +134,6 @@ class(Value, Class) :-
 %
 %	Create odd/even alternating table rows from a DCG.
 
-:- if(current_predicate((html_meta)/1)).
-:- html_meta(odd_even_row(+,-,html,?,?)).
-:- else.
-:- meta_predicate odd_even_row(+,-,:,?,?).
-:- endif.
-
 odd_even_row(Row, Next, Content) -->
 	{ (   Row mod 2 =:= 0
 	  ->  Class = even
@@ -112,6 +142,29 @@ odd_even_row(Row, Next, Content) -->
 	  Next is Row+1
 	},
 	html(tr(class(Class), Content)).
+
+%%	sort_th(+Field, +ByNow, :Label)
+%
+%	Provide a column-header for a table   that can be resorted. This
+%	call creates a =th= element holding an   =a=. The =a= has either
+%	CSS class =sorted= if the column is   sorted  or =resort= if the
+%	column can be sorted on this column.   The use of this component
+%	demands that the handler processes the parameter =sort_by= using
+%	the field-name as argument.
+%
+%	@param	Field is the field-name that describes the sort on this
+%		column.
+%	@param	ByNow is the field on which the table is currently
+%		sorted.
+%	@param  Label is the label of the =a= element
+
+sort_th(Name, Name, Label) -->
+	html(th(a([class(sorted)], Label))).
+sort_th(Name, _By, Label) -->
+	{ http_current_request(Request),
+	  http_reload_with_parameters(Request, [sort_by(Name)], HREF)
+	},
+	html(th(a([href(HREF), class(resort)], Label))).
 
 
 		 /*******************************
@@ -153,7 +206,7 @@ human_count(Number, HTML) :-
 human_count(Number, HTML) :-
 	TB is Number/(1024*1024*1024),
 	digits(TB, N),
-	HTML = '~*fT'-[N, TB].
+	HTML = '~*fG'-[N, TB].
 
 digits(Count, N) :-
 	(   Count < 100
@@ -166,7 +219,7 @@ digits(Count, N) :-
 		 *	   INCLUDE FILES	*
 		 *******************************/
 
-%%	insert_html_file(+Specification)
+%%	insert_html_file(+Specification)//
 %
 %	Insert the content of an HTML   file  into the current document.
 %	Only the content of the =body= element is included.

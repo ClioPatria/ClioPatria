@@ -1,0 +1,11 @@
+---+ ClioPatria library extensions
+
+This directory contains files that are candidate for the SWI-Prolog core
+libraries. ClioPatria places it at  the   start  of the standard library
+search path. They should be loaded using   a normal library loading call
+as below, so they  can  be  moved   to  the  SWI-Prolog  library without
+affecting the application.
+
+	==
+	:- use_module(library(xyx)).
+	==

@@ -8,7 +8,7 @@ load RDF.
 
     2. Load them from the Prolog command line using rdf_load/1.  If you
     wish to use this route frequently, it is advised to activate
-    examples/conf.d/debug.pl to make the core RDF library available from
+    config-available/debug.pl to make the core RDF library available from
     the toplevel. See the [[installation][../Install.txt]] instructions.
     Then continue with e.g.,
 
@@ -21,7 +21,7 @@ load RDF.
     from local files and HTTP servers.  The plugin mechanism of
     library(semweb/rdf_db) can be used to extend the formats that are
     understood and the locations from which they can be loaded.  In
-    particular, activating the examples/conf.d/zlib.pl config skeleton
+    particular, activating the config-available/zlib.pl config skeleton
     allows loading from compressed data sources.
 
     ==
@@ -32,7 +32,7 @@ load RDF.
     through the menu _|Repository/Load from library|_ or
     rdf_load_library/1.  ClioPatria comes with a default library
     in the directory =ontologies=.  See ontologies/README.txt.
-    The file examples/conf.d/ontopath.pl provides a configuration
+    The file config-available/ontopath.pl provides a configuration
     skeleton.
 
     Details of the library structure are described in the SWI-Prolog

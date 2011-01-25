@@ -112,14 +112,23 @@ show_settings([H|T], Module, EO, Options) -->
 show_setting(H, Module, EO, Options) -->
 	{ setting_property(Module:H, comment(Comment)),
 	  setting_property(Module:H, type(Type)),
+	  setting_title(Module:H, Title),
 	  setting(Module:H, Value),
 	  debug(settings, '~w: type=~w', [H, Type])
 	},
 	html(tr(class(EO),
-		[ td(class(comment), Comment),
+		[ td([class(comment), title(Title)], Comment),
 		  td(class(value),
 		     \show_value(Type, Value, Module:H, Options))
 		])).
+
+setting_title(Setting, Title) :-
+	setting_property(Setting, File:Line),
+	integer(Line), !,
+	file_base_name(File, Base),
+	format(atom(Title), '~q from ~w:~d', [Setting, Base, Line]).
+setting_title(Setting, Title) :-
+	format(atom(Title), '~q', [Setting]).
 
 
 show_value(Type, Value, Id, Options) -->

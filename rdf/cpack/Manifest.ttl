@@ -1,0 +1,11 @@
+@prefix	    lib: <http://www.swi-prolog.org/rdf/library/> .
+@prefix	dcterms: <http://purl.org/dc/terms/> .
+@prefix   cpack: <http://cliopatria.swi-prolog.org/schema/cpack#> .
+
+<cpack>
+	a lib:Schema ;
+	a lib:Virtual ;
+	dcterms:title "ClioPatria package vocabulary" ;
+	lib:source cpack: ;
+	lib:schema <cpack.ttl> .
+

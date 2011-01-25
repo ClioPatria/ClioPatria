@@ -1,0 +1,35 @@
+---+ The granularity of a CPACK
+
+Should I put my entire project in a package?  Or just a single file?
+
+If you aim for _reuse_, putting your *|entire project|* in a package is
+not a good idea. It will be too complicated for anyone seeking for code.
+Also, if another pack decides to reuse a file from ypur big project, it
+becomes harder to verify that the dependencies remain satisfied just
+because changes in the remainder of the project have unclear
+consequences. Concluding, *|putting a large project in a single pack is
+fine for distribution purposes, but not for reuse|*.
+
+The other extreme, a *|single file|* can be ok if the functionality is
+nicely self-contained and of some importance. For example, a package
+providing a single file with an OWL-reasoner is fine. One providing a
+single file that does a closure over owl:sameAs is too small. Not that
+it doesn't work, but the number of package would explode, making it hard
+to find the right one and causing applictions to depend on hundreds of
+packages. That becomes hard to manage. Concluding, *|single-file
+packages are fine if they provide enough reusable code|*.
+
+Typically however, we think that packages contain a number of facilities
+that belong together. For example, we could imagine a SKOS package that
+provide library files for reasoning with SKOS, API files to serve SKOS
+vocabularies, components for vizualising SKOS concepts and hierarchies
+and maybe an application to edit SKOS concept schemes. If any of these
+functions require significant reusable infrastructure, it must be
+considered to put that in a separate package. For example a package to
+deal with hierarchies (display, edit). Concluding, *|typical packages
+deal with many of the aspects related to a specific ontology, where
+resuable aspects thereof should be bundled in another package|*.
+
+Note that both splitting a large and joining two small packages can be
+done without consequences for other packages as long as the dependencies
+are tracked automatically.  Concluding, *|feel free to repackage|*.

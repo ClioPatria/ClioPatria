@@ -95,10 +95,10 @@ Structure elements have classes that reflects their role on a page.
 
 ---+++ Page layout
 
-Page layout classes control the overall page layout of ClioPatria
-pages.  The header-elements =h1=, =h2=, ... are styled if they appear
-within div.content.  The menu itself is defined in components(menu) and
-styled with css('menu.css').  The file examples/conf.d/skin_fix_menu.pl
+Page layout classes control the overall page layout of ClioPatria pages.
+The header-elements =h1=, =h2=, ...  are   styled  if they appear within
+div.content. The menu itself is defined   in components(menu) and styled
+with   css('menu.css').   The   file   config-available/skin_fix_menu.pl
 provides an example of changing the overall skin.
 
     $ *body* :

@@ -1,0 +1,9 @@
+---+ Installing a CPACK
+
+Once you have [[found][Finding.txt]] a CPACK, it can be installed using
+the predicate cpack_install/1 as documetented below. By default,
+cpack_install/1 searches the central server. This can be changed by
+creating a CPACK [[profile][profile.txt]].
+
+  * [[cpack_install/1]]
+

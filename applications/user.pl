@@ -41,7 +41,7 @@
 :- use_module(library(http/http_session)).
 :- use_module(library(http/http_host)).
 :- use_module(api(sesame)).
-:- use_module(api(ontolib)).
+:- use_module(api(rdflib)).
 :- use_module(library(settings)).
 :- use_module(user(user_db)).
 :- use_module(library(debug)).
@@ -99,7 +99,7 @@ in:
 :- http_handler(cliopatria('user/query'),	     query_form,	      []).
 :- http_handler(cliopatria('user/loadFile'),	     load_file_form,	      []).
 :- http_handler(cliopatria('user/loadURL'),	     load_url_form,	      []).
-:- http_handler(cliopatria('user/loadLibraryOntology'), load_library_ontology_form, []).
+:- http_handler(cliopatria('user/loadLibraryRDF'),   load_library_rdf_form, []).
 :- http_handler(cliopatria('user/clearRepository'),  clear_repository_form,   []).
 :- http_handler(cliopatria('user/removeStatements'), remove_statements_form,  []).
 
@@ -316,7 +316,7 @@ load_url_form(_Request) :-
 			]).
 
 
-%%	load_library_ontology_form(+Request)
+%%	load_library_rdf_form(+Request)
 %
 %	Provide a form  for  loading  an   ontology  from  the  library.
 %	Libraries are made  available  through   the  file  search  path
@@ -326,7 +326,7 @@ load_url_form(_Request) :-
 %	@see file_search_path/2
 %	@see rdf_attach_library/1.
 
-load_library_ontology_form(Request) :-
+load_library_rdf_form(Request) :-
 	authorized(read(status, listBaseOntologies)),
 	get_base_ontologies(Request, Ontologies),
 	reply_html_page(cliopatria(default),

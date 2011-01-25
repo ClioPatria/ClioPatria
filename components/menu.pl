@@ -135,7 +135,7 @@ menu_item(Item, Label) :-
 
 menu_item(100=repository/load_file_form,	 	'Load local file').
 menu_item(200=repository/load_url_form,			'Load from HTTP').
-menu_item(300=repository/load_library_ontology_form,	'Load from library').
+menu_item(300=repository/load_library_rdf_form,		'Load from library').
 menu_item(400=repository/remove_statements_form,  	'Remove triples').
 menu_item(500=repository/clear_repository_form,		'Clear repository').
 
