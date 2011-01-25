@@ -22,11 +22,11 @@
 
 setup :-
 	cliopatria_dir(ClioDir),
-	working_directory(CWD, CWD),
-	setup_scripts(ClioDir, CWD),
+	install_dir(Dir),
+	setup_scripts(ClioDir, Dir),
 	directory_file_path(ClioDir, 'lib/APPCONF.txt.in', ReadmeIn),
 	directory_file_path(ClioDir, 'config-available', ConfigAvail),
-	directory_file_path(CWD,     'config-enabled', ConfigEnabled),
+	directory_file_path(Dir,     'config-enabled', ConfigEnabled),
 	setup_default_config(ConfigEnabled, ConfigAvail,
 			     [ readme(ReadmeIn)
 			     ]),
@@ -39,6 +39,16 @@ cliopatria_dir(Dir) :-
 			     access(read)
 			   ]).
 
+install_dir(Dir) :-
+	current_prolog_flag(windows, true), !,
+	working_directory(CWD, CWD),
+	(   get(@display, win_directory,
+		'Create ClioPatria project in', CWD, Dir)
+	->  true
+	;   halt(1)
+	).
+install_dir(DIR) :-
+	working_directory(DIR, DIR).
 
 
 setup:substitutions([ 'SWIPL'=PL,		% Prolog executable (for #!...)
