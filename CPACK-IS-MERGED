@@ -1,0 +1,8 @@
+If you see this file,  it  means  you   are  using  the  cpack branch of
+ClioPatria. This branch is merged into master   on  Jan. 25 2011. Please
+switch to master using:
+
+    % git checkout master
+    % git pull
+
+The cpack branch will not be updated anymore.
