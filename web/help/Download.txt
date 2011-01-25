@@ -1,9 +1,43 @@
 ---+ Downloading ClioPatria
 
-ClioPatria is available from its [[GIT][http://git-scm.com/]]
-[[repository][http://www.swi-prolog.org/git/ClioPatria.git]] using the
-following command.
+ClioPatria can be downloaded using the [[GIT][http://git-scm.com/]]
+version control system only. Why? Because ClioPatria's package manager
+CPACK is based on GIT, so you need GIT anyway.
+
+---++ Step one, get GIT
+
+First install GIT for for your platform. On Windows, there are two
+versions. We assume
+[[msysgit][http://code.google.com/p/msysgit/downloads/list?can=3]],
+which has become the preferred version on the GIT download page as well.
+Linux systems have a package, often called =|git-core|=, so Debian or
+Ubuntu you use
+
+    ==
+    % sudo apt-get install git-core
+    ==
+
+You need at least version 1.6 of GIT!
+
+---++ Step two, get SWI-Prolog
+
+Download and install [[SWI-Prolog][http://www.swi-prolog.org]]. As
+ClioPatria and its packages are under active development, you often need
+the [[development version][http://www.swi-prolog.org/download/devel]] of
+SWI-Prolog.
+
+
+---++ Step two, download ClioPatria
+
+With GIT installed, this is simple. Open a terminal in the right
+directory and run the command below, which creates a directory
+=ClioPatria= in the current directory.
 
     ==
     % git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
     ==
+
+You can [[browse][http://www.swi-prolog.org/git/ClioPatria.git]] the
+sources online.
+
+@see Next step: [[create a project][<CreateProject.html>]]!
