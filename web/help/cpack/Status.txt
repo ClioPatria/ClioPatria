@@ -1,0 +1,17 @@
+---+ Status and plans with CPACK
+
+CPACK is still immature. However, it is based on flexible
+state-of-the-art technology such as GIT for version tracking and RDF for
+metadata. The system is intended as a prototype for a package manager
+for SWI-Prolog. New facilities will be added on as-needed basis. Below
+is a wishlist.
+
+  * When updating/accepting a package, do some sanity checks first.
+  * Provide support for removing package, indicating possible dependency
+    problems.
+  * Deal with conflicts.  For example, allow packages to work only with
+    a certain branch of another package.
+  * Provide a rating system.
+  * Provide ClioPatria 1.0-style clustered search
+  * Provide a network of trust between users and (cloned) package
+    servers.
