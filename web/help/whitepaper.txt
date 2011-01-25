@@ -230,6 +230,16 @@ ClioPatria.
     Serve RDF repositories or fragments thereof as LOD with a
     single-line declaration.
 
+    $ The CPACK package manager :
+    This allows for submitting, and updating submissions (developer) or
+    installing packages with all its dependencies (users) and make it
+    a breeze to add functionality to your ClioPatria installation.  For
+    example, the following command installs an interactive search module
+    =isearch= and its dependencies (=owl= and =statistics=).
+
+    ==
+    ?- cpack_install(isearch).
+    ==
 
 ---++ Running ClioPatria
 
@@ -238,10 +248,15 @@ a recent version of SWI-Prolog that fits your computer.  The ClioPatria
 resource viewer can display a graph that places a resource in context.
 This facility requires Graphviz.
 
-    * http://www.swi-prolog.org/web/ClioPatria/
+    * http://cliopatria.swi-prolog.org/
     * http://www.swi-prolog.org
     * http://www.graphviz.org/
 
-ClioPatria runs on all major platforms supported by SWI-Prolog: Windows
-(32- and 64-bits), MacOSX, Linux (32- and 64-bits) and, from source,
-almost any Unix system.
+ClioPatria runs on all major platforms supported by SWI-Prolog: Windows,
+MacOSX, Linux and, from source, on almost any Unix system. It supports
+both the 32-bit and 64-bit of these operating systems. Demanding servers
+(more than 10 million triples, complex queries) quickly need the 64-bit
+versions. Although 64-bit Linux based servers provide the most scalable,
+fast and robust platform for ClioPatria servers, ClioPatria can be used
+comfortably on a 32-bit Windows XP machine with 1GB memory as long as
+the dataset is limited to a few million triples.
