@@ -1,0 +1,29 @@
+---+ About ClioPatria versions
+
+ClioPatria was started as part of [[MultimediaN Eculture
+Project][http://e-culture.multimedian.nl/]]. This version was an
+integral part of the _|MultimediaN E-Culture Demonstrator|_ that won
+first prize as semantic web application at ISWC 2006.  We call that
+*|version one|*.
+
+Later, the application specific code was abstracted a bit, allowing to
+_skin_ the application and put other data into it. This version still
+uses the [[`kitchen-sink
+model'][http://www.teuton.org/~ejm/emacsicon/index.shtml]], which makes
+it almost inacessible for anyone but its developers.  We call that
+*|version two|*.
+
+The current version is fairly _lean_, which should make it more
+versatile and accessible.  It can be extended using packages.  The
+package system is called CPACK (ClioPatria Package).  This version
+will be *|version three|*.  It is not really there, but we call the
+current version *|2.9|* to prepare the transition.  Here are the
+main plans before we will call it *|3.0|*:
+
+  * Some parts of ClioPatria will move into packages.
+  * Some parts of the kitchen-sink ClioPatria will be made available as
+  packages too.
+  * The package manager and configuration manager needs more polishing.
+
+From now on, we will try to keep ClioPatria stable, lean and backward
+compatible.
