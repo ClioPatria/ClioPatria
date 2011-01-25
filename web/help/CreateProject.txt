@@ -39,6 +39,13 @@ you selected) and enter a name and password for the administrator user.
 
 ---++ Creating a project in MS-Windows
 
-The procedure in Windows is comparable, but based on using the Windows
+The procedure in Windows is comparable, but   based on using the Windows
 file explorer. First, create a folder =myproject= next to the downloaded
-=ClioPatria= folder.
+=ClioPatria= folder. Next, run =|setup.pl|=   in  =ClioPatria= by double
+clicking it. This prompts for  a   project  directory. Specify the newly
+created =myproject=. Now double click  =|run.pl|=   that  is  created in
+=myproject= and direct your  browser   to  =|http://localhost:3020|= (or
+whatever port you selected). Then enter  a   name  and  password for the
+administrator user.
+
+@see Download.txt
