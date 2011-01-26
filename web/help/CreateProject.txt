@@ -39,13 +39,22 @@ you selected) and enter a name and password for the administrator user.
 
 ---++ Creating a project in MS-Windows
 
-The procedure in Windows is comparable, but   based on using the Windows
-file explorer. First, create a folder =myproject= next to the downloaded
-=ClioPatria= folder. Next, run =|setup.pl|=   in  =ClioPatria= by double
-clicking it. This prompts for  a   project  directory. Specify the newly
-created =myproject=. Now double click  =|run.pl|=   that  is  created in
-=myproject= and direct your  browser   to  =|http://localhost:3020|= (or
-whatever port you selected). Then enter  a   name  and  password for the
-administrator user.
+The procedure in Windows is a bit different  because it is not very easy
+to start Prolog from a  directory  while   loading  a  file from another
+directory. In a sense, it is simpler:
+
+*|Double click|* =|setup.pl|= as found in the =ClioPatria= folder. This
+opens a standard browse-for-directory dialog. Enter the desired
+directory and Prolog will initialise this directory with a ClioPatria
+project.
+
+[[alert.gif]] As of SWI-Prolog 5.11.14, the dialog allows for creating
+the target folder.  If your SWI-Prolog is older you must first create
+the target folder.
+
+After (optionally) editing =|config-enabled\network.pl|= in the target
+directory, *|double click|* =|run.pl|= in the target folder and direct
+your browser to =|http://localhost:3020|= (or whatever port you
+selected).  Enter a name and password for the administrator user.
 
 @see Download.txt
