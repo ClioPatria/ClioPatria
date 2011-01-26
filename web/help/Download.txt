@@ -37,7 +37,12 @@ directory and run the command below, which creates a directory
     % git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
     ==
 
-You can [[browse][http://www.swi-prolog.org/git/ClioPatria.git]] the
-sources online.
+[[alert.gif]] This may not work if you are behind a firewall. The git
+native protocol uses port 9418. If you cannot access external hosts at
+this port you can replace =|git://|= by =|http://|=. However, access
+over git is preferred because of its speed and reduced traffic.
+
+You can also [[browse][http://www.swi-prolog.org/git/ClioPatria.git]]
+the sources online.
 
 @see Next step: [[create a project][<CreateProject.html>]]!
