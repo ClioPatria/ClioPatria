@@ -6,12 +6,11 @@ integral part of the _|MultimediaN E-Culture Demonstrator|_ that won
 first prize as semantic web application at ISWC 2006.  We call that
 *|version one|*.
 
+[[GnuEmacsIconOrig.png;align="right",width="32"][http://www.teuton.org/~ejm/emacsicon/index.shtml]]
 Later, the application specific code was abstracted a bit, allowing to
 _skin_ the application and put other data into it. This version still
-uses the [[`kitchen-sink
-model'][http://www.teuton.org/~ejm/emacsicon/index.shtml]], which makes
-it almost inacessible for anyone but its developers.  We call that
-*|version two|*.
+uses the `kitchen-sink model', which makes it almost inacessible for
+anyone but its developers. We call that *|version two|*.
 
 The current version is fairly _lean_, which should make it more
 versatile and accessible.  It can be extended using packages.  The
