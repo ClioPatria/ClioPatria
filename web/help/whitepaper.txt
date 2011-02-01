@@ -208,10 +208,10 @@ ClioPatria.
 	* Full persistent history of modifications
 
     $ Full text search :
-    Using rdf_find_literals/2, the use can query literals that
+    Using rdf_find_literals/2, the user can query literals that
     contain words. The literal-search facility allows for
     searching tokens and prefixes as well as fuzzy search
-    (case-insensitive, stemming, lounds-like (metaphone))
+    (case-insensitive, stemming, sounds-like (metaphone))
     and numerical search (exact, larger, smaller, range).
 
 ---+++ ClioPatria extensions
