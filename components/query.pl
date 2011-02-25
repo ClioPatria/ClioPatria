@@ -128,7 +128,7 @@ resource_menu -->
 	html(select(name(resourceFormat),
 		    [ option([value(plain)], 		plain),
 		      option([value(ns), selected],	'ns:local'),
-		      option([value(nslabel)], 	'ns:label')
+		      option([value(nslabel)],	 	'ns:label')
 		    ])).
 
 entailment -->
