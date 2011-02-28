@@ -163,11 +163,11 @@ lod_request(URI, AcceptList, Request, Options) :-
 	;   setting(lod:redirect, true),
 	    redirect(URI, AcceptList, SeeOther)
 	->  http_redirect(see_other, SeeOther, Request)
-	;   lod_describe(Format, URI, Options)
+	;   lod_describe(Format, URI, Request, Options)
 	).
-lod_request(URL, _AcceptList, _Request, Options) :-
+lod_request(URL, _AcceptList, Request, Options) :-
 	format_request(URL, URI, Format), !,
-	lod_describe(Format, URI, Options).
+	lod_describe(Format, URI, Request, Options).
 lod_request(URI, _AcceptList, _Request, _) :-
 	throw(http_reply(not_found(URI))).
 
@@ -260,17 +260,15 @@ format_request(URL, URI, Format) :-
 	lod_resource(URI).
 
 
-%%	lod_describe(+Format, +URI, +Options) is det.
+%%	lod_describe(+Format, +URI, +Request, +Options) is det.
 %
 %	Write an HTTP document  describing  URI   to  in  Format  to the
 %	current output. Format is defined by mimetype_format/2.
 
-lod_describe(html, URI, _) :- !,
-	rdf_display_label(URI, Label),
-	reply_html_page(cliopatria(default),
-			title('Resource ~w'-[Label]),
-			\list_resource(URI, [])).
-lod_describe(Format, URI, Options) :-
+lod_describe(html, URI, Request, _) :- !,
+	http_link_to_id(list_resource, [r=URI], Redirect),
+	http_redirect(see_other, Redirect, Request).
+lod_describe(Format, URI, _Request, Options) :-
 	lod_description(URI, RDF, Options),
 	send_graph(Format, RDF).
 
