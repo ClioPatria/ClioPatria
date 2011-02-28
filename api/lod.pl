@@ -294,6 +294,8 @@ send_graph(turtle, RDF) :-
 %	@tbd	Describe required indexing from rdf_save_turtle/2 and
 %		implement that if the graph is big.
 
+:- public triple_in/5.			% called from send_graph/2.
+
 triple_in(RDF, S,P,O,_G) :-
 	member(rdf(S,P,O), RDF).
 
