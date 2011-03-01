@@ -113,8 +113,19 @@ rdf_display_label(R, Label) :-
 %	the language Lang.
 
 rdf_display_label(R, Lang, Label) :-
+	rdf_real_label(R, Lang, Label), !.
+rdf_display_label(Resource, _, Label) :-
+	(   after_char(Resource, '#', Local)
+	->  Label = Local
+	;   after_char(Resource, '/', Local)
+	->  Label = Local
+	;   Label = Resource
+	).
+
+
+rdf_real_label(R, Lang, Label) :-
 	display_label_hook(R, Lang, Label), !.
-rdf_display_label(R, Lang, Label) :-
+rdf_real_label(R, Lang, Label) :-
 	rdf_is_resource(R),
 	(   nonvar(Lang)
 	->  rdf_label(R, Literal),
@@ -131,22 +142,14 @@ rdf_display_label(R, Lang, Label) :-
 	->  true
 	), !,
 	literal_text(Literal, Label).
-rdf_display_label(BNode, Lang, Label) :-
-	rdf_is_bnode(BNode),
-	rdf_has(BNode, rdf:value, Value), !,
-	rdf_display_label(Value, Lang, Label0),
+rdf_real_label(BNode, Lang, Label) :-
+	rdf_has(BNode, rdf:value, Value),
+	rdf_real_label(Value, Lang, Label0), !,
 	format(atom(Label), '[~a..]', Label0).
-rdf_display_label(Literal, Lang, Label) :-
+rdf_real_label(Literal, Lang, Label) :-
 	rdf_is_literal(Literal), !,
 	literal_lang(Literal, Lang),
 	literal_text(Literal, Label).
-rdf_display_label(Resource, _, Label) :-
-	(   after_char(Resource, '#', Local)
-	->  Label = Local
-	;   after_char(Resource, '/', Local)
-	->  Label = Local
-	;   Label = Resource
-	).
 
 after_char(Atom, Char, Rest) :-
 	State = last(-),

@@ -103,8 +103,9 @@ literal_label(Value, Options) -->
 
 truncate_text(Text, Text, []) :- !.
 truncate_text(Text, Truncated, Options) :-
-	option(max_length(Len), Options),
+	option(max_length(Len), Options), !,
 	truncate_atom(Text, Len, Truncated).
+truncate_text(Text, Text, _).
 
 
 %%	bnode_label(+Resource, +Options)// is semidet.
@@ -256,12 +257,13 @@ resource_flabel(label, R, Options) --> !,
 	->  html([span(class(r_label), Show)])
 	;   turtle_label(R)
 	).
-resource_flabel(nslabel, R, Options) --> !,
-	(   { rdf_global_id(NS:_Local, R), !,
-	      rdf_display_label(R, Label)
-	    }
-	->  html([span(class(prefix),NS),':',span(class(r_label),Label)])
-	;   turtle_label(R, Options)
-	).
+resource_flabel(nslabel, R, _Options) -->
+	{ (   rdf_is_bnode(R)
+	  ->  NS = '_'
+	  ;   rdf_global_id(NS:_Local, R)
+	  ), !,
+	  rdf_display_label(R, Label)
+	},
+	html([span(class(prefix),NS),':',span(class(r_label),Label)]).
 resource_flabel(_, R, Options) -->
 	turtle_label(R, Options).
