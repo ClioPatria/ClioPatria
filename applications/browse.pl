@@ -977,7 +977,8 @@ list_resource(Request) :-
 			\list_resource(URI,
 				       [ graph(Graph),
 					 sorted(Sorted),
-					 raw(Raw)
+					 raw(Raw),
+					 resource_format(nslabel)
 				       ])).
 
 %%	list_resource(+URI, +Options)// is det.
@@ -999,13 +1000,12 @@ list_resource(URI, Options) -->
 	{ \+ option(raw(true), Options) },
 	cliopatria:list_resource(URI), !.
 list_resource(URI, Options) -->
-	{ option(graph(Graph), Options, _),
-	  option(sorted(Sorted), Options, default)
+	{ option(graph(Graph), Options, _)
 	},
 	html([ h1([ 'Local view for "',
 		    \location(URI, Graph), '"'
 		  ]),
-	       \local_view(URI, Graph, [sorted(Sorted)]),
+	       \local_view(URI, Graph, Options),
 	       p(\as_object(URI, Graph)),
 	       \uri_info(URI, Graph)
 	     ]).
