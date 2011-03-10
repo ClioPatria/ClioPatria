@@ -86,7 +86,10 @@ output_format(json, _, json).
 
 accept_output_format(Request, Format) :-
 	memberchk(accept(Accept), Request),
-	http_parse_header_value(accept, Accept, Media),
+	(   atom(Accept)
+	->  http_parse_header_value(accept, Accept, Media)
+	;   Media = Accept
+	),
 	find_media(Media, Format), !.
 accept_output_format(_, xml).
 
