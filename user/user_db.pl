@@ -352,13 +352,12 @@ password_hash(Password, Hash) :-
 logged_on(User) :-
 	http_session_id(SessionID),
 	user_property(User, session(SessionID)), !.
-:- if(current_predicate(http_authorization_data/2)).
 logged_on(User) :-
 	http_current_request(Request),
 	memberchk(authorization(Text), Request),
 	http_authorization_data(Text, basic(User, Password)),
 	validate_password(User, Password), !.
-:- endif.
+
 
 %%	logged_on(-User, +Default) is det.
 %
