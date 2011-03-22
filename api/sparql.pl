@@ -81,8 +81,12 @@ sparql_reply(Request) :-
 output_format(ReqFormat, Request, Format) :-
 	var(ReqFormat), !,
 	accept_output_format(Request, Format).
-output_format('rdf+xml', _, xml).
-output_format(json, _, json).
+output_format('rdf+xml', _, xml) :- !.
+output_format(json, _, json) :- !.
+output_format(Mime, _, Format) :-
+	atomic_list_concat([Major,Minor], /, Mime),
+	sparql_media(Major/Minor, Format), !.
+
 
 accept_output_format(Request, Format) :-
 	memberchk(accept(Accept), Request),
@@ -146,7 +150,11 @@ sparql_decl('named-graph-uri',
 	    ]).
 sparql_decl(format,
  	    [ optional(true),
-	      oneof(['rdf+xml', json]),
+	      oneof([ 'rdf+xml',
+		      json,
+		      'application/sparql-results+xml',
+		      'application/sparql-results+json'
+		    ]),
 	      description('Result format.  If not specified, the \
 	      		  HTTP Accept header is used')
 	    ]).
