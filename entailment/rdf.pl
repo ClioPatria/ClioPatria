@@ -64,7 +64,7 @@ rdf(S, rdf:type, rdf:'Property') :-
 	\+ rdf_db:rdf(S, rdf:type, rdf:'Property').
 rdf(S, rdf:type, rdfs:'Resource') :-
 	rdf_subject(S),
-	\+ rdf(S, rdf:type, rdfs:'Resource').
+	\+ rdf_db:rdf(S, rdf:type, rdfs:'Resource').
 rdf(S, serql:directSubClassOf, O) :- !,
 	rdf_db:rdf(S, rdfs:subClassOf, O).
 rdf(S, serql:directType, O) :- !,
