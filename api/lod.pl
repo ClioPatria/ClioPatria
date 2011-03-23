@@ -150,7 +150,10 @@ relocated by means of the http:prefix setting. For example:
 lod_api(Options, Request) :-
 	lod_uri(Request, URI, Options),
 	(   memberchk(accept(AcceptHeader), Request)
-	->  http_parse_header_value(accept, AcceptHeader, AcceptList)
+	->  (   atom(AcceptHeader)	% compatibility
+	    ->	http_parse_header_value(accept, AcceptHeader, AcceptList)
+	    ;	AcceptList = AcceptHeader
+	    )
 	;   AcceptList = []
 	),
 	lod_request(URI, AcceptList, Request, Options).
