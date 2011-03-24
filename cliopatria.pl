@@ -148,8 +148,8 @@ cp_server(Options) :-
 	merge_options([workers(Workers)|QOptions], Settings, HTTPOptions),
 	option(port(Port), QOptions, DefPort),
 	http_server(http_dispatch,
-		    [ port(Port),
-		      HTTPOptions
+		    [ port(Port)
+		    | HTTPOptions
 		    ]),
 	print_message(informational, cliopatria(server_started(Port))),
 	setup_call_cleanup(http_handler(root(.), busy_loading,
