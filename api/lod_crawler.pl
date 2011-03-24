@@ -36,6 +36,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(components(messages)).
+:- use_module(user(user_db)).
 
 :- http_handler(api(lod_crawl), lod_crawl, []).
 
@@ -44,6 +45,7 @@
 %	HTTP handler requesting ClioPatria to crawl LOD.
 
 lod_crawl(Request) :-
+	authorized(write(default, load(lod))),
 	http_parameters(Request,
 			[ r(URI,
 			    [ description('URI to start')
