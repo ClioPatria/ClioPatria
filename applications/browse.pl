@@ -1656,7 +1656,10 @@ sort_by_label(URIs, Sorted) :-
 
 label_sort_key(URI, Key) :-
 	label_of(URI, Label),
-	collation_key(Label, Key).
+	(   atom(Label)
+	->  collation_key(Label, Key)
+	;   Key = Label
+	).
 
 label_of(URI, Label) :-
 	rdf_is_resource(URI), !,
