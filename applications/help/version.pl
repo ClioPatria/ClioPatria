@@ -78,7 +78,7 @@ git_modules([H|T]) -->
 	git_modules(T).
 
 git_module(Name-Version) -->
-	{ git_module_property(Name, directory(Dir)) },
+	{ git_module_property(Name, directory(Dir)) -> true },
 	html(tr([td(\home_link(Name)), td(Version), td(Dir)])).
 
 home_link(Component) -->

@@ -165,10 +165,15 @@ current_git_module(Name, Dir, Options) :-
 %	@tbd Extend with more detailed version (e.g., _remote_)
 
 git_module_property(Name, Property) :-
-	var(Name), !,
-	current_git_module(Name, _, _),
-	git_module_property(Name, Property).
-git_module_property(Name, version(Version)) :-
+	(   var(Name)
+	->  current_git_module(Name, _, _),
+	    git_module_property(Name, Property)
+	;   compound(Property)
+	->  once(gen_module_property(Name, Property))
+	;   gen_module_property(Name, Property)
+	).
+
+gen_module_property(Name, version(Version)) :-
 	(   git_module_version(Name, Version0)
 	->  true
 	;   git_update_versions(Name),
@@ -176,9 +181,9 @@ git_module_property(Name, version(Version)) :-
 	),
 	Version0 \== unknown,
 	Version = Version0.
-git_module_property(Name, directory(Dir)) :-
+gen_module_property(Name, directory(Dir)) :-
 	current_git_module(Name, Dir, _).
-git_module_property(Name, Term) :-
+gen_module_property(Name, Term) :-
 	current_git_module(Name, _, Options),
 	member(Term, Options).
 
