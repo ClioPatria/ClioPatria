@@ -80,6 +80,7 @@ another, there are two solutions:
 %		versions in time :-(
 
 load_conf_d(Spec, Options) :-
+	set_top_dir,
 	select_option(solutions(Sols), Options, LoadOptions0, all),
 	merge_options(LoadOptions0,
 		      [ if(changed),
@@ -212,6 +213,20 @@ conf_d_member_data(loaded, config_file(F, _, _), B) :-
 	(   source_file(F)
 	->  B = true
 	;   B = false
+	).
+
+
+%%	set_top_dir
+%
+%	Maintains a file search path  =cpapp_topdir=   to  point  to the
+%	directory from which the configuration is loaded. Normally, that
+%	is the directory holding =|run.pl|=.
+
+set_top_dir :-
+	prolog_load_context(directory, Dir),
+	(   user:file_search_path(cp_application, Dir)
+	->  true
+	;   assert(user:file_search_path(cp_application, Dir))
 	).
 
 
