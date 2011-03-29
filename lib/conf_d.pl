@@ -40,7 +40,9 @@
 :- use_module(library(apply)).
 :- use_module(library(version)).
 :- use_module(library(prolog_xref)).
+:- if(exists_source(pldoc(doc_process))).
 :- use_module(pldoc(doc_process)).
+:- endif.
 
 /** <module> Load configuration directories
 
@@ -183,12 +185,14 @@ conf_d_members(DirSpec, InfoRecords, Options) :-
 	append(FileLists, Files),
 	maplist(conf_file, Files, InfoRecords).
 
+:- if(current_predicate(doc_comment/4)).
 conf_file(File, config_file(Path, Module, Title)) :-
 	xref_public_list(File, Path, Module, _Public, _Meta, []), !,
 	(   doc_comment(_:module(Title), Path:_, _Summary, _Comment)
 	->  true
 	;   true
 	).
+:- endif.
 conf_file(File, config_file(File, _Module, _Title)).
 
 %%	conf_d_member_data(?Field, +ConfigInfo, ?Value) is nondet.
