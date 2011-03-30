@@ -126,10 +126,10 @@ write_binding(Value, Name, Out, State0, State) :-
 	write_binding_value(Value, Out, State0, State),
 	format(Out, '      </binding>~n', []).
 
-write_binding_value(literal(Lit), Out, State, State) :-
+write_binding_value(literal(Lit), Out, State, State) :- !,
 	write_binding_literal(Lit, Out).
 write_binding_value(URI, Out, State0, State) :-
-	rdf_is_bnode(URI),
+	rdf_is_bnode(URI), !,
 	bnode_id(URI, Id, State0, State),
 	format(Out, '        <bnode>~w</bnode>~n', [Id]).
 write_binding_value(URI, Out, State, State) :-
