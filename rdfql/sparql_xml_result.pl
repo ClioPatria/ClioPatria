@@ -137,10 +137,31 @@ write_binding_value(URI, Out, State, State) :-
 	xml_quote_cdata(URI, Q, Encoding),
 	format(Out, '        <uri>~w</uri>~n', [Q]).
 
+%%	write_binding_literal(+Literal, +Out) is det.
+%
+%	Write Literal to Out. The  first   clause  deals with XMLLiteral
+%	fields. The SPARQL documentation is rather  vaque about how this
+%	should be handled. It might well be that we should write the xml
+%	into an atom and xml-escape that.
+
+write_binding_literal(type(Type, DOM), Out) :-
+	rdf_equal(Type, rdf:'XMLLiteral'),
+	xml_is_dom(DOM), !,
+	with_output_to(string(S),
+		       xml_write(current_output, DOM,
+				 [ header(false),
+				   layout(false)
+				 ])),
+	stream_property(Out, encoding(Encoding)),
+	xml_quote_cdata(S, QV, Encoding),
+	format(Out, '        <literal datatype="~w">~w</literal>~n', [Type, QV]).
 write_binding_literal(type(Type, Value), Out) :- !,
 	stream_property(Out, encoding(Encoding)),
 	xml_quote_attribute(Type, QT, Encoding),
-	xml_quote_cdata(Value, QV, Encoding),
+	(   atom(Value)
+	->  xml_quote_cdata(Value, QV, Encoding)
+	;   QV = Value			% ok for numbers, etc.
+	),
 	format(Out, '        <literal datatype="~w">~w</literal>~n', [QT, QV]).
 write_binding_literal(lang(L, Value), Out) :- !,
 	stream_property(Out, encoding(Encoding)),
