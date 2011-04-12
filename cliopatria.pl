@@ -279,8 +279,14 @@ update_workers(New) :-
 
 process_argv(Options) :-
 	argv(Program, Argv),
-	(   parse_options(Argv, Options, Rest)
-	->  maplist(process_argument, Rest)
+	(   catch((   parse_options(Argv, Options, Rest),
+		      maplist(process_argument, Rest)
+		  ),
+		  E,
+		  (   print_message(error, E),
+		      fail
+		  ))
+	->  true
 	;   usage(Program)
 	).
 
@@ -295,6 +301,11 @@ process_argument(File) :-
 
 process_argument(pl, File) :- !,
 	ensure_loaded(user:File).
+process_argument(gz, File) :-
+	file_name_extension(Plain, gz, File),
+	file_name_extension(_, RDF, Plain),
+	rdf_extension(RDF),
+	rdf_load(File).
 process_argument(RDF, File) :-
 	rdf_extension(RDF),
 	rdf_load(File).
