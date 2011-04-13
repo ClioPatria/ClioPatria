@@ -67,7 +67,9 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
        assert(user:file_search_path(cliopatria, Dir))
    ).
 
-:- load_files([lib/version], [silent(true), if(not_loaded)]).
+user:file_search_path(library, cliopatria(lib)).
+
+:- load_files(library(version), [silent(true), if(not_loaded)]).
 :- check_prolog_version(51109).		% Demand >= 5.11.9
 :- register_git_module('ClioPatria',
 		       [ home_url('http://cliopatria.swi-prolog.org/')
@@ -134,7 +136,8 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 	cp_server(:).
 
 cp_server :-
-	cp_server([]).
+	process_argv(Options),
+	cp_server(Options).
 
 cp_server(Options) :-
 	meta_options(is_meta, Options, QOptions),
@@ -143,12 +146,14 @@ cp_server(Options) :-
 	attach_account_info,
 	set_session_options,
 	setting(http:port, DefPort),
-	setting(http:workers, Workers),
+	setting(http:workers, DefWorkers),
 	setting(http:worker_options, Settings),
-	merge_options([workers(Workers)|QOptions], Settings, HTTPOptions),
+	merge_options(QOptions, Settings, HTTPOptions),
 	option(port(Port), QOptions, DefPort),
+	option(workers(Workers), QOptions, DefWorkers),
 	http_server(http_dispatch,
-		    [ port(Port)
+		    [ port(Port),
+		      workers(Workers)
 		    | HTTPOptions
 		    ]),
 	print_message(informational, cliopatria(server_started(Port))),
@@ -261,6 +266,150 @@ update_workers(New) :-
 :- listen(settings(changed(http:workers, _, New)),
 	  update_workers(New)).
 
+
+		 /*******************************
+		 *	       ARGV		*
+		 *******************************/
+
+%%	process_argv(-Options)
+%
+%	Processes the ClioPatria commandline options.
+%
+%	@tbd	Move most of this to the Prolog library
+
+process_argv(Options) :-
+	argv(Program, Argv),
+	(   catch((   parse_options(Argv, Options, Rest),
+		      maplist(process_argument, Rest)
+		  ),
+		  E,
+		  (   print_message(error, E),
+		      fail
+		  ))
+	->  true
+	;   usage(Program)
+	).
+
+process_argument(URL) :-
+	(   sub_atom('http://', 0, _, _, URL)
+	;   sub_atom('https://', 0, _, _, URL)
+	), !,
+	rdf_load(URL).
+process_argument(File) :-
+	file_name_extension(_Base, Ext, File),
+	process_argument(Ext, File).
+
+process_argument(pl, File) :- !,
+	ensure_loaded(user:File).
+process_argument(gz, File) :-
+	file_name_extension(Plain, gz, File),
+	file_name_extension(_, RDF, Plain),
+	rdf_extension(RDF),
+	rdf_load(File).
+process_argument(RDF, File) :-
+	rdf_extension(RDF),
+	rdf_load(File).
+
+rdf_extension(rdf).
+rdf_extension(owl).
+rdf_extension(ttl).
+rdf_extension(nt).
+
+cmd_option(p, port,    positive_integer, 'Port to connect to').
+cmd_option(w, workers, positive_integer, 'Number of workers to start').
+cmd_option(-, prefix,  atom,	         'Rebase the server to prefix/').
+
+usage(Program) :-
+	format('Usage: ~w [options] arguments~n', [Program]),
+	forall(cmd_option(Short, Long, Type, Comment),
+	       describe_option(Short, Long, Type, Comment)),
+	halt(1).
+
+describe_option(-, Long, -, Comment) :- !,
+	format(user_error, '    --~w~t~40|~w~n', [Long, Comment]).
+describe_option(-, Long, _, Comment) :- !,
+	format(user_error, '    --~w=~w~t~40|~w~n', [Long, Long, Comment]).
+describe_option(Short, Long, -, Comment) :- !,
+	format(user_error, '    -~w, --~w~t~40|~w~n',
+	       [Short, Long, Comment]).
+describe_option(Short, Long, _, Comment) :- !,
+	format(user_error, '    -~w ~w, --~w=~w~t~40|~w~n',
+	       [Short, Long, Long, Long, Comment]).
+
+
+parse_options([], [], []).
+parse_options([--|Rest], [], Rest) :- !.
+parse_options([H|T], [Opt|OT], Rest) :-
+	sub_atom(H, 0, _, _, --), !,
+	(   sub_atom(H, B, _, A, =)
+	->  B2 is B - 2,
+	    sub_atom(H, 2, B2, _, Name),
+	    sub_atom(H, _, A,  0, Value),
+	    long_option(Name, Value, Opt)
+	;   long_option(Name, Opt)
+	),
+	parse_options(T, OT, Rest).
+parse_options([H|T], Opts, Rest) :-
+	atom_chars(H, [-|Opts]), !,
+	short_options(Opts, T, Opts, Rest).
+parse_options(Rest, [], Rest).
+
+short_options([], Av, Opts, Rest) :-
+	parse_options(Av, Opts, Rest).
+short_options([H|T], Av, Opts, Rest) :-
+	cmd_option(H, Name, Type, _),
+	(   Type == (-)
+	->  Opt =.. [Name,true],
+	    Opts = [Opt|OptT],
+	    short_options(T, Av, OptT, Rest)
+	;   Av = [Av0|AvT],
+	    text_to_value(Type, Av0, Value),
+	    Opt =.. [Name,Value],
+	    short_options(T, AvT, OptT, Rest)
+	).
+
+long_option(Name, Text, Opt) :-
+	cmd_option(_, Name, Type, _),
+	text_to_value(Type, Text, Value),
+	Opt =.. [Name,Value].
+long_option(Name, Opt) :-
+	cmd_option(_, Name, boolean, _),
+	Opt =.. [Name,true].
+
+text_to_value(boolean, Text, Value) :-
+	downcase_atom(Text, Lwr),
+	boolean(Lwr, Value).
+text_to_value(atom, Text, Text).
+text_to_value(oneof(L), Text, Text) :-
+	memberchk(Text, L).
+text_to_value(integer, Text, Int) :-
+	atom_number(Text, Int), integer(Int).
+text_to_value(nonneg, Text, Int) :-
+	atom_number(Text, Int), integer(Int), Int >= 0.
+text_to_value(positive_integer, Text, Int) :-
+	atom_number(Text, Int), integer(Int), Int > 0.
+text_to_value(negative_integer, Text, Int) :-
+	atom_number(Text, Int), integer(Int), Int < 0.
+text_to_value(float, Text, Float) :-
+	atom_number(Text, Number), Float = float(Number).
+
+boolean(true,  true).
+boolean(yes,   true).
+boolean(on,    true).
+boolean(false, false).
+boolean(no,    false).
+boolean(off,   false).
+
+argv(Program, Av) :-
+	current_prolog_flag(argv, Argv),
+	Argv = [Prog|Av0],
+	file_base_name(Prog, Program),
+	(   append(_, [--|Av], Av0)
+	->  true
+	;   current_prolog_flag(windows, true)
+	->  Av = Av0
+	;   Av = []
+	).
 
 		 /*******************************
 		 *	      BANNER		*

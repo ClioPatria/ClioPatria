@@ -40,7 +40,9 @@
 :- use_module(library(apply)).
 :- use_module(library(version)).
 :- use_module(library(prolog_xref)).
+:- if(exists_source(pldoc(doc_process))).
 :- use_module(pldoc(doc_process)).
+:- endif.
 
 /** <module> Load configuration directories
 
@@ -80,6 +82,7 @@ another, there are two solutions:
 %		versions in time :-(
 
 load_conf_d(Spec, Options) :-
+	set_top_dir,
 	select_option(solutions(Sols), Options, LoadOptions0, all),
 	merge_options(LoadOptions0,
 		      [ if(changed),
@@ -182,12 +185,14 @@ conf_d_members(DirSpec, InfoRecords, Options) :-
 	append(FileLists, Files),
 	maplist(conf_file, Files, InfoRecords).
 
+:- if(current_predicate(doc_comment/4)).
 conf_file(File, config_file(Path, Module, Title)) :-
 	xref_public_list(File, Path, Module, _Public, _Meta, []), !,
 	(   doc_comment(_:module(Title), Path:_, _Summary, _Comment)
 	->  true
 	;   true
 	).
+:- endif.
 conf_file(File, config_file(File, _Module, _Title)).
 
 %%	conf_d_member_data(?Field, +ConfigInfo, ?Value) is nondet.
@@ -212,6 +217,20 @@ conf_d_member_data(loaded, config_file(F, _, _), B) :-
 	(   source_file(F)
 	->  B = true
 	;   B = false
+	).
+
+
+%%	set_top_dir
+%
+%	Maintains a file search path  =cpapp_topdir=   to  point  to the
+%	directory from which the configuration is loaded. Normally, that
+%	is the directory holding =|run.pl|=.
+
+set_top_dir :-
+	prolog_load_context(directory, Dir),
+	(   user:file_search_path(cp_application, Dir)
+	->  true
+	;   assert(user:file_search_path(cp_application, Dir))
 	).
 
 

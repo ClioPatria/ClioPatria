@@ -348,12 +348,21 @@ cpack_register(PackName, Dir, Options) :-
 				  cpack_register(PackName, Dir, Options)), _)).
 
 
-user:term_expansion((:-cpack_register(PackName, Dir, Options)), Clauses) :-
+user:term_expansion((:-cpack_register(PackName, Dir0, Options)), Clauses) :-
+	full_dir(Dir0, Dir),
 	Term =.. [PackName,'.'],
 	Clauses = [ user:file_search_path(PackName, Dir),
 		    user:file_search_path(cpacks, Term),
 		    cpack:registered_cpack(PackName, Dir, Options)
 		  ].
+
+full_dir(Dir, Dir) :-
+	compound(Dir), !.
+full_dir(Dir, Dir) :-
+	is_absolute_file_name(Dir), !.
+full_dir(Dir, cp_application(Dir)).
+
+
 
 :- multifile
 	registered_cpack/3.
