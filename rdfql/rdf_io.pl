@@ -105,7 +105,9 @@ write_graph(Triples, Options) :-
 	    ->	true
 	    ;	Format = xml
 	    )
-	;   needed_option(result_format(Format), Options)
+	;   option(result_format(Format), Options)
+	->  true
+	;   Format = Serialization
 	),
 	write_graph(Format, Serialization, Triples, Options).
 
@@ -147,9 +149,10 @@ get_triples(rdfxml, Input, Triples, Options) :- !,
 %	Format  =  =xml=  and   Serialization    =   =rdfxml=.  It  uses
 %	rdf_write_xml/2 to emit the graph.
 
-write_graph(xml, rdfxml, Triples, _Options) :-
+write_graph(xml, rdfxml, Triples, Options) :-
+	option(mimetype(Type), Options, 'application/rdf+xml'),
 	format('Transfer-encoding: chunked~n'),
-	format('Content-type: application/rdf+xml~n~n'),
+	format('Content-type: Type; charset=UTF-8~n~n', [Type]),
 	rdf_write_xml(current_output, Triples).
 
 
