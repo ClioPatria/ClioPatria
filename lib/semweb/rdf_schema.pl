@@ -1,69 +1,122 @@
+/*  Part of ClioPatria SeRQL and SPARQL server
+
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2011, University of Amsterdam,
+		   VU University Amsterdam
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
+*/
+
 :- module(rdf_schema,
-	  [ make_schema/2		% +DataGraph, +SchemaGraph
+	  [ rdf_graph_schema/2		% +DataGraph, +SchemaGraph
 	  ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
-%%	make_schema(+Graph, +SchemaGraph) is det.
+:- thread_local
+	schema_triple/3.
+:- multifile
+	known_schema_prefix/1.
+
+%%	rdf_graph_schema(+Graph, +SchemaTriples) is det.
 %
 %	Create an initial  schema  by   providing  definitions  for  all
 %	predicates and types (classes) used  in   Graph.  The  schema is
 %	dumped into the graph SchemaGraph.
-%
-%	This  predicate  is  typically   used    _after_   running   the
-%	rewrite-rules to reflect renamed typed and properties.
 
-make_schema(Data, Schema) :-
-	rdf_retractall(_,_,_,Schema),
-	rdf_transaction(make_schema_(Data, Schema), make_schema).
+rdf_graph_schema(Data, Schema) :-
+	retractall(schema_triple(_,_,_)),
+	make_schema(Data),
+	findall(rdf(S,P,O), retract(schema_triple(S,P,O)), Schema).
 
-make_schema_(Data, Schema) :-
+:- rdf_meta
+	assert_schema(r,r,o).
+
+assert_schema(S,P,O) :-
+	schema_triple(S,P,O), !.
+assert_schema(S,P,O) :-
+	assert(schema_triple(S,P,O)).
+
+
+make_schema(Data) :-
 	forall(predicate_in_graph(Data, P),
-	       define_predicate(P, Data, Schema)),
+	       define_predicate(P, Data)),
 	forall(type_in_graph(Data, Class),
-	       define_type(Class, Schema)).
+	       define_type(Class)).
 
-define_predicate(P, _, _) :-
-	rdf_global_id(rdf:_, P), !.
-define_predicate(P, _, _) :-
-	rdf_global_id(rdfs:_, P), !.
-define_predicate(P, DataGraph, Graph) :-
-	copy_data(P, Graph),
-	rdf_assert(P, rdf:type, rdf:'Property', Graph),
-	assign_label(P, Graph),
+known_schema_prefix(rdf).
+known_schema_prefix(rdfs).
+known_schema_prefix(owl).
+known_schema_prefix(skos).
+known_schema_prefix(dc).
+known_schema_prefix(dcterms).
+
+known_url(P) :-
+	known_schema_prefix(Prefix),
+	rdf_global_id(Prefix:_, P), !.
+
+define_predicate(P, _) :-
+	known_url(P), !.
+define_predicate(P, DataGraph) :-
+	copy_data(P),
+	assert_schema(P, rdf:type, rdf:'Property'),
+	assign_label(P),
 	predicate_statistics(DataGraph, P, _C,
 			     _Subjects, _Objects,
 			     Domains, Ranges),
 	(   Domains = [Dom]
-	->  rdf_assert(P, rdfs:domain, Dom, Graph)
+	->  assert_schema(P, rdfs:domain, Dom)
 	;   true
 	),
 	(   Ranges = [Range]
-	->  rdf_assert(P, rdfs:range, Range, Graph)
+	->  assert_schema(P, rdfs:range, Range)
 	;   true
 	).
 
 
-define_type(C, Graph) :-
-	copy_data(C, Graph),
-	rdf_assert(C, rdf:type, rdfs:'Class', Graph),
-	assign_label(C, Graph).
+define_type(C) :-
+	known_url(C), !.
+define_type(C) :-
+	copy_data(C),
+	assert_schema(C, rdf:type, rdfs:'Class'),
+	assign_label(C).
 
 
-assign_label(S, Graph) :-
+assign_label(S) :-
 	(   rdf(S, rdfs:label, _)
 	->  true
 	;   rdfs_label(S, Label),
 	    Label \== S
-	->  rdf_assert(S, rdfs:label, literal(Label), Graph)
+	->  assert_schema(S, rdfs:label, literal(Label))
 	;   true
 	).
 
 
-copy_data(S, Graph) :-
-	rdf_retractall(S,_,_,Graph),
-	forall((rdf(S,P,O,G), G \== Graph),
-	       rdf_assert(S,P,O,Graph)).
+copy_data(S) :-
+	retractall(schema_triple(S,_,_)),
+	forall(rdf(S,P,O),
+	       assert_schema(S,P,O)).
 
 
 		 /*******************************

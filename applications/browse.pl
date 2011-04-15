@@ -299,6 +299,7 @@ graph_actions(Graph) -->
 	html(ul(class(graph_actions),
 		[ \li_export_graph(Graph, show),
 		  \li_export_graph(Graph, download),
+		  \li_schema_graph(Graph),
 		  \li_delete_graph(Graph)
 		])).
 
@@ -315,6 +316,21 @@ li_delete_graph(Graph) -->
 		       ' this graph'
 		     ]))).
 li_delete_graph(_) --> [].
+
+li_schema_graph(Graph) -->
+	{ http_link_to_id(export_graph_schema, [], Action),
+	  download_options(show, Label, MimeType, Title)
+	},
+	html(li(form(action(Action),
+		     [ input([type(hidden), name(graph), value(Graph)]),
+		       input([type(hidden), name(mimetype), value(MimeType)]),
+		       'Compute a schema for this graph and ',
+		       input([class(saction), type(submit), value(Label),
+			      title(Title)
+			     ]),
+		       ' the result as ',
+		       \dl_format_menu
+		     ]))).
 
 li_export_graph(Graph, How) -->
 	{ http_link_to_id(export_graph, [], Action),
