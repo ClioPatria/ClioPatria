@@ -29,7 +29,8 @@
 */
 
 :- module(cp_graphviz,
-	  [ graphviz_graph//2		% :Closure, +Options
+	  [ graphviz_graph//2,		% :Closure, +Options
+	    reply_graphviz_graph/3      % +Graph, +Language, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -184,6 +185,10 @@ send_graph(Request) :-
 			]),
 	http_session_data(graphviz(Hash, Closure+Options)),
 	call(Closure, Graph),
+	reply_graphviz_graph(Graph, Lang, [target(Target)|Options]).
+
+reply_graphviz_graph(Graph, Lang, Options) :-
+ 	option(target(Target), Options, _),
 	length(Graph, Len),
 	debug(graphviz, 'Graph contains ~D triples', [Len]),
 	select_option(render(Renderer), Options, GraphOptions0, dot),
