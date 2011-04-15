@@ -1,0 +1,31 @@
+{{Tool
+ | Name=ClioPatria
+ | Homepage=cliopatria.swi-prolog.org
+ | ProgrammingLanguage1=Prolog
+ | ProgrammingLanguage2=C
+ | SWTechnology1=RDF
+ | SWTechnology2=RDFS
+ | SWTechnology3=SKOS
+ | SWTechnology4=OWL
+ | SWTechnology5=SPARQL
+ | SWTechnology6=LOD
+ | Category1=Triple Store
+ | Category2=Programming Environment
+ | Category3=Reasoner
+ | Category4=Rule Reasoner
+ | PublicMailingList=mailman.few.vu.nl/mailman/listinfo/cliopatria-list
+ | SeeAlso=semanticweb.org/wiki/ClioPatria
+ | Institution=Free University of Amsterdam
+}}
+
+''[http://cliopatria.swi-prolog.org/ ClioPatria]'' is a Prolog framework
+to construct Semantic Web Applications. It provides a programmatic
+environment for [[RDF]], [[RDFS]] and [[OWL]], [[SPARQL]], while the
+hosting Prolog system supports rule-based inferencing.
+
+ClioPatria builds on top of the ''[http://www.swi-prolog.org/
+SWI-Prolog]'' web-server and RDF infrastructure.  It adds right
+management, a [[SPARQL]] end-point, [[LOD]] services, web tools
+for exploring the loaded [[RDF]] data and a package management
+system that allows for sharing code conviently between users.
+
