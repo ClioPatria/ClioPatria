@@ -1155,7 +1155,7 @@ local_view(URI, Graph, Options) -->
 	;   { lod_uri_graph(URI, LODGraph),
 	      rdf_graph(LODGraph)
 	    }
-	->  html(p([ 'No triples for this URI. ',
+	->  html(p([ 'No triples for ', a(href(URI), 'this URI'), '. ',
 		     'Linked Data was loaded into ', \graph_link(LODGraph),
 		     '.'
 		   ]))
@@ -1163,7 +1163,8 @@ local_view(URI, Graph, Options) -->
 	    },
 	    html(form(action(FetchURL),
 		      [ \hidden(r, URI),
-			'No triples for this URI.  Would you like to ',
+			'No triples for ', a(href(URI), 'this URI'),
+			'.  Would you like to ',
 			input([ type(submit),
 				value('Query the Linked Data cloud')
 			      ]),
