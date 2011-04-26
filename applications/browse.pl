@@ -281,7 +281,7 @@ type_in_graph(Graph, Class) :-
 
 type_in_graph2(Graph, Class) :-
 	subject_in_graph(Graph, S),
-	(   rdf(S, rdf:type, Class)
+	(   rdf_has(S, rdf:type, Class)
 	*-> true
 	;   rdf_equal(Class, rdfs:'Resource')
 	),
@@ -426,14 +426,15 @@ types_in_graph(Graph, Map) :-
 	maplist(instance_count, TypeSubjs, Map).
 
 types([], []).
-types([S|T0], [S-C|T]) :-
-	call_det(type_of(S,C), Det),
-	Det == true, !,
-	types(T0, T).
-types([S|T0], Pairs) :-
-	findall(C, type_of(S,C), Cs),
-	multi_class(Cs, S, Pairs, PT),
-	types(T0, PT).
+types([S|T0], Types) :-
+	call_det(type_of(S,C), Det), !,
+	(   Det == true
+	->  Types = [S-C|T],
+	    types(T0, T)
+	;   findall(C2, type_of(S,C2), Cs),
+	    multi_class(Cs, S, Types, PT),
+	    types(T0, PT)
+	).
 
 multi_class([], _, Pairs, Pairs).
 multi_class([H|T], S, [S-H|Pairs], PT) :-
