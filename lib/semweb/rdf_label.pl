@@ -76,8 +76,8 @@ issues.
 label_property(skos:prefLabel).
 label_property(foaf:name).
 label_property(dc:title).
-label_property(skos:altLabel).
 label_property(rdfs:label).
+label_property(skos:altLabel).
 
 
 %%	rdf_label(+R, -Label:literal) is nondet.
@@ -109,12 +109,13 @@ rdf_display_label(R, Label) :-
 
 %%	rdf_display_label(+R, ?Lang, -Label:atom) is det.
 %
-%	Label is the preferred label to display the resource R in
-%	the language Lang.
+%	Label is the preferred label to display   the  resource R in the
+%	language Lang. As a last resort, this predicates creates a label
+%	from the URI R.  In that case, Lang is unified with =url=.
 
 rdf_display_label(R, Lang, Label) :-
 	rdf_real_label(R, Lang, Label), !.
-rdf_display_label(Resource, _, Label) :-
+rdf_display_label(Resource, url, Label) :-
 	(   after_char(Resource, '#', Local)
 	->  Label = Local
 	;   after_char(Resource, '/', Local)
@@ -136,6 +137,10 @@ rdf_real_label(R, Lang, Label) :-
 	    rdf_label(R, Literal),
 	    Literal = literal(lang(L, _)),
 	    lang_matches(L, Lang)
+	->  true
+	;   rdf_label(R, Literal),
+	    literal_lang(Literal, Lang),
+	    var(Lang)
 	->  true
 	;   rdf_label(R, Literal),
 	    literal_lang(Literal, Lang)

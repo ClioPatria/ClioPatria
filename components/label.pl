@@ -71,8 +71,8 @@ turtle_label(R, _) -->
 	html([span(class(prefix), NS), ':', span(class(local), Local)]).
 turtle_label(R, Options) -->
 	{ atom(R),
-	  rdf_label(R, Label),
-	  literal_text(Label, LabelText),
+	  rdf_display_label(R, Lang, LabelText),
+	  Lang \== url,
 	  truncate_text(LabelText, Show, Options)
 	},
 	html(Show).
