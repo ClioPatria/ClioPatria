@@ -472,14 +472,14 @@ instance_in_graph(Graph, Class, S, C) :-
 	property_count(Graph, S, C).
 instance_in_graph(Graph, Class, S, C) :-
 	rdf_equal(Class, rdfs:'Resource'), !,
-	(   rdf(S, rdf:type, Class),
+	(   rdf_has(S, rdf:type, Class),
 	    once(rdf(S, _, _, Graph))
 	;   subject_in_graph(Graph, S),
-	    \+ rdf(S, rdf:type, _)
+	    \+ rdf_has(S, rdf:type, _)
 	),
 	property_count(Graph, S, C).
 instance_in_graph(Graph, Class, S, C) :-
-	rdf(S, rdf:type, Class),
+	rdf_has(S, rdf:type, Class),
 	once(rdf(S, _, _, Graph)),
 	property_count(Graph, S, C).
 
