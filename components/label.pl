@@ -73,6 +73,7 @@ turtle_label(R, Options) -->
 	{ atom(R),
 	  rdf_display_label(R, Lang, LabelText),
 	  Lang \== url,
+	  LabelText \== '',
 	  truncate_text(LabelText, Show, Options)
 	},
 	html(Show).
