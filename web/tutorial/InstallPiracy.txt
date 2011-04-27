@@ -1,0 +1,65 @@
+---+ Installing the pirates demo
+
+This page explains the preparations you need for running the demo.
+
+---++ Installing the demo on Windows
+
+You need the following components installed:
+
+  1. [[SWI-Prolog][http://www.swi-prolog.org./Download.html]] (currently
+  either 5.10.4 or 5.11.9).
+  2. The [[GIT][http://git-scm.com/download]] version control system is needed
+  to download ClioPatria and install the demo package.
+  3. [[Graphzviz][http://www.graphviz.org/Download.php]] is needed to
+  render RDF graphs.  This also requires an
+  [[SVG][http://www.w3.org/Graphics/SVG/]] capable browser such as
+  Firefox or IE9.  Notable IE before version 9 will now work.
+
+Now use the Windows explorer and browse to a folder below which you
+would like to install ClioPatria. Select *|Git Bash Here|* from the
+menu, which opens a console running the GIT shell. Run the command below
+install ClioPatria ($ is the prompt). This _creates_ a new
+folder =ClioPatria=.
+
+  ==
+  $ git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
+  ==
+
+We also create a new folder for running the demo:
+
+  ==
+  $ mkdir pirates
+  ==
+
+Now use the Windows explorer and enter the new ClioPatria folder. Open
+=|setup.pl|=. If it prompts for a directory, specify the above created
+=pirates= folder. Setup initializes a new ClioPatria project in the
+target folder. Use the Windows explorer, enter the =pirates= folder and
+open =|run.pl|=. This loads ClioPatria and starts the ClioPatria
+web-server. Your firewall will probably complain. Authorize web-access
+to SWI-Prolog.
+
+
+---++ Initial configuration
+
+Now use your browser and open http://localhost:3020/.  On first visit
+it requires you do specify a password for the =admin= user.  Use a
+password of at *|least six characters long|*.
+
+Next, open *|Admin/plugins|*, switch *localhost* to _link_ and click
+*|Update configuration|*. This tells the system that its primary access
+is =localhost=. Using localhost enables some additional development
+features and allow us to access Google maps without obtaining a key from
+Google.
+
+Finally, we need to install the pirates package that provides the demo
+data and some additional utilities. This package is installed from the
+Prolog window using the command below. This step requires GIT installed.
+
+  ==
+  ?- cpack_install(pirates).
+  ==
+
+You are now ready to explore the pirates domain.
+
+@see Next: [[Load the pirates data][LoadPirates.txt]]

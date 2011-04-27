@@ -1,0 +1,28 @@
+---+ Load the Pirates data
+
+We assume ClioPatria is still running and you are logged on, either as
+=admin= or as a another user with at least _read_ and _write_ access.
+The initial set of data is added to the _library_ as part of the
+=pirates= packages and can be loaded using *|Repository/Load from
+library|*.  Then select =|pirates -- Piracy data|= and click *load*.
+
+---++ Explore the data
+
+The main entry point for exploring the data is *|Places/graphs|*, which
+lists the datasets loaded into ClioPatria.  Select the topmost graph,
+which holds the piracy data.  The two most useful entry points are
+
+  1. _predicates_, which lists all relations in the graph
+  2. _classes_, which lists the types that are used in the graph
+
+---++ The Web of Data
+
+As you browse through the data, some links colored *red*. These are
+resources that are not defined in the currently loaded dataset. Clicking
+on such a link opens a page with information on where the resource is
+used and the button *|Query the Linked Data cloud|*. Clicking this
+button causes ClioPatria to retrieve the information from the resource
+itself. In the ideal world, the resource (URI) points to an RDF document
+that provides additional information about this resource.  Similar to
+links in HTML documents, the target can be non-existent, might not be
+a valid RDF document, etc.

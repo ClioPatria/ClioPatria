@@ -1,0 +1,7 @@
+---+ An Open Linked Piracy tutorial
+
+This tutorial explains the basics of installing ClioPatria and applying
+it to analyze RDF data and write a small web-service.
+
+  1. [[Preparations for the pirates demo][InstallPiracy.txt]]
+  2. [[Load the pirate data][LoadPirates.txt]]
