@@ -48,7 +48,7 @@
 		rdfs_subproperty_of/2
 	      ]).
 
-/** <module> RDFS-Lite entailment
+/** <module> RDFS entailment
 
 The function of an entailment module is  to provide an implementation of
 rdf/3 that extends basic triple-lookup using the entailment rules of the
@@ -62,6 +62,9 @@ This entailment module does RDFS entailment.
 :- rdf_meta
 	rdf(o,o,o),
 	rdfs_individual_of(r,r).
+
+:- public
+	rdf/3.
 
 rdf(literal(L), _, _) :-		% should move to compiler
 	nonvar(L), !, fail.
