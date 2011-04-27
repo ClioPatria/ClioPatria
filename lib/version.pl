@@ -58,15 +58,22 @@ web-page can do so using a call to register_git_module/2.
 %	newer. Required is in numeric notation (e.g. 50317 for 5.3.17)
 
 check_prolog_version(Required) :-
+	prolog_version_ok(Required), !.
+check_prolog_version(Required) :-
+	print_message(error,
+		      required_prolog_version(Required)),
+	format(user_error, '~nPress any key to exit> ', []),
+	get_single_char(_), nl(user_error),
+	halt(1).
+
+prolog_version_ok(or(V1, V2)) :-
+	(   prolog_version_ok(V1)
+	->  true
+	;   prolog_version_ok(V2)
+	).
+prolog_version_ok(Required) :-
         current_prolog_flag(version, MyVersion),
-        (   MyVersion >= Required
-        ->  true
-        ;   print_message(error,
-			  required_prolog_version(Required)),
-	    format(user_error, '~nPress any key to exit> ', []),
-	    get_single_char(_), nl(user_error),
-	    halt(1)
-        ).
+	MyVersion >= Required.
 
 :- multifile
 	prolog:message/3.
@@ -87,6 +94,10 @@ prolog:message(git(update_versions)) -->
 	[ 'Updating GIT version stamps in the background.' ].
 
 
+user_version(or(V1,V2), Version) :- !,
+	user_version(V1, A1),
+	user_version(V2, A2),
+	format(atom(Version), '~w or ~w', [A1, A2]).
 user_version(N, Version) :-
         Major is N // 10000,
         Minor is (N // 100) mod 100,
