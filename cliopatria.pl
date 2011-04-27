@@ -477,11 +477,14 @@ prolog:message(cliopatria(welcome(DefaultPort))) -->
 
 
 cp_host(Host) :-
-	setting(http:public_host, Host), !.
+	setting(http:public_host, Host),
+	Host \== '', !.
 cp_host(Host) :-
 	gethostname(Host).
 
 cp_port(_ServerPort, PublicPort) :-
+	setting(http:public_host, Host),
+	Host \== '',
 	setting(http:public_port, PublicPort), !.
 cp_port(ServerPort, ServerPort).
 
