@@ -461,11 +461,12 @@ http:create_pool(cliopatria) :-
 	prolog:message/3.
 
 prolog:message(cliopatria(server_started(Port))) -->
-	{ gethostname(Host),
+	{ cp_host(Host),
+	  cp_port(Port, PublicPort),
 	  http_location_by_id(root, Root)
 	},
 	[ 'Started ClioPatria server at port ~w'-[Port], nl,
-	  'You may access the server at http://~w:~w~w'-[Host, Port, Root]
+	  'You may access the server at http://~w:~w~w'-[Host, PublicPort, Root]
 	].
 prolog:message(cliopatria(welcome(DefaultPort))) -->
 	[ nl,
@@ -473,6 +474,17 @@ prolog:message(cliopatria(welcome(DefaultPort))) -->
 	  '  ?- cp_server.               % start at port ~w'-[DefaultPort], nl,
 	  '  ?- cp_server([port(Port)]). % start at Port'
 	].
+
+
+cp_host(Host) :-
+	setting(http:public_host, Host), !.
+cp_host(Host) :-
+	gethostname(Host).
+
+cp_port(_ServerPort, PublicPort) :-
+	setting(http:public_port, PublicPort), !.
+cp_port(ServerPort, ServerPort).
+
 
 
 		 /*******************************
