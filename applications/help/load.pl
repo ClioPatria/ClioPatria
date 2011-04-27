@@ -58,7 +58,10 @@ programming system to provide documentation of the source-code.
 http:location(pldoc, root('help/source'), [priority(10)]).
 
 :- http_handler(root(help/source), cp_help, []).
-:- http_handler(cliopatria('help/'), serve_page(help), [prefix, id(wiki_help)]).
+:- http_handler(cliopatria('help/'),
+		serve_page(help), [prefix, id(wiki_help)]).
+:- http_handler(cliopatria('tutorial/'),
+		serve_page(tutorial), [prefix, id(tutorial)]).
 
 %%	prolog:doc_directory(+Dir) is semidet.
 %
@@ -95,6 +98,7 @@ cp_help(Request) :-
 	cliopatria:menu_item/2.
 
 cliopatria:menu_item(100=help/wiki_help, 'Documentation').
+cliopatria:menu_item(150=help/tutorial,  'Tutorial').
 cliopatria:menu_item(200=help/cp_help,	 'Roadmap').
 cliopatria:menu_item(300=help/http_help, 'HTTP Services').
 
