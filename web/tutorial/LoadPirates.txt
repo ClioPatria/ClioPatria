@@ -15,6 +15,23 @@ which holds the piracy data.  The two most useful entry points are
   1. _predicates_, which lists all relations in the graph
   2. _classes_, which lists the types that are used in the graph
 
+Note that RDF resources are web addresses, i.e., typically strings of
+the form =|http://<host><path>[#fragment]|=. Many RDF tools and
+languages allow for an _|abbreviated notation|_ by declaring a
+_mnemonic_ that represents the (long) common prefix of RDF resources.
+For example, the short form for
+http://semanticweb.cs.vu.nl/2009/11/sem/hasPlace is
+
+  ==
+  sem:hasPlace
+  ==
+
+We defined prefixes for some commonly used resources in
+the file config-enabled/pirates.pl that is part of the =pirates=
+package. Prefixes are sometimes also referred to as _namespaces_.  See
+also rdf_register_ns/2 and rdf_current_ns/2.
+
+
 ---++ The Web of Data
 
 As you browse through the data, some links colored *red*. These are
@@ -26,3 +43,11 @@ itself. In the ideal world, the resource (URI) points to an RDF document
 that provides additional information about this resource.  Similar to
 links in HTML documents, the target can be non-existent, might not be
 a valid RDF document, etc.
+
+---++ Assignments
+
+Use the ClioPatria browser (starting from *|Places/graphs|*) and answer
+the following questions:
+
+  1. What is the full resource and what is the meaning (according to its
+  comment) of the property geonames_ont:featureClass?
