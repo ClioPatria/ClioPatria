@@ -9,4 +9,19 @@ it to analyze RDF data and write a small web-service.
   4. [[Pack your queries in Prolog predicates][PiratePredicates.txt]]
   5. [[Serve a web-page][PiratePage.txt]]
 
+---++ Further reading
+
+The pirates domain is a geospatial domain. To keep this tutorial simple
+and considering the size of the dataset, we use naive Prolog
+generate-and-test for answering queries. In realistic settings one needs
+proper spatial indexing. This is implemented in the [[space
+pachkage][http://www.swi-prolog.org/pldoc/package/space.html]]
+
+
+---++++ Acknowledgements
+
+We are grateful to the [[Poseidon
+project][http://www.esi.nl/short/poseidon/]] for making the RDF data
+available. Willem Robert van Hage convinced me using this data.
+
 @see [[The ClioPatria whitepaper][<../help/whitepaper.txt>]]
