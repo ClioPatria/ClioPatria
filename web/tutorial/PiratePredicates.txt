@@ -1,3 +1,94 @@
 ---+ Pack your queries in Prolog predicates
 
+One of the nice things about Prolog is that it can be used to _name_
+primitive queries. The named queries (predicates) can be combined with
+each other and other Prolog primitives to build more complex rules about
+the domain. Learning that is the goal of this lesson. The important
+take-home message is *|make your predicates small|*. We start with some
+examples.
+
+---++ Starting a program file
+
+Run =|?- emacs.|= in the toplevel to start the built-in editor.  Use
+*|File/new...|* to create a new file, say =|demo.pl|=.  Below is a
+skeleton for the file.  This skeleton defines a Prolog module =demo=
+and imports the core RDF library and RDF-Schema libraries, which
+suffices for our purposes.
+
+==
+:- module(demo,
+	  [
+	  ]).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
+==
+
+
+---++ Adding the first rule
+
+A good rule to start with is event(X), which states that X is an event.
+Adding this rule to the template above results in this file below. Note
+that we _exported_ event/1 from the module to make it available, we
+added the rule and a comment. Of coursem the comment is optional, but it
+is used by ClioPatria to create an online manual for you.
+
+==
+:- module(demo,
+	  [ event/1		% ?Event
+	  ]).
+
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfs)).
+
+%%	event(?Event)
+%
+%	True if Event is an event in the Simple Event Model.
+
+event(Event) :-
+	rdfs_individual_of(Event, sem:'Event').
+==
+
+After saving the file, the file can be compiled from the toplevel or
+through the menu entry *|Compile/Compile buffer|*.  Next, we can query
+the database.  Use SPACE to get the next answer and RETURN to stop.
+
+==
+?- event(X).
+X = poseidon:event_2005_001 ;
+X = poseidon:event_2005_002 ;
+...
+==
+
+Note that this rule represents a clean _logical_ statement.  With an
+_unbound_ X, it enumerates all events while given a bounded X, it acts
+as a boolean test whether the given X is an event.
+
+---++ A more complicated example
+
+In this example we wish to relate an event to a location on the globe.
+One of the complications here is that RDF literals always represent
+_text_, while we want numbers.  Here is the code:
+
+==
+%%	event_point(?Event, ?Point)
+%
+%	True if Event happened at point(Lat,Long),   where  Lat and Long
+%	are the latitute and longitude of the event in decial degrees.
+
+event_point(Event, point(Lat, Long)) :-
+	event(Event),
+	rdf_has(Event, sem:hasPlace, Place),
+	rdf_has(Place, wgs84:lat, literal(type(xsd:decimal, LatText))),
+	rdf_has(Place, wgs84:long, literal(type(xsd:decimal, LongText))),
+	atom_number(LatText, Lat),
+	atom_number(LongText, Long).
+==
+
+---++ Exercises
+
+  1. Write a predicate that finds all events inside a box bounded by
+  a given latitude and longitude range.  The Netherlands is roughly
+  bounded by Lat 51..54 and Long 2..8.  Use your predicate to find
+  all events in this box.
+
 @see [[Tutorial index][Piracy.txt]]

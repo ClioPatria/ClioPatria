@@ -9,5 +9,81 @@ Asking queries from the terminal is a practical step in contructing and
 debugging more complex programs.
 
 
+---++ Basic queries
+
+The loaded RDF can be queried using the predicate
+[[rdf/3][</help/source/doc_for?object=rdf/3>]]. This predicate does not
+perform any form of inferencing: it only matches triples that literally
+appear in the database. First we need some notation. URIs (resources)
+are represented as Prolog _atoms_. E.g., the URI for the event
+_|suspicious vessel spotted|_ is represented by the following syntax in
+Prolog (not the single quotes).
+
+  ==
+  'http://semanticweb.cs.vu.nl/poseidon/ns/instances/etype_suspicious'
+  ==
+
+This is both unpleasent to type and read.  Therefore, Prolog's toplevel
+has been extended to use the _prefix_ notation if a suitable prefix is
+known.  The query below illustrates that Prolog writes answers that
+contain a URI using the prefix notation.  The second query illustrates
+reusing previous bindings _|in the interactive toplevel|_ and proves
+that X was indeed bound to an atom and not to a term <prefix>:<local>.
+
+  ==
+  ?- X = 'http://semanticweb.cs.vu.nl/poseidon/ns/instances/etype_suspicious'.
+  X = poseidon:etype_suspicious.
+
+  ?- atom($X).
+  true.
+  ==
+
+Note that if the <local> part is not a valid Prolog atom, it must be
+quoted, as illustrated in the query below.
+
+  ==
+  ?- rdf(rdfs:'Class', rdfs:comment, Comment).
+  Comment = literal('The class of classes.').
+  ==
+
+_Literals_ are represented by a term literal(Value), where Value is
+either a plain atom, a term type(Type,Value) or a term lang(Lang,Value).
+[[rdf/3][</help/source/doc_for?object=rdf/3>]] also supports a form
+literal(Query,Value) to match part of a literal.
+
+---+++ Exercises
+
+  1. Use [[rdf/3][</help/source/doc_for?object=rdf/3>]] to obtain all
+  the properties and their values for the resource
+  =|poseidon:etype_suspicious|=.
+
+  2. What happens if we use =|rdfs:Class|= instead of =|rdfs:'Class'|=?
+  Tip: use the 'n' command (possibly repeated) to get back to the
+  toplevel.  Can you understand what happens?
+
+  3. Use an rdf-query to find how =|poseidon:etype_suspicious|= is used
+  in the event model.
+
+  4. Combine the above with setof/3 and length/2 to count the number of
+  such events in the database.
+
+---++ Queries that imply reasoning
+
+The RDF libraries contain a number of building blocks that perform
+partial reasoning on the RDF data. It notably supports
+=|rdfs:subPropertyOf|= using
+[[rdf_has/3][</help/source/doc_for?object=rdf_has/3>]] and its
+transitive variant
+[[rdf_reachable/3][</help/source/doc_for?object=rdf_reachable/3>]]
+
+---++ Exercises
+
+  1. Actor types have the type =|sem:'ActorType'|= and are organised
+  in a hierarchy.  What is/are the root(s) of this hiearchy?  Tip:
+  consider [[exercise 3][LoadPirates.txt]].
+
+  2. Use [[rdf_reachable/3][</help/source/doc_for?object=rdf_reachable/3>]]
+  to enumerate the members of the hiearchies found above.  You can use
+  two different predicates for this query. Which ones?
 
 @see [[Tutorial index][Piracy.txt]]

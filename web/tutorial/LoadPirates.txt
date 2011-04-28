@@ -44,7 +44,7 @@ that provides additional information about this resource.  Similar to
 links in HTML documents, the target can be non-existent, might not be
 a valid RDF document, etc.
 
----++ Assignments
+---++ Exercises
 
 Use the ClioPatria browser (starting from *|Places/graphs|*) and answer
 the following questions:
