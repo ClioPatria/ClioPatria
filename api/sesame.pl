@@ -41,6 +41,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_turtle)).
 :- use_module(library(semweb/rdf_http_plugin)).
+:- use_module(library(semweb/rdf_file_type)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_open)).
@@ -421,74 +422,13 @@ upload_data(Request) :- !,
 	atom_to_memory_file(Data, MemFile),
 	action(Request,
 	       setup_call_cleanup(open_memory_file(MemFile, read, Stream),
-				  guess_format_and_load(Stream, Options),
+				  rdf_guess_format_and_load(Stream, Options),
 				  ( close(Stream),
 				    free_memory_file(MemFile)
 				  )),
 	       ResultFormat,
 	       'Loaded data from POST'-[]).
 
-guess_format_and_load(Stream, Options) :-
-	option(format(_), Options), !,
-	rdf_load(stream(Stream), Options).
-guess_format_and_load(Stream, Options) :-
-	guess_rdf_data_format(Stream, Format),
-	rdf_load(stream(Stream), [format(Format)|Options]).
-
-
-%%	guess_rdf_data_format(+Stream, ?Format)
-%
-%	Guess the format  of  an  RDF   file  from  the  actual content.
-%	Currently, this seeks for a valid  XML document upto the rdf:RDF
-%	element before concluding that the file is RDF/XML. Otherwise it
-%	assumes that the document is Turtle.
-
-guess_rdf_data_format(_, Format) :-
-	nonvar(Format), !.
-guess_rdf_data_format(Stream, xml) :-
-	xml_doctype(Stream, _), !.
-guess_rdf_data_format(_, turtle).
-
-
-%%	xml_doctype(+Stream, -DocType) is semidet.
-%
-%	Parse a _repositional_ stream and get the  name of the first XML
-%	element *and* demand that this   element defines XML namespaces.
-%	Fails if the document is illegal XML before the first element.
-%
-%	Note that it is not  possible   to  define valid RDF/XML without
-%	namespaces, while it is not possible  to define a valid absolute
-%	Turtle URI (using <URI>) with a valid xmlns declaration.
-
-xml_doctype(Stream, DocType) :-
-	catch(setup_call_cleanup(make_parser(Stream, Parser, State),
-				 sgml_parse(Parser,
-					    [ source(Stream),
-					      max_errors(1),
-					      syntax_errors(quiet),
-					      call(begin, on_begin),
-					      call(cdata, on_cdata)
-					    ]),
-				 cleanup_parser(Stream, Parser, State)),
-	      E, true),
-	nonvar(E),
-	E = tag(DocType).
-
-make_parser(Stream, Parser, state(Pos)) :-
-	stream_property(Stream, position(Pos)),
-	new_sgml_parser(Parser, []),
-	set_sgml_parser(Parser, dialect(xmlns)).
-
-cleanup_parser(Stream, Parser, state(Pos)) :-
-	free_sgml_parser(Parser),
-	set_stream_position(Stream, Pos).
-
-on_begin(Tag, Attributes, _Parser) :-
-	memberchk(xmlns:_=_, Attributes),
-	throw(tag(Tag)).
-
-on_cdata(_CDATA, _Parser) :-
-	throw(error(cdata)).
 
 %%	upload_url(+Request)
 %
