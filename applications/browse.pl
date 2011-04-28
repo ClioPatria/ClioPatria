@@ -1159,10 +1159,13 @@ local_view(URI, Graph, Options) -->
 		     'Linked Data was loaded into ', \graph_link(LODGraph),
 		     '.'
 		   ]))
-	;   { http_link_to_id(lod_crawl, [], FetchURL)
+	;   { http_link_to_id(lod_crawl, [], FetchURL),
+	      http_current_request(Request),
+	      memberchk(request_uri(Here), Request)
 	    },
 	    html(form(action(FetchURL),
 		      [ \hidden(r, URI),
+			\hidden(return_to, Here),
 			'No triples for ', a(href(URI), 'this URI'),
 			'.  Would you like to ',
 			input([ type(submit),

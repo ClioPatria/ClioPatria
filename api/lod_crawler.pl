@@ -49,14 +49,22 @@ lod_crawl(Request) :-
 	http_parameters(Request,
 			[ r(URI,
 			    [ description('URI to start')
-			    ])
+			    ]),
+			  return_to(Return,
+				    [ optional(true),
+				      description('URI to return to')
+				    ])
 			]),
 	lod_uri_graph(URI, Graph),
+	return_option(Return, Options),
 	call_showing_messages(rdf_load(Graph,
 				       [ graph(Graph)
 				       ]),
-			      [
-			      ]).
+			      Options).
+
+return_option(Return, []) :-
+	var(Return), !.
+return_option(Return, [ return_to(Return) ]).
 
 
 %%	lod_uri_graph(+URI, -Graph)
