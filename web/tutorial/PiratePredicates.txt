@@ -1,0 +1,3 @@
+---+ Pack your queries in Prolog predicates
+
+@see [[Tutorial index][Piracy.txt]]

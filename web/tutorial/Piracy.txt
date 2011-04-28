@@ -4,4 +4,9 @@ This tutorial explains the basics of installing ClioPatria and applying
 it to analyze RDF data and write a small web-service.
 
   1. [[Preparations for the pirates demo][InstallPiracy.txt]]
-  2. [[Load the pirate data][LoadPirates.txt]]
+  2. [[Load and explore the pirate data][LoadPirates.txt]]
+  3. [[Query the pirate data with Prolog][QueryPirates.txt]]
+  4. [[Pack your queries in Prolog predicates][PiratePredicates.txt]]
+  5. [[Serve a web-page][PiratePage.txt]]
+
+@see [[The ClioPatria whitepaper][<../help/whitepaper.txt>]]

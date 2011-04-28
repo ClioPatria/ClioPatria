@@ -1,0 +1,13 @@
+---+ Query the pirate data with Prolog
+
+ClioPatria is primarily a Prolog-based _|development platform|_. In this
+lesson you learn to query the RDF data from the Prolog commandline. This
+is a preparation for the next step, where you learn creating simple
+Prolog programs.
+
+Asking queries from the terminal is a practical step in contructing and
+debugging more complex programs.
+
+
+
+@see [[Tutorial index][Piracy.txt]]

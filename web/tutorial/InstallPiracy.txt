@@ -39,8 +39,25 @@ open =|run.pl|=. This loads ClioPatria and starts the ClioPatria
 web-server. Your firewall will probably complain. Authorize web-access
 to SWI-Prolog.
 
+---++ Installation on other systems
 
----++ Initial configuration
+Getting the required software (Prolog, GIT and Graphviz) differ from
+system to system. We gathered some information for [[Linux
+distributions][http://www.swi-prolog.org/build/LinuxDistro.txt]].
+One you have the software, a few commands in a terminal do the trick:
+
+  ==
+  $ git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
+  $ mkdir pirates
+  $ cd pirates
+  $ ../ClioPatria/configure
+  ...
+  $ ./run.pl
+  ==
+
+The remainder of this tutorial applies to all systems.
+
+---++ Initial configuration (all systems)
 
 Now use your browser and open http://localhost:3020/.  On first visit
 it requires you do specify a password for the =admin= user.  Use a
@@ -62,4 +79,5 @@ Prolog window using the command below. This step requires GIT installed.
 
 You are now ready to explore the pirates domain.
 
-@see Next: [[Load the pirates data][LoadPirates.txt]]
+@see [[Tutorial index][Piracy.txt]]
+@see Next: [[Load and explore the pirates data][LoadPirates.txt]]

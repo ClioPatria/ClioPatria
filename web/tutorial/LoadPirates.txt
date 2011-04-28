@@ -1,4 +1,4 @@
----+ Load the Pirates data
+---+ Load and explore the Pirates data
 
 We assume ClioPatria is still running and you are logged on, either as
 =admin= or as a another user with at least _read_ and _write_ access.
@@ -12,8 +12,8 @@ The main entry point for exploring the data is *|Places/graphs|*, which
 lists the datasets loaded into ClioPatria.  Select the topmost graph,
 which holds the piracy data.  The two most useful entry points are
 
-  1. _predicates_, which lists all relations in the graph
-  2. _classes_, which lists the types that are used in the graph
+  1. _predicates_, which lists all _relations_ in the graph
+  2. _classes_, which lists the _types_ that are used in the graph
 
 Note that RDF resources are web addresses, i.e., typically strings of
 the form =|http://<host><path>[#fragment]|=. Many RDF tools and
@@ -27,7 +27,7 @@ http://semanticweb.cs.vu.nl/2009/11/sem/hasPlace is
   ==
 
 We defined prefixes for some commonly used resources in
-the file config-enabled/pirates.pl that is part of the =pirates=
+the file =|config-enabled/pirates.pl|= that is part of the =pirates=
 package. Prefixes are sometimes also referred to as _namespaces_.  See
 also rdf_register_ns/2 and rdf_current_ns/2.
 
@@ -50,4 +50,15 @@ Use the ClioPatria browser (starting from *|Places/graphs|*) and answer
 the following questions:
 
   1. What is the full resource and what is the meaning (according to its
-  comment) of the property geonames_ont:featureClass?
+  comment) of the predicate =|geonames_ont:featureClass|=?
+
+  2. Piracy actions are modelled using *sem* (Simple Event Model).  Use
+  the ClioPatria browser to find the main types and predicates tha make
+  up this model and draw a diagram that explains the main relations.
+
+  3. _actorType_ (the victim ship) and _eventType_ (what happened) are
+  organised in hierarchies.  Draw a diagram that explains how the
+  _actorType_ hierarchy is organised.  Are vessel-types organised as
+  an RDFS class hierachy?  Why (not)?
+
+@see [[Tutorial index][Piracy.txt]]
