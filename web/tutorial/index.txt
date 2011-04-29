@@ -1,3 +1,6 @@
----+ A ClioPatria tutorial
+---+ ClioPatria tutorials
 
   - An [[Open Linked Piracy][Piracy.txt]] tutorial
+
+@see [[SWI-Prolog HOWTOs][http://www.swi-prolog.org/howto/]]
+@see [[Learn Prolog Now!][http://www.learnprolognow.org/]]
