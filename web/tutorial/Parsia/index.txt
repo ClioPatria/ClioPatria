@@ -207,8 +207,8 @@ applies it to each member of a supplied list:
 
 After this query, I have quite a few RDF statements in my Prolog
 knowledge base.  Note that if Prolog waits with the caret behind
-an answer, you can type *|;|* to get the next answer or hit the
-_return_ key if you are satisfied.
+an answer, you can type *|SPACE|* to get the next answer or hit the
+*RETURN* key if you are satisfied.
 
     ==
     ?- rdf(X,Y,Z).
