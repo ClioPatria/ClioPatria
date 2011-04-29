@@ -17,7 +17,7 @@ perform any form of inferencing: it only matches triples that literally
 appear in the database. First we need some notation. URIs (resources)
 are represented as Prolog _atoms_. E.g., the URI for the event
 _|suspicious vessel spotted|_ is represented by the following syntax in
-Prolog (not the single quotes).
+Prolog (note the single quotes).
 
   ==
   'http://semanticweb.cs.vu.nl/poseidon/ns/instances/etype_suspicious'
@@ -61,8 +61,8 @@ literal(Query,Value) to match part of a literal.
   Tip: use the 'n' command (possibly repeated) to get back to the
   toplevel.  Can you understand what happens?
 
-  3. Use an rdf-query to find how =|poseidon:etype_suspicious|= is used
-  in the event model.
+  3. Use an rdf-query to find how =|poseidon:etype_suspicious|= is
+  related to events in the event model.
 
   4. Combine the above with setof/3 and length/2 to count the number of
   such events in the database.

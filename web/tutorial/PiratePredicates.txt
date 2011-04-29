@@ -89,7 +89,17 @@ event_point(Event, point(Lat, Lon)) :-
 
   1. Write a predicate that finds all events inside a box bounded by
   a given latitude and longitude range.  The Netherlands is roughly
-  bounded by Lat 51..54 and Long 2..8.  Use your predicate to find
+  bounded by Lat 51..54 and Lon 2..8 degrees. Use your predicate to find
   all events in this box.
+
+  2. Actor types (i.e., ship types) are organised in a hierarchy.  Write
+  a predicate that finds all events in which a given type of actor
+  (ship) is involved.  Your predicate must also show events that are
+  labeled with (transitive) subtypes of the given type. An example query
+  is:
+
+  ==
+  ?- event_actor(Event, poseidon:atype_passenger_vessel).
+  ==
 
 @see [[Tutorial index][Piracy.txt]]
