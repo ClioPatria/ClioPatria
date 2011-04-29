@@ -85,7 +85,8 @@ At this point, I can parse an RDF/XML document into a list of Prolog
 terms using the (now consulted) predicate load_rdf/2. I'm going to use
 as my example an [[RSS 1.0 file from
 XMLhack.com][http://xmlhack.com/rss10.php]] after saving this to disk
-from the browser.
+from the browser.  In case the above does not work, [[here][<xmlhack.rss>]]
+is a local copy.
 
 ==
 ?- load_rdf('xmlhack.rss', List_of_RDF_statements).
@@ -236,15 +237,15 @@ In the previous section, I gave some examples of reading into the Prolog
 knowledge base a set of RDF statements. Jan Wielemaker (the author of
 SWI-Prolog) put together a little module of convenience predicates for
 doing this sort of thing, called rdf_db. One very nice feature of rdf_db
-is that it allows you to maintain multiple, RDF _|named graphs'. You can
-have the advantages of dealing with RDF documents as separate lists of
-statements while having a Prologesque interface. rdf_db is also a good
-example of a simple Prolog-based RDF application.
+is that it allows you to maintain multiple, RDF _|named graphs|_'. You
+can have the advantages of dealing with RDF documents as separate lists
+of statements while having a Prologesque interface. rdf_db is also a
+good example of a simple Prolog-based RDF application.
 
-To get going with rdf_db, we must first restart Prolog because rdf_db
-provides a conflicting definition for the rdf/3 predicate. Now, we load
-the RDF database infrastructure and a plugin that allows for downloading
-RDF from the web:
+To get going with library(rdf_db), we must first *restart* Prolog
+because rdf_db provides a conflicting definition for the rdf/3
+predicate. Now, we load the RDF database infrastructure and a plugin
+that allows for downloading RDF from the web:
 
     ==
     ?- [library(semweb/rdf_db)].
