@@ -1,11 +1,11 @@
 ---+ Query the pirate data with Prolog
 
 ClioPatria is primarily a Prolog-based _|development platform|_. In this
-lesson you learn to query the RDF data from the Prolog commandline. This
-is a preparation for the next step, where you learn creating simple
+lesson you learn to query the RDF data from the Prolog command line.
+This is a preparation for the next step, where you learn creating simple
 Prolog programs.
 
-Asking queries from the terminal is a practical step in contructing and
+Asking queries from the terminal is a practical step in constructing and
 debugging more complex programs.
 
 
@@ -23,7 +23,7 @@ Prolog (not the single quotes).
   'http://semanticweb.cs.vu.nl/poseidon/ns/instances/etype_suspicious'
   ==
 
-This is both unpleasent to type and read.  Therefore, Prolog's toplevel
+This is both unpleasant to type and read.  Therefore, Prolog's toplevel
 has been extended to use the _prefix_ notation if a suitable prefix is
 known.  The query below illustrates that Prolog writes answers that
 contain a URI using the prefix notation.  The second query illustrates

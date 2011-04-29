@@ -29,7 +29,7 @@ suffices for our purposes.
 A good rule to start with is event(X), which states that X is an event.
 Adding this rule to the template above results in this file below. Note
 that we _exported_ event/1 from the module to make it available, we
-added the rule and a comment. Of coursem the comment is optional, but it
+added the rule and a comment. Of course, the comment is optional, but it
 is used by ClioPatria to create an online manual for you.
 
 ==
@@ -67,7 +67,8 @@ as a boolean test whether the given X is an event.
 
 In this example we wish to relate an event to a location on the globe.
 One of the complications here is that RDF literals always represent
-_text_, while we want numbers.  Here is the code:
+_text_ (a string value), while latitude and longitude are normally
+expressed as floating point numbers. Here is the code:
 
 ==
 %%	event_point(?Event, ?Point)

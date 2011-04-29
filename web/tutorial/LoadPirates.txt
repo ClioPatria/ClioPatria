@@ -4,7 +4,7 @@ We assume ClioPatria is still running and you are logged on, either as
 =admin= or as a another user with at least _read_ and _write_ access.
 The initial set of data is added to the _library_ as part of the
 =pirates= packages and can be loaded using *|Repository/Load from
-library|*.  Then select =|pirates -- Piracy data|= and click *load*.
+library|*.  Then select "=|pirates -- Piracy data|=" and click *load*.
 
 ---++ Explore the data
 
@@ -53,12 +53,12 @@ the following questions:
   comment) of the predicate =|geonames_ont:featureClass|=?
 
   2. Piracy actions are modelled using *sem* (Simple Event Model).  Use
-  the ClioPatria browser to find the main types and predicates tha make
+  the ClioPatria browser to find the main types and predicates that make
   up this model and draw a diagram that explains the main relations.
 
   3. _actorType_ (the victim ship) and _eventType_ (what happened) are
   organised in hierarchies.  Draw a diagram that explains how the
   _actorType_ hierarchy is organised.  Are vessel-types organised as
-  an RDFS class hierachy?  Why (not)?
+  an RDFS class hierarchy?  Why (not)?
 
 @see [[Tutorial index][Piracy.txt]]

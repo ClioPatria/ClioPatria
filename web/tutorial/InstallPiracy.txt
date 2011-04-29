@@ -13,12 +13,12 @@ You need the following components installed:
   3. [[Graphzviz][http://www.graphviz.org/Download.php]] is needed to
   render RDF graphs.  This also requires an
   [[SVG][http://www.w3.org/Graphics/SVG/]] capable browser such as
-  Firefox or IE9.  Notable IE before version 9 will now work.
+  Firefox or IE9.  Notable IE before version 9 will not work.
 
-Now use the Windows explorer and browse to a folder below which you
+Use the Windows explorer and browse to a folder below which you
 would like to install ClioPatria. Select *|Git Bash Here|* from the
 menu, which opens a console running the GIT shell. Run the command below
-install ClioPatria ($ is the prompt). This _creates_ a new
+to install ClioPatria ($ is the prompt). This _creates_ a new
 folder =ClioPatria=.
 
   ==
@@ -31,7 +31,7 @@ We also create a new folder for running the demo:
   $ mkdir pirates
   ==
 
-Now use the Windows explorer and enter the new ClioPatria folder. Open
+Use the Windows explorer and enter the new ClioPatria folder. Open
 =|setup.pl|=. If it prompts for a directory, specify the above created
 =pirates= folder. Setup initializes a new ClioPatria project in the
 target folder. Use the Windows explorer, enter the =pirates= folder and
@@ -59,15 +59,15 @@ The remainder of this tutorial applies to all systems.
 
 ---++ Initial configuration (all systems)
 
-Now use your browser and open http://localhost:3020/.  On first visit
+Use your browser and open http://localhost:3020/.  On first visit
 it requires you do specify a password for the =admin= user.  Use a
 password of at *|least six characters long|*.
 
 Next, open *|Admin/plugins|*, switch *localhost* to _link_ and click
 *|Update configuration|*. This tells the system that its primary access
 is =localhost=. Using localhost enables some additional development
-features and allow us to access Google maps without obtaining a key from
-Google.
+features and allows us to use the Google maps API without obtaining a
+key from Google.
 
 Finally, we need to install the pirates package that provides the demo
 data and some additional utilities. This package is installed from the
@@ -77,7 +77,10 @@ Prolog window using the command below. This step requires GIT installed.
   ?- cpack_install(pirates).
   ==
 
-You are now ready to explore the pirates domain.
+You are now ready to [[explore the pirates domain][LoadPirates.txt]].
+
+With ClioPatria running, you can also examine this tutorial text from
+your local installation. See the *|Help/Tutorial|* entry of the
+ClioPatria toolbar in your browser.
 
 @see [[Tutorial index][Piracy.txt]]
-@see Next: [[Load and explore the pirates data][LoadPirates.txt]]
