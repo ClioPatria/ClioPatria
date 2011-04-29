@@ -73,16 +73,16 @@ expressed as floating point numbers. Here is the code:
 ==
 %%	event_point(?Event, ?Point)
 %
-%	True if Event happened at point(Lat,Long),   where  Lat and Long
+%	True if Event happened at point(Lat,Lon),   where  Lat and Lon
 %	are the latitute and longitude of the event in decial degrees.
 
-event_point(Event, point(Lat, Long)) :-
+event_point(Event, point(Lat, Lon)) :-
 	event(Event),
 	rdf_has(Event, sem:hasPlace, Place),
 	rdf_has(Place, wgs84:lat, literal(type(xsd:decimal, LatText))),
-	rdf_has(Place, wgs84:long, literal(type(xsd:decimal, LongText))),
+	rdf_has(Place, wgs84:long, literal(type(xsd:decimal, LonText))),
 	atom_number(LatText, Lat),
-	atom_number(LongText, Long).
+	atom_number(LonText, Lon).
 ==
 
 ---++ Exercises

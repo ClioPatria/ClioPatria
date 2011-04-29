@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<rdf:RDF 
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns="http://purl.org/rss/1.0/"
+         xmlns:mn="http://usefulinc.com/rss/manifest/"
+         xmlns:dc="http://purl.org/dc/elements/1.1/"
+ >
+
+  <channel rdf:about="http://xmlhack.com/rss10.php">
+      <title>XMLhack</title>
+      <link>http://xmlhack.com/</link>
+      <dc:source rdf:resource="http://xmlhack.com/" />
+      <description>
+         Developer news from the XML community
+      </description>
+      <dc:language>en-us</dc:language>
+      <dc:publisher>Edd Dumbill (mailto:webmaster@xmlhack.com)</dc:publisher>
+      <dc:creator>Edd Dumbill (mailto:editor@xmlhack.com)</dc:creator>
+      <dc:rights>Copyright 1999-2001, xmlhack team.</dc:rights>
+
+      <image rdf:resource="http://xmlhack.com/images/mynetscape88.gif" />
+
+      <items>
+          <rdf:Seq>
+            <rdf:li rdf:resource="http://xmlhack.com/read.php?item=2188" />
+            <rdf:li rdf:resource="http://xmlhack.com/read.php?item=2187" />
+            <rdf:li rdf:resource="http://xmlhack.com/read.php?item=2182" />
+            <rdf:li rdf:resource="http://xmlhack.com/read.php?item=2181" />
+            <rdf:li rdf:resource="http://xmlhack.com/read.php?item=2179" />
+            <rdf:li rdf:resource="http://xmlhack.com/read.php?item=2178" />
+            <rdf:li rdf:resource="http://xmlhack.com/read.php?item=2177" />
+            <rdf:li rdf:resource="http://xmlhack.com/read.php?item=2168" />
+          </rdf:Seq>
+      </items>
+
+  </channel>
+
+  <image rdf:about="http://xmlhack.com/images/mynetscape88.gif">
+    <title>xmlhack</title>
+    <url>http://xmlhack.com/images/mynetscape88.gif</url>
+    <link>http://xmlhack.com</link>
+    <dc:description>News, opinions, tips and issues concerning XML development</dc:description>
+  </image>
+
+    <item rdf:about="http://xmlhack.com/read.php?item=2188">
+        <title>Announcing Planet XMLhack</title>
+        <link>http://xmlhack.com/read.php?item=2188</link>
+        <dc:description>Although we don't have time to write XMLhack stories at the moment, we're pleased to announce the launch of a new service, Planet XMLhack, aggregating weblogs of the XML developer community.</dc:description>
+        <dc:subject>Community</dc:subject>
+        <dc:subject>RDF</dc:subject>
+    </item>
+
+    <item rdf:about="http://xmlhack.com/read.php?item=2187">
+        <title>That's all for now</title>
+        <link>http://xmlhack.com/read.php?item=2187</link>
+        <dc:description>It's been a lot of fun writing XMLhack since 1999, but it's time for us to take a rest.</dc:description>
+        <dc:subject>Comment</dc:subject>
+        <dc:subject>Community</dc:subject>
+    </item>
+
+    <item rdf:about="http://xmlhack.com/read.php?item=2182">
+        <title>TeXML: an XML vocabulary for TeX</title>
+        <link>http://xmlhack.com/read.php?item=2182</link>
+        <dc:description>TeXML is an XML vocabulary for TeX. The processor transforms TeXML markup into the TeX markup, escaping special and out-of-encoding characters. Intended audience is developers who convert documents from XML to TeX.</dc:description>
+        <dc:subject>Tools</dc:subject>
+    </item>
+
+    <item rdf:about="http://xmlhack.com/read.php?item=2181">
+        <title>Panel discusses SQL, XML, Web Services, and Grid Computing</title>
+        <link>http://xmlhack.com/read.php?item=2181</link>
+        <dc:description>In a panel discussion at Software Development 2004 entitled "Marrying SQL, XML, Web Services and Grid Computing", Peter Coffee of eWEEK magazine best summarized the state of these four technologies when he said that customers would not abandon SQL, wanted to use XML to repurpose data, and considered Web Services the default implementation strategy for many projects. On the other hand, they felt grid computing was still three to five years away.</dc:description>
+        <dc:subject>Community</dc:subject>
+        <dc:subject>Databases</dc:subject>
+    </item>
+
+    <item rdf:about="http://xmlhack.com/read.php?item=2179">
+        <title>Registration deadline near for XML Europe 2004</title>
+        <link>http://xmlhack.com/read.php?item=2179</link>
+        <dc:description>There's only a few days left to sign up for the tutorials and presentations at XML Europe 2004, the major European gathering of the XML world.  The conference will be held from 18-21 April in Amsterdam, The Netherlands.</dc:description>
+        <dc:subject>Community</dc:subject>
+    </item>
+
+    <item rdf:about="http://xmlhack.com/read.php?item=2178">
+        <title>XML Europe 2004 late-breaking talks finalized</title>
+        <link>http://xmlhack.com/read.php?item=2178</link>
+        <dc:description>The schedule for XML Europe 2004 (April 19-21, Amsterdam, The Netherlands) has been finalized.  In addition to keynotes from Amazon's Jeff Barr and the W3C's Steven Pemberton, the late-breaking talks add news from the most recent work in the XML world.</dc:description>
+        <dc:subject>Community</dc:subject>
+    </item>
+
+    <item rdf:about="http://xmlhack.com/read.php?item=2177">
+        <title>A RDDL repository of core datatypes</title>
+        <link>http://xmlhack.com/read.php?item=2177</link>
+        <dc:description>The French National Institute of Statistics and Economic Studies (INSEE) has published a
+first release (in French) of their
+identification and classification XML datatypes as a RDDL repository.</dc:description>
+        <dc:subject>Namespaces</dc:subject>
+        <dc:subject>Community</dc:subject>
+    </item>
+
+    <item rdf:about="http://xmlhack.com/read.php?item=2168">
+        <title>RNV: C-based Relax NG validator</title>
+        <link>http://xmlhack.com/read.php?item=2168</link>
+        <dc:description>RNV
+    is a command-line tool for validating XML documents against
+    schemas written in Relax NG compact syntax. Developed by David Tolpin and written
+    in portable ANSI C, it's fast, lightweight, and provides very good
+    reporting about validity errors in documents.</dc:description>
+        <dc:subject>Tools</dc:subject>
+        <dc:subject>Schemas</dc:subject>
+    </item>
+
+    <rdf:Description ID="manifest">
+      <mn:channels>
+      <rdf:Seq>
+        <rdf:li rdf:resource="http://xmlhack.com/rss10.php" />
+      </rdf:Seq>
+      </mn:channels>
+    </rdf:Description>
+
+</rdf:RDF>

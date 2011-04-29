@@ -1,6 +1,8 @@
 ---+ ClioPatria tutorials
 
   - An [[Open Linked Piracy][Piracy.txt]] tutorial
+  - [[RDF Applications with Prolog][<Parsia/>]], an updated
+  version of an article written by Bijan Parsia for xml.com.
 
 @see [[SWI-Prolog HOWTOs][http://www.swi-prolog.org/howto/]]
 @see [[Learn Prolog Now!][http://www.learnprolognow.org/]]
