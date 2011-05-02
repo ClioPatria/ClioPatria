@@ -7,7 +7,7 @@ available on Windows: *|git.exe|* for  providing version information and
 *|dot.exe|*, part of GraphViz for rendering graphs.
 
 These programs must either  be  in   %PATH%  or  made accessible through
-user:file_search_path/2. The latter can be by  means oh hard-coded paths
+user:file_search_path/2. The latter can be by  means of hard-coded paths
 or using the dynamic approach implemented   below.  This hopefully works
 out-of-the-box in most installations. If it   fails for you, please help
 improving this config and/or add a  hard-coded location. See the example
@@ -22,7 +22,11 @@ below.
 :- dynamic
 	user:file_search_path/2.
 
-% Add hardcoded locations if these programs are in weird places.
+% Add hardcoded locations if these programs   are  in weird places. Note
+% that currently (May 2011), you cannot   specify UNC (//share/..) paths
+% for GIT. Although Prolog can  find   git.exe,  git.exe cannot find its
+% components on UNC paths.
+
 % user:file_search_path(path, 'E:/Git').
 user:file_search_path(path, Dir) :-
 	prog_in_dir('dot.exe', Dir).
