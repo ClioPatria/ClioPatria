@@ -1,0 +1,19 @@
+---+ More excercises
+
+  1. Write a variation of the map/1 predicate that takes two dates, and
+  that shows on a map all piracy events that happened in the
+  time-interval between those two dates. You will have to use the
+  predicate parse_time/3 convert between dates and the
+  internal representation of timestamps as a number. Example:
+  http://localhost:3020/map?start=2008-01-01&end=2008-12-31 (showing all
+  piracy events in the year 2008)
+
+  2. Write a variation of the map/1 predicate that takes a type of ship
+  and shows on a map all piracy events with that type of ship involved.
+  Example: http://localhost:3020/map?type=atype_passenger_vessel Make
+  sure that you take the hierarchy of ship-types into account when
+  calculating your answer. Of course you can use the code you wrote for
+  exercise 2 of [[Pack your queries in Prolog
+  predicates][PiratePredicates.txt]].
+
+  You can use the predicate [[rdf_global_id/2][</help/source/doc_for?object=rdf_global_id/2>]] to translate =atype_passenger_vessel= into a proper resource.
