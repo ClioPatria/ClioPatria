@@ -1,4 +1,4 @@
----+ Pack your queries in Prolog predicates
+---+ Pack your queries as Prolog predicates
 
 One of the nice things about Prolog is that it can be used to _name_
 primitive queries. The named queries (predicates) can be combined with
@@ -36,7 +36,6 @@ is used by ClioPatria to create an online manual for you.
 :- module(demo,
 	  [ event/1		% ?Event
 	  ]).
-
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 
@@ -68,7 +67,8 @@ as a boolean test whether the given X is an event.
 In this example we wish to relate an event to a location on the globe.
 One of the complications here is that RDF literals always represent
 _text_ (a string value), while latitude and longitude are normally
-expressed as floating point numbers. Here is the code:
+expressed as floating point numbers.   Please add the code below to
+the file =|demo.pl|= and add event_point/2 to the export-list.
 
 ==
 %%	event_point(?Event, ?Point)
@@ -85,21 +85,34 @@ event_point(Event, point(Lat, Lon)) :-
 	atom_number(LonText, Lon).
 ==
 
----++ Exercises
-
-  1. Write a predicate that finds all events inside a box bounded by
-  a given latitude and longitude range.  The Netherlands is roughly
-  bounded by Lat 51..54 and Lon 2..8 degrees. Use your predicate to find
-  all events in this box.
-
-  2. Actor types (i.e., ship types) are organised in a hierarchy.  Write
-  a predicate that finds all events in which a given type of actor
-  (ship) is involved.  Your predicate must also show events that are
-  labeled with (transitive) subtypes of the given type. An example query
-  is:
+*Tip*: you can re-open a file or predicate in the editor using the
+command edit/1. Below are some examples. The system asks you to select
+the right item if multiple items match the query.
 
   ==
-  ?- event_actor(Event, poseidon:atype_passenger_vessel).
+  ?- edit(demo).            % edit the file demo
+  ?- edit(event_point).     % edit the predicate event_point
+  ==
+
+---++ Exercises
+
+In the two exercises below, you are asked to write two predicates.  Add
+these predicates to the file =|demo.pl|= and add them to the export
+list of this module.
+
+  1. Write a predicate event_in_box(Event, Lat1, Lon1, Lat2, Lon2) that
+  finds all events inside a box bounded by a given latitude and
+  longitude range. The Netherlands is roughly bounded by Lat 51..54 and
+  Lon 2..8 degrees. Use your predicate to find all events in this box.
+
+  2. Actor types (i.e., ship types) are organised in a hierarchy.  Write
+  a predicate event_actor_type(Event, ActorType) that finds all events
+  in which a given type of actor (ship) is involved. Your predicate must
+  also show events that are labeled with (transitive) subtypes of the
+  given type. An example query is:
+
+  ==
+  ?- event_actor_type(Event, poseidon:atype_passenger_vessel).
   ==
 
 @see [[Tutorial index][Piracy.txt]]

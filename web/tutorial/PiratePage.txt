@@ -2,7 +2,12 @@
 
 In this lesson we create a web-page that shows locations on a map. We
 give a skeleton for the code that can display Google maps decorated with
-markers below.
+markers below. Please create a *|new file|* =|map.pl|= with the content
+below. This file defines a new module (=map=), which imports the
+web-server infrastructure as well as our previously created reasoning
+module.  It does not provide any exports because its functionality (the
+predicate map/1) is called from the web-server based on the
+http_handler/3 declaration.
 
 ==
 :- module(map, []).
@@ -12,6 +17,8 @@ markers below.
 :- use_module(library(http/http_parameters)).
 				% Pirates package Google map interface
 :- use_module(components(gmap)).
+				% Import our query predicates
+:- use_module(demo).
 
 % Bind /map to the predicate map/1
 
@@ -26,20 +33,28 @@ map(Request) :-
 			  lat2(Lat2, [float]),
 			  lon2(Lon2, [float])
 			]),
-%
-%	Here you must create a list of point(Lat,Lon) terms
-%	that represent the points you wish to show on the map
-%
+
+	% ****
+
 	reply_html_page(title('Piracy events'),
 			[ \gmap(Points)
 			]).
 ==
 
+The predicate reply_html_page/2 generates an HTML page from terms and
+calls to _|grammar rules|_. The rule gmap//1 emits an HTML page with
+embedded JavaScript that opens Google Maps. Creating HTML from Prolog is
+subject of the [[Prolog web-service
+HOWTO][[http://www.swi-prolog.org/howto/http/]].
+
 ---+++ Exercises
 
-  1. Fill in the missing part, based on the code you have created in
-  the [[previous][PiratePredicates.txt]] lesson.  Test the page using
-  the following queries.
+  1. Complete the code above to show piracy events in the given
+  bounding box on the map.  You do this by replacing =|% ***|= above
+  with calls that produce a list of point(Lat, Lon) terms from the
+  given parameters.  You can use the predicates you exported from
+  =|demo.pl|= and combine them using findall/3 to create a list of
+  point-terms.  Test the page using the following queries.
 
 	- http://localhost:3020/map?lat1=51&lat2=54&lon1=2&lon2=8
 	- http://localhost:3020/map?lat1=2&lat2=20&lon1=45&lon2=55

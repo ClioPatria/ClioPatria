@@ -9,31 +9,29 @@ You need the following components installed:
   1. [[SWI-Prolog][http://www.swi-prolog.org./Download.html]] (currently
   either 5.10.4 or 5.11.9).
   2. The [[GIT][http://git-scm.com/download]] version control system is needed
-  to download ClioPatria and install the demo package.
+  to download ClioPatria and install the demo package. Take the
+  installer with summary _|Full installer for official Git X.Y.Z|_.
   3. [[Graphzviz][http://www.graphviz.org/Download.php]] is needed to
-  render RDF graphs.  This also requires an
+  render RDF graphs. This also requires an
   [[SVG][http://www.w3.org/Graphics/SVG/]] capable browser such as
-  Firefox or IE9.  Notable IE before version 9 will not work.
+  Firefox or IE9. Notable IE before version 9 will not work.
 
-Use the Windows explorer and browse to a folder below which you
-would like to install ClioPatria. Select *|Git Bash Here|* from the
-menu, which opens a console running the GIT shell. Run the command below
-to install ClioPatria ($ is the prompt). This _creates_ a new
-folder =ClioPatria=.
+Step (2) above created a desktop-icon named *|Git bash|*. Open this.
+This creates a GIT shell in your personal folder. Install ClioPatria
+into =Documents= and create a folder for running this demo using the
+commands below the Git shell-windows. In the example we use your
+Documents folder, but you can download ClioPatria and create the Pirates
+folder anywhere you like.
 
   ==
+  $ cd Documents
   $ git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
+  $ mkdir Pirates
   ==
 
-We also create a new folder for running the demo:
-
-  ==
-  $ mkdir pirates
-  ==
-
-Use the Windows explorer and enter the new ClioPatria folder. Open
+Use the Windows explorer and enter the created ClioPatria folder. Open
 =|setup.pl|=. If it prompts for a directory, specify the above created
-=pirates= folder. Setup initializes a new ClioPatria project in the
+=Pirates= folder. Setup initializes a new ClioPatria project in the
 target folder. Use the Windows explorer, enter the =pirates= folder and
 open =|run.pl|=. This loads ClioPatria and starts the ClioPatria
 web-server. Your firewall will probably complain. Authorize web-access
@@ -48,8 +46,8 @@ One you have the software, a few commands in a terminal do the trick:
 
   ==
   $ git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
-  $ mkdir pirates
-  $ cd pirates
+  $ mkdir Pirates
+  $ cd Pirates
   $ ../ClioPatria/configure
   ...
   $ ./run.pl
@@ -84,3 +82,5 @@ your local installation. See the *|Help/Tutorial|* entry of the
 ClioPatria toolbar in your browser.
 
 @see [[Tutorial index][Piracy.txt]]
+@tbd The setup could be streamlined if setup/configure would allow
+     selecting plugins.
