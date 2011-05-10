@@ -1,0 +1,13 @@
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="10cm" height="3cm"  viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <desc>Error message given when graphviz package has not been installed</desc>
+
+  <text x="50" y="50" font-family="Verdana" font-size="15" fill="blue" >
+	  The server does not have the graphviz program dot installed in PATH. 
+  </text>
+  <text x="50" y="80" font-family="Verdana" font-size="15" fill="blue" >
+	  See http://www.graphviz.org/ for details.
+  </text>
+
+</svg>

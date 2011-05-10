@@ -43,6 +43,7 @@
 :- use_module(library(settings)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_graphviz)).
+:- use_module(library(http/http_wrapper)).
 
 :- setting(graphviz:format, oneof([svg,canviz]), svg,
 	   'Technique to include RDF graphs in a page').
@@ -105,14 +106,9 @@ terms as a graph.
 	graphviz_graph(1, :, ?, ?).
 
 graphviz_graph(_Closure, Options) -->
-	{ option(render(Renderer), Options, dot)
-	},
-	\+ { process:exe_options(ExeOptions),
-	     absolute_file_name(path(Renderer), _,
-				[ file_errors(fail)
-				| ExeOptions
-				])
-	   }, !,
+	{ option(render(Renderer), Options, dot),
+	  \+ has_graphviz_renderer(Renderer)
+	}, !,
 	no_graph_viz(Renderer).
 graphviz_graph(Closure, Options) -->
 	{ setting(graphviz:format, DefFormat),
@@ -155,6 +151,13 @@ graphviz_graph_fmt(svg, Hash, Options) -->
 is_meta(wrap_url).
 is_meta(shape_hook).
 
+has_graphviz_renderer(Renderer) :-
+	process:exe_options(ExeOptions),
+	absolute_file_name(path(Renderer), _,
+			   [ file_errors(fail)
+			   | ExeOptions
+			   ]).
+
 no_graph_viz(Renderer) -->
 	html(div(id('no-graph-viz'),
 		 [ 'The server does not have the graphviz program ',
@@ -187,6 +190,11 @@ send_graph(Request) :-
 	call(Closure, Graph),
 	reply_graphviz_graph(Graph, Lang, [target(Target)|Options]).
 
+reply_graphviz_graph(_Graph, _Lang, Options) :-
+	option(render(Renderer), Options, dot),
+	\+ has_graphviz_renderer(Renderer), !,
+	http_current_request(Request),
+	http_reply_file(help('error.svg'), [], Request).
 reply_graphviz_graph(Graph, Lang, Options) :-
  	option(target(Target), Options, _),
 	length(Graph, Len),
