@@ -232,14 +232,45 @@ cpack_download(_Package, Dir) :-
 	    [ directory(Dir)
 	    ]).				% Too simplistic
 cpack_download(git(GitURL, Options), Dir) :-
-	findall(O, git_clone_option(O, Options), OL),
+	findall(O, git_clone_option(O, Options), LOL),
+	append(LOL, OL),
 	append([ [clone, GitURL, Dir]
 	       | OL
 	       ], GitOptions),
-	git(GitOptions, []).
+	git(GitOptions, []),
+	setup_push_for_download(Dir).
 
 git_clone_option(['-b', Branch], Options) :-
 	option(branch(Branch), Options).
+
+%%	setup_push_for_download(+Dir) is det.
+%
+%	If the downloaded repository can be   related to a push-location
+%	based on the current profile,  we   setup  a  remote for pushing
+%	changes.  This remote has tehe symbolic name =upload=.
+%
+%	@tbd	We can (and should) also verify whether the =upload= and
+%		downloaded origin are at the same version.
+
+setup_push_for_download(Dir) :-
+	file_base_name(Dir, Name),
+	default_binding(default, Name, pushrepository(PushURL)),
+	print_message(informational, cpack(probe_remote(PushURL))),
+	catch(git(['ls-remote', '--heads', PushURL],
+		  [ output(_),
+		    error(_)
+		  ]),
+	      E, true),
+	(   var(E)
+	->  print_message(informational, cpack(add_remote(upload, PushURL))),
+	    git([ remote, add, upload, PushURL],
+		[ directory(Dir)
+		])
+	;   E = error(process_error(git(_), exit(_)), _)
+	->  true
+	;   print_message(error, E)
+	).
+
 
 %%	cpack_upgrade
 %
@@ -493,7 +524,7 @@ git_setup_push(Dir, Vars) :-
 	directory_file_path(Dir, '.git/config', Config),
 	setup_call_cleanup(open(Config, append, Out),
 			   format(Out, '[branch "master"]\n\
-			   		\tremote = origin\n\
+					\tremote = origin\n\
 					\tmerge = refs/heads/master\n', []),
 			   close(Out)),
 	catch(git_create_origin(PushURL, Title), E,
@@ -647,6 +678,10 @@ message(download(Name, git(Url, _))) -->
 	[ '   ~w: ~t~30|downloading from ~w ...'-[Name, Url] ].
 message(probe(URL)) -->
 	[ 'Trying CPACK server at ~w ...'-[URL] ].
+message(probe_remote(URL)) -->
+	[ 'Checking availability of GIT repository ~w ...'-[URL] ].
+message(add_remote(Name, URL)) -->
+	[ 'Running "git remote add ~w ~w ..."'-[Name, URL] ].
 
 sub_packages([]) --> [].
 sub_packages([H|T]) --> sub_package(H), sub_packages(T).
