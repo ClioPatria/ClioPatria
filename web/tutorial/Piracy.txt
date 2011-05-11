@@ -1,4 +1,4 @@
----+ An Open Linked Piracy tutorial
+---+ An Linked Open Piracy tutorial
 
 This tutorial explains the basics of installing ClioPatria and applying
 it to analyze RDF data and write a small web-service.
@@ -18,11 +18,15 @@ generate-and-test for answering queries. In realistic settings one needs
 proper spatial indexing. This is implemented in the [[space
 pachkage][http://www.swi-prolog.org/pldoc/package/space.html]]
 
+An LOP demo is [[online][http://semanticweb.cs.vu.nl/poseidon/ns]]
 
 ---++++ Acknowledgements
 
 We are grateful to the [[Poseidon
 project][http://www.esi.nl/short/poseidon/]] for making the RDF data
-available. Willem Robert van Hage convinced me using this data.
+available. Willem Robert van Hage convinced me using this data. This
+material was used in guest lecture by Frank van Harmelen and Jan
+Wielemaker, part of a Prolog course at the [[VU][http://www.vu.nl]]
+organised by Stefan Schlobach and Annette ten Teije.
 
 @see [[The ClioPatria whitepaper][<../help/whitepaper.txt>]]
