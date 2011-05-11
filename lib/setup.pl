@@ -36,9 +36,7 @@
 	    copy_file_with_vars/3	% +In, +Out, +Vars
 	  ]).
 :- use_module(library(apply)).
-:- if(exists_source(library(filesex))).
 :- use_module(library(filesex)).
-:- endif.
 
 /** <module> Library for building installation scripts
 */

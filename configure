@@ -6,8 +6,8 @@
 #
 # Running (2nd variation to select a specific SWI-Prolog version)
 #
-# 	$ ./configure
-# 	$ SWIPL=swi-prolog ./configure
+#	$ ./configure
+#	$ SWIPL=swi-prolog ./configure
 #
 # Author: Jan Wielemaker
 # Copyright: Public Domain
@@ -40,4 +40,4 @@ fi
 
 setup="$(dirname $0)/setup.pl"
 
-$SWIPL -q -f "$setup"
+$SWIPL -q -f "$setup" -- $*
