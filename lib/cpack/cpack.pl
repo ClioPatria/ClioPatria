@@ -462,12 +462,15 @@ cpack_create(Name, Title, Options) :-
 	cpack_load_schema,
 	cpack_load_profile,
 	option(type(Type), Options, package),
+	option(description(Descr), Options,
+	       'Package description goes here.  You can use PlDoc markup.'),
 	package_class_id(Type, PkgClass),
 	default_bindings(default, Name, DefaultBindings),
 	merge_options(Options,
 		      [ name(Name),
 			title(Title),
-			pkgclass(PkgClass)
+			pkgclass(PkgClass),
+			description(Descr)
 		      | DefaultBindings
 		      ], Vars),
 	cpack_package_dir(Name, Dir, true),
@@ -500,7 +503,7 @@ default_binding(ProfileName, Name, B) :-
 	(   rdf_has(Profile, cpack:defaultAuthor, Author),
 	    (   rdf_has(Author, foaf:name, literal(AuthorName)),
 		B = foafname(AuthorName)
-	    ;   rdf_has(Author, foaf:mbox, literal(MBOX)),
+	    ;   rdf_has(Author, foaf:mbox, MBOX),
 		B = foafmbox(MBOX)
 	    )
 	;   rdf_has(Profile, cpack:fetchRepositoryTemplate, literal(GitTempl)),

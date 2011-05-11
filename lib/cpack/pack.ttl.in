@@ -16,7 +16,7 @@
 	dcterms:title "@TITLE@" ;
 	cpack:author [ a foaf:Person ;
 		       foaf:name "@FOAFNAME@" ;
-		       foaf:mbox "@FOAFMBOX@" ;
+		       foaf:mbox <@FOAFMBOX@> ;
 		     ] ;
 	cpack:primaryRepository
 	    [ a cpack:GitRepository ;
@@ -24,7 +24,7 @@
 	    ] ;
 	cpack:description
 
-"""The package description goes here.  You can use PlDoc Wiki markup.
+"""@DESCRIPTION@
 """ .
 
 
