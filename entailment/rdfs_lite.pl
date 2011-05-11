@@ -32,7 +32,7 @@
 :- module(rdfslite_entailment,
 	  [
 	  ]).
-:- use_module(rdfql(rdfql_runtime)). 	% runtime tests
+:- use_module(rdfql(rdfql_runtime)).	% runtime tests
 :- use_module(library('semweb/rdf_db'),
 	      [ rdf_global_id/2,
 		rdf_reachable/3,
@@ -67,6 +67,9 @@ type-reasoning on the basis of domains/ranges of properties. It does:
 
 :- rdf_meta
 	rdf(o,o,o).
+
+:- public
+	rdf/3.
 
 rdf(S, P, O) :-
 	var(P), !,
