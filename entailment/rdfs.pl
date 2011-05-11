@@ -61,7 +61,7 @@ This entailment module does RDFS entailment.
 
 :- rdf_meta
 	rdf(o,o,o),
-	rdfs_individual_of(r,r).
+	individual_of(r,r).
 
 :- public
 	rdf/3.
@@ -79,25 +79,25 @@ rdf(S, P, O) :-
 	).
 rdf(S, rdf:type, C) :- !,
 	(   nonvar(C)
-	->  rdfs_individual_of(S, C)
+	->  individual_of(S, C)
 	;   rdf_subject(S),			% ensure instantiation
-	    rdfs_individual_of(S, C)
+	    individual_of(S, C)
 	).
 rdf(S, rdfs:subClassOf, O) :- !,		% transitive predicates
 	(   (nonvar(S) ; nonvar(O)),
 	    S \== O				% avoid X rdfs:subClassOf X
 	->  rdfs_subclass_of(S, O)
-	;   rdfs_individual_of(S, rdfs:'Class'),
+	;   individual_of(S, rdfs:'Class'),
 	    rdfs_subclass_of(S, O)
 	).
 rdf(S, rdfs:subPropertyOf, O) :- !,
 	(   nonvar(S)
-	->  rdfs_individual_of(S, rdf:'Property'),
+	->  individual_of(S, rdf:'Property'),
 	    rdfs_subproperty_of(S, O)
 	;   nonvar(O)
-	->  rdfs_individual_of(O, rdf:'Property'),
+	->  individual_of(O, rdf:'Property'),
 	    rdfs_subproperty_of(S, O)
-	;   rdfs_individual_of(S, rdf:'Property'),
+	;   individual_of(S, rdf:'Property'),
 	    rdfs_subproperty_of(S, O)
 	).
 rdf(S, serql:directSubClassOf, O) :- !,
@@ -110,9 +110,9 @@ rdf(S, P, O) :-
 	rdf_has(S, P, O).
 
 
-%%	rdfs_individual_of(?Resource, ?Class)
+%%	individual_of(?Resource, ?Class)
 
-rdfs_individual_of(Resource, Class) :-
+individual_of(Resource, Class) :-
 	nonvar(Resource), !,
 	(   Resource = literal(_)
 	->  rdfs_subclass_of(Class, rdfs:'Literal')
@@ -120,16 +120,16 @@ rdfs_individual_of(Resource, Class) :-
 	    rdfs_subclass_of(MyClass, Class)
 	;   rdf_equal(Class, rdfs:'Resource')
 	).
-rdfs_individual_of(Resource, Class) :-
+individual_of(Resource, Class) :-
 	nonvar(Class), !,
 	(   rdf_equal(Class, rdfs:'Resource')
 	->  rdf_subject(Resource)
 	;   rdfs_subclass_of(SubClass, Class),
 	    rdfs_has_type(Resource, SubClass)
 	).
-rdfs_individual_of(Resource, Class) :-
+individual_of(Resource, Class) :-
 	rdf_subject(Resource),
-	rdfs_individual_of(Resource, Class).
+	individual_of(Resource, Class).
 
 
 %%	rdfs_has_type(+Resource, -Class) is nondet.
