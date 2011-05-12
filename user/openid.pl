@@ -66,7 +66,7 @@ http:location(openid, root(openid), []).
 :- http_handler(openid(grant),  openid_grant, [prefix]).
 
 :- multifile
-	http_openid:openid_hook/2.
+	http_openid:openid_hook/1.
 
 http_openid:openid_hook(login(OpenID)) :-
 	login(OpenID).
