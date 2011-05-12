@@ -28,7 +28,9 @@
     the GNU General Public License.
 */
 
-:- module(api_sesame, [action/4]).
+:- module(api_sesame,
+	  [ api_action/4		% +Request, +Goal, +Format, +Message
+	  ]).
 :- use_module(rdfql(serql)).
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(serql_xml_result)).
@@ -72,6 +74,9 @@
 :- http_handler(sesame('removeStatements'),   remove_statements,
 		[ time_limit(infinite) ]).
 
+:- html_meta
+	api_action(+, 0, +, html).
+
 %%	http_login(+Request)
 %
 %	HTTP handler to associate the current session with a local user.
@@ -87,12 +92,12 @@ http_login(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	action(Request,
-	       (   validate_password(User, Password),
-		   login(User)
-	       ),
-	       ResultFormat,
-	       'Login ~w'-[User]).
+	api_action(Request,
+		   (   validate_password(User, Password),
+		       login(User)
+		   ),
+		   ResultFormat,
+		   'Login ~w'-[User]).
 
 %%      http_logout(+Request)
 %
@@ -104,10 +109,10 @@ http_logout(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	action(Request,
-	       logout_user(Message),
-	       ResultFormat,
-	       Message).
+	api_action(Request,
+		   logout_user(Message),
+		   ResultFormat,
+		   Message).
 
 logout_user('Logout ~w'-[User]) :-
 	logged_on(User), !,
@@ -354,10 +359,10 @@ clear_repository(Request) :-
 			[ attribute_declarations(attribute_decl)
 			]),
 	authorized(write(Repository, clear)),
-	action(Request,
-	       rdf_reset_db,
-	       Format,
-	       'Cleared database'-[]).
+	api_action(Request,
+		   rdf_reset_db,
+		   Format,
+		   'Cleared database'-[]).
 
 %%	unload_source(+Request)
 %
@@ -372,9 +377,9 @@ unload_source(Request) :-
 			[ attribute_declarations(attribute_decl)
 			]),
 	authorized(write(Repository, unload(Source))),
-	action(Request, rdf_unload(Source),
-	       Format,
-	       'Unloaded triples from ~w'-[Source]).
+	api_action(Request, rdf_unload(Source),
+		   Format,
+		   'Unloaded triples from ~w'-[Source]).
 
 
 %%	unload_graph(+Request)
@@ -390,9 +395,9 @@ unload_graph(Request) :-
 			[ attribute_declarations(attribute_decl)
 			]),
 	authorized(write(Repository, unload(Graph))),
-	action(Request, rdf_unload(Graph),
-	       Format,
-	       'Unloaded triples from ~w'-[Graph]).
+	api_action(Request, rdf_unload(Graph),
+		   Format,
+		   'Unloaded triples from ~w'-[Graph]).
 
 
 %%	upload_data(Request).
@@ -420,14 +425,14 @@ upload_data(Request) :- !,
 	authorized(write(Repository, load(posted))),
 	phrase(load_option(DataFormat, BaseURI), Options),
 	atom_to_memory_file(Data, MemFile),
-	action(Request,
-	       setup_call_cleanup(open_memory_file(MemFile, read, Stream),
-				  rdf_guess_format_and_load(Stream, Options),
-				  ( close(Stream),
-				    free_memory_file(MemFile)
-				  )),
-	       ResultFormat,
-	       'Loaded data from POST'-[]).
+	api_action(Request,
+		   setup_call_cleanup(open_memory_file(MemFile, read, Stream),
+				      rdf_guess_format_and_load(Stream, Options),
+				      ( close(Stream),
+					free_memory_file(MemFile)
+				      )),
+		   ResultFormat,
+		   'Loaded data from POST'-[]).
 
 
 %%	upload_url(+Request)
@@ -456,10 +461,10 @@ upload_url(Request) :-
 			]),
 	authorized(write(Repository, load(url(URL)))),
 	phrase(load_option(DataFormat, BaseURI), Options),
-	action(Request,
-	       rdf_load(URL, Options),
-	       ResultFormat,
-	       'Loaded data from ~w'-[URL]).
+	api_action(Request,
+		   rdf_load(URL, Options),
+		   ResultFormat,
+		   'Loaded data from ~w'-[URL]).
 
 load_option(DataFormat, BaseURI) -->
 	data_format_option(DataFormat),
@@ -500,7 +505,7 @@ remove_statements(Request) :-
 
 	(   nonvar(Data)
 	->  setup_call_cleanup(( atom_to_memory_file(Data, MemFile),
-	    			 open_memory_file(MemFile, read, Stream,
+				 open_memory_file(MemFile, read, Stream,
 						  [ free_on_close(true)
 						  ])
 			       ),
@@ -514,9 +519,10 @@ remove_statements(Request) :-
 			       close(Stream)),
 	    length(Triples, NTriples),
 	    debug(removeStatements, 'Removing ~D statements', [NTriples]),
-	    action(Request, remove_triples(Triples),
-		   ResultFormat,
-		   'Removed ~D triples'-[NTriples])
+	    api_action(Request,
+		       remove_triples(Triples),
+		       ResultFormat,
+		       'Removed ~D triples'-[NTriples])
 	;   debug(removeStatements, 'removeStatements = ~w',
 		  [rdf(Subject, Predicate, Object)]),
 
@@ -525,9 +531,10 @@ remove_statements(Request) :-
 	    ntriple_part(Object,    object,    O),
 
 	    debug(removeStatements, 'Action = ~q', [rdf_retractall(S,P,O)]),
-	    action(Request, rdf_retractall(S,P,O),
-		   ResultFormat,
-		   'Removed statements from ~p'-[rdf(S,P,O)])
+	    api_action(Request,
+		       rdf_retractall(S,P,O),
+		       ResultFormat,
+		       'Removed statements from ~p'-[rdf(S,P,O)])
 	).
 
 instantiated(X, I) :-
@@ -652,15 +659,16 @@ bool(Def,
      ]).
 
 
-%%	action(+Request, :Goal, +Format, +Message)
+%%	api_action(+Request, :Goal, +Format, +Message)
 %
 %	Perform some -modifying-  goal,  reporting   time,  triples  and
 %	subject statistics.
+%
+%	@param	Format specifies the result format and is one of =html=,
+%		=xml= or =rdf=.
+%	@param	Message is passed to html_write//1.
 
-:- meta_predicate
-	action(+, 0, +, +).
-
-action(_Request, G, Format, Message) :-
+api_action(_Request, G, Format, Message) :-
 	logged_on(User, anonymous),
 	get_time(T0), T is integer(T0),
 	statistics(cputime, CPU0),
