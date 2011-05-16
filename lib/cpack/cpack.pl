@@ -254,7 +254,7 @@ git_clone_option(['-b', Branch], Options) :-
 
 setup_push_for_download(Dir) :-
 	file_base_name(Dir, Name),
-	default_binding(default, Name, pushrepository(PushURL)),
+	default_binding(default, Name, pushrepository(PushURL)), !,
 	print_message(informational, cpack(probe_remote(PushURL))),
 	catch(git(['ls-remote', '--heads', PushURL],
 		  [ output(_),
@@ -270,6 +270,7 @@ setup_push_for_download(Dir) :-
 	->  true
 	;   print_message(error, E)
 	).
+setup_push_for_download(_).
 
 
 %%	cpack_upgrade
