@@ -67,10 +67,10 @@ load_library_ontology(Request) :-
 	prepare_ontology_library,
 	(   Format == html
 	->  call_showing_messages(rdf_load_library(Ontology, [concurrent(1)]), [])
-	;   action(Request,
-		   rdf_load_library(Ontology, [concurrent(1)]),
-		   Format,
-		   \loaded_library_ontology(Ontology))
+	;   api_action(Request,
+		       rdf_load_library(Ontology, [concurrent(1)]),
+		       Format,
+		       \loaded_library_ontology(Ontology))
 	).
 
 loaded_library_ontology(Id) -->

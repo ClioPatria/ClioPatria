@@ -214,25 +214,9 @@ insert_edit_button(DOM, File, _,
 		   ]).
 
 
-		 /*******************************
-		 *	      RENDERING		*
-		 *******************************/
-
-%%	wiki_file_to_dom(+File, +DOM) is det.
-%
-%	DOM is the HTML dom representation for the content of File.
-
-wiki_file_to_dom(File, DOM) :-
-	read_file_to_codes(File, String, []),
-	(   nb_current(pldoc_file, OrgFile)
-	->  b_setval(pldoc_file, File),
-	    call_cleanup(wiki_codes_to_dom(String, [], DOM),
-			 b_setval(pldoc_file, OrgFile))
-	;   b_setval(pldoc_file, File),
-	    call_cleanup(wiki_codes_to_dom(String, [], DOM),
-			 nb_delete(pldoc_file))
-	).
-
+:- public				% Called through wiki \Term
+	include//3,
+	file//2.
 
 		 /*******************************
 		 *	     RENDERING		*

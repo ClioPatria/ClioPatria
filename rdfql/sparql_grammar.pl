@@ -357,7 +357,7 @@ resolve_expression(E0, E, S0, S) :-
 resolve_expression(E0, E, S0, S) :-
 	resolve_function(E0, E, S0, S), !.
 resolve_expression(T0, T, S0, S) :-
-	resolve_graph_term(T0, T, S0, S). 	% OK?
+	resolve_graph_term(T0, T, S0, S).	% OK?
 
 expression_op(_ = _).
 expression_op(_ \= _).			% SPARQL !=
@@ -559,7 +559,7 @@ prefix_decl(Id-IRI, Base) -->
 %
 %	Process "select ..." into a term
 %
-% 	select(Projection, DataSets, Query, Solutions)
+%	select(Projection, DataSets, Query, Solutions)
 
 select_query(select(Projection, DataSets, Query, Solutions)) -->
 	keyword("select"),
@@ -1160,7 +1160,7 @@ mult_args(E, E) --> [].
 unary_expression(not(E)) --> "!", skip_ws, primary_expression(E).
 unary_expression(+(E))   --> "+", skip_ws, primary_expression(E).
 unary_expression(-(E))   --> "-", skip_ws, primary_expression(E).
-unary_expression(E)      -->      	 primary_expression(E).
+unary_expression(E)      -->		 primary_expression(E).
 
 
 %%	primary_expression(-E)//
@@ -1632,13 +1632,9 @@ esc_code(Code) -->
 esc_code(Code) -->
 	[ Code ].
 
-%%	pn_chars_u(-Code)//
+%%	pn_chars_u(?Code)
 %
 %	Allows for _
-
-pn_chars_u(Code) -->
-	esc_code(Code),
-	{ pn_chars_u(Code) }.
 
 pn_chars_u(Code) :-
 	pn_chars_base(Code).
