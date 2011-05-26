@@ -34,6 +34,8 @@
 	    git_open_file/4,		% +Dir, +File, +Branch, -Stream
 	    git_describe/2,		% -Version, +Options
 	    git_remote_url/3,		% +Remote, -URL, +Options
+	    git_ls_remote/3,		% +GitURL, -Refs, +Options
+	    git_remote_branches/2,	% +GitURL, -Branches
 	    git_default_branch/2,	% -DefaultBranch, +Options
 	    git_tags_on_branch/3	% +Dir, +Branch, -Tags
 	  ]).
@@ -337,6 +339,61 @@ tags(Tags, Tags) -->
 	skip_rest.
 
 skip_rest(_,_).
+
+
+%%	git_ls_remote(+GitURL, -Refs, +Options) is det.
+%
+%	Execute =|git ls-remote|= against the remote repository to fetch
+%	references from the remote.  Options processed:
+%
+%	  * heads(Boolean)
+%	  * tags(Boolean)
+%	  * refs(List)
+%
+%	@param Refs is a list of pairs hash-name.
+
+git_ls_remote(GitURL, Refs, Options) :-
+	findall(O, ls_remote_option(Options, O), OL),
+	append(OL, RemoteOptions),
+	append([ 'ls-remote' | RemoteOptions], [GitURL], Argv),
+	git_process_output(Argv, remote_refs(Refs), []).
+
+ls_remote_option(Options, ['--heads']) :-
+	option(heads(true), Options).
+ls_remote_option(Options, ['--tags']) :-
+	option(tags(true), Options).
+ls_remote_option(Options, Refs) :-
+	option(refs(Refs), Options).
+
+remote_refs(Refs, Out) :-
+	read_line_to_codes(Out, Line0),
+	remote_refs(Line0, Out, Refs).
+
+remote_refs(end_of_file, _, []) :- !.
+remote_refs(Line, Out, [Hash-Ref|Tail]) :-
+	phrase(remote_ref(Hash,Ref), Line),
+	read_line_to_codes(Out, Line1),
+	remote_refs(Line1, Out, Tail).
+
+remote_ref(Hash, Ref) -->
+	string_without("\t ", HashCodes),
+	whites,
+	string_without("\t ", RefCodes),
+	{ atom_codes(Hash, HashCodes),
+	  atom_codes(Ref, RefCodes)
+	}.
+
+
+%%	git_remote_branches(+GitURL, -Branches) is det.
+%
+%	Exploit git_ls_remote/3 to fetch  the   branches  from  a remote
+%	repository without downloading it.
+
+git_remote_branches(GitURL, Branches) :-
+	git_ls_remote(GitURL, Refs, [heads(true)]),
+	findall(B, (member(_-Head, Refs),
+		    atom_concat('refs/heads/', B, Head)),
+		Branches).
 
 
 		 /*******************************
