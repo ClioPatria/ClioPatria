@@ -1024,6 +1024,7 @@ list_resource(URI, Options) -->
 		  ]),
 	       \local_view(URI, Graph, Options),
 	       p(\as_object(URI, Graph)),
+	       p(\as_graph(URI)),
 	       \uri_info(URI, Graph)
 	     ]).
 
@@ -1087,6 +1088,18 @@ sort_by_length(ListOfLists, ByLen) :-
 	map_list_to_pairs(length, ListOfLists, Pairs),
 	keysort(Pairs, Sorted),
 	pairs_values(Sorted, ByLen).
+
+%%	as_graph(+URI) is det.
+%
+%	Show the places where URI is used as a named graph
+
+as_graph(URI) --> { \+ rdf_graph(URI) }, !.
+as_graph(URI) -->
+	 html([ 'This resource is also a ',
+		a([href(location_by_id(list_graph)+'?graph='+encode(URI))],
+		  'named graph'),
+		'.']).
+
 
 %%	as_object(+URI, +Graph) is det.
 %
@@ -1409,7 +1422,7 @@ context_graph(URI, _, RDF) :-
 	findall(T, context_triple(URI, T), RDF0),
 	sort(RDF0, RDF1),
 	minimise_graph(RDF1, RDF2),		% remove inverse/symmetric/...
-	bagify_graph(RDF2, RDF3, Bags, []), 	% Create bags of similar resources
+	bagify_graph(RDF2, RDF3, Bags, []),	% Create bags of similar resources
 	append(RDF3, Bags, RDF).
 
 :- rdf_meta
