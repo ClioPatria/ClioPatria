@@ -202,10 +202,18 @@ option(local,
 compare_files(Templ, Installed, Status) :-
 	(   same_file(Templ, Installed)
 	->  Status = linked
+	;   link_file(Installed)
+	->  Status = linked
 	;   same_file_content(Templ, Installed)
 	->  Status = copied
 	;   Status = modified
 	).
+
+link_file(File) :-
+	setup_call_cleanup(open(File, read, In),
+			   read_line_to_codes(In, Line),
+			   close(In)),
+	atom_codes('/* Linked config file */', Line).
 
 same_file_content(File1, File2) :-
 	setup_call_cleanup((open(File1, read, In1),
@@ -294,14 +302,14 @@ update_config_file(not, linked, [Templ,_]) :-
 	file_base_name(File, Base),
 	local_conf_dir(Dir),
 	atomic_list_concat([Dir, /, Base], NewFile),
-	try_link_file(File, NewFile, How, Level),
-	print_message(Level, config(link(NewFile, How))).
+	link_prolog_file(File, NewFile),
+	print_message(informational, config(link(NewFile))).
 update_config_file(copied, linked, [Templ,Installed]) :-
 	conf_d_member_data(file, Templ, TemplFile),
 	conf_d_member_data(file, Installed, InstalledFile),
 	delete_file(InstalledFile),
-	try_link_file(TemplFile, InstalledFile, How, Level),
-	print_message(Level, config(link(InstalledFile, How))).
+	link_prolog_file(TemplFile, InstalledFile),
+	print_message(informational, config(link(InstalledFile))).
 update_config_file(not, copied, [Templ,_]) :-
 	conf_d_member_data(file, Templ, File),
 	file_base_name(File, Base),
@@ -317,18 +325,45 @@ update_config_file(linked, copied, [Templ,Installed]) :-
 	print_message(informational, config(copy(InstalledFile))).
 
 
-try_link_file(Source, Dest, How, Level) :-
+%%	link_prolog_file(+SourcePath, +DestDir) is det.
+%
+%	Install a skeleton file by linking it.  If it is not possible to
+%	create a symbolic link (typically on  system that do not support
+%	proper links such as Windows), create  a Prolog `link' file that
+%	loads the target.
+%
+%	@see	copied from library(setup). Do not alter without
+%		synchronising.
+
+link_prolog_file(Source, Dest) :-
 	relative_file_name(Source, Dest, Rel),
 	catch(link_file(Rel, Dest, symbolic), Error, true),
 	(   var(Error)
-	->  How = linked,
-	    Level = informational
-	;   current_prolog_flag(windows, true)
-	->  copy_file(Source, Dest),
-	    How = copied,
-	    Level = warning
+	->  true
+	;   catch(create_link_file(Dest, Rel), E2, true)
+	->  (   var(E2)
+	    ->	true
+	    ;	throw(E2)
+	    )
 	;   throw(Error)
 	).
+
+%%	create_link_file(+Dest, +Rel) is det.
+%
+%	Creat a _|link file|_ for a Prolog file. Make sure to delete the
+%	target first, to avoid an accidental   write  through a symbolic
+%	link.
+
+create_link_file(Dest, Rel) :-
+	(   access_file(Dest, exist)
+	->  delete_file(Dest)
+	;   true
+	),
+	setup_call_cleanup(open(Dest, write, Out),
+			   ( format(Out, '/* Linked config file */~n', []),
+			     format(Out, ':- ~q.~n', [consult(Rel)])
+			   ),
+			   close(Out)).
 
 
 local_conf_dir(Dir) :-
@@ -345,8 +380,7 @@ prolog:message(config(Action)) -->
 
 message(delete(File)) --> ['Deleted '], file(File).
 message(rename(Old, New)) --> ['Renamed '], file(Old), [' into '], file(New).
-message(link(File, linked)) --> ['Linked '], file(File).
-message(link(File, copied)) --> ['Copied '], file(File).
+message(link(File)) --> ['Linked '], file(File).
 message(copy(File)) --> ['Copied '], file(File).
 message(no_changes) --> ['No changes; configuration is left untouched'].
 

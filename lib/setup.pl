@@ -195,6 +195,20 @@ config_file(config(FileBase, How), ConfigAvail, File, How) :- !,
 config_file(Term, _, _, _) :-
 	domain_error(config_term, Term).
 
+%%	install_file(+How, +ConfDir, +ConfigAvail, +File) is det.
+%
+%	Install the configuration file  File   from  ConfigAvail  in the
+%	configuration directory ConfDir. How dictates   how  the file is
+%	installed and is one of:
+%
+%	  * link
+%	  Link the file. This means that the configured system updates
+%	  the config file if it is updated in the package.
+%	  * copy
+%	  Copy the file.  This is used if the config file in the package
+%	  is merely a skeleton that needs to be instantiated for the
+%	  specific ClioPatria installation.
+
 install_file(_, ConfDir, _, File) :-
 	directory_file_path(ConfDir, File, Dest),
 	exists_file(Dest), !.
@@ -202,24 +216,49 @@ install_file(link, ConfDir, ConfigAvail, File) :-
 	directory_file_path(ConfigAvail, File, Source),
 	directory_file_path(ConfDir, File, Dest),
 	print_message(informational, setup(install_file(File))),
-	try_link_file(Source, Dest, _How).
+	link_prolog_file(Source, Dest).
 install_file(copy, ConfDir, ConfigAvail, File) :-
 	directory_file_path(ConfigAvail, File, Source),
 	directory_file_path(ConfDir, File, Dest),
 	print_message(informational, setup(install_file(File))),
 	copy_file(Source, Dest).
 
-try_link_file(Source, Dest, How) :-
+%%	link_prolog_file(+SourcePath, +DestDir) is det.
+%
+%	Install a skeleton file by linking it.  If it is not possible to
+%	create a symbolic link (typically on  system that do not support
+%	proper links such as Windows), create  a Prolog `link' file that
+%	loads the target.
+
+link_prolog_file(Source, Dest) :-
 	relative_file_name(Source, Dest, Rel),
 	catch(link_file(Rel, Dest, symbolic), Error, true),
 	(   var(Error)
-	->  How = linked
-	;   current_prolog_flag(windows, true)
-	->  copy_file(Source, Dest),
-	    How = copied
+	->  true
+	;   catch(create_link_file(Dest, Rel), E2, true)
+	->  (   var(E2)
+	    ->	true
+	    ;	throw(E2)
+	    )
 	;   throw(Error)
 	).
 
+%%	create_link_file(+Dest, +Rel) is det.
+%
+%	Creat a _|link file|_ for a Prolog file. Make sure to delete the
+%	target first, to avoid an accidental   write  through a symbolic
+%	link.
+
+create_link_file(Dest, Rel) :-
+	(   access_file(Dest, exist)
+	->  delete_file(Dest)
+	;   true
+	),
+	setup_call_cleanup(open(Dest, write, Out),
+			   ( format(Out, '/* Linked config file */~n', []),
+			     format(Out, ':- ~q.~n', [consult(Rel)])
+			   ),
+			   close(Out)).
 
 %%	setup_goodbye
 %
