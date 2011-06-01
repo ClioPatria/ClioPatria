@@ -137,7 +137,15 @@ user:file_search_path(library, cliopatria(lib)).
 
 cp_server :-
 	process_argv(Options),
-	cp_server(Options).
+	catch(cp_server(Options), E, true),
+	(   var(E)
+	->  true
+	;   print_message(error, E),
+	    (	E = error(socket_error('Address already in use'), _)
+	    ->	print_message(error, cliopatria(use_port_option))
+	    ;	true
+	    )
+	).
 
 cp_server(Options) :-
 	meta_options(is_meta, Options, QOptions),
@@ -458,7 +466,7 @@ http:create_pool(cliopatria) :-
 		 *******************************/
 
 :- multifile
-	prolog:message/3.
+	prolog:message//1.
 
 prolog:message(cliopatria(server_started(Port))) -->
 	{ cp_host(Host),
@@ -474,7 +482,11 @@ prolog:message(cliopatria(welcome(DefaultPort))) -->
 	  '  ?- cp_server.               % start at port ~w'-[DefaultPort], nl,
 	  '  ?- cp_server([port(Port)]). % start at Port'
 	].
-
+prolog:message(cliopatria(use_port_option)) -->
+	[ '   Could not start the HTTP server!', nl,
+	  '   Choose a different port using ./run.pl --port=<port> or', nl,
+	  '   use the network plugin to change the default port.'
+	].
 
 cp_host(Host) :-
 	setting(http:public_host, Host),
