@@ -27,11 +27,12 @@ particular, it implements the following methods:
 @see	http://www.swi-prolog.org/howto/http/Developing.html
 */
 
-:- use_module(library(http/http_error)).
-:- use_module(library(semweb/rdf_portray)).
-:- use_module(user:library(semweb/rdf_db)).
+:- use_module(library(http/http_error)).	% Print stack on error
+:- use_module(library(semweb/rdf_portray)).	% Print e.g., rdf:type
+:- use_module(user:library(semweb/rdf_db)).	% Allow ?- rdf(S,P,O). in toplevel
 
-:- debug(http(request)).
+:- debug_message_context(+time).		% Add time to debug message
+:- debug(http(request)).			% Print request and reply
 
 %%	prepare_editor
 %
