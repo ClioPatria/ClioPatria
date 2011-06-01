@@ -496,7 +496,7 @@ cp_host(Host) :-
 
 cp_port(_ServerPort, PublicPort) :-
 	setting(http:public_host, Host),
-	Host \== '',
+	Host \== '', Host \== localhost,
 	setting(http:public_port, PublicPort), !.
 cp_port(ServerPort, ServerPort).
 

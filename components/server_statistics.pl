@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@uva.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2010, University of Amsterdam,
-    			 VU University Amsterdam.
+			 VU University Amsterdam.
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -175,11 +175,17 @@ servers_stats([]) --> [].
 servers_stats([H|T]) -->
 	server_stats(H), servers_stats(T).
 
+:- if(catch(statistics(process_cputime, _),_,fail)).
+cputime(CPU) :- statistics(process_cputime, CPU).
+:- else.
+cputime(CPU) :- statistics(cputime, CPU).
+:- endif.
+
 server_stats(Port-Workers) -->
 	{ length(Workers, NWorkers),
 	  http_server_property(Port, start_time(StartTime)),
 	  format_time(string(ST), '%+', StartTime),
-	  statistics(cputime, CPU),
+	  cputime(CPU),
 	  statistics(heapused, Heap)
 	},
 	html([ \server_stat('Port:', Port, odd),
