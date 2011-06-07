@@ -348,8 +348,12 @@ ac_object(prefix(label), Query, Filter, Text-Resource) :-
 	->  literal_text(Literal, Text)
 	).
 ac_object(prefix(other), Query, Filter, Text-Resource) :-
-	ac_candidate(Query, Filter, Resource, _, Literal),
-	literal_text(Literal, Text).
+	ac_candidate(Query, Filter, Resource, P, Literal),
+	(   label_property(LP),
+	    rdfs_subproperty_of(P, LP)
+	->  fail
+	;   literal_text(Literal, Text)
+	).
 
 ac_candidate(Query, Filter, R, P, Literal) :-
 	(   sub_term(graph(Graph), Filter)
