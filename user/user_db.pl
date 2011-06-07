@@ -350,7 +350,7 @@ password_hash(Password, Hash) :-
 %	True if User is the name of the currently logged in user.
 
 logged_on(User) :-
-	http_session_id(SessionID),
+	http_in_session(SessionID),
 	user_property(User, session(SessionID)), !.
 logged_on(User) :-
 	http_current_request(Request),
@@ -441,7 +441,7 @@ deny_all_users(Term) :-
 login(User) :-
 	must_be(atom, User),
 	get_time(Time),
-	http_session_id(Session),
+	open_session(Session),
 	retractall(logged_in(_, Session, _)),
 	assert(logged_in(Session, User, Time)),
 	debug(login, 'Login user ~w on session ~w', [User, Session]).
@@ -453,5 +453,29 @@ login(User) :-
 
 logout(User) :-
 	must_be(atom, User),
+	close_session,
 	retractall(logged_in(_Session, User, _Time)),
 	debug(login, 'Logout user ~w', [User]).
+
+% Use new session management if available.
+
+:- if(current_predicate(http_open_session/2)).
+
+:- http_set_session_options([ create(noauto)
+			    ]).
+open_session(Session) :-
+	http_open_session(Session, [renew(true)]).
+close_session :-
+	(   http_in_session(SessionId)
+	->  http_close_session(SessionId)
+	;   true
+	).
+
+:- else.
+
+open_session(Session) :-
+	http_session_id(Session).
+close_session.
+
+:- endif.
+
