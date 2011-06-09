@@ -235,25 +235,13 @@ same_stream_content(C, C, In1, In2) :-
 
 %%	config_files(-Configs)
 %
-%	@param	Configs is a list if Key-[Example,Installed], where
-%		either is (-) or a config data item as required by
-%		conf_d_member_data/3.  The list is sorted on Key.
+%	Get the current configuration status.
 
 config_files(Configs) :-
-	keyed_config(config_available(.), Templ),
-	keyed_config('config-enabled', Installed),
-	merge_pairlists([Templ, Installed], Configs).
+	conf_d_configuration(config_available(.),
+			     'config-enabled',
+			     Configs).
 
-
-keyed_config(Dir, List) :-
-	conf_d_members(Dir, TemplMembers, []),
-	map_list_to_pairs(key_by_file, TemplMembers, List0),
-	keysort(List0, List).
-
-key_by_file(Data, Key) :-
-	conf_d_member_data(file, Data, Path),
-	file_name_extension(Plain, _, Path),
-	file_base_name(Plain, Key).
 
 %%	reconfigure(+Request)
 %
@@ -398,56 +386,3 @@ ensure_slash(Dir0, Dir) :-
 	).
 
 
-		 /*******************************
-		 *	       LIB		*
-		 *******************************/
-
-%%	merge_pairlists(+PairLists, -Merged)
-%
-%	PairLists is a list of lists  of   K-V  pairs.  Merged is a K-VL
-%	list, where each VL is  a  list   of  values  on K in PairLists.
-%	Missing values are returned as (-).  For example:
-%
-%	  ==
-%	  ?- merge_pairlists([ [a-1, d-4],
-%			       [a-1, c-3],
-%			       [b-2]
-%			     ], Merged).
-%	  Merged = [a-[1,1,-], b-[-,-,2], d-[4,-,-], c-[-,3,-]].
-%	  ==
-%
-%	@tbd Is this useful and generic enough for library(pairs)?
-
-merge_pairlists(Lists, Merged) :-
-	heads(Lists, Heads),
-	sort(Heads, Sorted),
-	merge_pairlists(Sorted, Lists, Merged).
-
-heads([], []).
-heads([[K-_|_]|T0], [K|T]) :- !,
-	heads(T0, T).
-heads([[]|T0], T) :-
-	heads(T0, T).
-
-merge_pairlists([], _, []).
-merge_pairlists([K|T0], Lists, [K-Vs|T]) :-
-	take_key(Lists, K, NewLists, NewKsUnsorted, Vs),
-	sort(NewKsUnsorted, NewKs),
-	ord_union(T0, NewKs, Ks),
-	merge_pairlists(Ks, NewLists, T).
-
-take_key([], _, [], [], []).
-take_key([List|T0], K, NewLists, NewKs, Vs) :-
-	(   List = [KH-V|ListT],
-	    KH == K
-	->  NewLists = [ListT|T],
-	    Vs = [V|Vs1],
-	    (	ListT = [NewK-_|_]
-	    ->	NewKs = [NewK|NewKs1]
-	    ;	NewKs1 = NewKs
-	    ),
-	    take_key(T0, K, T, NewKs1, Vs1)
-	;   NewLists = [List|T],
-	    Vs = [(-)|Vs1],
-	    take_key(T0, K, T, NewKs, Vs1)
-	).

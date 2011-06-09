@@ -1,7 +1,10 @@
 :- module(cp_setup,
 	  [ setup/0
 	  ]).
-:- load_files('lib/setup', [silent(true)]).
+:- prolog_load_context(directory, Dir),
+   directory_file_path(Dir, lib, LibDir),
+   asserta(user:file_search_path(library, LibDir)).
+:- load_files(library(setup), [silent(true)]).
 
 :- multifile
 	user:file_search_path/2.
@@ -21,14 +24,22 @@
 %	after localization and creates config-enabled.
 
 setup :-
+	options(Options),
+	setup(Options).
+
+setup(Options) :-
 	cliopatria_dir(ClioDir),
 	install_dir(Dir),
-	setup_scripts(ClioDir, Dir),
+	(   option(help(true), Options)
+	->  true
+	;   setup_scripts(ClioDir, Dir)
+	),
 	directory_file_path(ClioDir, 'lib/APPCONF.txt.in', ReadmeIn),
 	directory_file_path(ClioDir, 'config-available', ConfigAvail),
 	directory_file_path(Dir,     'config-enabled', ConfigEnabled),
 	setup_default_config(ConfigEnabled, ConfigAvail,
 			     [ readme(ReadmeIn)
+			     | Options
 			     ]),
 	setup_goodbye.
 
@@ -62,8 +73,43 @@ setup:substitutions([ 'SWIPL'=PL,		% Prolog executable (for #!...)
 	setup_prolog_executable(PL).
 
 
-directory_file_path(Dir, File, Path) :-
-	(   sub_atom(Dir, _, _, 0, /)
-	->  atom_concat(Dir, File, Path)
-	;   atomic_list_concat([Dir, /, File], Path)
+%%	options(-Options) is det.
+%
+%	Options is a list of  (long)   commandline  options. This uses a
+%	simple generic conversion  between   command-line  argument  and
+%	option value, defined as follows:
+%
+%	  | --without-X  | without(X)  |
+%	  | --with-X     | with(X)     |
+%	  | --Name=Value | Name(Value) |
+%	  | --Name       | Name(true)  |
+
+options(Options) :-
+	current_prolog_flag(argv, Argv),
+	(   append(_, [--|AV], Argv)
+	->  true
+	;   AV = Argv
+	),
+	maplist(cmd_option, AV, Options).
+
+cmd_option(Text, Option) :-
+	atom_concat('--without-', Module, Text), !,
+	Option =.. [without(Module)].
+cmd_option(Text, Option) :-
+	atom_concat('--with-', Module, Text), !,
+	Option =.. [with(Module)].
+cmd_option(Text, Option) :-
+	atom_concat(--, Rest, Text), !,
+	(   sub_atom(Rest, B, _, A, =)
+	->  sub_atom(Rest, 0, B, _, Name),
+	    sub_atom(Rest, _, A, 0, OptVal),
+	    canonical_value(OptVal, Value),
+	    Option =.. [Name,Value]
+	;   Option =.. [Rest,true]
 	).
+cmd_option(Text, Text).
+
+canonical_value(Text, Number) :-
+	catch(atom_number(Text, Number), _, true), !.
+canonical_value(Text, Text).
+

@@ -37,8 +37,10 @@
 	  ]).
 :- use_module(library(apply)).
 :- use_module(library(filesex)).
+:- use_module(library(conf_d)).
 
-/** <module> Library for building installation scripts
+
+/** <module> Configuration (setup) of ClioPatria
 */
 
 :- multifile
@@ -118,11 +120,15 @@ which(File, Path) :-
 %%	setup_default_config(+ConfigEnabled, +ConfigAvail, +Options)
 %
 %	Setup  the  enabled  cofiguration  directory    from  the  given
-%	ConfigAvail.
+%	ConfigAvail. If Options include help(true), this prints a set of
+%	available options.
 
 setup_default_config(ConfigEnabled, ConfigAvail, Options) :-
+	option(help(true), Options), !,
+	setup_config_help(ConfigEnabled, ConfigAvail).
+setup_default_config(ConfigEnabled, ConfigAvail, Options) :-
 	setup_config_enabled(ConfigEnabled, Options),
-	default_config(ConfigEnabled, ConfigAvail).
+	default_config(ConfigEnabled, ConfigAvail, Options).
 
 
 setup_config_enabled(ConfigEnabled, Options) :-
@@ -140,16 +146,25 @@ setup_config_enabled(ConfigEnabled, Options) :-
 	    install_file(Vars, Readme, ReadMeIn)
 	).
 
-default_config(ConfigEnabled, ConfigAvail) :-
+%%	default_config(+ConfigEnabledDir, +ConfigAvailDir, +Options)
+%
+%	Install a default configuration in ConfigEnabledDir based on the
+%	information from ConfigAvailDir.  Options:
+%
+%	  * without(Base)
+%	  Skip this file from the installation
+%	  * with(Base)
+%	  Add this file to the installation
+
+default_config(ConfigEnabled, ConfigAvail, _Options) :-
 	directory_file_path(ConfigEnabled, 'config.done', DoneFile),
 	(   exists_file(DoneFile)
 	->  read_file_to_terms(DoneFile, Installed, [])
 	;   Installed = []
 	),
-	(   directory_file_path(ConfigAvail, 'DEFAULTS', DefFile),
-	    access_file(DefFile, read)
-	->  read_file_to_terms(DefFile, Defaults, []),
-	    setup_call_cleanup(open_done(DoneFile, Out),
+	config_defaults(ConfigAvail, Defaults),
+	(   Defaults \== []
+	->  setup_call_cleanup(open_done(DoneFile, Out),
 			       maplist(install_default(Installed,
 						       ConfigEnabled,
 						       ConfigAvail,
@@ -169,8 +184,8 @@ open_done(DoneFile, Out) :-
 	format(Out, '   Keep track of installed config files~n', []),
 	format(Out, '*/~n~n', []).
 
-install_default(Installed, ConfigEnabled, ConfigAvail, Out, Term) :-
-	config_file(Term, ConfigAvail, File, How),
+install_default(Installed, ConfigEnabled, ConfigAvail, Out,
+		file(_Key, File, How)) :-
 	\+ memberchk(file(File,_,_), Installed), !,
 	install_file(How, ConfigEnabled, ConfigAvail, File),
 	get_time(Now),
@@ -178,22 +193,84 @@ install_default(Installed, ConfigEnabled, ConfigAvail, Out, Term) :-
 	format(Out, '~q.~n', [file(File, ConfigAvail, Stamp)]).
 install_default(_, _, _, _, _).
 
-config_file((Head:-Cond), ConfigAvail, File, How) :- !,
-	call(Cond),
-	config_file(Head, ConfigAvail, File, How).
-config_file(config(FileBase, How), ConfigAvail, File, How) :- !,
-	(   (   File = FileBase
-	    ;	prolog_file_type(Ext, prolog),
-		file_name_extension(FileBase, Ext, File)
-	    ),
-	    directory_file_path(ConfigAvail, File, Path),
-	    exists_file(Path)
-	->  true
-	;   print_message(warning, error(existence_error(config_file, FileBase))),
-	    fail
-	).
-config_file(Term, _, _, _) :-
+
+%%	config_defaults(+ConfigAvail, -Defaults) is det.
+%
+%	Defaults is a list of file(Key, File, How) that indicates which
+%	available config files must be installed by default.
+%
+%	@param ConfigAvail is either a directory or an alias.
+
+config_defaults(ConfigAvail, Defaults) :-
+	compound(ConfigAvail), !,
+	findall(Defs,
+		(   absolute_file_name(ConfigAvail, Dir,
+				       [ file_type(directory),
+					 solutions(all),
+					 access(read)
+				       ]),
+		    config_defaults_dir(Dir, Defs)
+		),
+		AllDefs),
+	append(AllDefs, Defaults).
+config_defaults(ConfigAvail, Defaults) :-
+	config_defaults_dir(ConfigAvail, Defaults).
+
+
+config_defaults_dir(ConfigAvail, Defaults) :-
+	directory_file_path(ConfigAvail, 'DEFAULTS', DefFile),
+	access_file(DefFile, read), !,
+	read_file_to_terms(DefFile, Terms, []),
+	config_defaults(Terms, ConfigAvail, Defaults).
+config_defaults_dir(_, []).
+
+config_defaults([], _, []).
+config_defaults([H|T0], ConfigAvail, [F|T]) :-
+	config_default(H, ConfigAvail, F), !,
+	config_defaults(T0, ConfigAvail, T).
+config_defaults([_|T0], ConfigAvail, T) :-
+	config_defaults(T0, ConfigAvail, T).
+
+
+config_default((Head :- Body), ConfigAvail, File) :- !,
+	call(Body),
+	config_default(Head, ConfigAvail, File).
+config_default(config(FileBase, How), ConfigAvail,
+	       file(Key, Path, How)) :- !,
+	(   File = FileBase
+	;   prolog_file_type(Ext, prolog),
+	    file_name_extension(FileBase, Ext, File)
+	),
+	directory_file_path(ConfigAvail, File, Path),
+	exists_file(Path),
+	file_base_name(File, Base),
+	file_name_extension(Key, _, Base).
+config_default(Term, _, _) :-
 	domain_error(config_term, Term).
+
+
+%%	setup_config_help(+ConfigEnabled, +ConfigAvail) is det.
+
+setup_config_help(ConfigEnabled, ConfigAvail) :-
+	doc_collect(true),
+	config_defaults(ConfigAvail, Defaults),
+	conf_d_configuration(ConfigAvail, ConfigEnabled, Configs),
+	partition(default_config(Defaults), Configs, Default, NonDefault),
+	maplist(config_help(without), Default, Without),
+	maplist(config_help(with), NonDefault, With),
+	print_message(informational, setup(without(Without))),
+	print_message(informational, setup(with(With))).
+
+default_config(Defaults, Key-_) :-
+	memberchk(file(Key,_,_), Defaults).
+
+config_help(With, Key-[Example,_], Help) :-
+	(   conf_d_member_data(title, Example, Title)
+	->  true
+	;   Title = 'no description'
+	),
+	Help =.. [With,Key,Title].
+
 
 %%	install_file(+How, +ConfDir, +ConfigAvail, +File) is det.
 %
@@ -364,10 +441,29 @@ var_value(Name, Value, Vars) :-
 :- multifile
 	prolog:message//1.
 
-prolog:message(setup(localize_dir(SrcDir))) -->
+prolog:message(setup(Term)) -->
+	message(Term).
+
+message(localize_dir(SrcDir)) -->
 	[ 'Localizing scripts from ~p ...'-[SrcDir] ].
-prolog:message(setup(install_file(File, Dir))) -->
+message(install_file(File, Dir)) -->
 	[ 'Installing ~w in ~w ...'-[File, Dir] ].
-prolog:message(setup(install_file(File))) -->
+message(install_file(File)) -->
 	{ file_base_name(File, Base) },
-	[ '    Installing ~w ...'-[Base] ].
+	[ ' Installing ~w ...'-[Base] ].
+message(without(List)) -->
+	[ nl, 'Use --without-X to disable default components' ],
+	help(List).
+message(with(List)) -->
+	[ nl, 'Use --with-X to enable non-default components' ],
+	help(List).
+
+help([]) --> [].
+help([H|T]) -->
+	[nl],
+	help(H),
+	help(T).
+help(without(Key, Title)) -->
+	[ '  --without-~w~t~28|~w'-[Key, Title] ].
+help(with(Key, Title)) -->
+	[ '  --with-~w~t~28|~w'-[Key, Title] ].
