@@ -156,24 +156,39 @@ setup_config_enabled(ConfigEnabled, Options) :-
 %	  * with(Base)
 %	  Add this file to the installation
 
-default_config(ConfigEnabled, ConfigAvail, _Options) :-
+default_config(ConfigEnabled, ConfigAvail, Options) :-
 	directory_file_path(ConfigEnabled, 'config.done', DoneFile),
 	(   exists_file(DoneFile)
 	->  read_file_to_terms(DoneFile, Installed, [])
 	;   Installed = []
 	),
-	config_defaults(ConfigAvail, Defaults),
-	(   Defaults \== []
+	include(with, Options, Requests),
+	maplist(with_file(ConfigAvail), Requests, With),
+	config_defaults(ConfigAvail, Defaults0),
+	exclude(without(Options), Defaults0, Defaults),
+	append(Defaults, With, Install),
+	(   Install \== []
 	->  setup_call_cleanup(open_done(DoneFile, Out),
-			       maplist(install_default(Installed,
-						       ConfigEnabled,
-						       ConfigAvail,
-						       Out),
-				       Defaults),
+			       maplist(install_config(Installed,
+						      ConfigEnabled,
+						      ConfigAvail,
+						      Out),
+				       Install),
 			       close(Out))
 	;   true
 	).
 
+without(Options, file(Key,_,_)) :-
+	memberchk(without(Key), Options).
+
+with(with(_)).
+
+with_file(ConfigAvail, with(Key), file(Key, Path, link)) :-
+	directory_file_path(ConfigAvail, Key, FileBase),
+	absolute_file_name(FileBase, Path,
+			   [ access(read),
+			     file_type(prolog)
+			   ]).
 
 open_done(DoneFile, Out) :-
 	exists_file(DoneFile), !,
@@ -184,14 +199,14 @@ open_done(DoneFile, Out) :-
 	format(Out, '   Keep track of installed config files~n', []),
 	format(Out, '*/~n~n', []).
 
-install_default(Installed, ConfigEnabled, ConfigAvail, Out,
-		file(_Key, File, How)) :-
+install_config(Installed, ConfigEnabled, ConfigAvail, Out,
+	       file(_Key, File, How)) :-
 	\+ memberchk(file(File,_,_), Installed), !,
-	install_file(How, ConfigEnabled, ConfigAvail, File),
+	install_config_file(How, ConfigEnabled, File),
 	get_time(Now),
 	Stamp is round(Now),
 	format(Out, '~q.~n', [file(File, ConfigAvail, Stamp)]).
-install_default(_, _, _, _, _).
+install_config(_, _, _, _, _).
 
 
 %%	config_defaults(+ConfigAvail, -Defaults) is det.
@@ -272,11 +287,11 @@ config_help(With, Key-[Example,_], Help) :-
 	Help =.. [With,Key,Title].
 
 
-%%	install_file(+How, +ConfDir, +ConfigAvail, +File) is det.
+%%	install_config_file(+How, +ConfDir, +File) is det.
 %
-%	Install the configuration file  File   from  ConfigAvail  in the
-%	configuration directory ConfDir. How dictates   how  the file is
-%	installed and is one of:
+%	Install  the  configuration  file  File   in  the  configuration
+%	directory ConfDir. How dictates how the file is installed and is
+%	one of:
 %
 %	  * link
 %	  Link the file. This means that the configured system updates
@@ -286,16 +301,17 @@ config_help(With, Key-[Example,_], Help) :-
 %	  is merely a skeleton that needs to be instantiated for the
 %	  specific ClioPatria installation.
 
-install_file(_, ConfDir, _, File) :-
+install_config_file(_, ConfDir, Path) :-
+	file_base_name(Path, File),
 	directory_file_path(ConfDir, File, Dest),
 	exists_file(Dest), !.
-install_file(link, ConfDir, ConfigAvail, File) :-
-	directory_file_path(ConfigAvail, File, Source),
+install_config_file(link, ConfDir, Source) :-
+	file_base_name(Source, File),
 	directory_file_path(ConfDir, File, Dest),
 	print_message(informational, setup(install_file(File))),
 	link_prolog_file(Source, Dest).
-install_file(copy, ConfDir, ConfigAvail, File) :-
-	directory_file_path(ConfigAvail, File, Source),
+install_config_file(copy, ConfDir, Source) :-
+	file_base_name(Source, File),
 	directory_file_path(ConfDir, File, Dest),
 	print_message(informational, setup(install_file(File))),
 	copy_file(Source, Dest).
