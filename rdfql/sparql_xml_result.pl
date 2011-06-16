@@ -36,7 +36,7 @@
 :- use_module(library(sgml)).
 :- use_module(library(assoc)).
 :- use_module(library(option)).
-:- use_module(library('semweb/rdf_db'), [rdf_is_bnode/1]).
+:- use_module(library('semweb/rdf_db'), [rdf_is_bnode/1, rdf_equal/2]).
 
 ns(sparql, 'http://www.w3.org/2005/sparql-results#').
 
