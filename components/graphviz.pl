@@ -3,8 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2010, University of Amsterdam,
-		   VU University Amsterdam
+    Copyright (C): 2010-2011, University of Amsterdam,
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -104,6 +104,8 @@ terms as a graph.
 
 :- meta_predicate
 	graphviz_graph(1, :, ?, ?).
+:- dynamic
+	closure/4.				% Hash, Closure, Options, Time
 
 graphviz_graph(_Closure, Options) -->
 	{ option(render(Renderer), Options, dot),
@@ -115,7 +117,9 @@ graphviz_graph(Closure, Options) -->
 	  option(format(Format), Options, DefFormat),
 	  meta_options(is_meta, Options, QOptions),
 	  variant_sha1(Closure+QOptions, Hash),
-	  http_session_assert(graphviz(Hash, Closure+QOptions))
+	  get_time(Now),
+	  assert(closure(Hash, Closure, QOptions, Now)),
+	  remove_old_closures(Now)
 	},
 	graphviz_graph_fmt(Format, Hash, QOptions).
 
@@ -186,7 +190,7 @@ send_graph(Request) :-
 				   description('Add TARGET= to all links')
 				 ])
 			]),
-	http_session_data(graphviz(Hash, Closure+Options)),
+	closure(Hash, Closure, Options, _),
 	call(Closure, Graph),
 	reply_graphviz_graph(Graph, Lang, [target(Target)|Options]).
 
@@ -196,7 +200,7 @@ reply_graphviz_graph(_Graph, _Lang, Options) :-
 	http_current_request(Request),
 	http_reply_file(help('error.svg'), [], Request).
 reply_graphviz_graph(Graph, Lang, Options) :-
- 	option(target(Target), Options, _),
+	option(target(Target), Options, _),
 	length(Graph, Len),
 	debug(graphviz, 'Graph contains ~D triples', [Len]),
 	select_option(render(Renderer), Options, GraphOptions0, dot),
@@ -261,3 +265,14 @@ copy_graph_data(C, Stream) :-
 	copy_graph_data(C2, Stream).
 
 
+%%	remove_old_closures(+Now)
+%
+%	Remove closures that are older than 15 minutes.
+
+remove_old_closures(Time) :-
+	(   closure(Hash, _, _, Stamp),
+	    Time > Stamp+900,
+	    retract(closure(Hash, _, _, Stamp)),
+	    fail
+	;   true
+	).
