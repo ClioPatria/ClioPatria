@@ -3,8 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2010, University of Amsterdam,
-		   VU University Amsterdam
+    Copyright (C): 2010-2011, University of Amsterdam,
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -32,9 +32,13 @@
 	  [ cpack_install/1,		% +NameOrURL
 	    cpack_upgrade/0,
 	    cpack_upgrade/1,		% +Name
-	    cpack_configure/1,		% +Name
-	    cpack_add_dir/2,		% +ConfigEnabled, +Directory
+	    cpack_remove/1,		% +Name
+	    cpack_remove/2,		% +Name, +Options
+					% For creators
 	    cpack_create/3,		% +Name, +Title, +Options
+	    cpack_configure/1,		% +Name
+					% Further API
+	    cpack_add_dir/2,		% +ConfigEnabled, +Directory
 	    cpack_register/3,		% +Name, +Dir, +Options
 	    current_cpack/1,		% ?Name
 	    cpack_property/2		% ?Name, ?Property
@@ -357,13 +361,7 @@ add_pack_to_search_path(PackFile, Pack, Dir, Modified, Options) :-
 	;   Old = (:- cpack_register(Pack, _, _)),
 	    memberchk(Old, Terms)
 	->  selectchk(Old, Terms, New, Terms2),
-	    setup_call_cleanup(open(PackFile, write, Out),
-			       ( write_search_path_header(Out),
-				 Templ = cpack_register(_, _, _),
-				 forall(member((:-Templ), Terms2),
-					format(Out, ':- ~q.~n', [Templ]))
-			       ),
-			       close(Out))
+	    write_pack_register(PackFile, Terms2)
 	;   setup_call_cleanup(open(PackFile, append, Out),
 			       extend_search_path(Out, Pack, Dir, Options),
 			       close(Out)),
@@ -374,6 +372,16 @@ add_pack_to_search_path(PackFile, Pack, Dir, true, Options) :-
 	write_search_path_header(Out),
 	extend_search_path(Out, Pack, Dir, Options),
 	close(Out).
+
+write_pack_register(PackFile, Terms) :-
+	setup_call_cleanup(open(PackFile, write, Out),
+			   ( write_search_path_header(Out),
+			     Templ = cpack_register(_, _, _),
+			     forall(member((:-Templ), Terms),
+				    format(Out, ':- ~q.~n', [Templ]))
+			   ),
+			   close(Out)).
+
 
 write_search_path_header(Out) :-
 	format(Out, '/* Generated file~n', []),
@@ -387,6 +395,143 @@ write_search_path_header(Out) :-
 extend_search_path(Out, Pack, Dir, Options) :-
 	format(Out, ':- ~q.~n', [cpack_register(Pack, Dir, Options)]).
 
+
+		 /*******************************
+		 *	      REMOVAL		*
+		 *******************************/
+
+%%	cpack_remove(+Pack) is det.
+%%	cpack_remove(+Pack, +Options) is det.
+%
+%	Remove CPACK Pack.  Processed options:
+%
+%	  * force(Boolean)
+%	  If =true=, omit checking whether removing the package will
+%	  break dependencies.
+%	  * fake(true)
+%	  Print messages indicating what actions will be preformed, but
+%	  do not modify anything.
+%
+%	@tbd	Should we also try to unload all loaded files?
+
+cpack_remove(Name) :-
+	cpack_remove(Name, []).
+
+cpack_remove(Name, Options) :-
+	\+ option(force(true), Options),
+	required_by(Name, Dependents), !,
+	throw(error(cpack_error(cannot_remove(Name, Dependents)), _)).
+cpack_remove(Name, Options) :-
+	registered_cpack(Name, Dir, _Options),
+	absolute_file_name(Dir, DirPath,
+			   [ file_type(directory),
+			     access(read)
+			   ]),
+	cpack_unregister(Name, Options),
+	remove_config(DirPath, Options),
+	remove_dir(DirPath, Options).
+
+required_by(Name, Dependents) :-
+	setof(Dep, required_pack(Name, Dep), Dependents).
+
+required_pack(Name, Pack) :-
+	registered_cpack(Pack, _, Options),
+	(   member(requires(Packs), Options),
+	    member(Name, Packs)
+	->  true
+	).
+
+
+%%	cpack_unregister(+Pack, +Options) is det.
+%
+%	Remove registration of the given  CPACK.   This  is  achieved by
+%	updating 010-packs.pl and reloading this file.
+
+cpack_unregister(Pack, Options) :-
+	conf_d_enabled(ConfigEnabled),
+	directory_file_path(ConfigEnabled, '010-packs.pl', PacksFile),
+	exists_file(PacksFile),
+	read_file_to_terms(PacksFile, Terms, []),
+	selectchk((:- cpack_register(Pack,_,_)), Terms, RestTerms), !,
+	(   option(fake(true), Options)
+	->  print_message(informational, cpack(action(update(PacksFile))))
+	;   write_pack_register(PacksFile, RestTerms),
+	    load_files(PacksFile, [if(true)])
+	).
+cpack_unregister(_, _).
+
+
+%%	remove_config(+Dir, +Options)
+%
+%	Remove configuration that we loaded  from Dir. Currently deletes
+%	links and Prolog `link files'.
+%
+%	@tbd	Deal with copied config files.  We can base this on
+%		config.done and maybe on the module name.
+%	@tbd	Update config.done.
+
+remove_config(Dir, Options) :-
+	conf_d_enabled(ConfigEnabled),
+	entry_paths(ConfigEnabled, Paths),
+	maplist(remove_config(Dir, Options), Paths).
+
+remove_config(PackDir, Options, File) :-
+	read_link(File, _, Target),
+	absolute_file_name(Target, CanonicalTarget),
+	sub_atom(CanonicalTarget, 0, _, _, PackDir), !,
+	action(delete_file(File), Options).
+remove_config(PackDir, Options, PlFile) :-
+	file_name_extension(_, pl, PlFile),
+	setup_call_cleanup(open(PlFile, read, In),
+			   read(In, Term0),
+			   close(In)),
+	Term0 = (:- consult(Rel)),
+	absolute_file_name(Rel, Target,
+			   [ relative_to(PlFile) ]),
+	sub_atom(Target, 0, _, _, PackDir), !,
+	action(delete_file(PlFile), Options).
+remove_config(_, _, _).
+
+
+%%	remove_dir(+Dir, Options)
+%
+%	Removes a directory recursively.
+
+remove_dir(Link, Options) :-
+	read_link(Link, _, _), !,
+	action(delete_file(Link), Options).
+remove_dir(Dir, Options) :-
+	exists_directory(Dir), !,
+	entry_paths(Dir, Paths),
+	forall(member(P, Paths),
+	       remove_dir(P, Options)),
+	action(delete_directory(Dir), Options).
+remove_dir(File, Options) :-
+	action(delete_file(File), Options).
+
+entry_paths(Dir, Paths) :-
+	directory_files(Dir, Entries),
+	entry_paths(Entries, Dir, Paths).
+
+entry_paths([], _, []).
+entry_paths([H|T0], Dir, T) :-
+	hidden(H), !,
+	entry_paths(T0, Dir, T).
+entry_paths([H|T0], Dir, [P|T]) :-
+	directory_file_path(Dir, H, P),
+	entry_paths(T0, Dir, T).
+
+hidden(.).
+hidden(..).
+
+:- meta_predicate
+	action(0, +).
+
+action(G, Options) :-
+	option(fake(true), Options), !,
+	print_message(informational, cpack(action(G))).
+action(G, _) :-
+	G.
 
 		 /*******************************
 		 *	   REGISTRATION		*
@@ -707,6 +852,8 @@ message(probe_remote(URL)) -->
 	[ 'Checking availability of GIT repository ~w ...'-[URL] ].
 message(add_remote(Name, URL)) -->
 	[ 'Running "git remote add ~w ~w ..."'-[Name, URL] ].
+message(action(G)) -->
+	[ '~q'-[G] ].
 
 sub_packages([]) --> [].
 sub_packages([H|T]) --> sub_package(H), sub_packages(T).
@@ -723,6 +870,9 @@ prolog:error_message(cpack_error(Error)) -->
 cpack_error(not_satisfied(Pack, Reasons)) -->
 	[ 'Package not satisfied: ~p'-[Pack] ],
 	not_satisfied_list(Reasons).
+cpack_error(cannot_remove(Pack, Dependents)) -->
+	[ 'Cannot remove "~p" because the following packs depend on it'-[Pack] ],
+	pack_list(Dependents).
 
 not_satisfied_list([]) --> [].
 not_satisfied_list([H|T]) --> not_satisfied(H), not_satisfied_list(T).
@@ -739,3 +889,7 @@ file_problems([H|T]) --> file_problem(H), file_problems(T).
 file_problem(predicate_not_found(PI)) -->
 	[ nl, '        Predicate not resolved: ~w'-[PI] ].
 
+pack_list([]) --> [].
+pack_list([H|T]) -->
+	[ nl, '   ~p'-[H] ],
+	pack_list(T).
