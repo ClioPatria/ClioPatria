@@ -66,7 +66,7 @@
 :- rdf_register_ns(cpack, 'http://cliopatria.swi-prolog.org/schema/cpack#').
 :- rdf_register_ns(foaf,  'http://xmlns.com/foaf/0.1/').
 
-%%	cpack_install(+Install) is det.
+%%	cpack_install(+Install) is semidet.
 %
 %	Install package by name or URL. The URL  of a CPACK can be found
 %	on  the  web-page  of  the  package.   If  a  *name*  is  given,
@@ -103,13 +103,7 @@ cpack_install(URL) :-
 	cpack_package_data(URL, Terms),
 	cpack_install_terms(Terms).
 cpack_install(Name) :-
-	cpack_load_profile,
-	(   rdf_has(_, cpack:servers, List),
-	    rdfs_member(Server, List)
-	;   setting(cpack:server, Server)
-	),
-	ensure_slash(Server, ServerDir),
-	pack_data_url(ServerDir, Name, URL),
+	pack_data_url(Name, URL),
 	print_message(informational, cpack(probe(URL))),
 	catch(cpack_package_data(URL, Terms), E, true),
 	(   var(E)
@@ -117,6 +111,20 @@ cpack_install(Name) :-
 	;   print_message(error, E),
 	    fail
 	).
+
+%%	pack_data_url(+NameOrNames, -URL) is nondet.
+%
+%	URL can be tried  to  obtain   information  about  the requested
+%	packages.
+
+pack_data_url(Name, URL) :-
+	cpack_load_profile,
+	(   rdf_has(_, cpack:servers, List),
+	    rdfs_member(Server, List)
+	;   setting(cpack:server, Server)
+	),
+	ensure_slash(Server, ServerDir),
+	pack_data_url(ServerDir, Name, URL).
 
 pack_data_url(ServerDir, Names, URL) :-
 	is_list(Names), !,
@@ -329,7 +337,7 @@ cpack_add_dir(ConfigEnable, Dir, Options) :-
 
 
 %%	add_pack_to_search_path(+PackFile, +Pack, +Dir, -Modified,
-%%				+Options is det.
+%%				+Options) is det.
 %
 %	Add a directive as  below  to   PackFile.  If  PackFile  already
 %	contains a declaration for Pack   with different attributes, the
