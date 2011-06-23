@@ -201,11 +201,14 @@ open_done(DoneFile, Out) :-
 
 install_config(Installed, ConfigEnabled, ConfigAvail, Out,
 	       file(_Key, File, How)) :-
-	\+ memberchk(file(File,_,_), Installed), !,
+	file_base_name(File, Base),
+	\+ ( memberchk(file(IFile,_,_), Installed),
+	     file_base_name(IFile, Base)
+	   ), !,
 	install_config_file(How, ConfigEnabled, File),
 	get_time(Now),
 	Stamp is round(Now),
-	format(Out, '~q.~n', [file(File, ConfigAvail, Stamp)]).
+	format(Out, '~q.~n', [file(Base, ConfigAvail, Stamp)]).
 install_config(_, _, _, _, _).
 
 
