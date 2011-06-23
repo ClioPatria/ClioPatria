@@ -328,6 +328,17 @@ cpack_add_dir(ConfigEnable, Dir, Options) :-
 	conf_d_reload.
 
 
+%%	add_pack_to_search_path(+PackFile, +Pack, +Dir, -Modified,
+%%				+Options is det.
+%
+%	Add a directive as  below  to   PackFile.  If  PackFile  already
+%	contains a declaration for Pack   with different attributes, the
+%	file is rewritten using the new attributes.
+%
+%	  ==
+%	  :- cpack_register(Pack, Dir, Options).
+%	  ==
+
 add_pack_to_search_path(PackFile, Pack, Dir, Modified, Options) :-
 	exists_file(PackFile), !,
 	read_file_to_terms(PackFile, Terms, []),
@@ -337,15 +348,16 @@ add_pack_to_search_path(PackFile, Pack, Dir, Modified, Options) :-
 	;   Old = (:- cpack_register(Pack, _, _)),
 	    memberchk(Old, Terms)
 	->  selectchk(Old, Terms, New, Terms2),
-	    open(PackFile, write, Out),
-	    write_search_path_header(Out),
-	    Templ = cpack_register(_, _, _),
-	    forall(member((:-Templ), Terms2),
-		   format(Out, ':- ~q.~n', [Templ])),
-	    close(Out)
-	;   open(PackFile, append, Out),
-	    extend_search_path(Out, Pack, Dir, Options),
-	    close(Out),
+	    setup_call_cleanup(open(PackFile, write, Out),
+			       ( write_search_path_header(Out),
+				 Templ = cpack_register(_, _, _),
+				 forall(member((:-Templ), Terms2),
+					format(Out, ':- ~q.~n', [Templ]))
+			       ),
+			       close(Out))
+	;   setup_call_cleanup(open(PackFile, append, Out),
+			       extend_search_path(Out, Pack, Dir, Options),
+			       close(Out)),
 	    Modified = true
 	).
 add_pack_to_search_path(PackFile, Pack, Dir, true, Options) :-
