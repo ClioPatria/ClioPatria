@@ -225,6 +225,7 @@ cpack_module_options([_|T0], T) :-
 	cpack_module_options(T0, T).
 
 cpack_module_option(url(URL), home_url(URL)).
+cpack_module_option(requires(Packages), requires(Packages)).
 
 
 %%	cpack_download(+Repository, +TargetDir)
