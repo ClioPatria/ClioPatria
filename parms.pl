@@ -93,8 +93,8 @@ http:location(cliopatria,  root(.),	       []).
 http:location(sesame,	   root(servlets),     []).
 http:location(sparql,	   root(sparql),       []).
 http:location(rdf_browser, cliopatria(browse), []).
-http:location(api,  	   cliopatria(api),    []).
-http:location(json,  	   api(json),	       []).
+http:location(api,	   cliopatria(api),    []).
+http:location(json,	   api(json),	       []).
 
 
 		 /*******************************
@@ -185,6 +185,10 @@ http_settings:input_item(uri, Value, Name) -->
 	   'Allow registered namespaces in queries').
 :- setting(cliopatria:persistent_store, atom, '',
 	   'Directory for persistent copy of in-memory RDF').
+:- setting(cliopatria:pre_index_tokens, boolean, false,
+	   'Build the fulltext token index while loading').
+:- setting(cliopatria:pre_index_stems, boolean, false,
+	   'Build the fulltext stem index while loading').
 
 
 		 /*******************************

@@ -88,6 +88,7 @@ user:file_search_path(library, cliopatria(lib)).
 
 		library(semweb/rdf_db),
 		library(semweb/rdf_persistency),
+		library(semweb/rdf_litindex),
 
 		library(http/http_session),
 		library(http/http_dispatch),
@@ -186,6 +187,7 @@ is_meta(after_load).
 rdf_attach_store(Options, AfterLoad) :-
 	setting(cliopatria:persistent_store, Directory),
 	Directory \== '', !,
+	setup_indices,
         rdf_attach_db(Directory, Options),
 	forall(after_load_goal(Goal),
 	       call_warn(Goal)),
@@ -199,6 +201,27 @@ call_warn(Goal) :-
 	    )
 	;   print_message(warning, goal_failed(Goal))
 	).
+
+
+%%	setup_indices is det.
+%
+%	Initialize maintenance of the full-text   indices. These indices
+%	are created on first call and  maintained dynamically as the RDF
+%	store changes. By initializing them  before   there  is  any RDF
+%	loaded, they will be built while  the data is (re-)loaded, which
+%	avoids long delays on the first  query.   Note  that most of the
+%	work is done in a separate thread.
+
+setup_indices :-
+	setting(cliopatria:pre_index_tokens, true),
+	rdf_find_literals(not_a_token, _),
+	fail.
+setup_indices :-
+	setting(cliopatria:pre_index_stems, true),
+	rdf_find_literals(stem(not_a_stem), _),
+	fail.
+setup_indices.
+
 
 %%	cp_after_load(:Goal) is det.
 %

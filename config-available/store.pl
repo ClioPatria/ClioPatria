@@ -9,4 +9,6 @@ Enable persistent storage of RDF graphs using the given directory.
 */
 
 :- set_setting_default(cliopatria:persistent_store, 'RDF-store').
+:- set_setting_default(cliopatria:pre_index_tokens, true).
+:- set_setting_default(cliopatria:pre_index_stems, false).
 
