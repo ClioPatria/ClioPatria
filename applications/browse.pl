@@ -1707,11 +1707,11 @@ label_of(Literal, Label) :-
 %	Sort a list of rdf(S,P,O) by the labels.
 
 sort_triples_by_label(Pairs, Sorted) :-
-	map_list_to_pairs(sort_triples_by_label, Pairs, LabelPairs),
+	map_list_to_pairs(key_triple_by_label, Pairs, LabelPairs),
 	keysort(LabelPairs, SortedPairs),
 	pairs_values(SortedPairs, Sorted).
 
-sort_triples_by_label(rdf(S,P,O), rdf(SK,PK,OK)) :-
+key_triple_by_label(rdf(S,P,O), rdf(SK,PK,OK)) :-
 	label_sort_key(S, SK),
 	label_sort_key(P, PK),
 	label_sort_key(O, OK).
