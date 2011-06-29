@@ -126,9 +126,9 @@ options([Value|T]) -->
 
 resource_menu -->
 	html(select(name(resourceFormat),
-		    [ option([value(plain)], 		plain),
+		    [ option([value(plain)],		plain),
 		      option([value(ns), selected],	'ns:local'),
-		      option([value(nslabel)],	 	'ns:label')
+		      option([value(nslabel)],		'ns:label')
 		    ])).
 
 entailment -->
@@ -157,7 +157,7 @@ entailments([E|T]) -->
 %	later in the page where a script is allowed.
 
 store_recall(Type, SL-SR) -->
-	{ next_query_id(Id)
+	{ next_query_id(Id), !
 	},
 	html(tr([ td([ class(qstore),
 		       colspan(SL)
@@ -175,12 +175,21 @@ store_recall(Type, SL-SR) -->
 		     ],
 		     \recall(Type))
 		])).
+store_recall(_, SL-SR) -->
+	{ Span is SL+SR },
+	html(tr([ td([ class(qnostore),
+		       colspan(Span)
+		     ],
+		     [ 'Login to enable save/restore of queries'
+		     ])
+		])).
 
 
 recall(Type) -->
-	{ findall(Name-Query, stored_query(Name, Type, Query), Pairs),
+	{ http_in_session(_),
+	  findall(Name-Query, stored_query(Name, Type, Query), Pairs),
 	  Pairs \== []
-	},
+	}, !,
 	html([ b('Recall: '),
 	       select(name(recall),
 		      [ option([selected], '')
@@ -267,25 +276,29 @@ js_quote_code(0'\t) --> !,
 js_quote_code(C) -->
 	[C].
 
+
 		 /*******************************
 		 *	   SAVED QUERIES	*
 		 *******************************/
 
 %%	store_query(+Type, +Name, +Query) is det.
 %
-%	Store the SPARQL/SeRQL Query under Name in the current session.
+%	Store the SPARQL/SeRQL Query under Name  in the current session.
+%	Succeeds without doing anything if there is no session.
 
 store_query(_, '', _) :- !.
 store_query(Type, As, Query) :-
-	set_high_id(As),
+	set_high_id(As), !,
 	http_session_retractall(stored_query(As, Type, _)),
 	http_session_retractall(stored_query(_, Type, Query)),
 	http_session_asserta(stored_query(As, Type, Query)).
+store_query(_, _, _).
 
 stored_query(As, Type, Query) :-
 	http_session_data(stored_query(As, Type, Query)).
 
 set_high_id(Name) :-
+	http_in_session(_),
 	atom_concat('Q-', Id, Name),
 	catch(atom_number(Id, N), _, fail), !,
 	(   http_session_data(qid(N0))
@@ -300,6 +313,7 @@ set_high_id(_).
 
 
 next_query_id(Id) :-
+	http_in_session(_Session), !,
 	(   http_session_data(qid(Id0))
 	->  Next is Id0+1
 	;   Next is 1

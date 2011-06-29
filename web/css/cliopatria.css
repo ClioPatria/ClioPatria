@@ -256,6 +256,11 @@ form.query h3
   background-color: #b9daff;
 }
 
+form.query td.qnostore
+{ text-align: right;
+  color: #aaa;
+}
+
 table.query
 { margin-top: 1ex;
   margin-left: 5%;
