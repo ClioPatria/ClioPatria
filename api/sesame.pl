@@ -509,7 +509,7 @@ remove_statements(Request) :-
 						  [ free_on_close(true)
 						  ])
 			       ),
-			       ( guess_rdf_data_format(Stream, DataFormat),
+			       ( rdf_guess_data_format(Stream, DataFormat),
 			         get_triples(stream(Stream),
 					     Triples,
 					     [ base_uri(BaseURI),
