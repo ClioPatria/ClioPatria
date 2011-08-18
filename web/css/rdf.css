@@ -47,3 +47,9 @@ span.l_type, span.l_lang
 a.l_count				/* linked literal */
 { color: black;
 }
+
+span.rdf_unbound
+{ font-size: 70%;
+  font-style: italic;
+  color: #a0a0a0;
+}

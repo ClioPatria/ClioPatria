@@ -103,8 +103,14 @@ rows([H|T], Options, Class) -->
 cells([], _) -->
 	[].
 cells([H|T], Options) -->
-	html(td(\rdf_link(H, Options))),
+	cell(H, Options),
 	cells(T, Options).
+
+cell(H, _) -->
+	{ var(H) }, !,
+	html(td(span(class(rdf_unbound), '<unbound>'))).
+cell(H, Options) -->
+	html(td(\rdf_link(H, Options))).
 
 odd_even(odd, even).
 odd_even(even, odd).
