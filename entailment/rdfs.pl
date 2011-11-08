@@ -32,7 +32,7 @@
 :- module(rdfs_entailment,
 	  [
 	  ]).
-:- use_module(rdfql(rdfql_runtime)). 	% runtime tests
+:- use_module(rdfql(rdfql_runtime)).	% runtime tests
 :- use_module(library(nb_set)).
 :- use_module(library('semweb/rdf_db'),
 	      [ rdf_global_id/2,
@@ -77,13 +77,15 @@ rdf(S, P, O) :-
 	    rdf(S, P, O),
 	    \+ rdf_db:rdf(S,P,O)
 	).
-rdf(S, rdf:type, C) :- !,
+rdf(S, P, C) :-
+	rdf_reachable(P, rdfs:subPropertyOf, rdf:type), !,
 	(   nonvar(C)
 	->  individual_of(S, C)
 	;   rdf_subject(S),			% ensure instantiation
 	    individual_of(S, C)
 	).
-rdf(S, rdfs:subClassOf, O) :- !,		% transitive predicates
+rdf(S, P, O) :-					% transitive predicates
+	rdf_reachable(P, rdfs:subPropertyOf, rdfs:subClassOf), !,
 	(   (nonvar(S) ; nonvar(O)),
 	    S \== O				% avoid X rdfs:subClassOf X
 	->  rdfs_subclass_of(S, O)
