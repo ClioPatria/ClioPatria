@@ -37,6 +37,7 @@
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_request_value)).
+:- use_module(library(http/http_cors)).
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(sparql_xml_result)).
 :- use_module(rdfql(sparql_json_result)).
@@ -107,8 +108,10 @@ sparql_media(application/'sparql-results+xml',   xml).
 sparql_media(application/'sparql-results+json', json).
 
 write_result(xml, Type, Rows, Options) :-
+	cors_enable,
 	write_xml_result(Type, Rows, Options).
 write_result(json, Type, Rows, Options) :-
+	cors_enable,
 	write_json_result(Type, Rows, Options).
 
 write_xml_result(ask, [True], Options) :- !,
@@ -141,25 +144,25 @@ sparql_decl(query,
 	    [ description('The SPARQL query to execute')
 	    ]).
 sparql_decl('default-graph-uri',
- 	    [ list(atom),
+	    [ list(atom),
 	      description('The default graph(s) to query (not supported)')
 	    ]).
 sparql_decl('named-graph-uri',
- 	    [ list(atom),
+	    [ list(atom),
 	      description('Additional named graph(s) to query (not supported)')
 	    ]).
 sparql_decl(format,
- 	    [ optional(true),
+	    [ optional(true),
 	      oneof([ 'rdf+xml',
 		      json,
 		      'application/sparql-results+xml',
 		      'application/sparql-results+json'
 		    ]),
 	      description('Result format.  If not specified, the \
-	      		  HTTP Accept header is used')
+			  HTTP Accept header is used')
 	    ]).
 sparql_decl(entailment,
- 	    [ optional(true),
+	    [ optional(true),
 	      default(rdf),
 	      oneof(Es),
 	      description('Entailment used')

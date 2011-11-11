@@ -40,6 +40,7 @@
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_request_value)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/http_cors)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_json)).
@@ -156,6 +157,7 @@ lod_api(Options, Request) :-
 	    )
 	;   AcceptList = []
 	),
+	cors_enable,
 	lod_request(URI, AcceptList, Request, Options).
 
 lod_request(URI, AcceptList, Request, Options) :-
