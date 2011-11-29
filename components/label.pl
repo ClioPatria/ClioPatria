@@ -90,17 +90,17 @@ turtle_label(literal(Lit), Options) --> !,
 literal_label(type(Type, Value), Options) --> !,
 	{ truncate_text(Value, Show, Options) },
 	html(span(class(literal),
-		  ['"', span(class(l_text), Show),
-		   '"', span(class(l_type), '^^'), \turtle_label(Type)])).
+		  [span(class(oquote), '"'), span(class(l_text), Show), span(class(cquote), '"'),
+		   span(class(l_type), '^^'), \turtle_label(Type)])).
 literal_label(lang(Lang, Value), Options) --> !,
 	{ truncate_text(Value, Show, Options) },
 	html(span(class(literal),
-		  ['"', span(class(l_text), Show), '"',
+		  [span(class(oquote), '"'), span(class(l_text), Show), span(class(cquote), '"'),
 		   span(class(l_lang), '@'), span(class(lang), Lang)])).
 literal_label(Value, Options) -->
 	{ truncate_text(Value, Show, Options) },
 	html(span(class(literal),
-		  ['"', span(class(l_text), Show), '"'])).
+		  [span(class(oquote), '"'), span(class(l_text), Show), span(class(cquote), '"')])).
 
 truncate_text(Text, Text, []) :- !.
 truncate_text(Text, Truncated, Options) :-
