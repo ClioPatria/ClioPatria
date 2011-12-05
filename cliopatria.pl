@@ -159,6 +159,7 @@ cp_server(Options) :-
 	setting(http:worker_options, Settings),
 	merge_options(QOptions, Settings, HTTPOptions),
 	option(port(Port), QOptions, DefPort),
+	update_public_port(Port, DefPort),
 	option(workers(Workers), QOptions, DefWorkers),
 	http_server(http_dispatch,
 		    [ port(Port),
@@ -176,6 +177,20 @@ cp_server(Options) :-
 			   http_delete_handler(id(busy_loading))).
 
 is_meta(after_load).
+
+%%	update_public_port(+Port, +DefPort)
+%
+%	Update http:public_port if port is   changed  using --port=Port.
+%	Without this hack it is no longer  to login after using the port
+%	option.
+
+update_public_port(Port, Port) :- !.
+update_public_port(Port, DefPort) :-
+	setting(http:public_port, DefPort), !,
+	set_setting_default(http:public_port, Port),
+	assertion(setting(http:public_port, Port)).
+update_public_port(_, _).
+
 
 %%	rdf_attach_store(+Options, :AfterLoad) is det.
 %
