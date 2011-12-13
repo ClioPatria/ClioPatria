@@ -98,6 +98,10 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %	    Shape).  Shape is a list of Name(Value) terms.  See
 %	    shape/3.
 %
+%	    * label_hook(:Goal)
+%	    Called to define the label of a resource as call(Goal, URI,
+%	    Language, MaxLength, Label). Label is an atom.
+%
 %	    * target(Target)
 %	    If present, add target=Target to all attribute lists that
 %	    have an =href= attribute.
@@ -119,6 +123,7 @@ gviz_write_rdf(Stream, Graph0, Options0) :-
 
 is_meta(wrap_url).
 is_meta(shape_hook).
+is_meta(label_hook).
 
 %%	write_graph_attributes(+List, +Out)
 %
@@ -345,10 +350,18 @@ write_image_node(ImgAttrs, Attrs, Stream, _Options) :-
 %	    * max_label_length(+Len)
 
 resource_label(Resource, Label, Options) :-
+	option(label_hook(Hook), Options),
+	!,
+	option(lang(Lang), Options, _),
+	option(max_label_length(MaxLen), Options, 25),
+	call(Hook, Resource, Lang, MaxLen, Label).
+resource_label(Resource, Label, Options) :-
 	option(lang(Lang), Options, _),
 	rdf_display_label(Resource, Lang, Text),
 	option(max_label_length(MaxLen), Options, 25),
 	truncate_atom(Text, MaxLen, Label).
+
+
 
 %%	write_attributes(+Attributes:list, +Out:stream) is det.
 %
