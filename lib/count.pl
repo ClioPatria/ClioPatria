@@ -34,7 +34,8 @@
 	    answer_count/3,		% ?Var, :Goal, -Count
 	    answer_count/4,		% ?Var, :Goal, +Max -Count
 	    answer_set/3,		% ?Var, :Goal, -Answers
-	    answer_set/4		% ?Var, :Goal, +Max, -Answers
+	    answer_set/4,		% ?Var, :Goal, +Max, -Answers
+	    answer_pair_set/5		% ?Pair, :Goal, +MaxKeys, +MaxPerKey, -Answers
 	  ]).
 :- use_module(library(nb_set)).
 
@@ -61,7 +62,8 @@ limiting the number of answers.
 	answer_count(?, 0, -),
 	answer_count(?, 0, +, -),
 	answer_set(?, 0, -),
-	answer_set(?, 0, +, -).
+	answer_set(?, 0, +, -),
+	answer_pair_set(?, 0, +, +, -).
 
 %%	proof_count(:Goal, -Count) is det.
 %%	proof_count(:Goal, +Max, -Count) is det.
@@ -136,3 +138,57 @@ answer_set(T, G, Max, Ts) :-
 	;   true
 	),
 	nb_set_to_list(Set, Ts).
+
+%%      answer_pair_set(Var, :Goal, +MaxKeys, +MaxPerKey, -Group)
+%
+%       Bounded find of Key-Value  pairs.   MaxKeys  bounds  the maximum
+%       number of keys. MaxPerKey bounds the   maximum number of answers
+%       per key.
+
+answer_pair_set(P, G, MaxKeys, MaxPerKey, Groups) :-
+        P = K-V,
+        (   MaxPerKey = inf
+        ->  true
+        ;   TooMany is MaxPerKey+1,
+            dif(New, values(TooMany))
+        ),
+        rb_empty(Tree),
+        State = keys(0),
+        (   G,
+            add_pair(Tree, K, V, New),
+            New == new_key,
+            arg(1, State, C0),
+            C is C0+1,
+            nb_setarg(1, State, C),
+            C == MaxKeys
+        ->  true
+        ;   true
+        ),
+        groups(Tree, Groups).
+
+add_pair(T, K, V, New) :-
+        nb_rb_get_node(T, K, N), !,
+        nb_rb_node_value(N, NV),
+        NV = k(Count, VT),
+        (   nb_rb_get_node(VT, V, _)
+        ->  New = false
+        ;   NewCount is Count + 1,
+            New = values(NewCount),
+            nb_rb_insert(VT, V, true),
+            nb_setarg(1, NV, NewCount)
+        ).
+add_pair(T, K, V, new_key) :-
+        rb_one(V, true, RB),
+        nb_rb_insert(T, K, k(1, RB)).
+
+rb_one(K, V, Tree) :-
+        rb_empty(T0),
+        rb_insert(T0, K, V, Tree).
+
+groups(Tree, Groups) :-
+        rb_visit(Tree, Pairs),
+        maplist(expand_values, Pairs, Groups).
+
+expand_values(K-k(_Count,T), K-Vs) :-
+        rb_keys(T, Vs).
+
