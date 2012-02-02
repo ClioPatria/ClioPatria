@@ -79,11 +79,7 @@ rdf(S, P, O) :-
 	).
 rdf(S, P, C) :-
 	rdf_reachable(P, rdfs:subPropertyOf, rdf:type), !,
-	(   nonvar(C)
-	->  individual_of(S, C)
-	;   rdf_subject(S),			% ensure instantiation
-	    individual_of(S, C)
-	).
+	individual_of(S, C).
 rdf(S, P, O) :-					% transitive predicates
 	rdf_reachable(P, rdfs:subPropertyOf, rdfs:subClassOf), !,
 	(   (nonvar(S) ; nonvar(O))
