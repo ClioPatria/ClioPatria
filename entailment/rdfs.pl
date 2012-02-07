@@ -78,10 +78,10 @@ rdf(S, P, O) :-
 	    \+ rdf_db:rdf(S,P,O)
 	).
 rdf(S, P, C) :-
-	rdf_reachable(P, rdfs:subPropertyOf, rdf:type), !,
+	rdf_reachable(rdf:type, rdfs:subPropertyOf, P), !,
 	individual_of(S, C).
 rdf(S, P, O) :-					% transitive predicates
-	rdf_reachable(P, rdfs:subPropertyOf, rdfs:subClassOf), !,
+	rdf_reachable(rdfs:subClassOf, rdfs:subPropertyOf, P), !,
 	(   (nonvar(S) ; nonvar(O))
 	->  rdfs_subclass_of(S, O)		% generate from given start
 	;   individual_of(S, rdfs:'Class'),	% generated unbounded (slow!)
