@@ -35,9 +35,12 @@
 	    answer_count/4,		% ?Var, :Goal, +Max -Count
 	    answer_set/3,		% ?Var, :Goal, -Answers
 	    answer_set/4,		% ?Var, :Goal, +Max, -Answers
-	    answer_pair_set/5		% ?Pair, :Goal, +MaxKeys, +MaxPerKey, -Answers
+	    answer_pair_set/5,		% ?Pair, :Goal, +MaxKeys, +MaxPerKey, -Answers
+	    unique_solution/2		% :Goal, -Solution
 	  ]).
 :- use_module(library(nb_set)).
+:- use_module(library(rbtrees)).
+:- use_module(library(nb_rbtrees)).
 
 
 /** <module> This module provides various ways to count solutions
@@ -63,7 +66,8 @@ limiting the number of answers.
 	answer_count(?, 0, +, -),
 	answer_set(?, 0, -),
 	answer_set(?, 0, +, -),
-	answer_pair_set(?, 0, +, +, -).
+	answer_pair_set(?, 0, +, +, -),
+	unique_solution(0, -).
 
 %%	proof_count(:Goal, -Count) is det.
 %%	proof_count(:Goal, +Max, -Count) is det.
@@ -192,3 +196,28 @@ groups(Tree, Groups) :-
 expand_values(K-k(_Count,T), K-Vs) :-
         rb_keys(T, Vs).
 
+%%	unique_solution(:Goal, -Solution) is semidet.
+%
+%	True if Goal produces exactly  one   solution  for Var. Multiple
+%	solutions are compared using  =@=/2.   This  is semantically the
+%	same as the code below, but  fails   early  if a second nonequal
+%	solution for Var is found.
+%
+%	  ==
+%	  findall(Var, Goal, Solutions), sort(Solutions, [Solution]).
+%	  ==
+
+unique_solution(Goal, Solution) :-
+	State = state(false, _),
+	(   Goal,
+	    (	arg(1, State, false)
+	    ->	nb_setarg(1, State, true),
+		nb_setarg(2, State, Solution),
+		fail
+	    ;	arg(2, State, Answer),
+		Answer =@= Solution
+	    ->  fail
+	    ;	!, fail				% multiple answers
+	    )
+	;   arg(2, State, Solution)
+	).
