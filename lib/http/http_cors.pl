@@ -69,6 +69,7 @@ cors_enable :-
 	format('Access-Control-Allow-Origin: ', []),
 	write_domains(List),
 	nl.
+cors_enable.				% CORS not enabled
 
 write_domains([]).
 write_domains([H|T]) :-
