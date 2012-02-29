@@ -667,13 +667,46 @@ resources([], _, _, _) --> !,
 resources([One], _, _, Options) --> !,
 	html(td(\rdf_link(One, Options))).
 resources(Many, What, Params, _) --> !,
-	{ length(Many, Count),
+	{ (   integer(Many)
+	  ->  Count = Many
+	  ;   length(Many, Count)
+	  ),
 	  http_link_to_id(list_predicate_resources, [side(What)|Params], Link)
 	},
 	html(td(class(int_c), a(href(Link), Count))).
 
+:- dynamic
+	predicate_statistics_cache/8.
 
 predicate_statistics(Graph, P, C, Subjects, Objects, Domains, Ranges) :-
+	var(Graph), !,
+	predicate_statistics_(Graph, P, C, Subjects, Objects, Domains, Ranges).
+predicate_statistics(Graph, P, C, Subjects, Objects, Domains, Ranges) :-
+	rdf_md5(Graph, MD5),
+	predicate_statistics_cache(MD5, Graph, P, C,
+				   Subjects, Objects, Domains, Ranges), !.
+predicate_statistics(Graph, P, C, Subjects, Objects, Domains, Ranges) :-
+	rdf_md5(Graph, MD5),
+	debug(rdf_browse, 'Recomputing pred stats for ~p in ~w, MD5=~w',
+	      [P, Graph, MD5]),
+	retractall(predicate_statistics_cache(MD5, Graph, P, _,
+					      _, _, _, _)),
+	predicate_statistics_(Graph, P, C, SubjectL, ObjectL, DomainL, RangeL),
+	res_summary(SubjectL, Subjects),
+	res_summary(ObjectL, Objects),
+	res_summary(DomainL, Domains),
+	res_summary(RangeL, Ranges),
+	assertz(predicate_statistics_cache(MD5, Graph, P, C,
+					   Subjects, Objects, Domains, Ranges)).
+
+
+res_summary([], []) :- !.
+res_summary([One], [One]) :- !.
+res_summary(Many, Count) :-
+	length(Many, Count).
+
+
+predicate_statistics_(Graph, P, C, Subjects, Objects, Domains, Ranges) :-
 	findall(S-O, rdf(S,P,O,Graph), Pairs),
 	length(Pairs, C),
 	pairs_keys_values(Pairs, Ss, Os),
