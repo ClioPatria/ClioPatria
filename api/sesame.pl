@@ -166,7 +166,7 @@ evaluate_query(Request) :-
 			  resource_format(ResourceFormat),
 			  cputime(CPU)
 			])
-	;   Type == ask
+	;   Type == ask, Result = [Reply]
 	->  reply_html_page(cliopatria(default),
 			    title('ASK Result'),
 			    [ h4('ASK query completed'),
