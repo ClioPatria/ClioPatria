@@ -122,3 +122,18 @@ object_uri_type(URI, Type) :-
 	->  Type = bnode
 	;   Type = uri
 	).
+
+		 /*******************************
+		 *   INTERACTIVE QUERY RESULT	*
+		 *******************************/
+
+:- multifile
+	rdf_io:write_table/4.
+
+rdf_io:write_table(json, _, Rows, Options) :-
+	memberchk(variables(Vars), Options), !,
+	(   is_list(Vars)
+	->  VarTerm =.. [vars|Vars]
+	;   VarTerm = Vars
+	),
+	sparql_write_json_result(current_output, select(VarTerm, Rows), Options).
