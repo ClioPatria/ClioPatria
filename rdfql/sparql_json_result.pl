@@ -56,22 +56,23 @@ sparql_write_json_result(Out, select(VarTerm, Rows), Options) :-
 		      results = json([bindings=Bindings])
 		    ]),
 	maplist(row_to_json(VarNames), Rows, Bindings),
-	sparql_json_mime_type(Mime),
-	with_output_to(Out,
-		       reply_json(JSON,
-				  [ content_type(Mime),
-				    Options
-				  ])).
+	(   option(content_type(_), Options)
+	->  JSONOptions = Options
+	;   sparql_json_mime_type(Mime),
+	    JSONOptions = [content_type(Mime)|Options]
+	),
+	with_output_to(Out, reply_json(JSON, JSONOptions)).
 sparql_write_json_result(Out, ask(True), Options) :-
 	JSON = json([ head    = json([]),
 		      boolean = @(True)
 		    ]),
-	sparql_json_mime_type(Mime),
-	with_output_to(Out,
-		       reply_json(JSON,
-				  [ content_type(Mime),
-				    Options
-				  ])).
+	(   option(content_type(_), Options)
+	->  JSONOptions = Options
+	;   sparql_json_mime_type(Mime),
+	    JSONOptions = [content_type(Mime)|Options]
+	),
+	with_output_to(Out, reply_json(JSON, JSONOptions)).
+
 
 row_to_json(Vars, Row, json(Bindings)) :-
 	var_col_bindings(Vars, 1, Row, Bindings).
@@ -136,4 +137,7 @@ rdf_io:write_table(json, _, Rows, Options) :-
 	->  VarTerm =.. [vars|Vars]
 	;   VarTerm = Vars
 	),
-	sparql_write_json_result(current_output, select(VarTerm, Rows), Options).
+	sparql_write_json_result(current_output, select(VarTerm, Rows),
+				 [ content_type(text/plain),
+				   Options
+				 ]).
