@@ -104,6 +104,7 @@ that allow back-office applications to reuse this infrastructure.
 :- http_handler(rdf_browser(list_triples_with_literal),
 					      list_triples_with_literal, []).
 
+:- http_handler(rdf_browser(list_prefixes),   list_prefixes,   []).
 :- http_handler(rdf_browser(search),          search,	       []).
 
 
@@ -667,13 +668,46 @@ resources([], _, _, _) --> !,
 resources([One], _, _, Options) --> !,
 	html(td(\rdf_link(One, Options))).
 resources(Many, What, Params, _) --> !,
-	{ length(Many, Count),
+	{ (   integer(Many)
+	  ->  Count = Many
+	  ;   length(Many, Count)
+	  ),
 	  http_link_to_id(list_predicate_resources, [side(What)|Params], Link)
 	},
 	html(td(class(int_c), a(href(Link), Count))).
 
+:- dynamic
+	predicate_statistics_cache/8.
 
 predicate_statistics(Graph, P, C, Subjects, Objects, Domains, Ranges) :-
+	var(Graph), !,
+	predicate_statistics_(Graph, P, C, Subjects, Objects, Domains, Ranges).
+predicate_statistics(Graph, P, C, Subjects, Objects, Domains, Ranges) :-
+	rdf_md5(Graph, MD5),
+	predicate_statistics_cache(MD5, Graph, P, C,
+				   Subjects, Objects, Domains, Ranges), !.
+predicate_statistics(Graph, P, C, Subjects, Objects, Domains, Ranges) :-
+	rdf_md5(Graph, MD5),
+	debug(rdf_browse, 'Recomputing pred stats for ~p in ~w, MD5=~w',
+	      [P, Graph, MD5]),
+	retractall(predicate_statistics_cache(MD5, Graph, P, _,
+					      _, _, _, _)),
+	predicate_statistics_(Graph, P, C, SubjectL, ObjectL, DomainL, RangeL),
+	res_summary(SubjectL, Subjects),
+	res_summary(ObjectL, Objects),
+	res_summary(DomainL, Domains),
+	res_summary(RangeL, Ranges),
+	assertz(predicate_statistics_cache(MD5, Graph, P, C,
+					   Subjects, Objects, Domains, Ranges)).
+
+
+res_summary([], []) :- !.
+res_summary([One], [One]) :- !.
+res_summary(Many, Count) :-
+	length(Many, Count).
+
+
+predicate_statistics_(Graph, P, C, Subjects, Objects, Domains, Ranges) :-
 	findall(S-O, rdf(S,P,O,Graph), Pairs),
 	length(Pairs, C),
 	pairs_keys_values(Pairs, Ss, Os),
@@ -1967,3 +2001,87 @@ delete_list_prefix(N, [_|T], List) :-
 	N2 is N - 1,
 	delete_list_prefix(N2, T, List).
 
+%%	list_prefixes(+Request)
+%
+%	List known RDF prefixes in various formats
+
+list_prefixes(Request) :-
+	Formats = [html,turtle],
+	http_parameters(Request,
+			[ format(Format,
+				 [ oneof(Formats),
+				   description('Output format'),
+				   default(html)
+				 ])
+			]),
+	findall(Prefix-URI,
+		rdf_current_ns(Prefix, URI),
+		Pairs),
+	keysort(Pairs, Sorted),
+	reply_html_page(cliopatria(default),
+			title('RDF prefixes (namespaces)'),
+			[ h1('Known RDF prefixes (namespaces)'),
+			  \explain_prefixes,
+			  \ns_table(Format, Sorted),
+			  \prefix_formats(Formats, Format, Request)
+			]).
+
+explain_prefixes -->
+	html(p([ 'The following prefixes are known and may be used \c
+	          without declaration in SPARQL queries to this server.'
+	       ])).
+
+prefix_formats(Formats, Format, Request) -->
+	{ select(Format, Formats, Alt)
+	},
+	html(p(class('prefix-format'),
+	       [ 'Also available in ',
+		 \alt_formats(Alt, Request)
+	       ])).
+
+alt_formats([], _) --> [].
+alt_formats([H|T], Request) -->
+	{ http_reload_with_parameters(Request, [format(H)], HREF)
+	},
+	html(a(href(HREF), H)),
+	(   {T==[]}
+	->  []
+	;   html(' and '),
+	    alt_formats(T, Request)
+	).
+
+ns_table(html, Pairs) -->
+	html(table(class(block),
+		   [ \prefix_table_header,
+		     \table_rows(prefix_row, Pairs)
+		   ])).
+ns_table(turtle, Pairs) -->
+	html(pre(class(code),
+		 \turtle_prefixes(Pairs))).
+
+prefix_table_header -->
+	html(tr([ th('Prefix'),
+		  th('URI')
+		])).
+
+prefix_row(Prefix-URI) -->
+	html([ td(Prefix),
+	       td(URI)
+	     ]).
+
+turtle_prefixes(Pairs) -->
+	{ longest_prefix(Pairs, 0, Length),
+	  PrefixCol is Length+10
+	},
+	turtle_prefixes(Pairs, PrefixCol).
+
+longest_prefix([], L, L).
+longest_prefix([Prefix-_|T], L0, L) :-
+	atom_length(Prefix, L1),
+	L2 is max(L0, L1),
+	longest_prefix(T, L2, L).
+
+turtle_prefixes([], _) --> [].
+turtle_prefixes([Prefix-URI|T], Col) -->
+	html('@prefix ~t~w: ~*|<~w> .~n'-[Prefix, Col, URI]),
+	turtle_prefixes(T, Col).

@@ -101,7 +101,8 @@ query_form(Options) -->
 result_format -->
 	html(select(name(resultFormat),
 		    [ option([], xml),
-		      option([selected], html)
+		      option([selected], html),
+		      option([], json)
 		    ])).
 
 query_language(Options, Hidden) -->

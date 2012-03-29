@@ -477,6 +477,12 @@ cp_welcome :-
 :- multifile
 	http:create_pool/1.
 
+:- setting(cliopatria:max_clients, integer, 50,
+	   'Max number of concurrent requests in ClioPatria pool').
+:- setting(cliopatria:stack_size, integer, 256,
+	   'Stack limit in MB for ClioPatria pool').
+
+
 %%	http:create_pool(+Pool) is semidet.
 %
 %	Create a thread-pool on-demand.
@@ -493,9 +499,14 @@ http:create_pool(sparql_query) :-
 			     trail(Trail)
 			   ]).
 http:create_pool(cliopatria) :-
+	setting(cliopatria:max_clients, Count),
+	setting(cliopatria:stack_size, MB),
+	Global is MB * 1024,
+	Trail is MB * 1024,
 	thread_pool_create(cliopatria,
-			   50,
-			   [
+			   Count,
+			   [ global(Global),
+			     trail(Trail)
 			   ]).
 
 
