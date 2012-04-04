@@ -537,6 +537,15 @@ remove_statements(Request) :-
 		       'Removed statements from ~p'-[rdf(S,P,O)])
 	).
 
+%%	remove_triples(+List)
+%
+%	Remove indicated triples from the database.
+
+remove_triples([]).
+remove_triples([rdf(S,P,O)|T]) :-
+	rdf_retractall(S,P,O),
+	remove_triples(T).
+
 instantiated(X, I) :-
 	(   var(X)
 	->  I = (-)
