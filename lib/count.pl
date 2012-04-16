@@ -219,5 +219,6 @@ unique_solution(Goal, Solution) :-
 	    ->  fail
 	    ;	!, fail				% multiple answers
 	    )
-	;   arg(2, State, Solution)
+	;   arg(1, State, true),
+	    arg(2, State, Solution)
 	).
