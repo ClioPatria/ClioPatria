@@ -121,7 +121,7 @@ that allow back-office applications to reuse this infrastructure.
 list_graphs(_Request) :-
 	findall(Count-Graph,
 		(   rdf_graph(Graph),
-		    rdf_statistics(triples_by_file(Graph, Count))
+		    graph_triples(Graph, Count)
 		),
 		Pairs),
 	keysort(Pairs, Sorted),
@@ -134,6 +134,10 @@ list_graphs(_Request) :-
 			  \graph_table(Rows, [])
 			]).
 
+graph_triples(Graph, Count) :-			% RDF-DB < 3.0
+	rdf_statistics(triples_by_file(Graph, Count)).
+graph_triples(Graph, Count) :-
+	rdf_statistics(triples_by_graph(Graph, Count)).
 
 graph_table(Graphs, Options) -->
 	{ option(top_max(TopMax), Options, 500),
@@ -158,7 +162,7 @@ graph_row(virtual(total)) --> !,
 	       \nc('~D', Count, [class(total)])
 	     ]).
 graph_row(Graph) -->
-	{ rdf_statistics(triples_by_file(Graph, Count))
+	{ graph_triples(Graph, Count)
 	},
 	html([ td(\graph_link(Graph)),
 	       \nc('~D', Count)

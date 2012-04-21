@@ -185,14 +185,18 @@ statistics(Request) :-
 
 triple_statistics -->
 	{ rdf_statistics(triples(Total)),
-	  rdf_statistics(core(Core)),
 	  graph_count(Count),
 	  http_link_to_id(list_graphs, [], ListGraphs)
 	},
 	html(p([ 'The RDF store contains ', \n(human, Total), ' triples in ',
 		 \n(human, Count), ' ', a(href(ListGraphs), graphs),
-		 ', using ', \n(human, Core), 'b memory'])).
+		 \using_core])).
 
+using_core -->
+	{ rdf_statistics(core(Core)) }, !,
+	html([', using ', \n(human, Core), 'b memory']).
+using_core -->
+	[].
 
 graph_count(Count) :-
 	aggregate_all(count, rdf_graph(_), Count).
