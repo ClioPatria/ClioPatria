@@ -45,7 +45,8 @@
 @see library(semweb/rdf_library)
 */
 
-:- http_handler(sesame('loadLibraryOntology'),   load_library_ontology,   []).
+:- http_handler(sesame('loadLibraryOntology'),   load_library_ontology,
+		[time_limit(infinite)]).
 :- http_handler(sesame('listLibraryOntologies'), list_library_ontologies, []).
 
 %%	load_library_ontology(+Request)

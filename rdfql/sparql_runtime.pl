@@ -123,6 +123,8 @@ eval_typed_literal(Type, Atom, string(Atom)) :-
 	rdf_equal(Type, xsd:string), !.
 eval_typed_literal(Type, Atom, date_time(Atom)) :-
 	rdf_equal(Type, xsd:dateTime), !.
+eval_typed_literal(Type, Atom, date(Atom)) :-
+	rdf_equal(Type, xsd:date), !.
 eval_typed_literal(Type, Atom, typed_literal(Type, Atom)).
 
 %%	numeric_literal_value(+Literal, -Value) is semidet.
@@ -206,9 +208,13 @@ op(numeric(_, X) = numeric(_, Y), boolean(Result)) :-
 	(X =:= Y -> Result = true ; Result = false).
 op(date_time(X) = date_time(Y), boolean(Result)) :-
 	(X == Y -> Result = true ; Result = false).
+op(date(X) = date(Y), boolean(Result)) :-
+	(X == Y -> Result = true ; Result = false).
 op(numeric(_, X) \= numeric(_, Y), boolean(Result)) :-
 	(X =\= Y -> Result = true ; Result = false).
 op(date_time(X) \= date_time(Y), boolean(Result)) :-
+	(X \== Y -> Result = true ; Result = false).
+op(date(X) \= date(Y), boolean(Result)) :-
 	(X \== Y -> Result = true ; Result = false).
 %<
 op(numeric(_, X) < numeric(_, Y), boolean(Result)) :-
@@ -219,6 +225,8 @@ op(string(X) < string(Y), boolean(Result)) :-
 	(X @< Y -> Result = true ; Result = false).
 op(date_time(X) < date_time(Y), boolean(Result)) :-
 	(X @< Y -> Result = true ; Result = false).
+op(date(X) < date(Y), boolean(Result)) :-
+	(X @< Y -> Result = true ; Result = false).
 %>
 op(numeric(_, X) > numeric(_, Y), boolean(Result)) :-
 	(X > Y -> Result = true ; Result = false).
@@ -227,6 +235,8 @@ op(simple_literal(X) > simple_literal(Y), boolean(Result)) :-
 op(string(X) > string(Y), boolean(Result)) :-
 	(X @> Y -> Result = true ; Result = false).
 op(date_time(X) > date_time(Y), boolean(Result)) :-
+	(X @> Y -> Result = true ; Result = false).
+op(date(X) > date(Y), boolean(Result)) :-
 	(X @> Y -> Result = true ; Result = false).
 %=<
 op(numeric(_, X) =< numeric(_, Y), boolean(Result)) :-
@@ -237,6 +247,8 @@ op(string(X) =< string(Y), boolean(Result)) :-
 	(X @=< Y -> Result = true ; Result = false).
 op(date_time(X) =< date_time(Y), boolean(Result)) :-
 	(X @=< Y -> Result = true ; Result = false).
+op(date(X) =< date(Y), boolean(Result)) :-
+	(X @=< Y -> Result = true ; Result = false).
 %>=
 op(numeric(_, X) >= numeric(_, Y), boolean(Result)) :-
 	(X >= Y -> Result = true ; Result = false).
@@ -245,6 +257,8 @@ op(simple_literal(X) >= simple_literal(Y), boolean(Result)) :-
 op(string(X) >= string(Y), boolean(Result)) :-
 	(X @>= Y -> Result = true ; Result = false).
 op(date_time(X) >= date_time(Y), boolean(Result)) :-
+	(X @>= Y -> Result = true ; Result = false).
+op(date(X) >= date(Y), boolean(Result)) :-
 	(X @>= Y -> Result = true ; Result = false).
 
 op(numeric(TX, X) * numeric(TY, Y), numeric(Type, Result)) :-
