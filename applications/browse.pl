@@ -1817,8 +1817,8 @@ search(Request) :-
 	;   atom_to_term(FilterAtom, Filter0, []),
 	    rdf_global_term(Filter0, Filter)
 	),
-	literal_query(QueryText, Query),
-	rdf_find_literals(Query, Literals),
+
+	find_literals(QueryText, Literals, Query),
 	literal_triples(Literals, Filter, Triples),
 	reply_html_page(cliopatria(default),
 			title('Search results for ~q'-[Query]),
@@ -1826,10 +1826,16 @@ search(Request) :-
 			  \rdf_table(Triples, [])
 			]).
 
-literal_query(QueryText, Query) :-
-	tokenize_atom(QueryText, Tokens), !,
-	once(phrase(query(Query), Tokens)).
-literal_query(QueryText, case(QueryText)).
+find_literals(QueryText, [Query], exact(Query)) :-
+	% Check if Q starts and ends with double quotes:
+	sub_atom(QueryText,0,1,Remainder,'"'),
+	sub_atom(QueryText,Remainder,1,0,'"'),!,
+	sub_atom(QueryText,1,_,1,Query).
+find_literals(QueryText, Literals, Query) :-
+	% if not quoted, perform search on tokenized query
+	tokenize_atom(QueryText, Tokens),
+	once(phrase(query(Query), Tokens)),
+	rdf_find_literals(Query, Literals).
 
 query(Query) -->
 	simple_query(Q1),
