@@ -148,10 +148,14 @@ cp_server :-
 	    )
 	).
 
+cp_server(_Options) :-
+	setting(http:port, DefPort),
+	http_server_property(DefPort, goal(cp_server:http_dispatch)), !,
+	print_message(informational,
+		      cliopatria(server_already_running(DefPort))).
 cp_server(Options) :-
 	meta_options(is_meta, Options, QOptions),
 	load_settings('settings.db'),
-	option(after_load(AfterLoad), QOptions, true),
 	attach_account_info,
 	set_session_options,
 	setting(http:port, DefPort),
@@ -166,6 +170,7 @@ cp_server(Options) :-
 		      workers(Workers)
 		    | HTTPOptions
 		    ]),
+	option(after_load(AfterLoad), QOptions, true),
 	print_message(informational, cliopatria(server_started(Port))),
 	setup_call_cleanup(http_handler(root(.), busy_loading,
 					[ priority(1000),
@@ -535,6 +540,14 @@ prolog:message(cliopatria(use_port_option)) -->
 	[ '   Could not start the HTTP server!', nl,
 	  '   Choose a different port using ./run.pl --port=<port> or', nl,
 	  '   use the network plugin to change the default port.'
+	].
+prolog:message(cliopatria(server_already_running(Port))) -->
+	{ cp_host(Host),
+	  cp_port(Port, PublicPort),
+	  http_location_by_id(root, Root)
+	},
+	[ 'CliopPatria server is already running at http://~w:~w~w'-
+	  [Host, PublicPort, Root]
 	].
 
 cp_host(Host) :-
