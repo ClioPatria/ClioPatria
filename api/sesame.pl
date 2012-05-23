@@ -682,15 +682,24 @@ api_action(_Request, G, Format, Message) :-
 	get_time(T0), T is integer(T0),
 	statistics(cputime, CPU0),
 	rdf_statistics(triples(Triples0)),
-	rdf_statistics(subjects(Subjects0)),
+	subjects(Subjects0),
 	run(G, sesame(User, T)),
-	rdf_statistics(subjects(Subjects1)),
+	subjects(Subjects1),
 	rdf_statistics(triples(Triples1)),
 	statistics(cputime, CPU1),
 	CPU is CPU1 - CPU0,
 	Triples is Triples1 - Triples0,
 	Subjects is Subjects1 - Subjects0,
 	done(Format, Message, CPU, Subjects, Triples).
+
+:- if(rdf_statistics(subjects(_))).	% RDF 2.x
+subjects(Count) :- rdf_statistics(subjects(Count)).
+subj_label --> html('Subjects').
+:- else.				% RDF 3.0
+subjects(Count) :- rdf_statistics(resources(Count)).
+subj_label --> html('Resources').
+:- endif.
+
 
 run((A,B), Log) :- !,
 	run(A, Log),
@@ -723,7 +732,7 @@ done(rdf, Fmt-Args, _CPU, _Subjects, _Triples) :-
 
 result_table(Message, CPU, Subjects, Triples) -->
 	{ rdf_statistics(triples(TriplesNow)),
-	  rdf_statistics(subjects(SubjectsNow))
+	  subjects(SubjectsNow)
 	},
 	html([ h4('Operation completed'),
 	       p(class(msg_informational), Message),
@@ -734,7 +743,7 @@ result_table(Message, CPU, Subjects, Triples) -->
 		     [ tr([td(class(empty), ''), th('+/-'), th('now')]),
 		       tr([th(class(p_name), 'CPU time'),
 			   \nc('~3f', CPU), td('')]),
-		       tr([th(class(p_name), 'Subjects'),
+		       tr([th(class(p_name), \subj_label),
 			   \nc('~D', Subjects), \nc('~D', SubjectsNow)]),
 		       tr([th(class(p_name), 'Triples'),
 			   \nc('~D', Triples), \nc('~D', TriplesNow)])
