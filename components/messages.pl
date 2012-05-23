@@ -61,6 +61,11 @@ messages appear in the browser.
 %		page in parts.  Not all browsers support this and not
 %		all browsers update the page incrementally.
 
+:- create_prolog_flag(html_messages, false, [type(boolean)]).
+:- initialization
+	asserta((user:message_hook(_Term, Level, Lines) :-
+			send_message(Level, Lines))).
+
 call_showing_messages(Goal, Options) :-
 	option(style(Style), Options, cliopatria(default)),
 	option(head(Head), Options, title('ClioPatria')),
@@ -79,18 +84,17 @@ call_showing_messages(Goal, Options) :-
 	format('Content-Type: text/html~n'),
 	format('Transfer-Encoding: chunked~n~n'),
 	header(Style, Head, Header, Footer, FooterTokens),
-	thread_self(Me),
-	setup_call_cleanup(asserta((user:message_hook(_Term, Level, Lines) :-
-				   	send_message(Me, Level, Lines)), Ref),
-			   catch(Goal, E, print_message(error, E)),
-			   erase(Ref)), !,
+	setup_call_cleanup(
+	    set_prolog_flag(html_messages, true),
+	    catch(Goal, E, print_message(error, E)),
+	    set_prolog_flag(html_messages, false)), !,
 	footer(FooterTokens).
 
-send_message(Me, Level, Lines) :-
-	thread_self(Me),
+send_message(Level, Lines) :-
+	current_prolog_flag(html_messages, true),
 	level_css_class(Level, Class),
 	phrase(html(pre(class(Class), \html_message_lines(Lines))), Tokens),
-	print_html(Tokens),
+	with_mutex(html_messages, print_html(Tokens)),
 	flush_output,
 	fail.
 
