@@ -504,7 +504,7 @@ in_all_domains([H|T], Resource) :-
 %%	owl_individual_of(?Resource, +Description) is nondet.
 %	
 %	Test  or  generate  the  resources    that  satisfy  Description
-%	according the the OWL-Description entailment rules.
+%	according the OWL-Description entailment rules.
 
 owl_individual_of(Resource, Thing) :-
 	rdf_equal(Thing, owl:'Thing'), !,

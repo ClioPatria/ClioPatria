@@ -37,7 +37,7 @@ the package.  Once satisfied, you can make the new package available
 to others using the following steps:
 
   $ Upload the package :
-  To upload the package, go the the server, login and select
+  To upload the package, go to the server, login and select
   *|CPACK/Submit pack|*.  Fill in the GIT URL above and optionally
   a branch-name.
 
