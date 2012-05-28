@@ -194,7 +194,7 @@ ClioPatria.
     $ Web-application development :
     Developing a dynamic web-page is easy: register a predicate
     as a handler for an HTTP `file'.  The predicate writes a
-    document that conforms the the CGI specification and the
+    document that conforms to the CGI specification and the
     server infrastructure takes care of the rest.  In the file
     mbox.pl, we defined three ways to generate a table of names
     and mailboxes.

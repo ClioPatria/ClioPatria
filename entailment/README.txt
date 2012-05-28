@@ -1,8 +1,8 @@
 ---+ Entailment reasoning modules
 
-The ClioPatria system can deal   with  pluggable `entailment reasoners'.
-Each reasoner must export the the   predicate rdf/3. This predicate must
-be a `pure' predicate: it must  accept   any  instantiation  and it must
+The ClioPatria system can deal with pluggable `entailment reasoners'.
+Each reasoner must export the predicate rdf/3. This predicate must be
+a `pure' predicate: it must accept any instantiation and it must
 return consistent results, regardless of the instantiation.
 
 New entailment modules can be added to load.pl

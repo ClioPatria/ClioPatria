@@ -19,7 +19,7 @@ the following:
     authorization and connect users to right-tokens.
 
     $ A web-based developers front-end :
-    This provides provides browsing the RDF, loading and unloading
+    This provides browsing the RDF, loading and unloading
     graphs, testing queries interactively, browsing the documentation of
     HTTP services and source-code.
 
