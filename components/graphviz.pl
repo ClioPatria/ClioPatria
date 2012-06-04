@@ -37,6 +37,7 @@
 :- use_module(library(http/http_session)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
+:- use_module(library(http/http_path)).
 :- use_module(library(process)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
@@ -215,16 +216,30 @@ reply_graphviz_graph(Graph, Lang, Options) :-
 	set_stream(XDotOut, encoding(utf8)),
 	thread_create(send_to_dot(Graph, GraphOptions, ToDOT), _,
 		      [ detached(true) ]),
+	call_cleanup(load_structure(stream(XDotOut),
+				    SVGDom0,
+				    [ dialect(xml) ]),
+		     (	 process_wait(PID, _Status),
+			 close(XDotOut)
+		     )),
+	rewrite_sgv_dom(SVGDom0, SVGDom),
 	graph_mime_type(Lang, ContentType),
-	format('Content-type: ~w\n', [ContentType]),
-	format('Transfer-Encoding: chunked\n\n'),
-	call_cleanup(copy_graph_data(XDotOut),
-		     (	 process_wait(PID, Status),
-			 character_count(XDotOut, Count),
-			 close(XDotOut),
-			 debug(graphviz, '~w: ~D bytes, exit status ~w',
-			       [Renderer, Count, Status])
-		     )).
+	format('Content-type: ~w~n~n', [ContentType]),
+	xml_write(current_output, SVGDom,
+		  [ layout(false)
+		  ]).
+
+rewrite_sgv_dom([element(svg, Attrs0, Content)],
+		[element(svg, Attrs,
+			 [ element(script, ['xlink:href'=SVGPan], []),
+			   element(g, [ id=viewport
+				      ],
+				   Content)
+			 ])]) :-
+	delete(Attrs0, viewBox=_, Attrs),
+	http_absolute_location(js('SVGPan.js'), SVGPan, []).
+rewrite_sgv_dom(DOM, DOM).
+
 
 target_option(Target, GraphOptions0, GraphOptions) :-
 	(   nonvar(Target)
