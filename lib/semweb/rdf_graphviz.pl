@@ -514,15 +514,18 @@ wrap_url(URL, URL, _).
 shape(Resource, Shape, Options) :-
 	option(shape_hook(Hook), Options),
 	call(Hook, Resource, Shape), !.
-shape(Resource, Attrs, _Options) :-
-        findall(A-V, ( rdfs_individual_of(Resource, Class),
-                       rdf_has(Class, graphviz:styleParameter, literal(V), P),
-                       rdf_has(P, rdfs:label, literal(A)) ),
-                Pairs),
-        maplist(v_term, Pairs, Attrs).
+shape(Resource, Shape, _Options) :-
+	findall(Style, gv_style(Resource, Style), Shape),
+	debug(gv, '~p: shape = ~q', [Resource, Shape]).
 
-v_term(A-V, T) :-
-        T =.. [A,V].
+gv_style(R, Style) :-
+	rdfs_individual_of(R, Class),
+	gv_class_style(Class, Style).
+
+gv_class_style(Class, Style) :-
+	rdf_has(Class, graphviz:styleParameter, literal(V), P),
+	rdf_has(P, rdfs:label, literal(A)),
+	Style =.. [A,V].
 
 
 		 /*******************************
