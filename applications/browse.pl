@@ -1440,7 +1440,7 @@ context_graph(URI, Options) -->
 shape(Start, Options, URI, Shape) :-
 	cliopatria:node_shape(URI, Shape, [start(Start)|Options]), !.
 shape(Start, _Options, Start,
-      [ shape(tripleoctagon),style(filled),fillcolor('#ff85fd') ]).
+      [ shape(tripleoctagon),style(filled),fillcolor('#ff85fd'),id(start) ]).
 
 %%	context_graph(+URI, -Triples, +Options) is det.
 %

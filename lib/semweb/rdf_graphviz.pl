@@ -395,6 +395,7 @@ write_attributes_2([H|T], Out) :-
 string_attribute(label(_)).
 string_attribute(url(_)).
 string_attribute(href(_)).
+string_attribute(id(_)).
 string_attribute('URL'(_)).
 string_attribute(fillcolor(_)).
 string_attribute(style(_)).
