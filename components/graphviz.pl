@@ -229,14 +229,13 @@ reply_graphviz_graph(Graph, Lang, Options) :-
 		  [ layout(false)
 		  ]).
 
-rewrite_sgv_dom([element(svg, Attrs0, Content)],
+rewrite_sgv_dom([element(svg, Attrs, Content)],
 		[element(svg, Attrs,
 			 [ element(script, ['xlink:href'=SVGPan], []),
 			   element(g, [ id=viewport
 				      ],
 				   Content)
 			 ])]) :-
-	delete(Attrs0, viewBox=_, Attrs),
 	http_absolute_location(js('SVGPan.js'), SVGPan, []).
 rewrite_sgv_dom(DOM, DOM).
 
