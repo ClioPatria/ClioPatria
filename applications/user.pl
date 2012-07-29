@@ -247,7 +247,7 @@ load_file_form(_Request) :-
 
 			  p(['Upload a document using POST to /servlets/uploadData. ',
 			     'Alternatively you can use ',
-			     a(href=loadURL,loadURL), ' to load data from a \
+			     a(href=loadURL,loadURL), ' to load data from a \c
 			     web server.'
 			    ]),
 
@@ -410,7 +410,7 @@ clear_repository_form(_Request) :-
 			title('Load base ontology'),
 			[ h1('Clear entire repository'),
 
-			  p(['This operation removes ', b(all), ' triples from \
+			  p(['This operation removes ', b(all), ' triples from \c
 			  the RDF store.']),
 
 			  form([ action(location_by_id(clear_repository)),

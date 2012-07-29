@@ -252,7 +252,7 @@ graph_mime_type(xdot, 'text/plain; charset=UTF-8') :- !.
 graph_mime_type(svg,  'image/svg+xml; charset=UTF-8') :- !.
 graph_mime_type(Lang, 'text/plain; charset=UTF-8') :-
 	print_message(warning,
-		      format('Do not know content-type for grapviz \
+		      format('Do not know content-type for grapviz \c
 		             language ~w.  Please extend graph_mime_type/2',
 			     Lang)).
 

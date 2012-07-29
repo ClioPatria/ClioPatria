@@ -90,8 +90,8 @@ url_cache(URL, Path, MimeType) :-
 		   lock(write)
 		 ]),
 	    format(Out,
-		   'mime_type(~q).~n\
-		    url(~q).~n\
+		   'mime_type(~q).~n\c
+		    url(~q).~n\c
 		    fetched(~q).~n',
 		   [MimeType, URL, Now]),
 	    (	nonvar(Modified)

@@ -215,9 +215,9 @@ stored_queries([Name-Query|T], I) -->
 	  atom_concat(f, I, FName),
 	  js_quoted(Query, QuotedQuery),
 	  format(atom(Script),
-		 'function ~w()\n\
-		 { document.query.query.value=\'~w\';\n  \
-		   document.getElementById(\'qid\').value="~w";\n\
+		 'function ~w()\n\c
+		 { document.query.query.value=\'~w\';\n  \c
+		   document.getElementById(\'qid\').value="~w";\n\c
 		 }\n',
 		 [ FName, QuotedQuery, Name ]),
 	  assert(script_fragment(Script)),

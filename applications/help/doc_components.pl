@@ -86,8 +86,8 @@ api_tester(Path, _) -->
 					 ])
 				    ]))),
 		     p(['Enter key value pairs and separate each by a ', strong('&'),'. ',
-		        'In this test field encoding of the values is not needed, \
-			as we do it for you. But, don\'t forget to encode in you \
+		        'In this test field encoding of the values is not needed, \c
+			as we do it for you. But, don\'t forget to encode in you \c
 			own application.'])
 		   ])
 	     ]).

@@ -131,7 +131,7 @@ write_json_result(select(VarNames), Rows, Options) :- !,
 	format('Transfer-encoding: chunked~n'),
 	sparql_write_json_result(current_output, select(VarNames, Rows), Options).
 write_json_result(_, _RDF, _Options) :-
-	throw(http_reply(bad_request(format('JSON output is only supported for \
+	throw(http_reply(bad_request(format('JSON output is only supported for \c
 					     ASK and SELECT queries', [])))).
 
 
@@ -158,7 +158,7 @@ sparql_decl(format,
 		      'application/sparql-results+xml',
 		      'application/sparql-results+json'
 		    ]),
-	      description('Result format.  If not specified, the \
+	      description('Result format.  If not specified, the \c
 			  HTTP Accept header is used')
 	    ]).
 sparql_decl(entailment,

@@ -187,9 +187,9 @@ create_admin(_Request) :-
 			title('Create administrator'),
 			[ h1(align(center), 'Create administrator'),
 
-			  p('No accounts are available on this server. \
-			  This form allows for creation of an administrative \
-			  account that can subsequently be used to create \
+			  p('No accounts are available on this server. \c
+			  This form allows for creation of an administrative \c
+			  account that can subsequently be used to create \c
 			  new users.'),
 
 			  \new_user_form([ user(admin),

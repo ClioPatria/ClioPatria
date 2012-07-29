@@ -693,8 +693,8 @@ git_setup_push(Dir, Vars) :-
 	git([remote, add, origin, PushURL], [directory(Dir)]),
 	directory_file_path(Dir, '.git/config', Config),
 	setup_call_cleanup(open(Config, append, Out),
-			   format(Out, '[branch "master"]\n\
-					\tremote = origin\n\
+			   format(Out, '[branch "master"]\n\c
+					\tremote = origin\n\c
 					\tmerge = refs/heads/master\n', []),
 			   close(Out)),
 	catch(git_create_origin(PushURL, Title), E,
@@ -718,8 +718,8 @@ git_create_origin(PushURL, Title) :-
 	file_directory_name(Path, Parent),
 	file_base_name(Path, Repo),
 	format(atom(Command),
-	       'cd "~w" && mkdir "~w" && cd "~w" && \
-	       git init --bare && echo "~w" > description && \
+	       'cd "~w" && mkdir "~w" && cd "~w" && \c
+	       git init --bare && echo "~w" > description && \c
 	       touch git-daemon-export-ok',
 	       [Parent, Repo, Repo, Title]),
 	process_create(path(ssh), [ Authority, Command ], []).

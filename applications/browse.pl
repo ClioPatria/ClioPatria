@@ -352,10 +352,10 @@ li_export_graph(Graph, How) -->
 		     ]))).
 
 download_options(show,     'Show',     'text/plain',
-		 'Returns graph with MIME-type text/plain, \n\
+		 'Returns graph with MIME-type text/plain, \n\c
 		  so it will be displayed in your browser').
 download_options(download, 'Download', default,
-		 'Return graph with its RDF MIME-type, \n\
+		 'Return graph with its RDF MIME-type, \n\c
 		  so most browsers will save it').
 
 dl_format_menu -->
@@ -526,7 +526,7 @@ list_instances(Request) :-
 				]),
 			  graph(Graph,
 				[ optional(true),
-				  description('Limit to have at least \
+				  description('Limit to have at least \c
 					       one property in graph')
 				]),
 			  type(Type,
