@@ -112,9 +112,13 @@ function getRoot(root) {
 
 		while(t != root) {
 			if(t.getAttribute("viewBox")) {
-				setCTM(r, t.getCTM());
+				var ctm = t.getCTM();
 
+				if ( !ctm ) {
+					ctm = r.getCTM();
+				}
 				t.removeAttribute("viewBox");
+				setCTM(r, ctm);
 			}
 
 			t = t.parentNode;
