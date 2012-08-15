@@ -28,6 +28,10 @@
     the GNU General Public License.
 */
 
+:- if(exists_source(swi(library/git))).
+:- module(clio_git, []).
+:- reexport(swi(library/git)).
+:- else.
 :- module(git,
 	  [ git/2,			% +Argv, +Options
 	    git_process_output/3,	% +Argv, :OnOutput, +Options
@@ -420,3 +424,4 @@ split_lines(All, [Line1|More]) :-
 	append(Line1, [0'\n|Rest], All), !,
 	split_lines(Rest, More).
 split_lines(Line, [Line]).
+:- endif.
