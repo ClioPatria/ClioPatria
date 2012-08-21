@@ -712,6 +712,8 @@ done(html, Message, CPU, Subjects, Triples) :-
 	reply_html_page(cliopatria(default),
 			title('Success'),
 			\result_table(Message, CPU, Subjects, Triples)).
+done(Format, _:Message, CPU, Subjects, Triples) :- !,
+	done(Format, Message, CPU, Subjects, Triples).
 done(xml, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format(string(Message), Fmt, Args),
 	format('Content-type: text/xml~n~n'),
@@ -722,7 +724,7 @@ done(xml, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format('</transaction>~n').
 done(rdf, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format('Content-type: text/plain~n~n'),
-	format('resultFormat=~w not yet supported~n~n'),
+	format('resultFormat=rdf not yet supported~n~n'),
 	format(Fmt, Args).
 
 
