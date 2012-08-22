@@ -730,7 +730,7 @@ complexity(Goal, Goal, State, Sz0, Sz, C0, C) :-
 complexity(sparql_eval(E,V), sparql_eval(E,V), _, Sz0, Sz, C0, C) :- !,
 	term_variables(E, Vars),
 	all_bound(Vars),
-	Sz0 is Sz,			% probability of failure
+	Sz is Sz0,			% probability of failure
 	C is C0 + Sz*20.		% Sz * CostOfEval
 complexity(sparql_true(E), sparql_true(E), _, Sz0, Sz, C0, C) :- !,
 	term_variables(E, Vars),
@@ -826,7 +826,7 @@ obj_branch_factor(rdf_reachable(_,_,_),  X, rdfs_object_branch_factor(X)).
 :- multifile
 	rdf_db_goal/4.
 
-rdf_db_goal(rdf(S,P,O), 		S,P,O).
+rdf_db_goal(rdf(S,P,O),			S,P,O).
 rdf_db_goal(rdf_has(S,P,O),		S,P,O).
 rdf_db_goal(rdf_reachable(S,P,O),	S,P,O).
 rdf_db_goal(rdf(S,P,O, _DB),		S,P,O). % TBD: less hits
