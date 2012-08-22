@@ -59,6 +59,7 @@ user:file_search_path(library, '../lib').
 
 :- use_module(rdfql(sparql_grammar)).
 :- use_module(rdfql(sparql)).
+:- use_module(rdfql(jena_functions)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/sparql_client), [sparql_read_xml_result/2]).
 :- use_module(library(url)).
