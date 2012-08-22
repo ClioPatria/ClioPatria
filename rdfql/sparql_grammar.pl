@@ -299,7 +299,7 @@ resolve_order_by_cols([H0|T0], [H|T], Goal, State) :-
 
 resolve_order_by_col(ascending(O0), ascending(O), Goal, State) :- !,
 	compile_expression(O0, O, Goal, State).
-resolve_order_by_col(decending(O0), decending(O), Goal, State) :- !,
+resolve_order_by_col(descending(O0), descending(O), Goal, State) :- !,
 	compile_expression(O0, O, Goal, State).
 
 %%	resolve_state(+Prolog, -State)
@@ -721,7 +721,7 @@ order_conditions([]) -->
 order_condition(ascending(Expr)) -->
 	keyword("asc"), !,
 	bracketted_expression(Expr).
-order_condition(decending(Expr)) -->
+order_condition(descending(Expr)) -->
 	keyword("desc"), !,
 	bracketted_expression(Expr).
 order_condition(ascending(Value)) -->
