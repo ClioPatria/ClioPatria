@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
     E-mail:        wielemak@science.uva.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2006, University of Amsterdam
+    Copyright (C): 2006-2012, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -53,18 +52,28 @@
 	    run_query_tests/0,
 	    query_test/1		% +NameOrIRI
 	  ]).
-:- use_module(sparql_grammar).
-:- use_module(sparql).
-:- use_module(library('semweb/rdf_db')).
+
+user:file_search_path(rdfql, '../rdfql').
+user:file_search_path(entailment, '../entailment').
+user:file_search_path(library, '../lib').
+
+:- use_module(rdfql(sparql_grammar)).
+:- use_module(rdfql(sparql)).
+:- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/sparql_client), [sparql_read_xml_result/2]).
 :- use_module(library(url)).
 :- use_module(library(apply)).
+:- use_module(library(settings)).
 :- use_module(test_manifest).
-:- use_module(sparql_xml_result).
-:- use_module(rdf_entailment, []).
-:- use_module(no_entailment, []).
+:- use_module(rdfql(sparql_xml_result)).
+:- use_module(entailment(rdf), []).
+:- use_module(entailment(none), []).
 					% Toplevel debugging utilities
 :- use_module(user:library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_turtle_write)).
+
+:- setting(cliopatria:optimise_query, boolean, true,
+           'Optimise queries before execution').
 
 :- dynamic
 	failed_result/2,
@@ -184,8 +193,10 @@ query_test(Test) :-
 compare_results(_, _, no_result, _) :- !.
 compare_results(Test, ask, ask(Bool), [Bool]) :- !,
 	assert(passed(Test)).
-compare_results(Test, Type, select(ColNames, Rows), Result) :-
-	Type = select(MyColNames), !,
+compare_results(Test, Type, select(ColTerm, Rows), Result) :-
+	Type = select(MyColTerm), !,
+	MyColTerm =.. [_|MyColNames],
+	ColTerm =.. [_|ColNames],
 	same_colnames(ColNames, MyColNames, Map),
 	(   Map == nomap
 	->  RowsMyOrder = Rows
