@@ -74,9 +74,14 @@ select_results(Distinct, Offset, Limit, order_by(Cols), Result, Goal) :- !,
 	;   Results1 = Results0
 	),
 	keysort(Results1, Results2),
-	apply_offset(Offset, Results2, Results3),
-	apply_limit(Limit, Results3, Results),
+	fix_order(Cols, Results2, Results3),
+	apply_offset(Offset, Results3, Results4),
+	apply_limit(Limit, Results4, Results),
 	member(_Key-Result, Results).
+
+fix_order([descending(_)], Results0, Results) :- !,
+	reverse(Results0, Results).
+fix_order(_, Results, Results).
 
 sort_key_goal([], [], true).
 sort_key_goal([V], [K], sort_key(V,K)) :- !.
