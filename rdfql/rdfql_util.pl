@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
     E-mail:        wielemak@science.uva.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2006, University of Amsterdam
+    Copyright (C): 2004-2012, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -36,12 +35,13 @@
 	  ]).
 :- use_module(library(nb_set)).
 :- use_module(library(semweb/rdf_db), [rdf_is_bnode/1]).
+:- use_module(library(lists)).
+:- use_module(library(apply)).
 
-:- module_transparent
-	select_results/6,
-	select_results/5.
+:- meta_predicate
+	select_results(+, +, +, +, -, 0).
 
-%%	select_results(+Distinct, +Offset, +Limit, :SortBy, -Result, :Goal)
+%%	select_results(+Distinct, +Offset, +Limit, +SortBy, -Result, :Goal)
 %
 %	Select results for the  template   Result  on  backtracking over
 %	Goal.
@@ -59,34 +59,92 @@
 %	returns all values.
 %
 %	@param SortBy
-%	Either 'unsorted' or the name of a predicate that sorts
-%	the result-set by calling call(SortBy, UnSorted, Sorted)
+%	Either 'unsorted' or a term order_by(Cols), where each Col
+%	in Cols is a term ascending(Expr) or descending(Expr).
 
-select_results(Distinct, Offset, Limit, unsorted, Result, Goal) :- !,
-	select_results(Distinct, Offset, Limit, Result, Goal).
-select_results(Distinct, Offset, Limit, order_by(Cols), Result, Goal) :- !,
-	term_variables(Cols, Vars),
-	sort_key_goal(Vars, Keys, KeyGen),
-	SortKey =.. [v|Keys],
-	findall(SortKey-Result, (Goal,rdfql_util:KeyGen), Results0),
+select_results(Distinct, Offset, Limit, order_by(Cols), Result, Goal) :-
+	exclude(ground, Cols, SortCols), SortCols \== [], !,
+	reverse(SortCols, RevSortCols),
+	group_order(RevSortCols, GroupedCols),
+	maplist(sort_key_goal, GroupedCols, GroupedKeys, KeyGenList),
+	list_conj(KeyGenList, KeyGenGoal),
+	findall(GroupedKeys-Result, (Goal,rdfql_util:KeyGenGoal), Results0),
 	(   Distinct == distinct
 	->  sort(Results0, Results1)
 	;   Results1 = Results0
 	),
-	keysort(Results1, Results2),
-	fix_order(Cols, Results2, Results3),
-	apply_offset(Offset, Results3, Results4),
-	apply_limit(Limit, Results4, Results),
+	order_by(GroupedCols, Results1, Results2),
+	apply_offset(Offset, Results2, Results3),
+	apply_limit(Limit, Results3, Results),
 	member(_Key-Result, Results).
+select_results(Distinct, Offset, Limit, _Unsorted, Result, Goal) :-
+	select_results(Distinct, Offset, Limit, Result, Goal).
 
-fix_order([descending(_)], Results0, Results) :- !,
-	reverse(Results0, Results).
-fix_order(_, Results, Results).
+%%	group_order(+Cols, -GroupedCols) is det.
+%
+%	Group ordering expressions by the same ordering direction. E.g.,
+%	[ascending(X), ascending(Y), descending(Z)] becomes
+%	[ascending([X,Y]), descending([Z])]
 
-sort_key_goal([], [], true).
-sort_key_goal([V], [K], sort_key(V,K)) :- !.
-sort_key_goal([V|TV], [K|TK], (sort_key(V,K),G)) :-
-	sort_key_goal(TV, TK, G).
+group_order([], []).
+group_order([Col|CT0], [Grouped|GT]) :-
+	Col =.. [Dir,Expr],
+	Grouped =.. [Dir,[Expr|Exprs]],
+	same_order(Dir, CT0, CT, Exprs),
+	group_order(CT, GT).
+
+same_order(Dir, [Col|CT0], CT, [E0|ET]) :-
+	Col =.. [Dir,E0], !,
+	same_order(Dir, CT0, CT, ET).
+same_order(_, CT, CT, []).
+
+list_conj([], true) :- !.
+list_conj([G], G) :- !.
+list_conj([G|T0], (G,T)) :-
+	list_conj(T0, T).
+
+
+
+%%	order_by(+Cols, +Results0, -Results) is det.
+%
+%	Order the results.  Cols is a list of ascending(Var) or
+%	descending(Var).  We need to
+
+
+order_by([], Results, Results).
+order_by([ascending(_)|T], Results0, Results) :- !,
+	keysort(Results0, Results1),
+	(   T == []
+	->  Results = Results1
+	;   maplist(truncate_key, Results1, Results2),
+	    order_by(T, Results2, Results)
+	).
+order_by([descending(_)|T], Results0, Results) :-
+	keysort(Results0, Results1),
+	reverse(Results1, Results2),
+	(   T == []
+	->  Results = Results2
+	;   maplist(truncate_key, Results2, Results3),
+	    order_by(T, Results3, Results)
+	).
+
+%%	truncate_key(Keyed, Truncated)
+%
+%	Delete one level of the  key.   Because  keysort  is stable, the
+%	implied order is not changed anymore.
+
+truncate_key([_|Key]-V, Key-V).
+
+%%	sort_key_goal(+ColGroup, -KeyGroup, -Translate)
+
+sort_key_goal(ColGroup, KeyGroup, Translate) :-
+	arg(1, ColGroup, Exprs),
+	sort_expr_goal(Exprs, KeyGroup, Translate).
+
+sort_expr_goal([], [], true).
+sort_expr_goal([V], [K], sort_key(V,K)) :- !.
+sort_expr_goal([V|TV], [K|TK], (sort_key(V,K),G)) :-
+	sort_expr_goal(TV, TK, G).
 
 
 %%	sort_key(+Result, -Key) is det.
@@ -101,6 +159,7 @@ sort_key_goal([V|TV], [K|TK], (sort_key(V,K),G)) :-
 %
 %	@bug This is not good enough. Literals must be compared in their
 %	value-space.  This requires some study.
+%	@bug Result is a SPARQL expression.
 
 :- public sort_key/2.			% Goal created by sort_key_goal/3.
 
