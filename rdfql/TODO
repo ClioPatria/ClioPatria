@@ -4,8 +4,8 @@
 
 * Complete SORT BY:
 	* Compare in test-cases
-	* Realise descending and multi-column sorting
 	* Value-specific comparison
+	* Compare expression results (e.g., ASC(?a+?b))
 
 * Implement value based semantics in xsd:dateTime
 
