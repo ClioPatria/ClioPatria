@@ -591,10 +591,10 @@ attribute_decl(serialization,
 	       ]).
 attribute_decl(resultFormat,
 	       [ default(xml),
-		 type(oneof([ xml,
-			      html,
-			      rdf
-			    ])),
+		 oneof([ xml,
+			 html,
+			 rdf
+		       ]),
 		 description('Serialization format of the result')
 	       ]).
 attribute_decl(resourceFormat,
