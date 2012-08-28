@@ -140,7 +140,7 @@ evaluate_query(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized(read(Repository, query)),
+	authorized_api(read(Repository, query), ResultFormat),
 	statistics(cputime, CPU0),
 	downcase_atom(QueryLanguage, QLang),
 	compile(QLang, Query, Compiled,
@@ -192,7 +192,7 @@ evaluate_graph_query(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized(read(Repository, query)),
+	authorized_api(read(Repository, query), ResultFormat),
 	statistics(cputime, CPU0),
 	downcase_atom(QueryLanguage, QLang),
 	compile(QLang, Query, Compiled,
@@ -234,7 +234,7 @@ evaluate_table_query(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized(read(Repository, query)),
+	authorized_api(read(Repository, query), ResultFormat),
 	statistics(cputime, CPU0),
 	downcase_atom(QueryLanguage, QLang),
 	compile(QLang, Query, Compiled,
@@ -358,7 +358,7 @@ clear_repository(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized(write(Repository, clear)),
+	authorized_api(write(Repository, clear), Format),
 	api_action(Request,
 		   rdf_reset_db,
 		   Format,
@@ -376,7 +376,7 @@ unload_source(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized(write(Repository, unload(Source))),
+	authorized_api(write(Repository, unload(Source)), Format),
 	api_action(Request, rdf_unload(Source),
 		   Format,
 		   'Unloaded triples from ~w'-[Source]).
@@ -394,7 +394,7 @@ unload_graph(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized(write(Repository, unload(Graph))),
+	authorized_api(write(Repository, unload(Graph)), Format),
 	api_action(Request, rdf_unload(Graph),
 		   Format,
 		   'Unloaded triples from ~w'-[Graph]).
@@ -422,7 +422,7 @@ upload_data(Request) :- !,
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized(write(Repository, load(posted))),
+	authorized_api(write(Repository, load(posted)), ResultFormat),
 	phrase(load_option(DataFormat, BaseURI), Options),
 	atom_to_memory_file(Data, MemFile),
 	api_action(Request,
@@ -459,7 +459,7 @@ upload_url(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized(write(Repository, load(url(URL)))),
+	authorized_api(write(Repository, load(url(URL))), ResultFormat),
 	phrase(load_option(DataFormat, BaseURI), Options),
 	api_action(Request,
 		   rdf_load(URL, Options),
@@ -501,7 +501,8 @@ remove_statements(Request) :-
 	instantiated(Subject, SI),
 	instantiated(Predicate, PI),
 	instantiated(Object, OI),
-	authorized(write(Repository, remove_statements(SI, PI, OI))),
+	authorized_api(write(Repository, remove_statements(SI, PI, OI)),
+		       ResultFormat),
 
 	(   nonvar(Data)
 	->  setup_call_cleanup(( atom_to_memory_file(Data, MemFile),
@@ -751,3 +752,14 @@ result_table(Message, CPU, Subjects, Triples) -->
 			   \nc('~D', Triples), \nc('~D', TriplesNow)])
 		     ])
 	     ]).
+
+
+%%	authorized_api(+Action, +ResultFormat) is det.
+%
+%	@error permission_error(http_location, access, Path)
+
+authorized_api(Action, html) :- !,
+	authorized(Action).
+authorized_api(Action, _) :-
+	logged_on(User, anonymous),
+	check_permission(User, Action).
