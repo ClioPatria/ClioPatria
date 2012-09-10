@@ -177,6 +177,8 @@ http_settings:input_item(uri, Value, Name) -->
 
 :- setting(cliopatria:user_data, atom, 'users.db',
 	   'File holding account information').
+:- setting(cliopatria:enable_self_register, boolean, false,
+	   'Set to true to allow users to self register'). % using cpa_admin:add_user/1
 :- setting(cliopatria:default_entailment, atom, rdfs,
 	   'Default entailment rules applied').
 :- setting(cliopatria:optimise_query, boolean, true,

@@ -60,6 +60,7 @@ This module provides HTTP services to perform administrative actions.
 :- http_handler(cliopatria('admin/form/addUser'),	   add_user_form,	    []).
 :- http_handler(cliopatria('admin/form/addOpenIDServer'),  add_openid_server_form,  []).
 :- http_handler(cliopatria('admin/addUser'),		   add_user,		    []).
+:- http_handler(cliopatria('admin/selfRegister'),	   self_register,	    []).
 :- http_handler(cliopatria('admin/addOpenIDServer'),	   add_openid_server,	    []).
 :- http_handler(cliopatria('admin/form/editUser'),	   edit_user_form,	    []).
 :- http_handler(cliopatria('admin/editUser'),		   edit_user,		    []).
@@ -297,6 +298,33 @@ add_user(Request) :-
 	    reply_login([user(User), password(Password)])
 	;   list_users(Request)
 	).
+
+%%	self_register(Request)
+%
+%	Self-register and login a new user if
+%	cliopatria:enable_self_register is set to true.
+%       Users are registered with full read
+%	and limited (annotate-only) write access,
+%
+
+self_register(Request) :-
+	http_location_by_id(self_register, MyUrl),
+	(   \+ setting(cliopatria:enable_self_register, true)
+	->  throw(http_reply(forbidden(MyUrl)))
+	;   true
+	),
+	http_parameters(Request,
+			[ user(User),
+			  realname(RealName),
+			  password(Password)
+			],
+			[ attribute_declarations(attribute_decl)
+			]),
+	password_hash(Password, Hash),
+	Allow = [ read(_,_), write(_,annotate) ],
+	user_add(User, [realname(RealName), password(Hash), allow(Allow)]),
+	reply_login([user(User), password(Password)]).
+
 
 %%	edit_user_form(+Request)
 %
