@@ -758,7 +758,8 @@ result_table(Message, CPU, Subjects, Triples) -->
 %
 %	@error permission_error(http_location, access, Path)
 
-authorized_api(Action, html) :- !,
+authorized_api(Action, ResultFormat) :-
+	ResultFormat == html, !,	% do not bind
 	authorized(Action).
 authorized_api(Action, _) :-
 	logged_on(User, anonymous),
