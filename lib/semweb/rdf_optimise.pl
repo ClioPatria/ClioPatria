@@ -545,6 +545,23 @@ uninstantiate(Term, How) :-
 	;   true
 	).
 
+%%	instantiate_unify(A, B, State) is det.
+%
+%	We encounter a plain unification. Ideally, we determine the most
+%	specific binding and propagate this and execute the unification.
+%	The latter however must be undone  if we evaluate a disjunction.
+%	For now, the code is somewhat   simplified  and we merely decide
+%	that if one  side  is  instantiated,   the  other  will  be too,
+%	disregarding the actual value we might know.
+
+instantiate_unify(A, B, State) :-
+	instantiated(B, +(_)), !,
+	instantiate(A, _, b, State).
+instantiate_unify(A, B, State) :-
+	instantiated(A, +(_)), !,
+	instantiate(B, _, b, State).
+instantiate_unify(_, _, _).
+
 
 %%	attr_unify_hook(+Attribute, +Value)
 %
@@ -712,6 +729,10 @@ complexity(Goal, Goal, State, Sz0, Sz, C0, C) :-
 	length(List, Branch),
 	Sz is Sz0 * Branch,
 	C is C0 + Sz0*0.2 + Sz*0.2.
+complexity(Goal, Goal, State, Sz, Sz, C0, C) :-
+	Goal = (A=B), !,
+	instantiate_unify(A, B, State),
+	C is C0 + 0.2.
 complexity(Goal, Goal, State, Sz, Sz, C0, C) :-
 	Goal = (Var=literal(V)), !,
 	instantiated(V, +(_)),
