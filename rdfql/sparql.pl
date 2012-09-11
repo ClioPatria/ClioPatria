@@ -130,7 +130,8 @@ optimise(Parsed, Optimised, Options) :-
 	setting(cliopatria:optimise_query, Def),
 	option(optimise(true), Options, Def), !,
 	prolog_goal(Parsed, Goal0),
-	rdf_optimise(Goal0, Goal),
+	optimise_eval(Goal0, Goal1),
+	rdf_optimise(Goal1, Goal),
 	set_prolog_goal(Parsed, Goal, Optimised).
 optimise(Parsed, Parsed, _).
 
@@ -148,6 +149,27 @@ set_prolog_goal(ask(DataSets, _Goal), Goal,
 		ask(DataSets, Goal)).
 set_prolog_goal(describe(Proj, DataSets, _Goal, Solutions), Goal,
 		describe(Proj, DataSets, Goal, Solutions)).
+
+
+%%	optimise_eval(+Goal0, -Goal) is det.
+%
+%	Perform partial evaluation on   sparql_true/1  and sparql_eval/2
+%	goals.
+
+optimise_eval((A0,B0), (A,B)) :- !,
+	optimise_eval(A0, A),
+	optimise_eval(B0, B).
+optimise_eval((A0;B0), (A;B)) :- !,
+	optimise_eval(A0, A),
+	optimise_eval(B0, B).
+optimise_eval((A0*->B0), (A*->B)) :- !,
+	optimise_eval(A0, A),
+	optimise_eval(B0, B).
+optimise_eval(sparql_true(E), G) :- !,
+	sparql_simplify(sparql_true(E), G).
+optimise_eval(sparql_eval(E,V), G) :- !,
+	sparql_simplify(sparql_eval(E,V), G).
+optimise_eval(G, G).
 
 
 %%	sparql_run(+Compiled, -Reply) is nondet.

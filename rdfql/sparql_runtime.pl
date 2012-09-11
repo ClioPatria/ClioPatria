@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2006, University of Amsterdam
+    Copyright (C): 2004-2012, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -30,8 +29,9 @@
 */
 
 :- module(sparql_runtime,
-	  [ sparql_true/1,
-	    sparql_eval/2
+	  [ sparql_true/1,		% +Expression
+	    sparql_eval/2,		% +Expression, -Value
+	    sparql_simplify/2		% :Goal, -SimpleGoal
 	  ]).
 :- use_module(library('semweb/rdf_db')).
 :- use_module(library(xsdp_types)).
@@ -645,3 +645,45 @@ to_rdf(iri(IRI), IRI).
 is_rdf(IRI) :- atom(IRI).
 is_rdf(Var) :- var(Var), !, fail.
 is_rdf(literal(_)).
+
+
+		 /*******************************
+		 *	      SIMPLIFY		*
+		 *******************************/
+
+%%	sparql_simplify(:Goal, -Simple) is det.
+%
+%	Simplify goals to the SPARQL runtime functions before they are
+%	handed to the general optimizer and runtime evaluation.
+
+sparql_simplify(sparql_true(E), G) :-
+	simplify_true(E, G), !.
+sparql_simplify(sparql_eval(E, V), G) :-
+	simplify_eval(E, V, G), !.
+sparql_simplify(Goal, Goal).
+
+
+%%	simplify_true(+Expr, -Goal) is semidet.
+%
+%	Simplify a boolean expression  resulting   from  a SPARQL FILTER
+%	statement. Ideally, this should be   a simple partial evaluation
+%	of sparql_true/1.
+
+simplify_true(or(A0,B0), (A;B)) :-
+	simplify_true(A0, A),
+	simplify_true(B0, B).
+simplify_true(and(A0,B0), (A;B)) :-
+	simplify_true(A0, A),
+	simplify_true(B0, B).
+simplify_true(A0=B0, A=B) :-
+	peval(A0, A),
+	peval(B0, B).
+
+%%	simplify_eval(+Expr, +Value, -Goal) is semidet.
+
+simplify_eval(_,_,_) :- fail.
+
+peval(Var, Var) :-
+	var(Var), !.
+peval(Resource, Resource) :-
+	atom(Resource).
