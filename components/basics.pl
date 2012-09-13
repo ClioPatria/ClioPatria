@@ -46,10 +46,10 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_wrapper)).
 
-:- html_meta
+:- html_meta((
 	form_input(html, html, ?, ?),
 	odd_even_row(+, -, html, ?, ?),
-	sort_th(+, +, html, ?, ?).
+	sort_th(+, +, html, ?, ?))).
 
 /** <module> Simple Small HTML components
 */
