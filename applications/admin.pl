@@ -304,8 +304,11 @@ add_user(Request) :-
 %	Self-register and login a new user if
 %	cliopatria:enable_self_register is set to true.
 %       Users are registered with full read
-%	and limited (annotate-only) write access,
+%	and limited (annotate-only) write access.
 %
+%	Returns a HTTP 403 forbidden error if:
+%	- cliopatria:enable_self_register is set to false
+%	- the user already exists
 
 self_register(Request) :-
 	http_location_by_id(self_register, MyUrl),
@@ -320,6 +323,10 @@ self_register(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
+	(   current_user(User)
+	->  throw(http_reply(forbidden(MyUrl)))
+	;   true
+	),
 	password_hash(Password, Hash),
 	Allow = [ read(_,_), write(_,annotate) ],
 	user_add(User, [realname(RealName), password(Hash), allow(Allow)]),
