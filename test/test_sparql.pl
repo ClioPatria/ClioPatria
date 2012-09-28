@@ -629,18 +629,18 @@ clean_tests :-
 	reset_manifests,
 	rdf_reset_db.
 
-list_tests(passed) :-
-	forall(passed(Test),
-	       (   test_name(Test, Name),
-		   format('PASSED: ~q~n', [Name]))).
-list_tests(failed) :-
-	forall(failed(Test),
-	       (   test_name(Test, Name),
-	           format('FAILED: ~q~n', [Name]))).
-list_tests(skipped) :-
-	forall(skipped(Test),
-	       (   test_name(Test, Name),
-		   format('SKIPPED: ~q~n', [Name]))).
+list_tests(Which) :-
+	findall(Test, test_result(Which, Test), Tests),
+	sort(Tests, Sorted),
+	upcase_atom(Which, Message),
+	forall(member(Test, Sorted),
+	       format('~w: ~q~n', [Message, Test])).
+
+
+test_result(Which, Name) :-
+	Goal =.. [Which, Test],
+	call(Goal),
+	test_name(Test, Name).
 
 list_db :-
 	rdf_save_turtle(stream(current_output), []).
