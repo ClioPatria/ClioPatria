@@ -80,6 +80,10 @@
 %%	http_login(+Request)
 %
 %	HTTP handler to associate the current session with a local user.
+%	If the login succeeds a 200  reply according to the resultFormat
+%	parameters  is  sent.  If  the  result  fails  due  to  a  wrong
+%	user/password,  the  server  responds  with  a  403  (forbidden)
+%	message.  Other failures result in a 500 (server error).
 %
 %	@see	help('howto/ClientAuth.txt') for additional information on
 %		authetication.
@@ -93,11 +97,18 @@ http_login(Request) :-
 			[ attribute_declarations(attribute_decl)
 			]),
 	api_action(Request,
-		   (   validate_password(User, Password),
+		   (   validate_login(Request, User, Password),
 		       login(User)
 		   ),
 		   ResultFormat,
 		   'Login ~w'-[User]).
+
+validate_login(_, User, Password) :-
+	validate_password(User, Password), !.
+validate_login(Request, _, _) :-
+	memberchk(path(Path), Request),
+	throw(http_reply(forbidden(Path))).
+
 
 %%      http_logout(+Request)
 %
