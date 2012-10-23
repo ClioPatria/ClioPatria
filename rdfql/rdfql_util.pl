@@ -300,6 +300,14 @@ Note that we do not need to do anything with the result term because the
 output variables are already shared with it.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+select_results(_Distinct, [], Having, AggregateEval, _Offset, _Limit,
+	       _Order, _Result, Goal) :- !,
+	aggregate_vars(AggregateEval, Aggregates, AggVars, Eval),
+	AV =.. [a|AggVars],
+	findall(AV, Goal, Group),
+	aggregate(Group, Aggregates),
+	call(Eval),
+	call(Having).
 select_results(_Distinct, Group, Having, AggregateEval, _Offset, _Limit,
 	       _Order, _Result, Goal) :-
 	aggregate_vars(AggregateEval, Aggregates, AggVars, Eval),
@@ -311,7 +319,7 @@ select_results(_Distinct, Group, Having, AggregateEval, _Offset, _Limit,
 	member(GV-G, Groups),
 	aggregate(G, Aggregates),
 	call(Eval),
-	call(Having).			% Needs entailment module?
+	call(Having).
 
 %%	aggregate(+Group, +Aggregates)
 
