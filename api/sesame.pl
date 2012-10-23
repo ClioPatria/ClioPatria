@@ -151,14 +151,13 @@ evaluate_query(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized_api(read(Repository, query), ResultFormat),
 	statistics(cputime, CPU0),
 	downcase_atom(QueryLanguage, QLang),
 	compile(QLang, Query, Compiled,
 		[ entailment(Entailment),
 		  type(Type)
 		]),
-	authorized_query(Type, ResultFormat),
+	authorized_query(Type, Repository, ResultFormat),
 	findall(Reply, run(QLang, Compiled, Reply), Result),
 	statistics(cputime, CPU1),
 	CPU is CPU1 - CPU0,
@@ -193,9 +192,10 @@ evaluate_query(Request) :-
 	).
 
 
-authorized_query(update, ResultFormat) :- !,
-	authorized_api(write(default, sparql(update)), ResultFormat).
-authorized_query(_, _).
+authorized_query(update, Repository, ResultFormat) :- !,
+	authorized_api(write(Repository, sparql(update)), ResultFormat).
+authorized_query(_, Repository, ResultFormat) :-
+	authorized_api(read(Repository, query), ResultFormat).
 
 %%	evaluate_graph_query(+Request)
 %
