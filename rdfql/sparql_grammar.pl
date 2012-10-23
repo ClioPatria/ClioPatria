@@ -605,6 +605,8 @@ resolve_expression(not_in(E0, List0), not_in(E, List), Q, S0, S) :- !,
 resolve_expression(not_exists(Pattern), boolean(True), Q, S0, S) :- !,
 	resolve_query(Pattern, QE, S0, S),
 	Q = (QE -> True=false ; True=true).
+resolve_expression(distinct(E0), distinct(E), Q, S0, S) :- !,
+	resolve_expression(E0, E, Q, S0, S).
 resolve_expression(var(Name), Var, true, S0, S) :- !,
 	resolve_var_invisible(Name, Var, S0, S).
 resolve_expression(T0, T, Q, S0, S) :-

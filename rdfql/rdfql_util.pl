@@ -333,6 +333,8 @@ aggregate([], Aggregates) :-
 
 aggregate_setup(count(X), Count) :-
 	aggregate_step(count(X), 0, Count).
+aggregate_setup(distinct(X, _Op), Set) :-
+	( X == '$null$' -> Set = [] ; Set = [X] ).
 aggregate_setup(sum(X0), X) :-
 	sparql_eval_raw(X0, X).
 aggregate_setup(min(X0), X) :-
@@ -353,6 +355,8 @@ aggregate_steps([HT|T], State0, State) :-
 
 aggregate_step(count(X), Count0, Count) :-
 	( X == '$null$' -> Count = Count0 ; Count is Count0 + 1 ).
+aggregate_step(distinct(X, _Op), S0, S) :-
+	( X == '$null$' -> S = S0 ; S = [X|S0] ).
 aggregate_step(sum(X), Sum0, Sum) :-
 	sparql_eval_raw(X+Sum0, Sum).
 aggregate_step(min(X), Min0, Min) :-
@@ -387,12 +391,31 @@ aggregate_bind(max(_), Max, Max0) :-
 	bind_number(Max0, Max).
 aggregate_bind(avg(_), Avg, Sum-Count) :-
 	rdf_equal(xsd:integer, XSDInt),
-	catch(sparql_eval(Sum/numeric(XSDInt, Count), Avg), _,
-	      Avg = '$null$').
+	sparql_eval(Sum/numeric(XSDInt, Count), Avg).
 aggregate_bind(sample(_), Sample, Sample).
 aggregate_bind(group_concat(_, literal(Sep)), literal(Concat), Parts) :-
 	maplist(text_of, Parts, Texts),
 	atomic_list_concat(Texts, Sep, Concat).
+aggregate_bind(distinct(_, Op), Value, Set) :-
+	sort(Set, Distinct),
+	aggregate_distinct(Op, Distinct, Value).
+
+%%	aggregate_distinct(+Operation, +Set, -Value)
+
+aggregate_distinct(count, Set, Value) :-
+	length(Set, Value).
+aggregate_distinct(sum, Set, Sum) :-
+	rdf_equal(xsd:integer, IntType),
+	foldl(add, Set, number(IntType, 0), Sum0),
+	bind_number(Sum0, Sum).
+aggregate_distinct(avg, Set, Avg) :-
+	aggregate_distinct(sum, Set, Sum),
+	length(Set, Count),
+	rdf_equal(xsd:integer, XSDInt),
+	sparql_eval(Sum/numeric(XSDInt, Count), Avg).
+
+add(X, Sum0, Sum) :-
+	sparql_eval_raw(X+Sum0, Sum).
 
 text_of(Expr, Atom) :-
 	sparql_eval_raw(Expr, V0),
@@ -427,8 +450,9 @@ empty_aggregate(aggregate(group_concat(_,_), literal(''))).
 %	       used.
 
 aggregate_vars([], [], [], true).
-aggregate_vars([H|T], [H|AT], [Term|Templ], Q) :-
-	H = aggregate(Term, _Into), !,
+aggregate_vars([aggregate(Term0, Into)|T],
+	       [aggregate(Term,  Into)|AT], [Term|Templ], Q) :- !,
+	x_distinct(Term0, Term),
 	aggregate_vars(T, AT, Templ, Q).
 aggregate_vars([Q0|T], Agg, Templ, Q) :-
 	aggregate_vars(T, Agg, Templ, Q1),
@@ -437,6 +461,17 @@ aggregate_vars([Q0|T], Agg, Templ, Q) :-
 mkconj(true, Q, Q) :- !.
 mkconj(Q, true, Q) :- !.
 mkconj(A, B, (A,B)).
+
+x_distinct(Term0, Term) :-
+	arg(1, Term0, Spec),
+	compound(Spec),
+	Spec = distinct(_),
+	distinct_x(Term0, Term), !.
+x_distinct(Term, Term).
+
+distinct_x(count(distinct(X)), distinct(X, count)).
+distinct_x(count(sum(X)), distinct(X, sum)).
+distinct_x(count(avg(X)), distinct(X, avg)).
 
 
 		 /*******************************
