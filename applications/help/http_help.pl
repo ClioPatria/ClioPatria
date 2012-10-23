@@ -552,6 +552,9 @@ params([H|T], Decl) -->
 	param(H, Decl),
 	params(T, Decl).
 
+:- meta_predicate
+	param(+, 2, ?, ?).
+
 param(Term, _) -->
 	{ \+ compound(Term) }, !.
 param(group(Params0, Options), Decl) --> !,

@@ -44,6 +44,9 @@
 :- use_module(rdfql_util).
 :- include(entailment(load)).
 
+:- meta_predicate
+	select_results(+,-,0).
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 A Prolog path expression is a conjunction of rdf/3 statements. Parts may
 be wrapped in opt/1 to indicate they are   optional  and nodes may be of
@@ -433,7 +436,7 @@ constrain(_, _) -->
 join_alt_annots(LoL, Annotated) :-
 	smallest_var(LoL, Var), !,
 	var_annotations(Var, LoL, LoL1, Annotations0),
-	sort(Annotations0, Annotations), 	% remove duplicates
+	sort(Annotations0, Annotations),	% remove duplicates
 	(   empty_annotations(Annotations)
 	->  join_alt_annots(LoL1, Annotated)
 	;   put_annotations(Annotations, Var),

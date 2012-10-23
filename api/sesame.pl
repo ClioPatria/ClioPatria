@@ -713,6 +713,9 @@ subj_label --> html('Resources').
 :- endif.
 
 
+:- meta_predicate
+	run(0, +).
+
 run((A,B), Log) :- !,
 	run(A, Log),
 	run(B, Log).

@@ -452,6 +452,9 @@ type_of(Subject, Type) :-
 	;   rdf_equal(Type, rdfs:'Resource')
 	).
 
+:- meta_predicate
+	call_det(0, -).
+
 call_det(G, Det) :-
 	call(G),
 	deterministic(Det).

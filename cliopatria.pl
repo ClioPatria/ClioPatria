@@ -213,6 +213,9 @@ rdf_attach_store(Options, AfterLoad) :-
 	       call_warn(Goal)),
 	call_warn(AfterLoad).
 
+:- meta_predicate
+	call_warn(0).
+
 call_warn(Goal) :-
 	(   catch(Goal, E, true)
 	->  (   var(E)
