@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        jan@swi.psy.uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2004, University of Amsterdam
+    Copyright (C): 1985-2012, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -82,7 +81,7 @@ http://hcs.science.uva.nl/projects/SWI-Prolog/articles/ICLP05-SeRQL.pdf
 
 NOTES:
 
-	* LIKE works on resources *and* literals.  Do we want this?
+	* SeRQL LIKE works on resources *and* literals.  Do we want this?
 	  See http://www.openrdf.org/forum/mvnforum/viewthread?thread=275
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -719,6 +718,22 @@ complexity((A0;B0), (A;B), State, Sz0, Sz, C0, C) :- !,
 	complexity(B, B, State, Sz0, SzB, C0, CB),
 	Sz is SzA + SzB,
 	C is CA + CB.
+complexity(sparql_group(G0), sparql_group(G), State, Sz0, Sz, C0, C) :- !,
+	(   var(G)
+	->  optimise_order(G0, G, Sz1, C1),
+	    Sz is Sz0 * Sz1,
+	    C is C0+Sz0*C1
+	;   complexity(G, G, State, Sz0, Sz, C0, C)
+	).
+complexity(sparql_group(G0, OV, IV),
+	   sparql_group(G, OV, IV),
+	   State, Sz0, Sz, C0, C) :- !,
+	(   var(G)
+	->  optimise_order(G0, G, Sz1, C1),
+	    Sz is Sz0 * Sz1,
+	    C is C0+Sz0*C1
+	;   complexity(G, G, State, Sz0, Sz, C0, C)
+	).
 complexity(rdfql_carthesian(Bags),
 	   rdfql_carthesian(Bags), State, Sz0, Sz, C0, C) :- !,
 	carth_complexity(Bags, State, Sz0, Sz, C0, 0, C).
