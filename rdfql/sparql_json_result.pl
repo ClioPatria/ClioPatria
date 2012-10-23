@@ -33,6 +33,7 @@
 :- use_module(library(http/http_json)).
 :- use_module(library(sgml_write)).
 :- use_module(library(apply)).
+:- use_module(library(option)).
 :- use_module(library(semweb/rdf_db)).
 
 /** <module> Write SPARQL results as JSON
@@ -42,7 +43,7 @@
 @author Michiel Hildebrand
 */
 
-sparql_json_mime_type(application/'sparql-results; charset=UTF-8').
+sparql_json_mime_type(application/'sparql-results+json; charset=UTF-8').
 
 %%	sparql_write_json_result(+Out:stream, +Result, +Options) is det.
 %
@@ -78,30 +79,36 @@ row_to_json(Vars, Row, json(Bindings)) :-
 	var_col_bindings(Vars, 1, Row, Bindings).
 
 var_col_bindings([], _, _, []).
-var_col_bindings([V0|T0], I, Row, [V0=json(JSON)|T]) :-
+var_col_bindings([V0|T0], I, Row, Bindings) :-
 	arg(I, Row, Value),
-	rdf_term_to_json(Value, JSON),
 	I2 is I + 1,
-	var_col_bindings(T0, I2, Row, T).
+	(   Value = '$null$'		% also catches variables
+	->  var_col_bindings(T0, I2, Row, Bindings)
+	;   Bindings = [V0=json(JSON)|T],
+	    rdf_term_to_json(Value, JSON),
+	    var_col_bindings(T0, I2, Row, T)
+	).
 
 
 %%	rdf_term_to_json(+RDFTerm, -JsonTerm)
 %
 %	convert an rdf term to a json term.
+%
+%	@tbd: Handle blank nodes.
 
 rdf_term_to_json(literal(Lit), Object) :- !,
-	Object = [value=Txt, type=literal|Rest],
+	Object = [type=literal, value=Txt|Rest],
 	literal_to_json(Lit, Txt, Rest).
 rdf_term_to_json(URI0, Object) :-
 	rdf_global_id(URI0, URI),
-	Object = [value=URI, type=Type],
+	Object = [type=Type, value=URI],
 	object_uri_type(URI, Type).
 
 %%	literal_to_json(+Literal, -Text, -Attributes)
 %
 %	Extract text and Attributes from Literal resource.
 
-literal_to_json(lang(Lang, Text), Text, [lang=Lang]) :- !.
+literal_to_json(lang(Lang, Text), Text, ['xml:lang'=Lang]) :- !.
 literal_to_json(type(Type, Text0), Text, [datatype=Type]) :- !,
 	to_text(Type, Text0, Text).
 literal_to_json(Txt, Txt, []).
