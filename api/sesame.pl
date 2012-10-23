@@ -158,6 +158,7 @@ evaluate_query(Request) :-
 		[ entailment(Entailment),
 		  type(Type)
 		]),
+	authorized_query(Type, ResultFormat),
 	findall(Reply, run(QLang, Compiled, Reply), Result),
 	statistics(cputime, CPU1),
 	CPU is CPU1 - CPU0,
@@ -183,8 +184,18 @@ evaluate_query(Request) :-
 			    [ h4('ASK query completed'),
 			      p(['Answer = ', Reply])
 			    ])
+	;   Type == update, Result = [Reply]
+	->  reply_html_page(cliopatria(default),
+			    title('Update Result'),
+			    [ h4('Update query completed'),
+			      p(['Answer = ', Reply])
+			    ])
 	).
 
+
+authorized_query(update, ResultFormat) :- !,
+	authorized_api(write(default, sparql(update)), ResultFormat).
+authorized_query(_, _).
 
 %%	evaluate_graph_query(+Request)
 %
