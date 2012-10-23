@@ -15,5 +15,5 @@ SELECT ?p ?member  WHERE
 ORDER BY xsd:integer(
            jfn:substring(
              str(?p),
-             jfn:strlen(str(rdf:)) + 1
+             jfn:string-length(str(rdf:))
          ))

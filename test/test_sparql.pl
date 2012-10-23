@@ -31,15 +31,20 @@
 :- module(test_sparql,
 	  [ sparql_parse/3,		% +Text, -Query, +Options
 
-	    load_manifests/1,		% Load 'arq' or 'dawg' manifests
+	    load_manifests/1,		% 'arq', 'dawg' or 'sparql11'
+	    load_test_data/1,		% +NameOrIRI
 
 	    show_test/1,		% +NameOrIRI
 	    show_test_data/1,		% +NameOrIRI
 	    edit_test_data/1,		% +NameOrIRI
 	    edit_test_result/1,		% +NameOrIRI
 	    edit_test/1,		% +NameOrIRI
-	    list_tests/1,		% +Class
+
 	    list_db/0,
+
+	    list_tests/1,		% +Class
+	    dump_tests/1,		% +File
+	    compare_tests/1,		% +File
 
 					% SYNTAX TESTS
 	    syntax_test/1,		% +NameOrIRI
@@ -61,7 +66,10 @@ user:file_search_path(library, '../lib').
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(jena_functions)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/sparql_client), [sparql_read_xml_result/2]).
+:- use_module(library(semweb/sparql_client),
+	      [ sparql_read_xml_result/2,
+		sparql_read_json_result/2
+	      ]).
 :- use_module(library(url)).
 :- use_module(library(apply)).
 :- use_module(library(settings)).
@@ -76,11 +84,16 @@ user:file_search_path(library, '../lib').
 :- setting(cliopatria:optimise_query, boolean, true,
            'Optimise queries before execution').
 
+/** <module> SPARQL test suite handling
+
+@see http://sparql.org/query-validator.html
+*/
+
 :- dynamic
 	failed_result/2,
 	passed/1,
 	failed/1,
-	skipped/1.
+	skipped/2.
 
 %%	blocked(?Name)
 %
@@ -103,6 +116,15 @@ blocked('UNSAID - triple/absent').
 blocked('UNSAID of pattern in basic block => false').
 blocked('UNSAID of pattern not matching').
 blocked('UNSAID of pattern partially matching').
+					% Broken tests (as far as I can tell)
+blocked('Union 6').
+					% test with property functions with
+					% two arguments
+blocked(Test) :-
+	sub_atom(Test, _, _, _,	splitIRI), !.
+
+% SPARQL 1.1
+blocked('csv03 - CSV Result Format').	% Too bizarre types
 
 
 		 /*******************************
@@ -124,38 +146,52 @@ run_query_tests :-
 
 load_query_manifests :-
 	load_manifests([ arq,
-			 dawg
+			 dawg,
+			 sparql11
 		       ]).
 
 run_all_query_tests :-
 	(   current_test(_, Test),
 	    test_name(Test, Name),
 	    (	blocked(Name)
-	    ->	assert(skipped(Test)),
+	    ->	assert(skipped(Test, blocked)),
 		fail
 	    ;	true
 	    ),
 	    query_test(Test),
 	    fail ; true
 	),
-
-	findall(T, passed(T), Passed), length(Passed, NPassed),
-	findall(T, failed(T), Failed), length(Failed, NFailed),
-	findall(T, skipped(T), Skipped), length(Skipped, NSkipped),
-	format('Passed: ~D; failed: ~D; skipped: ~D~n',
-	       [NPassed, NFailed, NSkipped]).
+	test_statistics.
 
 query_test(Name) :-
 	test_name(Test, Name), !,
 	query_test(Test).
 query_test(Test) :-
+	test_syntax(Test, Syntax),
+	(   Syntax == negative
+	->  assertz(skipped(Test, negsyntax))
+	;   Syntax == positive
+	->  assertz(skipped(Test, syntax))
+	), !.
+query_test(Test) :-
+	(   test_query(Test, Query)
+	->  (   entailment(Test, Entailment)
+	    ->	query_test(Test, Query, Entailment)
+	    ;	assertz(skipped(Test, entailment))
+	    )
+	;   assertz(skipped(Test, no_query))
+	).
+
+
+query_test(Test, Query, Entailment) :-
 	test_name(Test, Name),
 	format('~`=t BEGIN ~q ~`=t~72|~n', [Name]),
-	test_query(Test, Query),
 					% Compile the query
 	(   catch(sparql_compile(Query, Compiled,
 				 [ type(Type),
-				   entailment(none)
+				   entailment(none),
+				   bind_null(true),
+				   entailment(Entailment)
 				 ]), E, true)
 	->  (   var(E)
 	    ->	true
@@ -163,17 +199,14 @@ query_test(Test) :-
 		assert(failed(Test)),
 		fail
 	    )
-	;   format('FAILED to compile ~q~n', [Name]),
+	;   test_id(Test, Id),
+	    format('FAILED to compile ~q~n', [Id]),
 	    assert(failed(Test)),
 	    fail
 	),
 					% get the correct result
 	result_to_prolog(Type, Test, PrologResult),
-					% load the data
-	rdf_reset_db,
-	test_data_files(Test, DataFiles),
-	maplist(rdf_load, DataFiles),
-
+	load_test_data(Test),
 					% run the query
 	catch(findall(Result, sparql_run(Compiled, Result), Results),
 	      E, true),
@@ -185,6 +218,34 @@ query_test(Test) :-
 	    fail
 	).
 
+entailment(Test, Entailment) :-
+	test_entailment(Test, EntailURI), !,
+	entailment_name(EntailURI, Entailment).
+entailment(_, none).
+
+:- rdf_meta entailment_name(r, -).
+
+entailment_name(entailment:'RDF',        rdf).
+entailment_name(entailment:'RDFS',       rdfs).
+entailment_name(entailment:'OWL-Direct', owl_direct) :- fail.
+
+
+%%	load_test_data(+Test)
+%
+%	Reset the RDF store and load  all   data  into the desired named
+%	graphs.
+
+load_test_data(Name) :-
+	test_name(Test, Name), !,
+	load_test_data(Test).
+load_test_data(Test) :-
+	rdf_reset_db,
+	test_data_files(Test, DataFiles), !,
+	forall(member(File-Graph, DataFiles),
+	       rdf_load(File, [graph(Graph)])).
+load_test_data(_) :-
+	print_message(informational, sparql(no_test_data)).
+
 
 %%	compare_results(+Test, +Type, +Correct, +Results)
 %
@@ -195,6 +256,12 @@ compare_results(_, _, no_result, _) :- !.
 compare_results(Test, ask, ask(Bool), [Bool]) :- !,
 	assert(passed(Test)).
 compare_results(Test, Type, select(ColTerm, Rows), Result) :-
+	exclude(ground, Result, NonGround),
+	(   NonGround \== []
+	->  write_list('NON GROUND:', NonGround, 8),
+	    assert(failed(Test))
+	;   true
+	),
 	Type = select(MyColTerm), !,
 	MyColTerm =.. [_|MyColNames],
 	ColTerm =.. [_|ColNames],
@@ -206,14 +273,18 @@ compare_results(Test, Type, select(ColTerm, Rows), Result) :-
 	compare_sets(Test, Type, RowsMyOrder, Result).
 compare_results(Test, construct, Correct, Result) :- !,
 	compare_sets(Test, compare_sets, Correct, Result).
+compare_results(Test, describe, Correct, Result) :- !,
+	compare_sets(Test, compare_sets, Correct, Result).
 compare_results(Test, ask, ask(Correct), [Result]) :- !,
-	test_name(Test, Name),
+	test_id(Test, Name),
 	format('~`=t ~q ~`=t~72|~n', [Name]),
 	format('TYPE: ASK~n'),
 	format('CORRECT: ~q~n', [Correct]),
 	format('WE: ~q~n', [Result]).
+compare_results(Test, update, Graphs, Result) :- !,
+	compare_update(Test, Graphs, Result).
 compare_results(Test, Type, Correct, Result) :-
-	test_name(Test, Name),
+	test_id(Test, Name),
 	format('~`=t ~q ~`=t~72|~n', [Name]),
 	format('TYPE: ~q~n', [Type]),
 	write_list('CORRECT:', Correct, 8),
@@ -230,7 +301,7 @@ compare_sets(Test, Type, RowsMyOrder, Result) :-
 	(   MyExtra == [],
 	    OkExtra == []
 	->  assert(passed(Test))
-	;   test_name(Test, Name),
+	;   test_id(Test, Name),
 	    length(MyRows, MyCount),
 	    length(MyExtra, MyExtraCount),
 	    length(OkExtra, OkExtraCount),
@@ -359,17 +430,31 @@ same_row(R1, R2) :-
 		   same_value(A1, A2))).
 
 same_value(V, V) :- !.
-same_value(literal(type(T,V1)), literal(type(T,V2))) :-
+same_value(literal(L1), literal(L2)) :-
+	same_literal(L1, L2).
+
+:- rdf_meta same_literal(t,t).
+
+same_literal(lang(L1,S), lang(L2,S)) :-
+	downcase_atom(L1, L),
+	downcase_atom(L2, L).
+same_literal(type(xsd:string, X), X).
+same_literal(X, type(xsd:string, X)).
+same_literal(type(T,V1), type(T,V2)) :-
 	xsdp_numeric_uri(T, _),
 	to_number(V1, N1),
 	to_number(V2, N2),
-	N1 =:= N2.
+	(   N1 =:= N2
+	->  true
+	;   float(N1), float(N2),
+	    abs(N1-N2) < 0.000000001	% hack for rounding errors.
+	).
 
 to_number(a, _) :- !, fail.		% catch variables
 to_number(N, N) :-
 	number(N), !.
 to_number(A, N) :-
-	catch(atom_number(A, N), _, fail).
+	atom_number(A, N).
 
 
 %%	write_list(+Prompt, +List, +Indent)
@@ -405,12 +490,23 @@ write_cols([H|T]) :-
 	    write_cols(T)
 	).
 
-write_cell(literal(X)) :- !,
-	format('"~w"', [X]).
+write_cell(Var) :-
+	var(Var), !,
+	format('~w', [Var]).
+write_cell(literal(type(T,V))) :- !,
+	(   atom(T),
+	    rdf_global_id(NS:L, T)
+	->  format('"~w"^^~w:~w', [V, NS, L])
+	;   format('"~w"^^<~w>', [V, T])
+	).
+write_cell(literal(lang(L,V))) :- !,
+	format('"~w"@~w', [V, L]).
+write_cell(literal(V)) :- !,
+	format('"~w"', [V]).
 write_cell(R) :-
 	atom(R),
 	rdf_global_id(NS:Id, R), !,
-	format('<~w:~w>', [NS, Id]).
+	format('~w:~w', [NS, Id]).
 write_cell('$null$') :- !,
 	write('NULL').
 write_cell(R) :-
@@ -418,6 +514,49 @@ write_cell(R) :-
 	format('<~w>', [R]).
 write_cell(X) :-
 	format('~p', [X]).
+
+
+		 /*******************************
+		 *	   UPDATE RESULTS	*
+		 *******************************/
+
+compare_update(Test, Graphs, _Result) :-
+	compare_graphs(Graphs, Wrong),
+	(   Wrong == []
+	->  assert(passed(Test))
+	;   test_name(Test, Name),
+	    format('~`=t ~q ~`=t~72|~n', [Name]),
+	    maplist(write_wrong_graph, Wrong),
+	    assert(failed(Test))
+	).
+
+compare_graphs([], []).
+compare_graphs([graph(G, ApprovedTriples)|T0], Errors) :-
+	findall(rdf(S,P,O), rdf(S,P,O,G), OurTriples),
+	compare_graphs(ApprovedTriples, OurTriples, Extra, Missing),
+	(   Extra == [],
+	    Missing == []
+	->  Errors = Errors1
+	;   Errors = [graph(G, Extra, Missing)|Errors1]
+	),
+	compare_graphs(T0, Errors1).
+
+
+write_wrong_graph(graph(G, Extra, Missing)) :-
+	length(Extra, ExtraCount),
+	length(Missing, MissingCount),
+	format('GRAPH: ~q; ~D missing, ~D extra triples~n',
+	       [G, ExtraCount, MissingCount]),
+	write_list('MISSED:', Extra, 8),
+	write_list('EXTRA:', Missing, 8),
+	format('~`=t~72|~n~n', []).
+
+compare_graphs(ApprovedTriples, OurTriples, Extra, Missing) :-
+	var_blank_nodes_in_rows(OurTriples, OurV),
+	var_blank_nodes_in_rows(ApprovedTriples, ApprovedV),
+	sort(OurV, OurRows),
+	sort(ApprovedV, ApprovedRows),
+	match_rows(OurRows, ApprovedRows, Extra, Missing), !.
 
 
 		 /*******************************
@@ -430,29 +569,31 @@ write_cell(X) :-
 %	and DESCRIBE queries the result is  a   set  of triples. For the
 %	others the format is described below:
 %
-%		# ASK
-%%		ask(Bool)
+%		* ASK
+%		ask(Bool)
 %
-%		# SELECT
-%		select([Name1, ...],
+%		* SELECT
+%		select(names(Name1, ...),
 %		       [ row(V1, ...),
 %			 ...
 %		       ])
+%
+%		* UPDATE
+%		List of graph(Graph, Triples)
 
+result_to_prolog(update, Test, Result) :- !,
+	findall(graph(Graph, Triples),
+		( test_result_graph(Test, File, Graph),
+		  load_triples(File, Triples, [base_uri(Graph)])
+		),
+		Result).
 result_to_prolog(Type, Test, Result) :-
 	(   test_result_file(Test, ResultFile)
 	->  (   file_name_extension(_, Ext, ResultFile),
-	        (   Ext == srx
-		->  sparql_read_xml_result(ResultFile, Result)
-		;   (   Type == construct
-		    ;	Type == describe
-		    )
-		->  load_triples(ResultFile, Result)
-		;   rdf_reset_db,
-		    rdf_load(ResultFile),
-		    prolog_result(Result),
-		    rdf_reset_db
-		)
+	        catch(read_result_file(Ext, Type, ResultFile, Result), E,
+		      ( print_message(error, E),
+			fail
+		      ))
 	    ->	true
 	    ;	test_name(Test, Name),
 		format('FAILED to interpret results for ~q~n', [Name]),
@@ -462,12 +603,33 @@ result_to_prolog(Type, Test, Result) :-
 	;   Result = no_result
 	).
 
+read_result_file(srx, _, File, Result) :- !,
+	sparql_read_xml_result(File, Result).
+read_result_file(srj, _, File, Result) :- !,
+	sparql_read_json_result(File, Result).
+read_result_file(tsv, _, File, Result) :- !,
+	sparql_read_tsv_result(File, Result).
+read_result_file(csv, _, File, Result) :- !,
+	sparql_read_csv_result(File, Result).
+read_result_file(_, Type, File, Result) :-
+	(   Type == construct
+	;   Type == describe
+	), !,
+	load_triples(File, Result, []).
+read_result_file(_, _, File, Result) :-
+	rdf_reset_db,
+	rdf_load(File),
+	prolog_result(Result),
+	rdf_reset_db.
+
+
 prolog_result(ask(True)) :-
 	rdf(Result, rdf:type, r:'ResultSet'),
 	rdf(Result, r:boolean, literal(type(xsd:boolean, True))), !.
-prolog_result(select(ColNames, Rows)) :-
+prolog_result(select(ColTerm, Rows)) :-
 	rdf(Result, rdf:type, r:'ResultSet'),
 	colnames(Result, ColNames),
+	ColTerm =.. [names|ColNames],
 	result_rows(Result, ColNames, Rows).
 
 colnames(Result, ColNames) :-
@@ -492,6 +654,101 @@ result_values([Name|Names], S, [Value|Values]) :-
 	result_values(Names, S, Values).
 
 
+sparql_read_tsv_result(File, Result) :-
+	sparql_read_sv_result(File, turtle, Result,
+			      [ separator(0'\t),
+			        ignore_quotes(true)
+			      ]).
+sparql_read_csv_result(File, Result) :-
+	sparql_read_sv_result(File, fuzzy, Result,
+			      [ separator(0',),
+				ignore_quotes(false)
+			      ]).
+
+sparql_read_sv_result(File, Cell, select(NamesTerm, Rows), Options) :-
+	csv_read_file(File, Rows0,
+		      [ strip(true),
+			convert(false),
+			match_arity(false)
+		      | Options
+		      ]),
+	Rows0 = [NamesRow|DataRows],
+	functor(NamesRow, _, Arity),
+	NamesRow =.. [_|SparqlNames],
+	maplist(csv_colname, SparqlNames, Names),
+	NamesTerm =.. [names|Names],
+	maplist(cvs_row(Arity, Cell), DataRows, Rows).
+
+csv_colname(Name0, Name) :-
+	atom_concat(?, Name, Name0), !.
+csv_colname(Name, Name).
+
+cvs_row(Arity, Cell, CSVRow, RDFRow) :-
+	functor(CSVRow, _, RowArity),
+	Missing is Arity-RowArity,
+	length(Extra, Missing),
+	maplist(=('$null$'), Extra),
+	CSVRow =.. [Name|CSVCols],
+	maplist(csv_cell(Cell), CSVCols, RDFCols0),
+	append(RDFCols0, Extra, RDFCols),
+	RDFRow =.. [Name|RDFCols].
+
+csv_cell(turtle, '', '$null$') :- !.
+csv_cell(turtle, CSV, RDF) :-
+	setup_call_cleanup(
+	    ( atom_to_memory_file(CSV, MF),
+	      open_memory_file(MF, read, In, [free_on_close(true)])
+	    ),
+	    ( get_code(In, C0),
+	      rdf_turtle:turtle_token(C0, In, C, RDF0),
+	      C == -1
+	    ),
+	    close(In)),
+	turtle_rdf(RDF0, RDF).
+csv_cell(fuzzy, CSV, RDF) :-
+	(   uri_is_global(CSV)
+	->  RDF = CSV
+	;   atom_concat('_:', NodeID, CSV)
+	->  RDF = bnode(NodeID)
+	;   CSV == ''
+	->  RDF = '$null$'
+	;   atom_number(CSV, Num)
+	->  (   integer(Num)
+	    ->	to_rdf(integer(CSV), RDF)
+	    ;	to_rdf(decimal(CSV), RDF)
+	    )
+	;   RDF = literal(CSV)
+	).
+
+:- rdf_meta to_rdf(+, t).
+
+to_rdf(integer(Atom), literal(type(xsd:integer, Atom))).
+to_rdf(double(Atom),  literal(type(xsd:double, Atom))).
+to_rdf(decimal(Atom), literal(type(xsd:decimal, Atom))).
+to_rdf(string(Atom),  literal(type(xsd:string, Atom))).
+
+turtle_rdf(relative_uri(RDF), RDF) :- !.
+turtle_rdf(nodeId(Id), bnode(Id)) :- !.
+turtle_rdf(numeric(Type, Codes), literal(type(RDFType, String))) :-
+	numeric_url(Type, RDFType), !,
+	atom_codes(String, Codes).
+turtle_rdf(name(true), literal(type(Boolean, true))) :- !,
+	rdf_equal(Boolean, xsd:boolean).
+turtle_rdf(name(false), literal(type(Boolean, true))) :- !,
+	rdf_equal(Boolean, xsd:boolean).
+turtle_rdf(literal(type(relative_uri(Type), Value)),
+	   literal(type(Type, Value))) :- !.
+turtle_rdf(RDF, RDF).
+
+
+:- rdf_meta
+	numeric_url(+, r).
+
+numeric_url(integer, xsd:integer).
+numeric_url(decimal, xsd:decimal).
+numeric_url(double,  xsd:double).
+
+
 		 /*******************************
 		 *	    SYNTAX TESTS	*
 		 *******************************/
@@ -507,7 +764,7 @@ run_syntax_tests :-
 	run_all_syntax_tests.
 
 load_syntax_manifests :-
-	load_manifests([ arq,
+	load_manifests([ sparql11,
 			 'Tests/sparql/test-suite-archive/data-r2/manifest-syntax.ttl'
 		       ]).
 
@@ -517,19 +774,30 @@ load_syntax_manifests :-
 		 *******************************/
 
 run_all_syntax_tests :-
+	clean_test_results,
 	forall(current_test(_, Test),
 	       (   blocked_test(Test)
-	       ->  assertz(skipped(Test))
+	       ->  assertz(skipped(Test, blocked))
 	       ;   syntax_test(Test)
 	       ->  true
 	       ;   format('FAILED: ~q~n', [Test]),
 		   fail
 	       )),
+	test_statistics.
+
+test_statistics :-
 	findall(T, passed(T), Passed), length(Passed, NPassed),
 	findall(T, failed(T), Failed), length(Failed, NFailed),
-	findall(T, skipped(T), Skipped), length(Skipped, NSkipped),
-	format('Passed: ~D; failed: ~D; skipped: ~D~n',
-	       [NPassed, NFailed, NSkipped]).
+	findall(W-T, skipped(T, W), Skipped), length(Skipped, NSkipped),
+	keysort(Skipped, Sorted),
+	group_pairs_by_key(Sorted, Grouped),
+	maplist(group_size, Grouped, Sized),
+	format('Passed: ~D; failed: ~D; skipped: ~D ~w~n',
+	       [NPassed, NFailed, NSkipped, Sized]).
+
+group_size(Group-Tests, Group-Size) :-
+	length(Tests, Size).
+
 
 syntax_test(Name) :-
 	syntax_test(Name, _Query).
@@ -541,26 +809,12 @@ syntax_test(Test, Query) :-
 	test_query(Test, Codes), !,
 	syntax_test(Test, Codes, Query).
 syntax_test(Test, _) :-
-	assertz(skipped(Test)).
+	assertz(skipped(Test, no_query)).
 
 blocked_test(Test) :-
 	test_name(Test, Name),
 	blocked(Name).
 
-syntax_test(Test, Codes, Query) :-
-	test_syntax(Test, positive), !,
-	(   catch(sparql_parse(Codes, Query, []), E, true)
-	->  (   var(E)
-	    ->  assert(passed(Test))
-	    ;   test_name(Test, Name),
-		format('PARSE TEST ERROR: ~q: ', [Name]),
-		print_message(error, E),
-		assert(failed(Test))
-	    )
-	;   assert(failed(Test)),
-	    test_name(Test, Name),
-	    format('PARSE TEST FAILED: ~q~n', [Name])
-	).
 syntax_test(Test, Codes, Query) :-
 	test_syntax(Test, negative), !,
 	(   catch(sparql_parse(Codes, Query, []), E, true)
@@ -570,12 +824,37 @@ syntax_test(Test, Codes, Query) :-
 		format('NEG TEST SUCCEEDED: ~q:~n', [Name]),
 		assert(failed(Test))
 	    )
-	;   assert(failed(Test)),
-	    test_name(Test, Name),
-	    format('NEG TEST FAILED WITHOUT ERROR: ~q:~n', [Name])
+	;   test_failed(Test, 'NEG SYNTAX TEST SUCCEEDED')
+	).
+syntax_test(Test, Codes, Query) :-
+	test_syntax(Test, _), !,
+	(   catch(sparql_parse(Codes, Query, []), E, true)
+	->  (   var(E)
+	    ->  assert(passed(Test))
+	    ;   test_name(Test, Name),
+		format('PARSE TEST ERROR: ~q: ', [Name]),
+		print_message(error, E),
+		assert(failed(Test))
+	    )
+	;   test_failed(Test, 'POS SYNTAX TEST FAILED')
 	).
 syntax_test(Test, _, _) :-
-	assert(skipped(Test)).
+	assert(skipped(Test, no_syntax_test)).
+
+
+test_failed(Test, Msg) :-
+	assert(failed(Test)),
+	test_id(Test, Id),
+	format('~w: ~q~n', [Msg, Id]).
+
+test_id(Test, Id) :-
+	test_name(Test, Name),
+	(   \+ ( test_name(Test2, Name),
+		 Test2 \== Test
+	       )
+	->  Id = Name
+	;   Id = Test
+	).
 
 
 		 /*******************************
@@ -622,12 +901,15 @@ list_query(describe(Vars, _, Query, _)) :-
 		 *******************************/
 
 clean_tests :-
+	clean_test_results,
+	reset_manifests,
+	rdf_reset_db.
+
+clean_test_results :-
 	retractall(failed_result(_, _)),
 	retractall(passed(_)),
 	retractall(failed(_)),
-	retractall(skipped(_)),
-	reset_manifests,
-	rdf_reset_db.
+	retractall(skipped(_, _)).
 
 list_tests(Which) :-
 	findall(Test, test_result(Which, Test), Tests),
@@ -636,14 +918,82 @@ list_tests(Which) :-
 	forall(member(Test, Sorted),
 	       format('~w: ~q~n', [Message, Test])).
 
+:- meta_predicate test_result(+, -).
 
+test_result(skipped(Why), Name) :- !,
+	skipped(Test, Why),
+	test_name(Test, Name).
+test_result(skipped, Name) :- !,
+	skipped(Test, _),
+	test_name(Test, Name).
 test_result(Which, Name) :-
-	Goal =.. [Which, Test],
-	call(Goal),
+	call(Which, Test),
 	test_name(Test, Name).
 
 list_db :-
-	rdf_save_turtle(stream(current_output), []).
+	findall(Graph, rdf_graph(Graph), Graphs),
+	list_dbs(Graphs).
+
+list_dbs([Graph|More]) :-
+	ansi_format([bold], '### Graph ~q ###~n', [Graph]),
+	rdf_save_turtle(stream(current_output),
+			[ graph(Graph),
+			  silent(true),
+			  comment(false)
+			]),
+	(   More == []
+	->  true
+	;   format('~n'),
+	    list_dbs(More)
+	).
+
+%%	dump_tests(+File) is det.
+%
+%	Dump status of all tests into File
+
+dump_tests(File) :-
+	collect_tests(Facts),
+	setup_call_cleanup(
+	    open(File, write, Out),
+	    forall(member(Fact, Facts),
+		   format(Out, '~q.~n', [Fact])),
+	    close(Out)).
+
+collect_tests(Facts) :-
+	setof(Fact, test_fact(Fact), Facts).
+
+test_fact(test(Test, no_result(From))) :-
+	failed_result(Test, From).
+test_fact(test(Test, passed)) :-
+	passed(Test).
+test_fact(test(Test, failed)) :-
+	failed(Test).
+test_fact(test(Test, skipped(Why))) :-
+	skipped(Test, Why).
+
+compare_tests(To) :-
+	read_file_to_terms(To, Old, []),
+	collect_tests(New),
+	compare(Old, New).
+
+compare([], []).
+compare([H|T0], [H|T1]) :- !,
+	compare(T0, T1).
+compare([test(T,R0)|T0], [test(T,R1)|T1]) :- !,
+	test_name(T, Name),
+	format('~q: ~q --> ~q~n', [Name, R0, R1]),
+	compare(T0, T1).
+compare([H0|T0], [H1|T1]) :-
+	(   H0 @< H1
+	->  H0 = test(Test, Result),
+	    test_name(Test, Name),
+	    format('Old: ~q: ~q~n', [Name, Result]),
+	    compare(T0, [H1|T1])
+	;   H1 = test(Test, Result),
+	    test_name(Test, Name),
+	    format('New: ~q: ~q~n', [Name, Result]),
+	    compare([H0|T0], T1)
+	).
 
 
 		 /*******************************
@@ -657,3 +1007,10 @@ user:portray(IRI) :-
 	rdf_global_id(NS:Local, IRI),
 	Local \== '',
 	format('~w:~w', [NS, Local]).
+
+
+:- multifile
+	prolog:message//1.
+
+prolog:message(sparql(no_test_data)) -->
+	[ 'No test data.'-[] ].

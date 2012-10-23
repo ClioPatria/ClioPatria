@@ -31,23 +31,51 @@
 :- module(rdfql_util,
 	  [ select_results/6,		% +Distinct, +Offset, +Limit,
 					% :SortBy, -Result, :Goal
+	    select_results/9,		% +Distinct, +Group, +Having, +Agg,
+					% +Offset, +Limit,
+					% :SortBy, -Result, :Goal
 	    entailment_module/2		% +Entailment, -Module
 	  ]).
 :- use_module(library(nb_set)).
-:- use_module(library(semweb/rdf_db), [rdf_is_bnode/1]).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(lists)).
+:- use_module(library(pairs)).
 :- use_module(library(apply)).
+:- use_module(sparql_runtime).
 
 :- meta_predicate
-	select_results(+, +, +, +, -, 0).
+	select_results(+, +, 0, +, +, +, +, -, 0),
+	select_results(+, +, +, +, -, 0),
+	select_results(+, +, +, -, 0).
 
 %%	select_results(+Distinct, +Offset, +Limit, +SortBy, -Result, :Goal)
+%
+%	Calls select_results/8 using Group=[] and Having=true.
+
+select_results(Distinct, Offset, Limit, SortBy, Result, Goal) :-
+	select_results(Distinct, [], true, [],
+		       Offset, Limit, SortBy, Result, Goal).
+
+%%	select_results(+Distinct, +Group, +Having, +Aggregates,
+%%		       +Offset, +Limit, +SortBy, -Result, :Goal) is nondet.
 %
 %	Select results for the  template   Result  on  backtracking over
 %	Goal.
 %
 %	@param Distinct
 %	Iff 'distinct', only consider distinct solutions
+%
+%	@param Group
+%	is a list of variables on which to group the results.  These
+%	are the only variables that can be used in the HAVING filter
+%	and final projection.
+%
+%	@param Having
+%	is a constraint (similar to =FILTER=) to filter grouped
+%	results.
+%
+%	@param Aggregates
+%	List of aggregate(Function, Var)
 %
 %	@param Offset
 %	Skip the first Offset results.  Offset is applied after
@@ -61,8 +89,17 @@
 %	@param SortBy
 %	Either 'unsorted' or a term order_by(Cols), where each Col
 %	in Cols is a term ascending(Expr) or descending(Expr).
+%
+%	@tbd	Group, Having and Aggregate are currently ignored.
 
-select_results(Distinct, Offset, Limit, order_by(Cols), Result, Goal) :-
+:- discontiguous select_results/9.
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+1. ORDERED RESULTS WITHOUT AGGREGATES
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+select_results(Distinct, [], _:true, [], Offset, Limit,
+	       order_by(Cols), Result, Goal) :-
 	exclude(ground, Cols, SortCols), SortCols \== [], !,
 	reverse(SortCols, RevSortCols),
 	group_order(RevSortCols, GroupedCols),
@@ -77,8 +114,6 @@ select_results(Distinct, Offset, Limit, order_by(Cols), Result, Goal) :-
 	apply_offset(Offset, Results2, Results3),
 	apply_limit(Limit, Results3, Results),
 	member(_Key-Result, Results).
-select_results(Distinct, Offset, Limit, _Unsorted, Result, Goal) :-
-	select_results(Distinct, Offset, Limit, Result, Goal).
 
 %%	group_order(+Cols, -GroupedCols) is det.
 %
@@ -177,6 +212,14 @@ simple_literal(type(_Type, SL), SL).
 simple_literal(SL, SL).
 
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+2. UNORDERED RESULTS WITHOUT AGGREGATES
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+select_results(Distinct, [], _:true, [], Offset, Limit,
+	       _Unsorted, Result, Goal) :- !,
+	select_results(Distinct, Offset, Limit, Result, Goal).
+
 %%	select_results(+Distinct, +Offset, +Limit, -Result, :Goal)
 %
 %	Unsorted version. In this case we can avoid first collecting all
@@ -231,6 +274,161 @@ limit(N, [H|T0], [H|T]) :-
 	N2 is N - 1,
 	limit(N2, T0, T).
 limit(_, _, []).
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+3. AGGREGATE SUPPORT
+
+To support aggregation, we have to collect   results and group them into
+sets that have equal values for the  variables that appear in Group. For
+each group, we must:
+
+  1. Evaluate the Aggregate functions
+  2. Evaluate the Having constraing and drop sets for which Having fails.
+
+Note that the projection (=Result) and   Having constraints can only use
+variables Group and aggregate functions. This   implies  that we need to
+track the grouped variables as well  as   variables  that  are needed to
+compute the aggregates, but _no_ more.
+
+Q: Can we call select_results/9 recursively  with the iteration over the
+groups to get OrderBy, Offset and Limit working?
+
+Q: When do we need to apply Distinct? Before or after grouping?
+
+Note that we do not need to do anything with the result term because the
+output variables are already shared with it.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+select_results(_Distinct, Group, Having, AggregateEval, _Offset, _Limit,
+	       _Order, _Result, Goal) :-
+	aggregate_vars(AggregateEval, Aggregates, AggVars, Eval),
+	GV =.. [v|Group],
+	AV =.. [a|AggVars],
+	findall(GV-AV, Goal, Pairs),
+	keysort(Pairs, SortedPairs),
+	group_pairs_by_key(SortedPairs, Groups),
+	member(GV-G, Groups),
+	aggregate(G, Aggregates),
+	call(Eval),
+	call(Having).			% Needs entailment module?
+
+%%	aggregate(+Group, +Aggregates)
+
+aggregate([AVT|Group], Aggregates) :- !,
+	AVT =.. [a|AV0],
+	maplist(aggregate_setup, AV0, State0),
+	aggregate_steps(Group, State0, State),
+	maplist(aggregate_bind, Aggregates, State).
+aggregate([], Aggregates) :-
+	maplist(empty_aggregate, Aggregates).
+
+aggregate_setup(count(X), Count) :-
+	aggregate_step(count(X), 0, Count).
+aggregate_setup(sum(X0), X) :-
+	sparql_eval_raw(X0, X).
+aggregate_setup(min(X0), X) :-
+	sparql_eval_raw(X0, X).
+aggregate_setup(max(X0), X) :-
+	sparql_eval_raw(X0, X).
+aggregate_setup(avg(X0), X-1) :-
+	sparql_eval_raw(X0, X).
+aggregate_setup(sample(X), X).
+aggregate_setup(group_concat(X,_), [X]).
+
+
+aggregate_steps([], State, State).
+aggregate_steps([HT|T], State0, State) :-
+	HT =.. [a|H],
+	maplist(aggregate_step, H, State0, State1),
+	aggregate_steps(T, State1, State).
+
+aggregate_step(count(X), Count0, Count) :-
+	( X == '$null$' -> Count = Count0 ; Count is Count0 + 1 ).
+aggregate_step(sum(X), Sum0, Sum) :-
+	sparql_eval_raw(X+Sum0, Sum).
+aggregate_step(min(X), Min0, Min) :-
+	sparql_eval_raw(min(X, Min0), Min).
+aggregate_step(max(X), Min0, Min) :-
+	sparql_eval_raw(max(X, Min0), Min).
+aggregate_step(avg(X), Sum0-Count0, Sum-Count) :-
+	sparql_eval_raw(X+Sum0, Sum),
+	Count is Count0+1.
+aggregate_step(sample(X), S0, S) :-
+	(   S0 == '$null$'
+	->  S = X
+	;   S = S0
+	).
+aggregate_step(group_concat(X, _), S0, [X|S0]).
+
+%%	aggregate_bind(+Aggregation, +State) is det.
+%
+%	@tbd: bind to error if the function does not evaluate?
+
+aggregate_bind(aggregate(Func, Var), State) :-
+	aggregate_bind(Func, Var, State).
+
+aggregate_bind(count(_), Count, Count0) :-
+	rdf_equal(xsd:integer, XSDInt),
+	sparql_eval(numeric(XSDInt, Count0), Count).
+aggregate_bind(sum(_), Sum, Sum0) :-
+	bind_number(Sum0, Sum).
+aggregate_bind(min(_), Min, Min0) :-
+	bind_number(Min0, Min).
+aggregate_bind(max(_), Max, Max0) :-
+	bind_number(Max0, Max).
+aggregate_bind(avg(_), Avg, Sum-Count) :-
+	rdf_equal(xsd:integer, XSDInt),
+	catch(sparql_eval(Sum/numeric(XSDInt, Count), Avg), _,
+	      Avg = '$null$').
+aggregate_bind(sample(_), Sample, Sample).
+aggregate_bind(group_concat(_, literal(Sep)), literal(Concat), Parts) :-
+	maplist(text_of, Parts, Texts),
+	atomic_list_concat(Texts, Sep, Concat).
+
+text_of(Expr, Atom) :-
+	sparql_eval_raw(Expr, V0),
+	raw_text(V0, Atom).
+
+raw_text(string(X), X).
+raw_text(simple_literal(X), X).
+
+
+bind_number(V0, V) :-
+	(   V0 = numeric(_, _)
+	->  sparql_eval(V0, V)
+	;   V = '$null$'
+	).
+
+
+:- rdf_meta empty_aggregate(t).
+
+empty_aggregate(aggregate(count(_), literal(xsd:integer, 0))).
+empty_aggregate(aggregate(sum(_), literal(xsd:integer, 0))).
+empty_aggregate(aggregate(group_concat(_,_), literal(''))).
+
+
+%%	aggregate_vars(+AggregateEval, -Aggregates, -Template, -Query) is det.
+%
+%	@param AggregateEval is a combination of aggregate(Expr, Var)
+%	       and queries that depend on aggregation results and must
+%	       therefore be executed after computing the aggregates.%
+%	@param Aggregates is a list of aggregate(Expr, Var), where Expr
+%	       is a plain aggregate function over a number of variables
+%	       and Var is shared with the place where the aggregate is
+%	       used.
+
+aggregate_vars([], [], [], true).
+aggregate_vars([H|T], [H|AT], [Term|Templ], Q) :-
+	H = aggregate(Term, _Into), !,
+	aggregate_vars(T, AT, Templ, Q).
+aggregate_vars([Q0|T], Agg, Templ, Q) :-
+	aggregate_vars(T, Agg, Templ, Q1),
+	mkconj(Q1, Q0, Q).
+
+mkconj(true, Q, Q) :- !.
+mkconj(Q, true, Q) :- !.
+mkconj(A, B, (A,B)).
 
 
 		 /*******************************

@@ -1,9 +1,7 @@
----+ SeRQL server TODO list
-
----++ SPARQL
+---+ SPARQL TODO List
 
 * Complete SORT BY:
-	* Compare in test-cases
+	* Compare order in test-cases
 	* Value-specific comparison
 	* Compare expression results (e.g., ASC(?a+?b))
 
@@ -13,13 +11,6 @@
   because it must match :a :b "01"^^xsd:integer.
 
 * Does SPARQL define a total ordering of literals?  If so, we may use
-  this for teh literal AVL-tree and speedup some of these queries a
+  this for the literal AVL-tree and speedup some of these queries a
   lot.
 
----++ Jena compatibility
-
-	* Function properties
-	    * <S> <P> <O> has special meaning for some <P>, generating
-	    different values for <O>.
-
-	    --> Post processing
