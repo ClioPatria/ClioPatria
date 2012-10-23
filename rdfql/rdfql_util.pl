@@ -403,7 +403,9 @@ aggregate_bind(distinct(_, Op), Value, Set) :-
 %%	aggregate_distinct(+Operation, +Set, -Value)
 
 aggregate_distinct(count, Set, Value) :-
-	length(Set, Value).
+	rdf_equal(xsd:integer, IntType),
+	length(Set, Len),
+	bind_number(numeric(IntType, Len), Value).
 aggregate_distinct(sum, Set, Sum) :-
 	rdf_equal(xsd:integer, IntType),
 	foldl(add, Set, number(IntType, 0), Sum0),
