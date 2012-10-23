@@ -33,20 +33,16 @@
 	  ]).
 :- use_module(rdfql(serql)).
 :- use_module(rdfql(sparql)).
-:- use_module(rdfql(serql_xml_result)).
 :- use_module(rdfql(rdf_io)).
 :- use_module(rdfql(rdf_html)).
 :- use_module(library(http/http_parameters)).
 :- use_module(user(user_db)).
-:- use_module(library(semweb/rdf_edit)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdf_turtle)).
 :- use_module(library(semweb/rdf_http_plugin)).
 :- use_module(library(semweb/rdf_file_type)).
 :- use_module(library(http/html_write)).
-:- use_module(library(http/html_head)).
-:- use_module(library(http/http_open)).
+:- use_module(library(http/http_request_value)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(memfile)).
 :- use_module(library(rdf_ntriples)).
@@ -96,6 +92,7 @@ http_login(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
+	result_format(Request, ResultFormat),
 	api_action(Request,
 		   (   validate_login(Request, User, Password),
 		       login(User)
@@ -120,6 +117,7 @@ http_logout(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
+	result_format(Request, ResultFormat),
 	api_action(Request,
 		   logout_user(Message),
 		   ResultFormat,
@@ -151,6 +149,7 @@ evaluate_query(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
+	result_format(Request, ResultFormat),
 	statistics(cputime, CPU0),
 	downcase_atom(QueryLanguage, QLang),
 	compile(QLang, Query, Compiled,
@@ -214,6 +213,7 @@ evaluate_graph_query(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
+	result_format(Request, ResultFormat),
 	authorized_api(read(Repository, query), ResultFormat),
 	statistics(cputime, CPU0),
 	downcase_atom(QueryLanguage, QLang),
@@ -256,6 +256,7 @@ evaluate_table_query(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
+	result_format(Request, ResultFormat),
 	authorized_api(read(Repository, query), ResultFormat),
 	statistics(cputime, CPU0),
 	downcase_atom(QueryLanguage, QLang),
@@ -376,14 +377,15 @@ list_repositories(_Request) :-
 clear_repository(Request) :-
 	http_parameters(Request,
 			[ repository(Repository),
-			  resultFormat(Format)
+			  resultFormat(ResultFormat)
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized_api(write(Repository, clear), Format),
+	result_format(Request, ResultFormat),
+	authorized_api(write(Repository, clear), ResultFormat),
 	api_action(Request,
 		   rdf_reset_db,
-		   Format,
+		   ResultFormat,
 		   'Cleared database'-[]).
 
 %%	unload_source(+Request)
@@ -394,13 +396,14 @@ unload_source(Request) :-
 	http_parameters(Request,
 			[ repository(Repository),
 			  source(Source),
-			  resultFormat(Format)
+			  resultFormat(ResultFormat)
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized_api(write(Repository, unload(Source)), Format),
+	result_format(Request, ResultFormat),
+	authorized_api(write(Repository, unload(Source)), ResultFormat),
 	api_action(Request, rdf_unload(Source),
-		   Format,
+		   ResultFormat,
 		   'Unloaded triples from ~w'-[Source]).
 
 
@@ -412,13 +415,14 @@ unload_graph(Request) :-
 	http_parameters(Request,
 			[ repository(Repository),
 			  graph(Graph, []),
-			  resultFormat(Format)
+			  resultFormat(ResultFormat)
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
-	authorized_api(write(Repository, unload(Graph)), Format),
+	result_format(Request, ResultFormat),
+	authorized_api(write(Repository, unload(Graph)), ResultFormat),
 	api_action(Request, rdf_unload(Graph),
-		   Format,
+		   ResultFormat,
 		   'Unloaded triples from ~w'-[Graph]).
 
 
@@ -444,6 +448,7 @@ upload_data(Request) :- !,
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
+	result_format(Request, ResultFormat),
 	authorized_api(write(Repository, load(posted)), ResultFormat),
 	phrase(load_option(DataFormat, BaseURI), Options),
 	atom_to_memory_file(Data, MemFile),
@@ -481,6 +486,7 @@ upload_url(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
+	result_format(Request, ResultFormat),
 	authorized_api(write(Repository, load(url(URL))), ResultFormat),
 	phrase(load_option(DataFormat, BaseURI), Options),
 	api_action(Request,
@@ -520,6 +526,7 @@ remove_statements(Request) :-
 			],
 			[ attribute_declarations(attribute_decl)
 			]),
+	result_format(Request, ResultFormat),
 	instantiated(Subject, SI),
 	instantiated(Predicate, PI),
 	instantiated(Object, OI),
@@ -613,10 +620,11 @@ attribute_decl(serialization,
 		 description('Serialization for graph-data')
 	       ]).
 attribute_decl(resultFormat,
-	       [ default(xml),
+	       [ optional(true),
 		 oneof([ xml,
 			 html,
-			 rdf
+			 rdf,
+			 json
 		       ]),
 		 description('Serialization format of the result')
 	       ]).
@@ -690,6 +698,35 @@ bool(Def,
        oneof([on, off])
      ]).
 
+
+%%	result_format(+Request, ?Format) is det.
+
+result_format(_Request, Format) :-
+	atom(Format), !.
+result_format(Request, _Format) :-
+	memberchk(accept(Accept), Request),
+	debug(sparql(result), 'Got accept = ~q', [Accept]),
+	fail.
+result_format(_Request, xml).
+
+
+accept_output_format(Request, Format) :-
+	memberchk(accept(Accept), Request),
+	(   atom(Accept)
+	->  http_parse_header_value(accept, Accept, Media)
+	;   Media = Accept
+	),
+	find_media(Media, Format), !.
+accept_output_format(_, xml).
+
+find_media([media(Type, _, _, _)|T], Format) :-
+	(   sparql_media(Type, Format)
+	->  true
+	;   find_media(T, Format)
+	).
+
+sparql_media(application/'sparql-results+xml',   xml).
+sparql_media(application/'sparql-results+json', json).
 
 %%	api_action(+Request, :Goal, +Format, +Message)
 %
