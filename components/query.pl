@@ -289,7 +289,8 @@ js_quote_code(C) -->
 
 store_query(_, '', _) :- !.
 store_query(Type, As, Query) :-
-	set_high_id(As), !,
+	http_in_session(_), !,
+	set_high_id(As),
 	http_session_retractall(stored_query(As, Type, _)),
 	http_session_retractall(stored_query(_, Type, Query)),
 	http_session_asserta(stored_query(As, Type, Query)).
