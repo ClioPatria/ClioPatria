@@ -204,6 +204,10 @@ update_public_port(_, _).
 %
 %	@see cp_after_load/1 for registering after-load goals.
 
+:- meta_predicate
+	rdf_attach_store(+, 0),
+	call_warn(0).
+
 rdf_attach_store(Options, AfterLoad) :-
 	setting(cliopatria:persistent_store, Directory),
 	Directory \== '', !,
@@ -212,9 +216,6 @@ rdf_attach_store(Options, AfterLoad) :-
 	forall(after_load_goal(Goal),
 	       call_warn(Goal)),
 	call_warn(AfterLoad).
-
-:- meta_predicate
-	call_warn(0).
 
 call_warn(Goal) :-
 	(   catch(Goal, E, true)

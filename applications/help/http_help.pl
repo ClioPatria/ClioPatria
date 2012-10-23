@@ -544,6 +544,10 @@ decl_goal(Options, M, Module:Goal) :-
 	strip_module(M:G, Module, Goal).
 decl_goal(_, _, -).
 
+:- meta_predicate
+	params(+, 2, ?, ?),
+	param(+, 2, ?, ?).
+
 params(V, _) -->
 	{ var(V) }, !.
 params([], _) -->
@@ -551,9 +555,6 @@ params([], _) -->
 params([H|T], Decl) -->
 	param(H, Decl),
 	params(T, Decl).
-
-:- meta_predicate
-	param(+, 2, ?, ?).
 
 param(Term, _) -->
 	{ \+ compound(Term) }, !.
