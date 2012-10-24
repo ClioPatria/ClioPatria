@@ -1,0 +1,57 @@
+/* Simple ClioPatria page layout that messages as little as possible with styles.
+*/
+
+.cliopatria .content
+{ margin-top: 10px;
+}
+
+.cliopatria address.footer
+{ margin-top: 1ex;
+  border-width: 1px 0 0 0;
+  border-style: solid;
+  border-color: #A0A0A0;
+  font-size: smaller;
+  text-align: right;
+}
+
+.cliopatria address.footer img
+{ padding-left: 5px;
+  border: 0;
+  height: 1.2em;
+  vertical-align: top;
+}
+
+		 /*******************************
+		 *	   AUTO-COMPLETE	*
+		 *******************************/
+
+span.acmatch
+{ background-color: #bbf;
+}
+
+div.ac_input .yui-ac-content
+{ max-height:30em;
+  overflow:auto;
+  overflow-x:hidden; /* set scrolling */
+  _height:30em; /* ie6 */
+}
+
+span.ac-builtin
+{ color: blue;
+}
+
+span.ac-module
+{ color: #888;
+}
+
+span.ac-exported
+{ color: dark-green;
+}
+
+span.ac-private
+{ color: red;
+}
+
+#search_form
+{ float: right;
+}

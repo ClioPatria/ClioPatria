@@ -81,6 +81,11 @@ ClioPatria skin.
 		http_reply_file(icons('favicon.ico'), []),
 		[]).
 
+:- html_resource(plain,
+		 [ virtual(true),
+		   requires([ css('plain.css')
+			    ])
+		 ]).
 :- html_resource(cliopatria,
 		 [ virtual(true),
 		   requires([ css('cliopatria.css')
@@ -99,6 +104,16 @@ user:body(cliopatria(Style), Body) -->
 	cliopatria:page_body(cliopatria(Style), Body), !.
 user:body(cliopatria(_), Body) -->
 	cliopatria:page_body(Body), !.
+user:body(cliopatria(plain), Body) -->
+	html_requires(plain),
+	html(body(class(['yui-skin-sam', cliopatria]),
+		  [ div(class(menu), \cp_menu),
+		    \simple_search_form([value(p(q))]),
+		    br(clear(all)),
+		    div(class(content), Body),
+		    br(clear(all)),
+		    div(class(footer), \address)
+		  ])).
 user:body(cliopatria(_), Body) -->
 	html_requires(cliopatria),
 	html(body(class(['yui-skin-sam', cliopatria]),
@@ -134,9 +149,9 @@ address -->
 %	by calling:
 %
 %	    ==
-%	    	...,
-%	    	server_address('ClioPatria'),
-%	    	...
+%		...,
+%		server_address('ClioPatria'),
+%		...
 %	    ==
 %
 %	@see register_git_module/2 for registering a GIT module.
