@@ -162,6 +162,10 @@ endpoint_parameters(
 endpoints([ json([ name('ClioPatria'),
 		   uri(EndPoint),
 		   modes([ sparql11query, sparql11update, sparql10])
+		 ]),
+	    json([ name(' '),
+		   uri(EndPoint),
+		   modes([ sparql11query, sparql11update, sparql10])
 		 ])
 	  ]) :-
 	http_link_to_id(sparql_reply, [], EndPoint).
