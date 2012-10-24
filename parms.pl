@@ -83,6 +83,7 @@ user:file_search_path(js,		web(js)).
 user:file_search_path(html,		web(html)).
 user:file_search_path(help,		web(help)).
 user:file_search_path(tutorial,		web(tutorial)).
+user:file_search_path(flint,		web('FlintSparqlEditor/sparql')).
 
 
 		 /*******************************
@@ -93,6 +94,7 @@ http:location(cliopatria,  root(.),	       []).
 http:location(sesame,	   root(servlets),     []).
 http:location(sparql,	   root(sparql),       []).
 http:location(rdf_browser, cliopatria(browse), []).
+http:location(flint,       cliopatria(flint),  []).
 http:location(api,	   cliopatria(api),    []).
 http:location(json,	   api(json),	       []).
 
