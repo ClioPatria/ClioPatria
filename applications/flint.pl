@@ -66,6 +66,14 @@
 %	HTTP handler that presents the flint SPARQL editor.
 
 sparql_editor(_Request) :-
+	\+ absolute_file_name(flint('flint-editor.js'), _,
+			      [ access(read),
+				file_errors(fail)
+			      ]), !,
+	reply_html_page(cliopatria(default),
+			title('No Flint installed'),
+			\no_flint).
+sparql_editor(_Request) :-
 	reply_html_page(
 	    cliopatria(plain),
 	    title('Flint SPARQL Editor'),
@@ -182,3 +190,25 @@ modes([ json([ name('SPARQL 1.1 Query'),
 	       mode(sparql10)
 	     ])
       ]).
+
+
+%%	no_flint//
+%
+%	Display a message indicating the user how to install Flint
+
+no_flint -->
+	{ absolute_file_name(cliopatria(.), CD0,
+			     [ file_type(directory),
+			       access(read)
+			     ]),
+	  prolog_to_os_filename(CD0, ClioHome)
+	},
+	html_requires(pldoc),
+	html([ h1('Flint SPARQL Editor is not installed'),
+	       p([ 'Please run the following command in the ClioPatria ',
+		   'installation directory "~w" to install Flint.'-[ClioHome]
+		 ]),
+	       pre(class(code),
+		   [ 'git submodule update --init web/FlintSparqlEditor'
+		   ])
+	     ]).
