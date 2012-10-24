@@ -1,0 +1,3 @@
+[submodule "web/FlintSparqlEditor"]
+	path = web/FlintSparqlEditor
+	url = https://github.com/TSO-Openup/FlintSparqlEditor.git
