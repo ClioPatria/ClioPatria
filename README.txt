@@ -79,11 +79,13 @@ dispatching HTTP requests.
 ---++ Downloading
 
 Currently,    ClioPatria    can    only      be    downloaded    through
-[[GIT][http://www.git-scm.com]]. The command for  downloading the system
-is:
+[[GIT][http://www.git-scm.com]]. The commands for downloading the system
+are:
 
     ==
     git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
+    cd ClioPatria
+    git submodule init --update web/FlintSparqlEditor
     ==
 
 ---++ Further reading
