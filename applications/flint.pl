@@ -39,19 +39,27 @@
 :- http_handler(flint(.), http_reply_from_files(flint(.), []), [prefix]).
 
 :- html_resource(flint('config.js'),
-		 [ requires([ flint('jquery-1.5.2.min.js'),
-			      flint('lib/codemirror.js'),
-			      flint('sparql10querymode_ll1.js'),
-			      flint('sparql11querymode_ll1.js'),
-			      flint('sparql11updatemode_ll1.js'),
-			      flint('flint-editor.js'),
+		 [ requires([ flint('flint-editor.js'),
 
-			      flint('lib/codemirror.css'),
 			      flint('css/sparqlcolors.css'),
 			      flint('css/docs.css')
 			    ])
 		 ]).
 
+
+:- html_resource(flint('lib/codemirror.js'),
+		 [ requires([ flint('jquery-1.5.2.min.js'),
+			      flint('lib/codemirror.css')
+			    ])
+		 ]).
+
+:- html_resource(flint('flint-editor.js'),
+		 [ requires([ flint('lib/codemirror.js'),
+			      flint('sparql10querymode_ll1.js'),
+			      flint('sparql11querymode_ll1.js'),
+			      flint('sparql11updatemode_ll1.js')
+			    ])
+		 ]).
 
 %%	sparql_editor(+Request)
 %
