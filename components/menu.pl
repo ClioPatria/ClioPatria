@@ -139,7 +139,8 @@ menu_item(300=repository/load_library_rdf_form,		'Load from library').
 menu_item(400=repository/remove_statements_form,	'Remove triples').
 menu_item(500=repository/clear_repository_form,		'Clear repository').
 
-menu_item(100=query/query_form,				'Query').
+menu_item(100=query/sparql_editor,			'SPARQL Editor').
+menu_item(200=query/query_form,				'Simple Form').
 
 menu_item(100=places/home,				'Home').
 menu_item(200=places/list_graphs,			'Graphs').
