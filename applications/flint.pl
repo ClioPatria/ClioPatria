@@ -34,7 +34,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/json)).
 
-:- http_handler(flint('index.html'), flint, []).
+:- http_handler(flint('index.html'), sparql_editor, []).
 :- http_handler(flint('config.js'), flint_config, []).
 :- http_handler(flint(.), http_reply_from_files(flint(.), []), [prefix]).
 
@@ -53,13 +53,13 @@
 		 ]).
 
 
-%%	flint(+Request)
+%%	sparql_editor(+Request)
 %
 %	HTTP handler that presents the flint SPARQL editor.
 
-flint(_Request) :-
+sparql_editor(_Request) :-
 	reply_html_page(
-	    cliopatria(default),
+	    cliopatria(plain),
 	    title('Flint SPARQL Editor'),
 	    \flint_page).
 
@@ -152,19 +152,20 @@ endpoint_parameters(
 
 
 endpoints([ json([ name('ClioPatria'),
-		   uri('http://localhost:3020/sparql/'),
-		   modes([ sparql10, sparql11query, sparql11update])
+		   uri(EndPoint),
+		   modes([ sparql11query, sparql11update, sparql10])
 		 ])
-	  ]).
+	  ]) :-
+	http_link_to_id(sparql_reply, [], EndPoint).
 
 
-modes([ json([ name('SPARQL 1.0'),
-	       mode(sparql10)
-	     ]),
-	json([ name('SPARQL 1.1 Query'),
+modes([ json([ name('SPARQL 1.1 Query'),
 	       mode(sparql11query)
 	     ]),
 	json([ name('SPARQL 1.1 Update'),
 	       mode(sparql11update)
+	     ]),
+	json([ name('SPARQL 1.0'),
+	       mode(sparql10)
 	     ])
       ]).
