@@ -42,7 +42,8 @@
 :- use_module(rdfql(sparql_xml_result)).
 :- use_module(rdfql(sparql_json_result)).
 
-:- http_handler(sparql(.), sparql_reply, [spawn(sparql_query)]).
+:- http_handler(sparql(.),      sparql_reply, [spawn(sparql_query)]).
+:- http_handler(sparql(update), sparql_reply, [spawn(sparql_query), id(sparql_update)]).
 
 %%	sparql_reply(+Request)
 %
