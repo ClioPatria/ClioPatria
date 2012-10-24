@@ -1,4 +1,7 @@
-#!@SWIPL@ -g cp_server -s
+#!@SWIPL@ -s
+
+:- initialization
+   cp_server.
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 This file provides a skeleton startup file.  It can be localized by running
