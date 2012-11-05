@@ -37,8 +37,11 @@
 	    url_cache_reset_server_status/0,
 	    url_cache_reset_server_status/1 % +Server
 	  ]).
-:- use_module(library('http/http_client')).
-:- use_module(library('http/mimetype')).
+:- use_module(library(http/http_open)).
+:- if(exists_source(library(http/http_ssl_plugin))).
+:- use_module(library(http/http_ssl_plugin)).
+:- endif.
+:- use_module(library(http/mimetype)).
 :- use_module(library(url)).
 :- use_module(library(debug)).
 :- use_module(library(error)).
@@ -270,7 +273,7 @@ url_cache_reset_server_status(Server) :-
 fetch_url_raw(URL, File, MimeType, Modified) :-
 	debug(url_cache, 'Downloading ~w ...', [URL]),
 	atom_concat(File, '.tmp', TmpFile),
-	(   catch(fetch_to_file(URL, TmpFile, Header), E, true)
+	(   catch(fetch_to_file(URL, TmpFile, Code, Header), E, true)
 	->  true
 	;   E = predicate_failed(http_get/3)
 	),
@@ -288,7 +291,7 @@ fetch_url_raw(URL, File, MimeType, Modified) :-
 	    ),
 	    throw(E)
 	),
-	(   memberchk(status(ok, _), Header)
+	(   Code == 200
 	->  rename_file(TmpFile, File)
 	;   catch(delete_file(TmpFile), _, true),
 	    throw(error(existence_error(url, URL), _))
@@ -302,16 +305,32 @@ fetch_url_raw(URL, File, MimeType, Modified) :-
 	      [URL, MimeType0]),
 	MimeType = MimeType0.
 
-fetch_to_file(URL, File, Header) :-
-	setup_call_cleanup(open(File, write, Out,
-				[ type(binary)
-				]),
-			   http_get(URL, _,
-				    [ to(stream(Out)),
-				      reply_header(Header)
-				    ]),
-			   close(Out)).
+fetch_to_file(URL, File, Code,
+	      [ content_type(ContentType),
+		last_modified(LastModified)
+	      ]) :-
+	setup_call_cleanup(
+	    open(File, write, Out, [ type(binary) ]),
+	    setup_call_cleanup(
+		http_open(URL, In,
+			  [ header(content_type, ContentType),
+			    header(last_modified, LastModified),
+			    status_code(Code),
+			    cert_verify_hook(ssl_verify)
+			  ]),
+		copy_stream_data(In, Out),
+		close(In)),
+	    close(Out)).
 
+:- public ssl_verify/5.
+
+%%	ssl_verify(+SSL, +ProblemCert, +AllCerts, +FirstCert, +Error)
+%
+%	Currently we accept  all  certificates.
+
+ssl_verify(_SSL,
+	   _ProblemCertificate, _AllCertificates, _FirstCertificate,
+	   _Error).
 
 parse_url_ex(URL, Parts) :-
 	is_list(URL), !,
