@@ -819,7 +819,7 @@ cpack_package_dir(Name, Dir, Create) :-
 	    ;	exists_directory(Dir)
 	    )
 	->  true
-	;   make_directory(Dir)
+	;   make_directory_path(Dir)
 	).
 
 :- multifile
