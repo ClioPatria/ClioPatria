@@ -238,11 +238,13 @@ op(datatype(X), Type) :-
 	datatype(X, Type).
 op(strdt(simple_literal(Lex), iri(Type)), type(Type, Lex)).
 op(strlang(simple_literal(Lex), simple_literal(Lang)), lang(Lang, Lex)).
+:- if(current_predicate(uuid/1)).
 op(uuid, iri(URNUUID)) :-
 	uuid(UUID),
 	atom_concat('urn:uuid:', UUID, URNUUID).
 op(struuid, simple_literal(UUID)) :-
 	uuid(UUID).
+:- endif.
 op(bnode, iri(Id)) :-
 	rdf_bnode(Id).
 op(bnode(simple_literal(Id)), iri(BNode)) :-

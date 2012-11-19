@@ -261,8 +261,8 @@ send_to_dot(Graph, Options, Out) :-
 	    assert(user:graphviz(Graph, Options))
 	;   true
 	),
-	gviz_write_rdf(Out, Graph, Options),
-	close(Out).
+	call_cleanup(gviz_write_rdf(Out, Graph, Options),
+		     close(Out)), !.
 
 copy_graph_data(Out) :-
 	debugging(graphviz), !,

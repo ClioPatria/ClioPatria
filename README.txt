@@ -85,7 +85,7 @@ are:
     ==
     git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
     cd ClioPatria
-    git submodule init --update web/FlintSparqlEditor
+    git submodule update --init web/FlintSparqlEditor
     ==
 
 ---++ Further reading
