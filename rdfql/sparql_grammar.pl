@@ -1172,7 +1172,7 @@ describe_query(describe(Projection, DataSets, Query, Solutions)) --> % [11]
 	{ mkconj(QWhere, QValue, Query) }.
 
 desc_projection(*) --> "*", !, skip_ws.
-desc_projection([H|T]) -->
+desc_projection(projection([H|T], true)) -->
 	var_or_iri_ref(H), !,
 	var_or_iri_refs(T).
 desc_projection(_) -->
