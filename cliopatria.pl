@@ -211,9 +211,11 @@ update_public_port(_, _).
 
 rdf_attach_store(Options, AfterLoad) :-
 	setting(cliopatria:persistent_store, Directory),
-	Directory \== '', !,
 	setup_indices,
-        rdf_attach_db(Directory, Options),
+	(   Directory \== ''
+	->  rdf_attach_db(Directory, Options)
+	;   true
+	),
 	forall(after_load_goal(Goal),
 	       call_warn(Goal)),
 	call_warn(AfterLoad).
