@@ -44,10 +44,14 @@
 :- use_module(sparql_grammar).
 :- use_module(sparql_runtime).
 :- use_module(rdfql_util).
+:- use_module(library(settings)).
 :- include(entailment(load)).
 
 :- multifile
 	function/2.			% user-defined functions
+
+:- setting(entailment, atom, rdf,
+	   'Default entailment used for SPARQL queries').
 
 %%	sparql_query(+Query, -Reply, +Options)
 %
@@ -62,7 +66,8 @@
 %	Options are:
 %
 %		* entailment(Entailment)
-%		Specify the entailment module used (default: rdf)
+%		Specify the entailment module used.  The default is
+%		controlled by the setting =|sparql:entailment|=.
 %
 %		* base_uri(Base)
 %		Specify the base IRI to use for parsing the query
@@ -92,7 +97,10 @@ sparql_query(Query, Reply, Options) :-
 sparql_compile(Query, sparql_query(Optimised, ReplyTemplate, Module), Options) :-
 	sparql_parse(Query, Parsed, Options),
 	optimise(Parsed, Optimised, Options),
-	option(entailment(Entailment), Options, rdf),
+	(   option(entailment(Entailment), Options)
+	->  true
+	;   setting(entailment, Entailment)
+	),
 	option(type(Type), Options, _),
 	option(ordered(Order), Options, _),
 	option(distinct(Distinct), Options, _),

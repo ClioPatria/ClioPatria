@@ -41,6 +41,7 @@
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(sparql_xml_result)).
 :- use_module(rdfql(sparql_json_result)).
+:- use_module(library(settings)).
 
 :- http_handler(sparql(.),      sparql_reply, [spawn(sparql_query)]).
 :- http_handler(sparql(update), sparql_reply, [spawn(sparql_query), id(sparql_update)]).
@@ -164,9 +165,10 @@ sparql_decl(format,
 	    ]).
 sparql_decl(entailment,
 	    [ optional(true),
-	      default(rdf),
+	      default(Default),
 	      oneof(Es),
 	      description('Entailment used')
 	    ]) :-
+	setting(sparql:entailment, Default),
 	findall(E, cliopatria:entailment(E, _), Es).
 
