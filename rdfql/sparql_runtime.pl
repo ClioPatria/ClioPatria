@@ -1445,16 +1445,34 @@ sparql_simplify(Goal, Goal).
 simplify_true(Var, Var) :-		% E.g., FILTER(?a)
 	var(Var), !,
 	fail.
-simplify_true(or(A0,B0), (A;B)) :-
+simplify_true(or(A0,B0), (A;B)) :- !,
 	simplify_true(A0, A),
 	simplify_true(B0, B).
-simplify_true(and(A0,B0), (A;B)) :-
+simplify_true(and(A0,B0), (A,B)) :- !,
 	simplify_true(A0, A),
 	simplify_true(B0, B).
-simplify_true(A0=B0, A=B) :-
+simplify_true(A0=B0, A=B) :- !,
 	peval(A0, A, IsResource),
 	peval(B0, B, IsResource),
 	IsResource == true.		% at least one is a resource
+simplify_true(A0\=B0, A\=B) :- !,
+	peval(A0, A, IsResource),
+	peval(B0, B, IsResource),
+	IsResource == true.		% at least one is a resource
+simplify_true(Expr, sparql_true(PExpr)) :-
+	simplify_expression(Expr, PExpr).
+
+simplify_expression(Var, Var) :-
+	var(Var), !.
+simplify_expression(Term0, Term) :-
+	ground(Term0), !,
+	eval(Term0, Term).
+simplify_expression(Term0, Term) :-
+	compound(Term0), !,
+	Term0 =.. [Name|Args0],
+	maplist(simplify_expression, Args0, Args),
+	Term =.. [Name|Args].
+simplify_expression(Term, Term).
 
 %%	simplify_eval(+Expr, +Value, -Goal) is semidet.
 

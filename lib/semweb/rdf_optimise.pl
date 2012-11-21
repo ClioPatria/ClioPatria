@@ -770,13 +770,13 @@ complexity(sparql_eval(E,V), sparql_eval(E,V), _, Sz0, Sz, C0, C) :- !,
 complexity(sparql_true(E), sparql_true(E), _, Sz0, Sz, C0, C) :- !,
 	term_variables(E, Vars),
 	all_bound(Vars),
-	Sz is Sz0,			% probability of failure
-	C is C0 + Sz*20.		% Sz * CostOfEval
+	Sz is Sz0 * 0.5,		% probability of failure
+	C is C0 + Sz0*20.		% Sz * CostOfEval
 complexity(G, G, _, Sz0, Sz, C0, C) :-	% non-rdf tests
 	term_variables(G, Vars),
 	all_bound(Vars),
 	Sz is Sz0 * 0.5,		% probability of failure
-	C is C0 + Sz.			% Sz * CostOfTest
+	C is C0 + Sz0.			% Sz * CostOfTest
 
 all_bound([]).
 all_bound([H|T]) :-
@@ -826,7 +826,7 @@ complexity0(-,+(+),+(b), P, G, 1, 1, B) :- !,
 	rdf_predicate_property(P, Prop).
 complexity0(+(b), -, -, _, _, 1, 1, B) :- !,
 	rdf_statistics(triples(Total)),
-	rdf_statistics(subjects(Subjs)),
+	subject_count(Subjs),
 	(   Total == 0
 	->  B = 0
 	;   B is Total/Subjs
@@ -838,6 +838,14 @@ complexity0(_,_,+(like(Pat)),_, G, Factor, Factor, B) :- !,
 	B is B0/Factor.
 complexity0(_,_,_, _, G, 1, 1, B) :-
 	rdf_estimate_complexity(G, B).
+
+:- if(rdf_statistics(subjects(_))).
+subject_count(Count) :-				% RDF-DB 2.x
+	rdf_statistics(subjects(Count)).
+:- else.
+subject_count(Count) :-				% RDF-DB 3.x
+	rdf_statistics(resources(Count)).
+:- endif.
 
 :- multifile
         subj_branch_factor/3,
@@ -1070,7 +1078,9 @@ dbg_portray_body(_).
 
 portray_body(G) :-
 	(   pp_instantiate_term(G),
-	    debug(_, '~@', [portray_clause((<> :- G))]),
+	    debug(_, '~@',
+		  [ portray_clause(current_output, (<> :- G), [module(sparql_runtime)])
+		  ]),
 	    fail
 	;   true
 	).

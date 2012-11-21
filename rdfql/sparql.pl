@@ -208,6 +208,10 @@ annotate_vars((A;B), Vars0, Vars) :- !,
 annotate_vars((A*->B), Vars0, Vars) :- !,
 	annotate_vars(A, Vars0, Vars1),
 	annotate_vars(B, Vars1, Vars).
+annotate_vars(sparql_group(G), Vars0, Vars) :- !,
+	annotate_vars(G, Vars0, Vars).
+annotate_vars(sparql_group(G, _, _), Vars0, Vars) :- !,
+	annotate_vars(G, Vars0, Vars).
 annotate_vars(rdf(S,P,_), Vars0, Vars) :- !,
 	annotate_var(S, resource, Vars0, Vars1),
 	annotate_var(P, resource, Vars1, Vars).
@@ -245,6 +249,10 @@ optimise_annotated((A0;B0), (A;B)) :- !,
 optimise_annotated((A0*->B0), (A*->B)) :- !,
 	optimise_annotated(A0, A),
 	optimise_annotated(B0, B).
+optimise_annotated(sparql_group(G0), sparql_group(G)) :- !,
+	optimise_annotated(G0, G).
+optimise_annotated(sparql_group(G0, OV, IV), sparql_group(G, OV, IV)) :- !,
+	optimise_annotated(G0, G).
 optimise_annotated(sparql_true(E), G) :- !,
 	sparql_simplify(sparql_true(E), G).
 optimise_annotated(sparql_eval(E,V), G) :- !,
