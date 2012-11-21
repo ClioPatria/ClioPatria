@@ -1,11 +1,10 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 1985-2005, University of Amsterdam
+    Copyright (C): 2005-2012, University of Amsterdam
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -143,17 +142,29 @@ solutions(_, true).
 
 optimise(update(Updates), update(Updates), _) :- !.
 optimise(Parsed, Optimised, Options) :-
-	setting(cliopatria:optimise_query, Def),
-	option(optimise(true), Options, Def), !,
+	(   option(optimise(true), Options)
+	->  true
+	;   setting(cliopatria:optimise_query, true)
+	),
 	prolog_goal(Parsed, Goal0),
-	optimise_eval(Goal0, Goal1),
-	rdf_optimise(Goal1, Goal2),
-	bind_null(Goal2, Goal, Options),
+	simplify_group(Goal0, Goal1),
+	optimise_eval(Goal1, Goal2),
+	rdf_optimise(Goal2, Goal3), !,
+	bind_null(Goal3, Goal, Options),
 	set_prolog_goal(Parsed, Goal, Optimised).
 optimise(Parsed, Optimised, Options) :-
 	prolog_goal(Parsed, Goal0),
-	bind_null(Goal0, Goal, Options),
+	simplify_group(Goal0, Goal1),
+	bind_null(Goal1, Goal, Options),
 	set_prolog_goal(Parsed, Goal, Optimised).
+
+% remove the outer SPARQL group. It has no meaning and reduces
+% readability.
+
+simplify_group(sparql_group(G), G) :- !.
+simplify_group(sparql_group(G, VIn, VOut), G) :-
+	VIn = VOut, !.
+simplify_group(Goal, Goal).
 
 bind_null(Goal0, Goal, Options) :-
 	option(bind_null(true), Options), !,

@@ -102,8 +102,7 @@ rdfql_carthesian(M:Bags) :-
 	).
 
 solve_bags([], _, _, []).
-solve_bags([bag(Vars, Goal)|T0], M, N, [set(Templ,Set,Size)|T]) :-
-	Templ =.. [v|Vars],
+solve_bags([bag(Templ, Goal, _Branch, _Cost)|T0], M, N, [set(Templ,Set,Size)|T]) :-
 	empty_nb_set(Set),
 	(   M:Goal,
 	    add_nb_set(Templ, Set),
@@ -116,7 +115,11 @@ solve_bags([bag(Vars, Goal)|T0], M, N, [set(Templ,Set,Size)|T]) :-
 	N2 is N + 1,
 	solve_bags(T0, M, N2, T).
 
+
 carthesian_select([]).
+carthesian_select([call(Goal)|T]) :-
+	call(Goal),
+	carthesian_select(T).
 carthesian_select([set(Templ,Set,_)|T]) :-
 	gen_nb_set(Set, Templ),
 	carthesian_select(T).

@@ -37,6 +37,7 @@
 :- use_module(library('semweb/rdf_db')).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
+:- use_module(library(pairs)).
 :- use_module(library(assoc)).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -121,11 +122,7 @@ complexity/2 needs to update the order of clauses inside meta calls
 rdf_optimise(Conj, Optimised) :-
 	rdf_optimise(Conj, Optimised, _, _).
 
-rdf_optimise(Conj, Optimised, SpaceEstimate, TimeEstimate) :-
-	optimise_order(Conj, Ordered, SpaceEstimate, TimeEstimate),
-	carthesian(Ordered, Optimised).
-
-optimise_order(Conj, Optimised, Space, Estimate) :-
+rdf_optimise(Conj, Optimised, Space, Time) :-
 	debug(rdf_optimise, '*** OPTIMIZING ***~n', []),
 	dbg_portray_body(Conj),
 	term_variables(Conj, Vars),
@@ -152,9 +149,9 @@ optimise_order(Conj, Optimised, Space, Estimate) :-
 	    fail
 	;   arg(1, State, Vars-Optimised),
 	    arg(2, State, Space),
-	    arg(3, State, Estimate),
+	    arg(3, State, Time),
 	    debug(rdf_optimise, '  --> optimised: s/t = ~w/~w --> ~w/~w~n',
-		  [S0, E0, Space, Estimate]),
+		  [S0, E0, Space, Time]),
 	    dbg_portray_body(Optimised)
 	), !.
 optimise_order(Conj, Conj, -1, -1) :-
@@ -178,7 +175,6 @@ reorder(Goal, Reordered) :-
 	State = bindings([]),
 	conj_to_list(Goal, Conj0),
 	reorder_conj(Conj0, State, Conj1),
-%%	permutation(Conj0, Conj1),		% Alternatively :-)
 	list_to_conj(Conj1, Reordered),
 	arg(1, State, Bindings),
 	unbind(Bindings).
@@ -196,17 +192,19 @@ reorder_conj(List, State, Perm) :-
 	bind_args(Normal, State),		% this part is done
 	reorder_conj(Optional, State, PermOptional),
 	append(PermNormal, PermOptional, Perm).
-reorder_conj(List, State, Result) :-
+reorder_conj(List, State, [goal(_,independent(SubPerms),_)]) :-
 	make_subgraphs(List, SubGraphs),
 	SubGraphs \= [_], !,
-	reorder_subgraph_conjs(SubGraphs, State, RestPerm),
-	flatten(RestPerm, Result).
+	reorder_subgraph_conjs(SubGraphs, State, SubPerms).
 reorder_conj(List, State, [Prefix|Perm]) :-
 	select(Prefix, List, Rest),
 	bind_args(Prefix, State),
 	make_subgraphs(Rest, SubGraphs),
-	reorder_subgraph_conjs(SubGraphs, State, RestPerm),
-	flatten(RestPerm, Perm).
+	(   SubGraphs = [SubGraph]
+	->  reorder_conj2(SubGraph, State, Perm)
+	;   Perm = [goal(_,independent(SubPerms),_)],
+	    reorder_subgraph_conjs(SubGraphs, State, SubPerms)
+	).
 
 
 %%	reorder_subgraph_conjs(SubGraphs, -ReorderedSubGraphs)
@@ -219,7 +217,8 @@ reorder_conj(List, State, [Prefix|Perm]) :-
 
 reorder_subgraph_conjs([], _, []).
 reorder_subgraph_conjs([H0|T0], State, [H|T]) :-
-	reorder_conj2(H0, State, H),
+	reorder_conj2(H0, State, H1),
+	list_to_conj(H1, H),
 	reorder_subgraph_conjs(T0, State, T).
 
 reorder_conj2([One], _, [One]) :- !.
@@ -227,9 +226,11 @@ reorder_conj2(List, State, [Prefix|Perm]) :-
 	select(Prefix, List, Rest),
 	bind_args(Prefix, State),
 	make_subgraphs(Rest, SubGraphs),
-	reorder_subgraph_conjs(SubGraphs, State, RestPerm),
-	flatten(RestPerm, Perm).
-
+	(   SubGraphs = [SubGraph]
+	->  reorder_conj2(SubGraph, State, Perm)
+	;   Perm = [goal(_,independent(SubPerms),_)],
+	    reorder_subgraph_conjs(SubGraphs, State, SubPerms)
+	).
 
 %%	group_by_cut(+List, -BeforeCut, -Cut, -AfterCut)
 %
@@ -413,71 +414,6 @@ list_to_conj([goal(_,G,_)|T0], (G,T)) :-
 %id(goal(Id, _, _),     Id).
 goal(goal(_, Goal, _), Goal).
 vars(goal(_, _, Vars), Vars).
-
-
-		 /*******************************
-		 *      CARTHESIAN PRODUCT	*
-		 *******************************/
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-If the cost is high, it can be   worthwhile  to see whether we can split
-the conjunction into independent  parts,   execute  these seperately and
-determine the carthesian product.
-
-To  indicate  carthesian  execution  is  profitable,  a  conjunction  is
-transformed into a call to
-
-	rdfql_carthesian(ListOfSubGoals)
-
-where each SubGoal is of the form
-
-	bag(Vars, Goal)
-
-where Vars are the variables in Goal and Goal is a subgoal that is fully
-independent from the others.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-carthesian(Goal, Carthesian) :-
-	State = bindings([]),
-	conj_to_list(Goal, Conj0),
-	carthesian_conj(Conj0, State, Carthesian), !,
-	arg(1, State, Bindings),
-	unbind(Bindings).
-carthesian(Goal, Goal).
-
-carthesian_conj(List, State, Carthesian) :-
-	group_by_cut(List, Before, _Cut, After), !,
-	carthesian_conj(Before, State, B),
-	carthesian_conj(After, State, A),
-	Carthesian = (B, !, A).
-carthesian_conj(List, State, Carthesian) :-
-	append(Before, After, List),
-	bind_args(Before, State),
-	make_subgraphs(After, SubGraphs),
-	SubGraphs = [_,_|_], !,
-	list_to_conj(Before, B),
-	mk_carthesian(SubGraphs, Bags),
-	carthesian_final(Bags, CarthGoal),
-	Carthesian = (B, CarthGoal).
-
-mk_carthesian([], []).
-mk_carthesian([G0|T0], [bag(Vars, Goal)|T]) :-
-	list_to_conj(G0, Goal),
-	term_variables(Goal, Vars0),
-	delete_instantiated(Vars0, Vars),
-	mk_carthesian(T0, T).
-
-%%	carthesian_final(+Bags, -Final)
-%
-%	Remove some common results that  are   not  useful. Notably bags
-%	with empty variable-set are interesting. They are basically sets
-%	of goals called with  ground  variables   and  therefore  can be
-%	merged with the bag in front of it.
-%
-%	This needs some more though!
-
-carthesian_final([bag(_, G0), bag([],G1)], (G0, G1)) :- !.
-carthesian_final(Bags, rdfql_carthesian(Bags)).
 
 
 		 /*******************************
@@ -709,7 +645,7 @@ complexity((If0->Then0;Else0),		% dubious
 	).
 complexity((A0;B0), (A;B), State, Sz0, Sz, C0, C) :- !,
 	(   var(A)
-	->  optimise_order(A0, A, _, _),
+	->  optimise_order(A0, A, _, _),	% First try the cheap one?
 	    optimise_order(B0, B, _, _)
 	;   A = A0,
 	    B = B0
@@ -720,7 +656,7 @@ complexity((A0;B0), (A;B), State, Sz0, Sz, C0, C) :- !,
 	C is CA + CB.
 complexity(sparql_group(G0), sparql_group(G), State, Sz0, Sz, C0, C) :- !,
 	(   var(G)
-	->  optimise_order(G0, G, Sz1, C1),
+	->  rdf_optimise(G0, G, Sz1, C1),
 	    Sz is Sz0 * Sz1,
 	    C is C0+Sz0*C1
 	;   complexity(G, G, State, Sz0, Sz, C0, C)
@@ -729,7 +665,7 @@ complexity(sparql_group(G0, OV, IV),
 	   sparql_group(G, OV, IV),
 	   State, Sz0, Sz, C0, C) :- !,
 	(   var(G)
-	->  optimise_order(G0, G, Sz1, C1),
+	->  rdf_optimise(G0, G, Sz1, C1),
 	    Sz is Sz0 * Sz1,
 	    C is C0+Sz0*C1
 	;   complexity(G, G, State, Sz0, Sz, C0, C)
@@ -737,6 +673,8 @@ complexity(sparql_group(G0, OV, IV),
 complexity(rdfql_carthesian(Bags),
 	   rdfql_carthesian(Bags), State, Sz0, Sz, C0, C) :- !,
 	carth_complexity(Bags, State, Sz0, Sz, C0, 0, C).
+complexity(independent(Goals0), Goal, State, Sz0, Sz, C0, C) :- !,
+	independent_complexity(Goals0, Goal, State, Sz0, Sz, C0, 0, C).
 complexity(Goal, Goal, State, Sz0, Sz, C0, C) :-
 	Goal = member(Var, List), !,	% List is list of resources
 	instantiate(Var, _, b, State),
@@ -783,9 +721,9 @@ all_bound([H|T]) :-
 	instantiated(H, +(_)),
 	all_bound(T).
 
-%	carth_complexity(+Bags, +State,
-%			 +Size0, -Size,
-%			 +Time0, +TimeSum0, -TimeSum)
+%%	carth_complexity(+Bags, +State,
+%%			 +Size0, -Size,
+%%			 +Time0, +TimeSum0, -TimeSum) is det.
 %
 %	Compute the time and space efficiency of the carthesian product.
 %	the total cost in time is the sum  of the costs of all branches,
@@ -798,6 +736,60 @@ carth_complexity([bag(_,G)|T], State,
 	complexity(G, G, State, Sz0, Sz1, C0, C1),
 	Csum1 is Csum0 + C1,
 	carth_complexity(T, State, Sz1, Sz, C0, Csum1, Csumz).
+
+
+%%	independent_complexity(+GoalsIn, -Goals, +State,
+%%			       +Size0, -Size,
+%%			       +Time0, +TimeSum0, -TimeSum) is det.
+%
+%	Compute the complexity of an independent conjunction.
+%
+%	@param Goals is a list of g(Goal, Branch, Cost), where Branch is
+%	the number of solutions expected fromGoal and Cost is the
+%	estimated CPU time.
+
+independent_complexity(GoalsIn, Goal, State,
+		       Size0, Size,
+		       Time0, TimeSum0, TimeSum) :-
+	indep_complexity(GoalsIn, Goals1, State,
+			 Size0, Size,
+			 Time0, TimeSum0, TimeSum),
+	keysort(Goals1, ByCost),
+	pairs_values(ByCost, Goals2),
+	simplify_carthesian(Goals2, Goal).
+
+indep_complexity([], [], _, Sz, Sz, _, C, C).
+indep_complexity([G0|GT0], [SzG-bag(Vars,G,SzG,CG)|GT], State,
+		       Sz0, Sz,
+		       C0, Csum0, Csumz) :-
+	complexity(G0, G, State, Sz0, Sz1, C0, C1),
+	term_variables(G, VList),
+	Vars =.. [v|VList],
+	(   Sz0 =:= 0
+	->  SzG = 0,
+	    CG = 0
+	;   SzG is Sz1/Sz0,
+	    CG is (C1-C0)/Sz0
+	),
+	Csum1 is Csum0 + C1,
+	indep_complexity(GT0, GT, State, Sz1, Sz, C0, Csum1, Csumz).
+
+%%	simplify_carthesian(+Bags, -Goal) is det.
+%
+%	Peer of the leading little branching   goals from the carthesian
+%	handler. If there is a bag of one   left,  turn it into a normal
+%	goal.
+
+simplify_carthesian([], true).
+simplify_carthesian([bag(_,Goal,_Branch,_Cost)], Goal) :- !.
+simplify_carthesian([bag(_,Goal,Branch,_Cost)|Bags], Final) :-
+	(   Branch < 1.5
+	->  !, Final = (Goal, Final1),
+	    simplify_carthesian(Bags, Final1)
+	;   Bags == []
+	->  !, Final = Goal
+	).
+simplify_carthesian(Bags, rdfql_carthesian(Bags)).
 
 
 %%	complexity0(+SI, +PI, +OI, +P, +G, -Setup, -PerAlt, -Branch).
