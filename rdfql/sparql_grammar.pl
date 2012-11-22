@@ -577,7 +577,9 @@ resolve_expression(and(A0,B0), built_in(and(A,B)), Q, S0, S) :- !,
 	resolve_expression(A0, A, Q1, S0, S1),
 	resolve_expression(B0, B, Q2, S1, S),
 	mkconj(Q1, Q2, Q).
-resolve_expression(E0, built_in(E), Q, S0, S) :-
+resolve_expression(built_in(E0), built_in(E), Q, S0, S) :- !,
+	resolve_expression(E0, E, Q, S0, S).
+resolve_expression(E0, E, Q, S0, S) :-
 	expression_op(E0), !,
 	E0 =.. [Op|Args0],
 	resolve_expressions(Args0, Args, Q, S0, S),
@@ -637,7 +639,7 @@ resolve_function(function(F0, Args0), function(Term), Q, S0, S) :-
 	resolve_iri(F0, F, S0),
 	resolve_expressions(Args0, Args, Q, S0, S),
 	Term =.. [F|Args].
-resolve_function(built_in(Builtin), built_in(Term), Q, S0, S) :-
+resolve_function(Builtin, Term, Q, S0, S) :-
 	resolve_builtin(Builtin, Term, Q, S0, S).
 
 resolve_builtin(concat(List0), concat(List), Q, S0, S) :- !,
