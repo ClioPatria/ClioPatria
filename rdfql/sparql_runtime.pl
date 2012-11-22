@@ -89,18 +89,8 @@ eval(literal(Literal), Result) :- !,
 	eval_literal(Literal, Result).
 eval(Atom, iri(Atom)) :-
 	atom(Atom), !.
-eval(Term, Result) :-
-	sparql_op(Term, Types), !,
-	Term =.. [Op|Args0],
-	eval_args(Args0, Types, Args),
-	EvalTerm =.. [Op|Args],
-	op(EvalTerm, Result).
 eval(built_in(Term), Result) :-
-	sparql_op(Term, Types), !,
-	Term =.. [Op|Args0],
-	eval_args(Args0, Types, Args),
-	EvalTerm =.. [Op|Args],
-	op(EvalTerm, Result).
+	op(Term, Result).
 eval(function(Term), Result) :- !,
 	(   xsd_cast(Term, Type, Value0)
 	->  eval(Value0, Value),
@@ -108,14 +98,6 @@ eval(function(Term), Result) :- !,
 	;   eval_function(Term, Result)
 	).
 eval(Term, Term).			% Result of sub-eval
-
-eval_args([], [], []).
-eval_args([H0|T0], [Type0|Types], [H|T]) :-
-	(   typed_eval(Type0, H0, H)
-	->  true
-	;   H = boolean(error)
-	),
-	eval_args(T0, Types, T).
 
 %%	eval(+Type, +Term, -Result) is semidet.
 %
@@ -152,6 +134,14 @@ eval_typed_literal(Type, Atom, date_time(Atom)) :-
 eval_typed_literal(Type, Atom, date(Atom)) :-
 	rdf_equal(Type, xsd:date), !.
 eval_typed_literal(Type, Atom, type(Type, Atom)).
+
+eval_boolean(Term, Bool) :-
+	eval(Term, Value),
+	effective_boolean_value(Value, Bool).
+
+eval_numeric(Term, Numeric) :-
+	eval(Term, Numeric),
+	Numeric = numeric(_,_).
 
 %%	numeric_literal_value(+Literal, -Value) is semidet.
 %
@@ -200,6 +190,50 @@ decl_op(Term, op_decl(Gen, Args)) :-
 	functor(Gen,  Name, Arity),
 	Term =.. [Name|Args].
 
+
+%%	expand_op(+In, -Clause) is det.
+%
+%	Expand SPARQL operators into a nice clause.
+
+expand_op((op(Op0,Result) :- Body),
+	  (op(Op1,Result) :- Body1)) :-
+	functor(Op0, Name, Arity),
+	functor(Op1, Name, Arity),
+	(   op_decl(Op1, Types)
+	->  true
+	;   Op0 =.. [Name|Args],
+	    maplist(op_arg_type, Args, Types)
+	),
+	Op0 =.. [Name|Args0],
+	Op1 =.. [Name|Args1],
+	maplist(convert_goal, Types, Args1, Args0, ConvertList),
+	list_to_conj(ConvertList, Convert),
+	mkconj(Convert, Body, Body1).
+
+op_arg_type(Var,               no_eval) :- var(Var), !.
+op_arg_type(boolean(_),	       boolean) :- !.
+op_arg_type(numeric(_,_),      numeric) :- !.
+op_arg_type(simple_literal(_), simple_literal) :- !.
+op_arg_type(_,		       any).
+
+list_to_conj([], true).
+list_to_conj([G], G) :- !.
+list_to_conj([H|T], G) :-
+	list_to_conj(T, G1),
+	mkconj(H, G1, G).
+
+mkconj(true, G, G) :- !.
+mkconj(G, true, G) :- !.
+mkconj(G1,G2,(G1,G2)).
+
+convert_goal(no_eval, Arg, Arg, true).
+convert_goal(any, Arg0, Arg1, eval(Arg0, Arg1)).
+convert_goal(simple_literal, Arg0, Arg1, eval(Arg0, Arg1)).
+convert_goal(boolean, Arg0, Arg1, eval_boolean(Arg0, Arg1)).
+convert_goal(numeric, Arg0, Arg1, eval_numeric(Arg0, Arg1)).
+
+term_expansion((op(Op,Result) :- Body), Clause) :-
+	expand_op((op(Op,Result) :- Body), Clause).
 
 %%	op(+Operator, -Result) is semidet.
 %
@@ -894,66 +928,6 @@ boolean_value(False, false) :-
 boolean_value(_,     true).
 
 
-%%	sparql_op_declarations(-Clauses:list(clause)) is det.
-%
-%	Generate a list of clauses of the form
-%
-%		sparql_op(Op(ArgType, ...))
-
-
-sparql_op_declarations(Clauses) :-
-	findall(Head, clause(op(Head, _), _), Heads0),
-	sort(Heads0, Heads),
-	group_heads(Heads, Groups),
-	maplist(sparql_op_declaration, Groups, Clauses).
-
-group_heads([], []).
-group_heads([H0|T0], [[H0|T1]|Groups]) :-
-	functor(H0, Op, Arity),
-	functor(G, Op, Arity),
-	same_functor(G, T0, T1, T2),
-	group_heads(T2, Groups).
-
-same_functor(F, [H|T0], [H|T], L) :-
-	\+ \+ F = H, !,
-	same_functor(F, T0, T, L).
-same_functor(_, L, [], L).
-
-sparql_op_declaration([Op|T], sparql_op(G, Types)) :-
-	functor(Op, Name, Arity),
-	functor(G, Name, Arity),
-	(   op_decl(G, Types)		% explicit declaration
-	->  true
-	;   Op =.. [Name|Args],
-	    make_types(Args, 1, T, Types)
-	).
-
-make_types([], _, _, []).
-make_types([H0|T0], I, Alt, [H|T]) :-
-	alt_types(Alt, I, AT),
-	list_to_set([H0|AT], Types),
-	make_type(Types, H),
-	I2 is I + 1,
-	make_types(T0, I2, Alt, T).
-
-alt_types([], _, []).
-alt_types([H0|T0], I, [H|T]) :-
-	arg(I, H0, H),
-	alt_types(T0, I, T).
-
-make_type([T],		       no_eval) :-
-	var(T), !.
-make_type([boolean(_)],	       boolean) :- !.
-make_type([numeric(_, _)],     numeric) :- !.
-make_type([simple_literal(_)], simple_literal) :- !.
-make_type(_,		       any).
-
-term_expansion(sparql_op(decls, types), Clauses) :-
-	sparql_op_declarations(Clauses).
-
-sparql_op(decls, types).
-
-
 		 /*******************************
 		 *	       CASTS		*
 		 *******************************/
@@ -964,7 +938,7 @@ sparql_op(decls, types).
 %	dateTime. Supported types are the numeric types, xsd:boolean and
 %	xsd:dateTime.
 
-term_expansion(xsd_casts, Clauses) :-
+term_expansion(xsd_cast(term,type,arg), Clauses) :-
 	findall(Clause, xsd_cast_clause(Clause), Clauses).
 
 xsd_cast_clause(xsd_cast(Term, Type, Arg)) :-
@@ -974,7 +948,7 @@ xsd_cast_clause(xsd_cast(Term, Type, Arg)) :-
 	),
 	Term =.. [Type,Arg].
 
-xsd_casts.
+xsd_cast(term,type,arg).
 
 %%	eval_cast(+Type, +Value, -Result)
 %

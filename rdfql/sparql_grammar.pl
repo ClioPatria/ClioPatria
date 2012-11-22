@@ -652,7 +652,7 @@ resolve_function(built_in(Builtin), built_in(Term), Q, S0, S) :- !,
 	Builtin =.. [F|Args0],
 	resolve_expressions(Args0, Args, Q, S0, S),
 	Term =.. [F|Args].
-resolve_function(Builtin, Term, Q, S0, S) :- !,
+resolve_function(Builtin, built_in(Term), Q, S0, S) :- !,
 	built_in_function(Builtin), !,
 	Builtin =.. [F|Args0],
 	resolve_expressions(Args0, Args, Q, S0, S),
