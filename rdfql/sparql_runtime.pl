@@ -135,14 +135,6 @@ eval_typed_literal(Type, Atom, date(Atom)) :-
 	rdf_equal(Type, xsd:date), !.
 eval_typed_literal(Type, Atom, type(Type, Atom)).
 
-eval_boolean(Term, Bool) :-
-	eval(Term, Value),
-	effective_boolean_value(Value, Bool).
-
-eval_numeric(Term, Numeric) :-
-	eval(Term, Numeric),
-	Numeric = numeric(_,_).
-
 %%	numeric_literal_value(+Literal, -Value) is semidet.
 %
 %	Convert a SPARQL numeric literal into  its value for the purpose
@@ -179,6 +171,22 @@ optional_sign([0'+|Rest], Rest, 1) :- !.
 optional_sign([0'-|Rest], Rest, -1) :- !.
 optional_sign(Rest, Rest, 1).
 
+
+%	Evaluation of function arguments
+
+eval_any(Term, Value) :-
+	eval(Term, Value), !.
+eval_any(_, boolean(error)).
+
+eval_boolean(Term, Bool) :-
+	eval(Term, Value),
+	effective_boolean_value(Value, Bool), !.
+eval_boolean(_, boolean(error)).
+
+eval_numeric(Term, Numeric) :-
+	eval(Term, Numeric),
+	Numeric = numeric(_,_), !.
+eval_numeric(_, boolean(error)).
 
 %%	sparql_op(+ListOfDelcs)
 
@@ -227,8 +235,8 @@ mkconj(G, true, G) :- !.
 mkconj(G1,G2,(G1,G2)).
 
 convert_goal(no_eval, Arg, Arg, true).
-convert_goal(any, Arg0, Arg1, eval(Arg0, Arg1)).
-convert_goal(simple_literal, Arg0, Arg1, eval(Arg0, Arg1)).
+convert_goal(any, Arg0, Arg1, eval_any(Arg0, Arg1)).
+convert_goal(simple_literal, Arg0, Arg1, eval_any(Arg0, Arg1)).
 convert_goal(boolean, Arg0, Arg1, eval_boolean(Arg0, Arg1)).
 convert_goal(numeric, Arg0, Arg1, eval_numeric(Arg0, Arg1)).
 
