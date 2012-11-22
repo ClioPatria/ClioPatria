@@ -91,6 +91,9 @@ eval(Atom, iri(Atom)) :-
 	atom(Atom), !.
 eval(built_in(Term), Result) :- !,
 	op(Term, Result).
+eval(Term, Result) :-
+	sparql_op(Term), !,
+	op(Term, Result).
 eval(function(Term), Result) :- !,
 	(   xsd_cast(Term, Type, Value0)
 	->  eval(Value0, Value),
@@ -203,8 +206,9 @@ decl_op(Term, op_decl(Gen, Args)) :-
 %
 %	Expand SPARQL operators into a nice clause.
 
-expand_op((op(Op0,Result) :- Body),
-	  (op(Op1,Result) :- Body1)) :-
+expand_op((op(Op,Result) :- Body),
+	  [(op(Op1,Result) :- Body1), sparql_op(Op1)]) :-
+	rdf_global_term(Op, Op0),
 	functor(Op0, Name, Arity),
 	functor(Op1, Name, Arity),
 	(   op_decl(Op1, Types)
@@ -240,10 +244,10 @@ convert_goal(simple_literal, Arg0, Arg1, eval_any(Arg0, Arg1)).
 convert_goal(boolean, Arg0, Arg1, eval_boolean(Arg0, Arg1)).
 convert_goal(numeric, Arg0, Arg1, eval_numeric(Arg0, Arg1)).
 
-term_expansion((op(Op,Result) :- Body), Clause) :-
-	expand_op((op(Op,Result) :- Body), Clause).
-term_expansion((op(Op,Result)), Clause) :-
-	expand_op((op(Op,Result) :- true), Clause).
+term_expansion((op(Op,Result) :- Body), Clauses) :-
+	expand_op((op(Op,Result) :- Body), Clauses).
+term_expansion((op(Op,Result)), Clauses) :-
+	expand_op((op(Op,Result) :- true), Clauses).
 
 %%	op(+Operator, -Result) is semidet.
 %
@@ -252,7 +256,7 @@ term_expansion((op(Op,Result)), Clause) :-
 %	@param Result	Result-value, embedded in its type.
 
 :- rdf_meta op(t,t).
-:- discontiguous op/2, op_decl/2.
+:- discontiguous op/2, op_decl/2, sparql_op/1.
 
 % SPARQL Unary operators
 op(not(boolean(X)), boolean(Result)) :-
@@ -273,7 +277,8 @@ op(isblank(X), boolean(Result)) :-
 op(isliteral(X), boolean(Result)) :-
 	(isliteral(X) -> Result = true ; Result = false).
 
-:- sparql_op([ iri(any, no_eval)
+:- sparql_op([ iri(any, no_eval),
+	       str(no_eval)
 	     ]).
 
 % SPARQL Accessors
@@ -332,62 +337,69 @@ invalid('$null$').
 invalid(boolean(error)).
 
 % XPath Tests
-op(numeric(_, X) = numeric(_, Y), boolean(Result)) :-
-	(X =:= Y -> Result = true ; Result = false).
-op(date_time(X) = date_time(Y), boolean(Result)) :-
-	(X == Y -> Result = true ; Result = false).
-op(date(X) = date(Y), boolean(Result)) :-
-	(X == Y -> Result = true ; Result = false).
-op(numeric(_, X) \= numeric(_, Y), boolean(Result)) :-
-	(X =\= Y -> Result = true ; Result = false).
-op(date_time(X) \= date_time(Y), boolean(Result)) :-
-	(X \== Y -> Result = true ; Result = false).
-op(date(X) \= date(Y), boolean(Result)) :-
-	(X \== Y -> Result = true ; Result = false).
-%<
-op(numeric(_, X) < numeric(_, Y), boolean(Result)) :-
-	(X < Y -> Result = true ; Result = false).
-op(simple_literal(X) < simple_literal(Y), boolean(Result)) :-
-	(X @< Y -> Result = true ; Result = false).
-op(string(X) < string(Y), boolean(Result)) :-
-	(X @< Y -> Result = true ; Result = false).
-op(date_time(X) < date_time(Y), boolean(Result)) :-
-	(X @< Y -> Result = true ; Result = false).
-op(date(X) < date(Y), boolean(Result)) :-
-	(X @< Y -> Result = true ; Result = false).
-%>
-op(numeric(_, X) > numeric(_, Y), boolean(Result)) :-
-	(X > Y -> Result = true ; Result = false).
-op(simple_literal(X) > simple_literal(Y), boolean(Result)) :-
-	(X @> Y -> Result = true ; Result = false).
-op(string(X) > string(Y), boolean(Result)) :-
-	(X @> Y -> Result = true ; Result = false).
-op(date_time(X) > date_time(Y), boolean(Result)) :-
-	(X @> Y -> Result = true ; Result = false).
-op(date(X) > date(Y), boolean(Result)) :-
-	(X @> Y -> Result = true ; Result = false).
-%=<
-op(numeric(_, X) =< numeric(_, Y), boolean(Result)) :-
-	(X =< Y -> Result = true ; Result = false).
-op(simple_literal(X) =< simple_literal(Y), boolean(Result)) :-
-	(X @=< Y -> Result = true ; Result = false).
-op(string(X) =< string(Y), boolean(Result)) :-
-	(X @=< Y -> Result = true ; Result = false).
-op(date_time(X) =< date_time(Y), boolean(Result)) :-
-	(X @=< Y -> Result = true ; Result = false).
-op(date(X) =< date(Y), boolean(Result)) :-
-	(X @=< Y -> Result = true ; Result = false).
-%>=
-op(numeric(_, X) >= numeric(_, Y), boolean(Result)) :-
-	(X >= Y -> Result = true ; Result = false).
-op(simple_literal(X) >= simple_literal(Y), boolean(Result)) :-
-	(X @>= Y -> Result = true ; Result = false).
-op(string(X) >= string(Y), boolean(Result)) :-
-	(X @>= Y -> Result = true ; Result = false).
-op(date_time(X) >= date_time(Y), boolean(Result)) :-
-	(X @>= Y -> Result = true ; Result = false).
-op(date(X) >= date(Y), boolean(Result)) :-
-	(X @>= Y -> Result = true ; Result = false).
+op(X = Y, boolean(Result)) :-
+	(   equal(X, Y)
+	->  Result = true
+	;   Result = false
+	).
+op(X \= Y, boolean(Result)) :-
+	(   equal(X, Y)
+	->  Result = false
+	;   Result = true
+	).
+
+equal(X, X) :- !.
+equal(numeric(_, X), numeric(_, Y)) :- X =:= Y.
+equal(boolean(A), boolean(B)) :-
+	eq_bool(A, B, true).
+
+op(X < Y, boolean(Result)) :-
+	(   lt(X,Y)
+	->  Result = true
+	;   functor(X, Name, Arity),
+	    functor(Y, Name, Arity)
+	->  Result = false
+	).
+op(X > Y, boolean(Result)) :-
+	(   lt(X,Y)
+	->  Result = false
+	;   functor(X, Name, Arity),
+	    functor(Y, Name, Arity)
+	->  Result = true
+	).
+op(X =< Y, boolean(Result)) :-
+	(   leq(X,Y)
+	->  Result = true
+	;   functor(X, Name, Arity),
+	    functor(Y, Name, Arity)
+	->  Result = false
+	).
+op(X >= Y, boolean(Result)) :-
+	(   geq(X,Y)
+	->  Result = true
+	;   functor(X, Name, Arity),
+	    functor(Y, Name, Arity)
+	->  Result = false
+	).
+
+lt(numeric(_, X), numeric(_, Y)) :- X < Y.
+lt(simple_literal(X), simple_literal(Y)) :- X @< Y.
+lt(string(X), string(Y)) :- X @< Y.
+lt(date_time(X), date_time(Y)) :- X @< Y.
+lt(date(X), date(Y)) :- X @< Y.
+
+leq(numeric(_, X), numeric(_, Y)) :- X =< Y.
+leq(simple_literal(X), simple_literal(Y)) :- X @=< Y.
+leq(string(X), string(Y)) :- X @=< Y.
+leq(date_time(X), date_time(Y)) :- X @=< Y.
+leq(date(X), date(Y)) :- X @=< Y.
+
+geq(numeric(_, X), numeric(_, Y)) :- X >= Y.
+geq(simple_literal(X), simple_literal(Y)) :- X @>= Y.
+geq(string(X), string(Y)) :- X @>= Y.
+geq(date_time(X), date_time(Y)) :- X @>= Y.
+geq(date(X), date(Y)) :- X @>= Y.
+
 % arithmetic
 op(numeric(TX, X) * numeric(TY, Y), numeric(Type, Result)) :-
 	Result is X * Y,
@@ -428,11 +440,6 @@ op(max(numeric(TX, X), numeric(TY, Y)), numeric(Type, Result)) :-
 
 % SPARQL Tests, defined in section 11.4
 
-op(X = Y, Result) :-
-	rdf_equal(X, Y, Result).
-op(X \= Y, boolean(Result)) :-
-	rdf_equal(X, Y, boolean(R0)),
-	not(R0, Result).
 op(in(Value, List), boolean(Result)) :-
 	sparql_in(Value, List, Result).
 op(not_in(Value, List), boolean(Result)) :-

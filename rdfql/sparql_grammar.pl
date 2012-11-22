@@ -569,16 +569,14 @@ mkcollection([H|T], S, [ rdf(S, rdf:first, H),
 
 resolve_expression(Var, Var, true, S, S) :-
 	var(Var), !.
-resolve_expression(or(A0,B0), built_in(or(A,B)), Q, S0, S) :- !,
+resolve_expression(or(A0,B0), or(A,B), Q, S0, S) :- !,
 	resolve_expression(A0, A, Q1, S0, S1),
 	resolve_expression(B0, B, Q2, S1, S),
 	mkdisj(Q1, Q2, Q).
-resolve_expression(and(A0,B0), built_in(and(A,B)), Q, S0, S) :- !,
+resolve_expression(and(A0,B0), and(A,B), Q, S0, S) :- !,
 	resolve_expression(A0, A, Q1, S0, S1),
 	resolve_expression(B0, B, Q2, S1, S),
 	mkconj(Q1, Q2, Q).
-resolve_expression(built_in(E0), built_in(E), Q, S0, S) :- !,
-	resolve_expression(E0, E, Q, S0, S).
 resolve_expression(E0, E, Q, S0, S) :-
 	expression_op(E0), !,
 	E0 =.. [Op|Args0],
@@ -635,24 +633,26 @@ resolve_expressions([H0|T0], [H|T], Q, S0, S) :-
 	resolve_expressions(T0, T, Q2, S1, S),
 	mkconj(Q1, Q2, Q).
 
-resolve_function(function(F0, Args0), function(Term), Q, S0, S) :-
+resolve_function(function(F0, Args0), function(Term), Q, S0, S) :- !,
 	resolve_iri(F0, F, S0),
 	resolve_expressions(Args0, Args, Q, S0, S),
 	Term =.. [F|Args].
-resolve_function(Builtin, Term, Q, S0, S) :-
-	resolve_builtin(Builtin, Term, Q, S0, S).
-
-resolve_builtin(concat(List0), concat(List), Q, S0, S) :- !,
+resolve_function(concat(List0), concat(List), Q, S0, S) :- !,
 	resolve_expressions(List0, List, Q, S0, S).
-resolve_builtin(coalesce(List0), coalesce(List), Q, S0, S) :- !,
+resolve_function(coalesce(List0), coalesce(List), Q, S0, S) :- !,
 	resolve_expressions(List0, List, Q, S0, S).
-resolve_builtin(uri(Expr0), iri(Expr, Base), Q, S0, S) :- !,
-	resolve_expression(Expr0, Expr, Q, S0, S), % URI() == IRI()
-	state_base_uri(S, Base).
-resolve_builtin(iri(Expr0), iri(Expr, Base), Q, S0, S) :- !,
+resolve_function(uri(Expr0), iri(Expr, Base), Q, S0, S) :- !, % URI() == IRI()
 	resolve_expression(Expr0, Expr, Q, S0, S),
 	state_base_uri(S, Base).
-resolve_builtin(Builtin, Term, Q, S0, S) :-
+resolve_function(iri(Expr0), iri(Expr, Base), Q, S0, S) :- !,
+	resolve_expression(Expr0, Expr, Q, S0, S),
+	state_base_uri(S, Base).
+resolve_function(built_in(Builtin), built_in(Term), Q, S0, S) :- !,
+	built_in_function(Builtin), !,
+	Builtin =.. [F|Args0],
+	resolve_expressions(Args0, Args, Q, S0, S),
+	Term =.. [F|Args].
+resolve_function(Builtin, Term, Q, S0, S) :- !,
 	built_in_function(Builtin), !,
 	Builtin =.. [F|Args0],
 	resolve_expressions(Args0, Args, Q, S0, S),
@@ -2413,7 +2413,7 @@ bracketted_expression(E) -->
 
 %%	built_in_call(-Call)//
 
-built_in_call(built_in(F)) -->			% [121]
+built_in_call(F) -->			% [121]
 	get_keyword(KWD),
 	built_in_call(KWD, F).
 
@@ -2422,7 +2422,10 @@ built_in_call(KWD, F) -->
 	must_see_open_bracket,
 	arg_list(Types, Args),
 	must_see_close_bracket, !,
-	{  F =.. [KWD|Args] }.
+	{   Args == []
+	->  F = built_in(KWD)
+	;   F =.. [KWD|Args]
+	}.
 built_in_call(KWD, F) -->
 	aggregate_call(KWD, F), !.
 built_in_call(coalesce, coalesce(List)) --> !,
