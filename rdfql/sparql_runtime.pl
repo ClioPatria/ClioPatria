@@ -450,7 +450,8 @@ sparql_in(Value, List, Result) :-
 	(   memberchk(Value, List)
 	->  Result = true
 	;   member(E, List),
-	    rdf_equal(Value, E)
+	    eval(E, EV),
+	    rdf_equal(Value, EV)
 	->  Result = true
 	;   Result = false
 	).
@@ -1074,10 +1075,11 @@ str_text(string(X), X).
 %
 %	Extract language specification from an RDFTerm
 
-lang(0, _) :- !, fail.			% catch variables.
-lang(lang(Lang, _), Lang) :- !.
-lang(literal(lang(Lang, _)), Lang) :- !.
-lang(literal(_), '').			% Fail on typed?
+lang(lang(Lang,_), Lang) :- !.
+lang(string(_), '').
+lang(simple_literal(_), '').
+lang(type(_,_), '').
+lang(numeric(_,_), '').
 
 %%	datatype(+RDFTerm, -IRI)
 %
