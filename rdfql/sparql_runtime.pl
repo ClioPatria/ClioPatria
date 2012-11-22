@@ -242,6 +242,8 @@ convert_goal(numeric, Arg0, Arg1, eval_numeric(Arg0, Arg1)).
 
 term_expansion((op(Op,Result) :- Body), Clause) :-
 	expand_op((op(Op,Result) :- Body), Clause).
+term_expansion((op(Op,Result)), Clause) :-
+	expand_op((op(Op,Result) :- true), Clause).
 
 %%	op(+Operator, -Result) is semidet.
 %
@@ -1066,11 +1068,16 @@ lang(literal(_), '').			% Fail on typed?
 %
 %	Extract type specification from an RDFTerm
 
+:- rdf_meta
+	datatype(t,t).
+
 datatype(0, _) :- !, fail.
 datatype(literal(type(Type, _)), iri(Type)) :- !.
 datatype(numeric(Type, _), iri(Type)) :- !.
-datatype(boolean(_), iri(Type)) :- !,
-	rdf_equal(xsd:boolean, Type).
+datatype(boolean(_), iri(xsd:boolean)) :- !.
+datatype(date_time(_), iri(xsd:dateTime)) :- !.
+datatype(date(_), iri(xsd:date)) :- !.
+datatype(string(_), iri(xsd_string)) :- !.
 datatype(Expr, Type) :-
 	eval(Expr, Value),
 	Value \== Expr,

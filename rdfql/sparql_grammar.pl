@@ -2417,15 +2417,12 @@ built_in_call(F) -->			% [121]
 	get_keyword(KWD),
 	built_in_call(KWD, F).
 
-built_in_call(KWD, F) -->
+built_in_call(KWD, built_in(F)) -->
 	{ built_in_function(KWD, Types) },
 	must_see_open_bracket,
 	arg_list(Types, Args),
 	must_see_close_bracket, !,
-	{   Args == []
-	->  F = built_in(KWD)
-	;   F =.. [KWD|Args]
-	}.
+	{  F =.. [KWD|Args] }.
 built_in_call(KWD, F) -->
 	aggregate_call(KWD, F), !.
 built_in_call(coalesce, coalesce(List)) --> !,
