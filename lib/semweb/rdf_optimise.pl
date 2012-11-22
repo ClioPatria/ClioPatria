@@ -38,7 +38,8 @@
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
-:- use_module(library(assoc)).
+:- use_module(library(ordsets)).
+:- use_module(library(ugraphs)).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Queries  as  returned  by  serql_compile_path/2    consists  of  a  path
@@ -301,47 +302,57 @@ ground_vars([H|T], State) :-
 
 %%	make_subgraphs(+Goals, -SubGraphs)
 %
-%	Create a list of connected subgraphs from Goals, assuming the
+%	Create a list of connected subgraphs   from  Goals, assuming the
 %	variables in the assoc Grounded have been bound.
+%
+%	@param Goals is a list goal(Id, Goal, Vars).
 
-make_subgraphs([], []).
-make_subgraphs([G0|GT], [S0|ST]) :-
-	empty_assoc(Visited0),
-	put_assoc(G0, Visited0, t, Visited1),
-	unbound_vars(G0, Vars),
-	empty_assoc(VV0),
-	vars_visited(Vars, VV0, VV, _, []),
-	select_subgraph(Vars, VV, GT, GR, Visited1, Visited),
-	assoc_keys(Visited, S0),
-	make_subgraphs(GR, ST).
+make_subgraphs([Goal], [Goal]) :- !.
+make_subgraphs([G1,G2], Graphs) :- !,
+	unbound_vars(G1, V1),
+	unbound_vars(G2, V2),
+	(   ord_intersect(V1, V2)
+	->  Graphs = [[G1,G2]]
+	;   Graphs = [[G1],[G2]]
+	).
+make_subgraphs(Goals, SubGraphs) :-
+	map_list_to_pairs(unbound_vars, Goals, UnBoundKeyed),
+	connected_pairs(UnBoundKeyed, Edges),
+	vertices_edges_to_ugraph(Goals, Edges, UGraph),
+	connected_vertices(UGraph, SubGraphs).
 
-select_subgraph([], _, Rest, Rest, Visited, Visited).
-select_subgraph([V0|VT], VV0, Goals, Rest, Visited0, Visited) :-
-	select_related(Goals, V0, NewA, RG, VV0, VV1, Visited0, Visited1),
-	append(NewA, VT, Agenda),
-	select_subgraph(Agenda, VV1, RG, Rest, Visited1, Visited).
+connected_pairs([], []).
+connected_pairs([H|T], Edges) :-
+	connected_pairs(T, H, Edges, EdgeTail),
+	connected_pairs(T, EdgeTail).
+
+connected_pairs([], _, Edges, Edges).
+connected_pairs([H|T], To, Edges, EdgeTail) :-
+	(   connected(H, To, GH, GT)
+	->  Edges = [GH-GT,GT-GH|Edges1],
+	    connected_pairs(T, To, Edges1, EdgeTail)
+	;   connected_pairs(T, To, Edges, EdgeTail)
+	).
+
+connected(V1-G1, V2-G2, G1, G2) :-
+	ord_intersect(V1, V2).
+
+connected_vertices([], []) :- !.
+connected_vertices(UGraph, [Set1|Sets]) :-
+	UGraph = [V1-_|_],
+	reachable(V1, UGraph, Set1),
+	del_vertices(UGraph, Set1, UGraph2),
+	connected_vertices(UGraph2, Sets).
 
 
-%	select_related(+Goals, +Var, -NewVars, -RestGoals,
-%		       +VisVar0, -VisVar, +Vis0, -Vis)
-
-select_related([], _, [], [], VV, VV, V, V).
-select_related([G0|GT], Var, NewA, Rest, VV0, VV, V0, V) :-
-	get_assoc(G0, V0, _), !,
-	select_related(GT, Var, NewA, Rest, VV0, VV, V0, V).
-select_related([G0|GT], Var, Agenda, Rest, VV0, VV, V0, V) :-
-	unbound_vars(G0, VG0),
-	member(VG1, VG0), VG1 == Var, !,
-	vars_visited(VG0, VV0, VV1, Agenda, AT),
-	put_assoc(G0, V0, t, V1),
-	select_related(GT, Var, AT, Rest, VV1, VV, V1, V).
-select_related([G0|GT], Var, NewA, [G0|Rest], VV0, VV, V0, V) :-
-	select_related(GT, Var, NewA, Rest, VV0, VV, V0, V).
-
+%%	unbound_vars(+Goal, -Vars) is det.
+%
+%	True when Vars is an ordered set of unbound variables in Goal.
 
 unbound_vars(Goal, Vars) :-
 	vars(Goal, AllVars),
-	unbound(AllVars, Vars).
+	unbound(AllVars, Vars0),
+	sort(Vars0, Vars).
 
 unbound([], []).
 unbound([H|T0], [H|T]) :-
@@ -349,25 +360,6 @@ unbound([H|T0], [H|T]) :-
 	unbound(T0, T).
 unbound([_|T0], T) :-
 	unbound(T0, T).
-
-vars_visited([], VV, VV, A, A).
-vars_visited([H|T], VV0, VV, [H|L0], L) :-
-	put_assoc(H, VV0, t, VV1),
-	vars_visited(T, VV1, VV, L0, L).
-
-
-%%	assoc_keys(+Assoc, -Keys)
-%
-%	Return the keys of an assoc as a list. Can be optimised further.
-
-assoc_keys(Assoc, Keys) :-
-	assoc_to_list(Assoc, List),
-	keys(List, Keys).
-
-keys([], []).
-keys([K-_|T0], [K|T]) :-
-	keys(T0, T).
-
 
 %%	conj_to_list(+Conj, -List)
 %
