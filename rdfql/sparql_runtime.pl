@@ -89,7 +89,7 @@ eval(literal(Literal), Result) :- !,
 	eval_literal(Literal, Result).
 eval(Atom, iri(Atom)) :-
 	atom(Atom), !.
-eval(built_in(Term), Result) :-
+eval(built_in(Term), Result) :- !,
 	op(Term, Result).
 eval(function(Term), Result) :- !,
 	(   xsd_cast(Term, Type, Value0)
@@ -218,7 +218,7 @@ expand_op((op(Op0,Result) :- Body),
 	list_to_conj(ConvertList, Convert),
 	mkconj(Convert, Body, Body1).
 
-op_arg_type(Var,               no_eval) :- var(Var), !.
+op_arg_type(Var,               any) :- var(Var), !.
 op_arg_type(boolean(_),	       boolean) :- !.
 op_arg_type(numeric(_,_),      numeric) :- !.
 op_arg_type(simple_literal(_), simple_literal) :- !.

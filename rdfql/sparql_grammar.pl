@@ -577,7 +577,7 @@ resolve_expression(and(A0,B0), and(A,B), Q, S0, S) :- !,
 	resolve_expression(A0, A, Q1, S0, S1),
 	resolve_expression(B0, B, Q2, S1, S),
 	mkconj(Q1, Q2, Q).
-resolve_expression(E0, E, Q, S0, S) :-
+resolve_expression(E0, built_in(E), Q, S0, S) :-
 	expression_op(E0), !,
 	E0 =.. [Op|Args0],
 	resolve_expressions(Args0, Args, Q, S0, S),
@@ -637,14 +637,14 @@ resolve_function(function(F0, Args0), function(Term), Q, S0, S) :- !,
 	resolve_iri(F0, F, S0),
 	resolve_expressions(Args0, Args, Q, S0, S),
 	Term =.. [F|Args].
-resolve_function(concat(List0), concat(List), Q, S0, S) :- !,
+resolve_function(concat(List0), built_in(concat(List)), Q, S0, S) :- !,
 	resolve_expressions(List0, List, Q, S0, S).
-resolve_function(coalesce(List0), coalesce(List), Q, S0, S) :- !,
+resolve_function(coalesce(List0), built_in(coalesce(List)), Q, S0, S) :- !,
 	resolve_expressions(List0, List, Q, S0, S).
-resolve_function(uri(Expr0), iri(Expr, Base), Q, S0, S) :- !, % URI() == IRI()
-	resolve_expression(Expr0, Expr, Q, S0, S),
+resolve_function(uri(Expr0), built_in(iri(Expr, Base)), Q, S0, S) :- !,
+	resolve_expression(Expr0, Expr, Q, S0, S), % URI() == IRI()
 	state_base_uri(S, Base).
-resolve_function(iri(Expr0), iri(Expr, Base), Q, S0, S) :- !,
+resolve_function(iri(Expr0), built_in(iri(Expr, Base)), Q, S0, S) :- !,
 	resolve_expression(Expr0, Expr, Q, S0, S),
 	state_base_uri(S, Base).
 resolve_function(built_in(Builtin), built_in(Term), Q, S0, S) :- !,

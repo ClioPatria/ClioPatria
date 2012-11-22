@@ -311,7 +311,7 @@ edit_test_data(Name) :-
 	edit_test_data(Test).
 edit_test_data(Test) :-
 	test_data_files(Test, Files),
-	forall(member(File, Files),
+	forall(member(File-_Graph, Files),
 	       edit(file(File))).
 
 edit_test_result(Name) :-
