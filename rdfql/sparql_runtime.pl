@@ -273,6 +273,9 @@ op(isblank(X), boolean(Result)) :-
 op(isliteral(X), boolean(Result)) :-
 	(isliteral(X) -> Result = true ; Result = false).
 
+:- sparql_op([ iri(any, no_eval)
+	     ]).
+
 % SPARQL Accessors
 op(str(X), simple_literal(Str)) :-
 	str(X, Str).
@@ -298,11 +301,8 @@ op(bnode(simple_literal(Id)), iri(BNode)) :-
 	    asserta(bnode_store(Id, BN))
 	->  BN = BNode
 	).
-op(iri(simple_literal(URI0), Base), iri(URI)) :- !,
-	uri_normalized(URI0, Base, URI).
-op(iri(string(URI0), Base), iri(URI)) :-
-	uri_normalized(URI0, Base, URI).
-op(iri(iri(URI), _), iri(URI)).
+op(iri(Spec, Base), iri(URI)) :-
+	iri(Spec, Base, URI).
 
 % SPARQL Binary operators
 % Logical connectives, defined in section 11.4
@@ -795,6 +795,14 @@ string_string_op(lang(L, A1), simple_literal(A2), Result, Op) :-
 	->  Result = lang(L, R)
 	;   Result = simple_literal('')
 	).
+
+%%	iri(+Spec, +Base, -IRI)
+
+iri(simple_literal(URI0), Base, URI) :- !,
+	uri_normalized(URI0, Base, URI).
+iri(string(URI0), Base, URI) :-
+	uri_normalized(URI0, Base, URI).
+iri(iri(URI), _, URI).
 
 %%	argument_compatible(+A1, +A2, -Bool, +Op)
 
