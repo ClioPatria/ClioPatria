@@ -894,6 +894,13 @@ boolean_value(False, false) :-
 boolean_value(_,     true).
 
 
+%%	sparql_op_declarations(-Clauses:list(clause)) is det.
+%
+%	Generate a list of clauses of the form
+%
+%		sparql_op(Op(ArgType, ...))
+
+
 sparql_op_declarations(Clauses) :-
 	findall(Head, clause(op(Head, _), _), Heads0),
 	sort(Heads0, Heads),
