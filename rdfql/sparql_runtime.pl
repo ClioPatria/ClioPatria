@@ -149,12 +149,15 @@ eval_typed_literal(Type, Atom, type(Type, Atom)).
 
 numeric_literal_value(Type, Text, Value) :-
 	rdf_equal(Type, xsd:integer), !,
+	atom(Text),
 	atom_number(Text, Value),
 	integer(Value).
 numeric_literal_value(Type, Text, Value) :-
 	rdf_equal(Type, xsd:decimal), !,
+	atom(Text),
 	atom_number(Text, Value).
 numeric_literal_value(_, Text, Value) :-
+	atom(Text),
 	atom_number(Text, Value), !.
 numeric_literal_value(_, Text, Value) :-
 	catch(rdf_text_to_float(Text, Value), _, fail).
@@ -257,6 +260,9 @@ term_expansion((op(Op,Result)), Clauses) :-
 
 :- rdf_meta op(t,t).
 :- discontiguous op/2, op_decl/2, sparql_op/1.
+
+:- sparql_op([ bound(no_eval)
+	     ]).
 
 % SPARQL Unary operators
 op(not(boolean(X)), boolean(Result)) :-
@@ -361,11 +367,11 @@ op(X < Y, boolean(Result)) :-
 	->  Result = false
 	).
 op(X > Y, boolean(Result)) :-
-	(   lt(X,Y)
-	->  Result = false
+	(   gt(X,Y)
+	->  Result = true
 	;   functor(X, Name, Arity),
 	    functor(Y, Name, Arity)
-	->  Result = true
+	->  Result = false
 	).
 op(X =< Y, boolean(Result)) :-
 	(   leq(X,Y)
@@ -387,6 +393,12 @@ lt(simple_literal(X), simple_literal(Y)) :- X @< Y.
 lt(string(X), string(Y)) :- X @< Y.
 lt(date_time(X), date_time(Y)) :- X @< Y.
 lt(date(X), date(Y)) :- X @< Y.
+
+gt(numeric(_, X), numeric(_, Y)) :- X > Y.
+gt(simple_literal(X), simple_literal(Y)) :- X @> Y.
+gt(string(X), string(Y)) :- X @> Y.
+gt(date_time(X), date_time(Y)) :- X @> Y.
+gt(date(X), date(Y)) :- X @> Y.
 
 leq(numeric(_, X), numeric(_, Y)) :- X =< Y.
 leq(simple_literal(X), simple_literal(Y)) :- X @=< Y.
