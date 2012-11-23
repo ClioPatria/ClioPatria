@@ -1501,7 +1501,9 @@ simplify_expression(Term, Term).
 
 %%	simplify_eval(+Expr, +Value, -Goal) is semidet.
 
-simplify_eval(_,_,_) :- fail.
+simplify_eval(Expr, Var, Goal) :-
+	simplify_expression(Expr, Expr1),
+	Goal = sparql_eval(Expr1, Var).
 
 peval(Var, Var, IsResource) :-
 	var(Var), !,
