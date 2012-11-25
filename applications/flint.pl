@@ -28,6 +28,7 @@
 */
 
 :- module(flint, []).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_files)).
 :- use_module(library(http/html_write)).
@@ -129,6 +130,10 @@ namespace(json([ name(Prefix),
 		 uri(URI)
 	       ])) :-
 	rdf_current_ns(Prefix, URI).
+
+:- if(\+current_predicate(rdf_current_ns/2)).
+rdf_current_ns(Prefix, URI) :- rdf_current_prefix(Prefix, URI).
+:- endif.
 
 endpoint_parameters(
     json([ queryParameters =
