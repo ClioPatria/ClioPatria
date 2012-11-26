@@ -47,6 +47,9 @@
 :- use_module(library(assoc)).
 :- use_module(library(uri)).
 :- use_module(library(dcg/basics)).
+:- if(exists_source(library(uuid))).
+:- use_module(library(uuid)).
+:- endif.
 
 :- discontiguous
 	term_expansion/2.
