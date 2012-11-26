@@ -1496,11 +1496,20 @@ simplify_expression(Term0, Term) :-
 	ground(Term0), !,
 	eval(Term0, Term).
 simplify_expression(Term0, Term) :-
+	list_arg(Term0), !,
+	Term0 =.. [Name,Args0],
+	maplist(simplify_expression, Args0, Args),
+	Term =.. [Name,Args].
+simplify_expression(Term0, Term) :-
 	compound(Term0), !,
 	Term0 =.. [Name|Args0],
 	maplist(simplify_expression, Args0, Args),
 	Term =.. [Name|Args].
 simplify_expression(Term, Term).
+
+list_arg(concat(_)).
+list_arg(coalesce(_)).
+
 
 %%	simplify_eval(+Expr, +Value, -Goal) is semidet.
 
