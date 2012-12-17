@@ -1,9 +1,9 @@
 /*  Part of ClioPatria semantic web server
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@cs.vu.nl
+    E-mail:        J.Wielemaker@cs.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2008-2010, University of Amsterdam
+    Copyright (C): 2008-2012, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -33,7 +33,6 @@
 	  [
 	  ]).
 :- use_module(library(settings)).
-:- use_module(library(error)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_hook)).
@@ -45,7 +44,7 @@ in addition to settings that can be   managed by the end-user. It should
 not be necessary to modify this file:
 
     * Web-locations can be modified externally using http:location/3
-    with an option priority(N), where N > 0. See http_absolute_path/3.
+    with an option priority(N), where N > 0. See http_absolute_location/3.
 
     * Settings can be changed using set_setting_default/2.
 
@@ -62,6 +61,9 @@ not be necessary to modify this file:
 % ClioPatria specific ones
 user:file_search_path(rdfql,	        cliopatria(rdfql)).
 user:file_search_path(cpack,	        cliopatria(cpack)).
+
+% Allow local file overwrites
+user:file_search_path(web,		web).
 
 % Package merge
 user:file_search_path(cpacks,	        cliopatria('.')).
