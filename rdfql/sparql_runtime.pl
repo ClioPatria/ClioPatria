@@ -1538,7 +1538,7 @@ peval(Resource, Resource, true) :-
 %
 %	@param	Proj is a list of variables that are shared with the
 %		outer query.
-%	@tdb	Call the optimizer.
+%	@tbd	Call the optimizer.
 %	@tbd	Sub queries must be evaluated before the outer query,
 %		so we must move them to the head of the query
 %		evaluation.  Not doing so causes no harm, but leads
