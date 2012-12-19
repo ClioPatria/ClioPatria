@@ -341,7 +341,7 @@ write_image_node(ImgAttrs, Attrs, Stream, _Options) :-
 	write_attributes([html(HTML),shape(plaintext)], Stream).
 
 
-%%	resource_label(+Resource, -Label:Atom, +Options) is det.
+%%	resource_label(+Resource, -Label:atom, +Options) is det.
 %
 %	Label is the textual label to show for Resource. Process the
 %	options
