@@ -185,13 +185,11 @@ server_stats(Port-Workers) -->
 	{ length(Workers, NWorkers),
 	  http_server_property(Port, start_time(StartTime)),
 	  format_time(string(ST), '%+', StartTime),
-	  cputime(CPU),
-	  statistics(heapused, Heap)
+	  cputime(CPU)
 	},
 	html([ \server_stat('Port:', Port, odd),
 	       \server_stat('Started:', ST, even),
 	       \server_stat('Total CPU usage:', [\n('~2f',CPU), ' seconds'], odd),
-	       \server_stat('Heap memory:', [ \n(human,Heap), ' bytes' ], even),
 	       \request_statistics,
 	       \server_stat('# worker threads:', NWorkers, odd),
 	       tr(th(colspan(6), 'Statistics by worker')),
