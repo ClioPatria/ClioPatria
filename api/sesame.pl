@@ -421,7 +421,7 @@ unload_graph(Request) :-
 			]),
 	result_format(Request, ResultFormat),
 	authorized_api(write(Repository, unload(Graph)), ResultFormat),
-	api_action(Request, rdf_unload(Graph),
+	api_action(Request, rdf_unload_graph(Graph),
 		   ResultFormat,
 		   'Unloaded triples from ~w'-[Graph]).
 
