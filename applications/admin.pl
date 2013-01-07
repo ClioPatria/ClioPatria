@@ -216,22 +216,17 @@ new_user_form(Options) -->
 	      PermUser = User
 	  ;   UserOptions = [],
 	      PermUser = (-)
-	  ),
-	  (   option(real_name(RealName), Options)
-	  ->  RealNameOptions = [value(RealName)]
-	  ;   RealNameOptions = []
 	  )
 	},
 	html([ h1('Add new user'),
 	       form([ action(location_by_id(add_user)),
-		      method('GET')
+		      method('POST')
 		    ],
 		    table([ class((form))
 			  ],
-			  [ \input(user,     'Name',
+			  [ \realname(Options),
+			    \input(user,     'Login',
 				   UserOptions),
-			    \input(realname, 'Realname',
-				   RealNameOptions),
 			    \input(pwd1,     'Password',
 				   [type(password)]),
 			    \input(pwd2,     'Retype',
@@ -252,6 +247,19 @@ input(Name, Label, Options) -->
 	html(tr([ th(align(right), Label),
 		  td(input([name(Name),size(40)|Options]))
 		])).
+
+%	Only provide a realname field if this is not already given. This
+%	is because firefox determines the login user from the text field
+%	immediately above the password entry. Other   browsers may do it
+%	different, so only having one text-field  is probably the savest
+%	solution.
+
+realname(Options) -->
+	{ option(real_name(RealName), Options) }, !,
+	hidden(realname, RealName).
+realname(_Options) -->
+	input(realname, 'Realname', []).
+
 
 %%	add_user(+Request)
 %
@@ -359,7 +367,7 @@ edit_user_form(User) -->
 	html([ h1(['Edit user ', User, ' (', RealName, ')']),
 
 	       form([ action(location_by_id(edit_user)),
-		      method('GET')
+		      method('POST')
 		    ],
 		    [ \hidden(user, User),
 		      table([ class((form))
@@ -522,7 +530,7 @@ change_password_form(_Request) :-
 
 change_password_form(User) -->
 	html(form([ action(location_by_id(change_password)),
-		    method('GET')
+		    method('POST')
 		  ],
 		  [ table([ id('change-password-form'),
 			    class(form)
@@ -603,7 +611,7 @@ login_form(_Request) :-
 			'Login',
 			[ h1(align(center), 'Login'),
 			  form([ action(location_by_id(user_login)),
-				 method('GET')
+				 method('POST')
 			       ],
 			       table([ tr([ th(align(right), 'User:'),
 					    td(input([ name(user),
