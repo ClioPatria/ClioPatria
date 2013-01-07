@@ -764,9 +764,11 @@ subj_label --> html('Resources').
 :- meta_predicate
 	run(0, +).
 
-run((A,B), Log) :- !,
-	run(A, Log),
-	run(B, Log).
+run(M:(A,B), Log) :- !,
+	run(M:A, Log),
+	run(M:B, Log).
+run(_:rdf_reset_db, _) :- !,
+	rdf_reset_db.	% cannot be undone and cannot be in a transaction in 3.0
 run(A, Log) :-
 	rdf_transaction(A, Log).
 
