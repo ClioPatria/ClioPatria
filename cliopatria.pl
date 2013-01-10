@@ -112,6 +112,14 @@ user:file_search_path(library, cliopatria(lib)).
 		if(not_loaded)
 	      ]).
 
+:- if(exists_source(library(semweb/rdf_ntriples))).
+:- load_files([ library(semweb/rdf_ntriples) ],
+	      [ silent(true),
+		if(not_loaded)
+	      ]).
+:- endif.
+
+
 :- dynamic
 	after_load_goal/1.
 
