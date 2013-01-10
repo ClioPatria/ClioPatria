@@ -499,9 +499,13 @@ cp_welcome :-
 
 :- setting(cliopatria:max_clients, integer, 50,
 	   'Max number of concurrent requests in ClioPatria pool').
-:- setting(cliopatria:stack_size, integer, 256,
+:- if(current_prolog_flag(address_bits, 32)).
+:- setting(cliopatria:stack_size, integer, 128,
 	   'Stack limit in MB for ClioPatria pool').
-
+:- else.
+:- setting(cliopatria:stack_size, integer, 1024,
+	   'Stack limit in MB for ClioPatria pool').
+:- endif.
 
 %%	http:create_pool(+Pool) is semidet.
 %
