@@ -45,7 +45,6 @@
 :- use_module(library(http/http_request_value)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(memfile)).
-:- use_module(library(rdf_ntriples)).
 :- use_module(library(debug)).
 :- use_module(library(settings)).
 :- use_module(components(query)).
@@ -593,6 +592,219 @@ ntriple_part(Text, Field, _) :-
 		    context(_,
 			    'Field must be in N-triples notation'))).
 
+
+%%	rdf_ntriple_part(+Type, -Value)//
+%
+%	Parse one of the fields of  an   ntriple.  This  is used for the
+%	SWI-Prolog Sesame (www.openrdf.org) implementation   to  realise
+%	/servlets/removeStatements. I do not think   public  use of this
+%	predicate should be stimulated.
+
+rdf_ntriple_part(subject, Subject) -->
+	subject(Subject).
+rdf_ntriple_part(predicate, Predicate) -->
+	predicate(Predicate).
+rdf_ntriple_part(object, Object) -->
+	object(Object).
+
+subject(Subject) -->
+	uniref(Subject), !.
+subject(Subject) -->
+	node_id(Subject).
+
+predicate(Predicate) -->
+	uniref(Predicate).
+
+object(Object) -->
+	uniref(Object), !.
+object(Object) -->
+	node_id(Object).
+object(Object) -->
+	literal(Object).
+
+
+uniref(URI) -->
+	"<",
+	escaped_uri_codes(Codes),
+	">", !,
+	{ atom_codes(URI, Codes)
+	}.
+
+node_id(node(Id)) -->			% anonymous nodes
+	"_:",
+	name_start(C0),
+	name_codes(Codes),
+	{ atom_codes(Id, [C0|Codes])
+	}.
+
+literal(Literal) -->
+	lang_string(Literal), !.
+literal(Literal) -->
+	xml_string(Literal).
+
+
+%	name_start(-Code)
+%	name_codes(-ListfCodes)
+%
+%	Parse identifier names
+
+name_start(C) -->
+	[C],
+	{ code_type(C, alpha)
+	}.
+
+name_codes([C|T]) -->
+	[C],
+	{ code_type(C, alnum)
+	}, !,
+	name_codes(T).
+name_codes([]) -->
+	[].
+
+
+%	escaped_uri_codes(-CodeList)
+%
+%	Decode string holding %xx escaped characters.
+
+escaped_uri_codes([]) -->
+	[].
+escaped_uri_codes([C|T]) -->
+	"%", [D0,D1], !,
+	{ code_type(D0, xdigit(V0)),
+	  code_type(D1, xdigit(V1)),
+	  C is V0<<4 + V1
+	},
+	escaped_uri_codes(T).
+escaped_uri_codes([C|T]) -->
+	"\\u", [D0,D1,D2,D3], !,
+	{ code_type(D0, xdigit(V0)),
+	  code_type(D1, xdigit(V1)),
+	  code_type(D2, xdigit(V2)),
+	  code_type(D3, xdigit(V3)),
+	  C is V0<<12 + V1<<8 + V2<<4 + V3
+	},
+	escaped_uri_codes(T).
+escaped_uri_codes([C|T]) -->
+	"\\U", [D0,D1,D2,D3,D4,D5,D6,D7], !,
+	{ code_type(D0, xdigit(V0)),
+	  code_type(D1, xdigit(V1)),
+	  code_type(D2, xdigit(V2)),
+	  code_type(D3, xdigit(V3)),
+	  code_type(D4, xdigit(V4)),
+	  code_type(D5, xdigit(V5)),
+	  code_type(D6, xdigit(V6)),
+	  code_type(D7, xdigit(V7)),
+	  C is V0<<28 + V1<<24 + V2<<20 + V3<<16 +
+	       V4<<12 + V5<<8 + V6<<4 + V7
+	},
+	escaped_uri_codes(T).
+escaped_uri_codes([C|T]) -->
+	[C],
+	escaped_uri_codes(T).
+
+%	lang_string()
+%
+%	Process a language string
+
+lang_string(String) -->
+	"\"",
+	string(Codes),
+	"\"", !,
+	{ atom_codes(Atom, Codes)
+	},
+	(   langsep
+	->  language(Lang),
+	    { String = literal(lang(Lang, Atom))
+	    }
+	;   "^^"
+	->  uniref(Type),
+	    { String = literal(type(Type, Atom))
+	    }
+	;   { String = literal(Atom)
+	    }
+	).
+
+langsep -->
+	"-".
+langsep -->
+	"@".
+
+%	xml_string(String)
+%
+%	Handle xml"..."
+
+xml_string(xml(String)) -->
+	"xml\"",			% really no whitespace?
+	string(Codes),
+	"\"",
+	{ atom_codes(String, Codes)
+	}.
+
+string([]) -->
+	[].
+string([C0|T]) -->
+	string_char(C0),
+	string(T).
+
+string_char(0'\\) -->
+	"\\\\".
+string_char(0'") -->
+	"\\\"".
+string_char(10) -->
+	"\\n".
+string_char(13) -->
+	"\\r".
+string_char(9) -->
+	"\\t".
+string_char(C) -->
+	"\\u",
+	'4xdigits'(C).
+string_char(C) -->
+	"\\U",
+	'4xdigits'(C0),
+	'4xdigits'(C1),
+	{ C is C0<<16 + C1
+	}.
+string_char(C) -->
+	[C].
+
+'4xdigits'(C) -->
+	[C0,C1,C2,C3],
+	{ code_type(C0, xdigit(V0)),
+	  code_type(C1, xdigit(V1)),
+	  code_type(C2, xdigit(V2)),
+	  code_type(C3, xdigit(V3)),
+
+	  C is V0<<12 + V1<<8 + V2<<4 + V3
+	}.
+
+%	language(-Lang)
+%
+%	Return xml:lang language identifier.
+
+language(Lang) -->
+	lang_code(C0),
+	lang_codes(Codes),
+	{ atom_codes(Lang, [C0|Codes])
+	}.
+
+lang_code(C) -->
+	[C],
+	{ C \== 0'.,
+	  \+ code_type(C, white)
+	}.
+
+lang_codes([C|T]) -->
+	lang_code(C), !,
+	lang_codes(T).
+lang_codes([]) -->
+	[].
+
+
+
+		 /*******************************
+		 *	 HTTP ATTRIBUTES	*
+		 *******************************/
 
 %%	attribute_decl(+OptionName, -Options)
 %

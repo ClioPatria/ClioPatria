@@ -112,6 +112,14 @@ user:file_search_path(library, cliopatria(lib)).
 		if(not_loaded)
 	      ]).
 
+:- if(exists_source(library(semweb/rdf_ntriples))).
+:- load_files([ library(semweb/rdf_ntriples) ],
+	      [ silent(true),
+		if(not_loaded)
+	      ]).
+:- endif.
+
+
 :- dynamic
 	after_load_goal/1.
 
@@ -491,9 +499,13 @@ cp_welcome :-
 
 :- setting(cliopatria:max_clients, integer, 50,
 	   'Max number of concurrent requests in ClioPatria pool').
-:- setting(cliopatria:stack_size, integer, 256,
+:- if(current_prolog_flag(address_bits, 32)).
+:- setting(cliopatria:stack_size, integer, 128,
 	   'Stack limit in MB for ClioPatria pool').
-
+:- else.
+:- setting(cliopatria:stack_size, integer, 1024,
+	   'Stack limit in MB for ClioPatria pool').
+:- endif.
 
 %%	http:create_pool(+Pool) is semidet.
 %
