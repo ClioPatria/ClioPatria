@@ -1392,7 +1392,7 @@ sparql_minus(QLeft, QRight) :-
 	term_variables(QLeft,  VarsLeft0),  sort(VarsLeft0,  VarsLeft),
 	term_variables(QRight, VarsRight0), sort(VarsRight0, VarsRight),
 	ord_intersection(VarsLeft, VarsRight, VarsCommon),
-	(   Common == []
+	(   VarsCommon == []
 	->  QLeft
 	;   VLeft =.. [v|VarsLeft],
 	    VCommon =.. [v|VarsCommon],
