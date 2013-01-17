@@ -1,3 +1,6 @@
 [submodule "web/FlintSparqlEditor"]
 	path = web/FlintSparqlEditor
 	url = https://github.com/TSO-Openup/FlintSparqlEditor.git
+[submodule "test/Tests/sparql-1.1"]
+	path = test/Tests/sparql-1.1
+	url = git://eculture.cs.vu.nl/home/git/misc/sparql-1.1-test-cases.git
