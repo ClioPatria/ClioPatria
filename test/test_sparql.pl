@@ -80,6 +80,9 @@ user:file_search_path(library, '../lib').
 					% Toplevel debugging utilities
 :- use_module(user:library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_turtle_write)).
+:- if(exists_source(library(semweb/rdf_ntriples))).
+:- use_module(library(semweb/rdf_ntriples)).
+:- endif.
 
 :- setting(cliopatria:optimise_query, boolean, true,
            'Optimise queries before execution').
