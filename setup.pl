@@ -65,12 +65,17 @@ install_dir(DIR) :-
 setup:substitutions([ 'SWIPL'=PL,		% Prolog executable (for #!...)
 		      'CLIOPATRIA'=ClioDir,	% ClioPatria directory
 		      'CWD'=CWD,		% This directory
-		      'PARENTDIR'=Parent	% Parent of CWD
+		      'PARENTDIR'=Parent,	% Parent of CWD
+		      'HASHBANG'=HashBang	% #! (or not)
 		    ]) :-
 	cliopatria_dir(ClioDir),
 	working_directory(CWD, CWD),
 	file_directory_name(CWD, Parent),
-	setup_prolog_executable(PL).
+	setup_prolog_executable(PL),
+	hashbang(HashBang).
+
+hashbang('%!') :- current_prolog_flag(windows, true), !.
+hashbang('#!').
 
 
 %%	options(-Options) is det.
