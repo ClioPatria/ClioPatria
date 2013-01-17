@@ -1,0 +1,30 @@
+---+ Testing the SPARQL 1.1 implementation
+
+---++ Preparation
+
+First, the test-cases are provided as a git module. To install them, use
+
+  ==
+  % git submodule update --init test/Tests/sparql-1.1
+  ==
+
+---++ Running the test cases
+
+To run the test suite, run
+
+  ==
+  % swipl -s test_sparql.pl
+  ?- run_query_tests.
+  ==
+
+It is possible to  zoom  into   a  particular  test  using query_test/1,
+providing the test name as argument. E.g.,
+
+  ==
+  ?- query_test('(pp23) Diamond, with tail -- :p+').
+  =============== BEGIN '(pp23) Diamond, with tail -- :p+' ===============
+  % Parsed "data-diamond-tail.ttl" in 0.00 sec; 5 triples
+  true.
+  ==
+
+See the module header for more useful predicates to diagnose issues.
