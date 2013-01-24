@@ -8,7 +8,7 @@ it to analyze RDF data and write a small web-service.
   3. [[Query the pirate data with Prolog][QueryPirates.txt]]
   4. [[Pack your queries as Prolog predicates][PiratePredicates.txt]]
   5. [[Serve a web-page][PiratePage.txt]]
-  6. [[More exercises][PirateExcercises.txt]]
+  6. [[More exercises][PirateExercises.txt]]
 
 ---++ Further reading
 
