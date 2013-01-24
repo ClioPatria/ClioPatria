@@ -94,6 +94,22 @@ the right item if multiple items match the query.
   ?- edit(event_point).     % edit the predicate event_point
   ==
 
+ ---++ Prolog rules with resource arguments
+
+The Prolog compiler transforms resource arguments of the form <prefix>:<local> to
+the global id form at compile time. When you write Prolog rules with resource arguments, you must identify the resource arguments
+arguments via the [[rdf_meta/1][</help/source/doc_for?object=rdf_meta/1>]] declaration.
+
+    ==
+    :- rdf_meta   my_rule(?, r).
+    my_rule(SomeArg, SomeResource) :-
+            ...,
+            rdf_has(SomeResource, sem:Place, Place),
+            ...
+            .
+    ==
+
+  
 ---++ Exercises
 
 In the two exercises below, you are asked to write two predicates.  Add
@@ -114,5 +130,7 @@ list of this module.
   ==
   ?- event_actor_type(Event, poseidon:atype_passenger_vessel).
   ==
+
+You are now ready to [[Serve a web page][PiratePage.txt]].
 
 @see [[Tutorial index][Piracy.txt]]

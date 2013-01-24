@@ -59,6 +59,8 @@ HOWTO][[http://www.swi-prolog.org/howto/http/]].
 	- http://localhost:3020/map?lat1=51&lat2=54&lon1=2&lon2=8
 	- http://localhost:3020/map?lat1=2&lat2=20&lon1=45&lon2=55
 
+ You are now ready to [[do more exercises][PirateExercises.txt]].
+ 
 @see [[Tutorial index][Piracy.txt]]
 @see [[Prolog web-service HOWTO][http://www.swi-prolog.org/howto/http/]]
 

@@ -1,4 +1,4 @@
----+ More excercises
+---+ More exercises
 
   1. Write a variation of the map/1 predicate that takes two dates, and
   that shows on a map all piracy events that happened in the

@@ -82,6 +82,7 @@ partial reasoning on the RDF data. It notably supports
 transitive variant
 [[rdf_reachable/3][</help/source/doc_for?object=rdf_reachable/3>]]
 
+
 ---++ Exercises
 
   1. Actor types have the type =|sem:'ActorType'|= and are organised
@@ -91,5 +92,7 @@ transitive variant
   2. Use [[rdf_reachable/3][</help/source/doc_for?object=rdf_reachable/3>]]
   to enumerate the members of the hiearchies found above.  You can use
   two different RDF predicates for this query. Which ones?
+
+You are now ready to [[Pack your queries as Prolog predicates][PiratePredicates.txt]].
 
 @see [[Tutorial index][Piracy.txt]]
