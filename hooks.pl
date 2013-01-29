@@ -222,8 +222,8 @@ The example below adds an item to =Help= popup of ClioPatria:
 
 %%	predicate_order(+Pred, -Order) is semidet.
 %
-%	Define the in which predicates  appear   in  the local view. The
-%	Order  is  an  integer.  The  system   ordering  is  defined  by
+%	Define the order in which predicates appear in the local view.
+%	The Order is an integer. The system ordering is defined by
 %	cpa_browse:p_order/2. Predicates that are not explicitly ordered
 %	are placed at the end of the table an ordered alphabetically.
 %
