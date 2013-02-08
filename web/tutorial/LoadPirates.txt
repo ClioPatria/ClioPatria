@@ -65,5 +65,7 @@ the following questions:
   is defined between these two properties?  What is the consequence of
   this for instances of the classes =|sem:ActorType|= and
   =|sem:EventType|=.
+  
+You are now ready to [[query pirate data with Prolog][QueryPirates.txt]].
 
 @see [[Tutorial index][Piracy.txt]]
