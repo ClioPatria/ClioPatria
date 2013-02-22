@@ -21,7 +21,7 @@ config-enabled/README.txt for details.
 
 add_relative_search_path(Alias, Abs) :-
 	is_absolute_file_name(Abs), !,
-	prolog_load_context(directory, Here),
+	prolog_load_context(file, Here),
 	relative_file_name(Abs, Here, Rel),
 	assertz(user:file_search_path(Alias, Rel)).
 add_relative_search_path(Alias, Rel) :-
