@@ -14,9 +14,21 @@ customization  files  from  config-available    to  config-enabled.  See
 config-enabled/README.txt for details.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-% Setup search path for cliopatria.
+% Setup search path for cliopatria. We add  both a relative and absolute
+% path. The absolute path allow us to  start in any directory, while the
+% relative one ensures that the system remains working when installed on
+% a device that may be mounted on a different location.
+
+add_relative_search_path(Alias, Abs) :-
+	is_absolute_file_name(Abs), !,
+	prolog_load_context(directory, Here),
+	relative_file_name(Abs, Here, Rel),
+	assertz(user:file_search_path(Alias, Rel)).
+add_relative_search_path(Alias, Rel) :-
+	assertz(user:file_search_path(Alias, Rel)).
 
 file_search_path(cliopatria, '@CLIOPATRIA@').
+:- add_relative_search_path(cliopatria, '@CLIOPATRIA@').
 
 % Make loading files silent. Comment if you want verbose loading.
 
