@@ -104,7 +104,7 @@ r_bnodes([H|T], Type, Expand, Map0, Map, Graph, Tail) :-
 	rdf_is_bnode(H), !,
 	put_assoc(H, Map0, true, Map1),
 	expansion(Type, Expand, H, Graph, Tail0),
-	phrase(new_bnodes(Graph, Map0), BN, T),
+	phrase(new_bnodes(Graph, Map1), BN, T),
 	r_bnodes(BN, Type, Expand, Map1, Map, Tail0, Tail).
 r_bnodes([_|T], Type, Expand, Map0, Map) -->
 	r_bnodes(T, Type, Expand, Map0, Map).
