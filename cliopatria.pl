@@ -1,11 +1,9 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of ClioPatria
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@cs.vu.nl
-    WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2010, University of Amsterdam
+    E-mail:        J.Wielemaker@vu.nl
+    WWW:           http://cliopatria.swi-prolog.org
+    Copyright (C): 2004-2013, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -43,17 +41,18 @@ This module loads the ClioPatria  server   as  a  library, providing the
 public predicates defined in the header.   Before loading this file, the
 user should set up a the search path =cliopatria=. For example:
 
-==
-:- dynamic
-	user:file_search_path/2.
-:- multifile
-	user:file_search_path/2.
+  ==
+  :- dynamic
+	  user:file_search_path/2.
+  :- multifile
+	  user:file_search_path/2.
 
-user:file_search_path(cliopatria, '/usr/local/cliopatria').
+  user:file_search_path(cliopatria, '/usr/local/cliopatria').
 
-:- use_module(cliopatria(load)).
-==
+  :- use_module(cliopatria(cliopatria)).
+  ==
 
+@see http://cliopatria.swi-prolog.org
 */
 
 :- dynamic
@@ -70,7 +69,7 @@ user:file_search_path(cliopatria, '/usr/local/cliopatria').
 user:file_search_path(library, cliopatria(lib)).
 
 :- load_files(library(version), [silent(true), if(not_loaded)]).
-:- check_prolog_version(or(51004,51109)). % Demand >= 5.11.9
+:- check_prolog_version(or(60200,60300)). % Demand >= 6.2.x, 6.3.x
 :- register_git_module('ClioPatria',
 		       [ home_url('http://cliopatria.swi-prolog.org/')
 		       ]).
@@ -141,6 +140,14 @@ user:file_search_path(library, cliopatria(lib)).
 %	    * port(Port)
 %	    Attach to Port instead of the port specified in the
 %	    configuration file settings.db.
+%	    * workers(+Count)
+%	    Number of worker threads to use.  Default is the setting
+%	    =|http:workers|=
+%	    * prefix(+Prefix)
+%	    Rebase the server.  See also the setting =|http:prefix|=.
+%	    * store(+Store)
+%	    Directory to use as persistent store. See also the
+%	    setting =|cliopatria:persistent_store|=.
 
 :- meta_predicate
 	cp_server(:).
@@ -181,14 +188,15 @@ cp_server(Options) :-
 		    ]),
 	option(after_load(AfterLoad), QOptions, true),
 	print_message(informational, cliopatria(server_started(Port))),
-	setup_call_cleanup(http_handler(root(.), busy_loading,
-					[ priority(1000),
-					  hide_children(true),
-					  id(busy_loading),
-					  prefix
-					]),
-			   rdf_attach_store(QOptions, AfterLoad),
-			   http_delete_handler(id(busy_loading))).
+	setup_call_cleanup(
+	    http_handler(root(.), busy_loading,
+			 [ priority(1000),
+			   hide_children(true),
+			   id(busy_loading),
+			   prefix
+			 ]),
+	    rdf_attach_store(QOptions, AfterLoad),
+	    http_delete_handler(id(busy_loading))).
 
 is_meta(after_load).
 
@@ -218,7 +226,10 @@ update_public_port(_, _).
 	call_warn(0).
 
 rdf_attach_store(Options, AfterLoad) :-
-	setting(cliopatria:persistent_store, Directory),
+	(   option(store(Directory), Options)
+	->  true
+	;   setting(cliopatria:persistent_store, Directory)
+	),
 	setup_indices,
 	(   Directory \== ''
 	->  rdf_attach_db(Directory, Options)
@@ -365,7 +376,8 @@ process_argument(File) :-
 	file_name_extension(_Base, Ext, File),
 	process_argument(Ext, File).
 
-process_argument(pl, File) :- !,
+process_argument(Ext, File) :-
+	user:prolog_file_type(Ext, prolog), !,
 	ensure_loaded(user:File).
 process_argument(gz, File) :-
 	file_name_extension(Plain, gz, File),
@@ -380,16 +392,31 @@ rdf_extension(rdf).
 rdf_extension(owl).
 rdf_extension(ttl).
 rdf_extension(nt).
+rdf_extension(ntriples).
 
 cmd_option(p, port,    positive_integer, 'Port to connect to').
 cmd_option(w, workers, positive_integer, 'Number of workers to start').
 cmd_option(-, prefix,  atom,	         'Rebase the server to prefix/').
+cmd_option(-, store,   atom,		 'Directory for persistent store').
 
 usage(Program) :-
-	format('Usage: ~w [options] arguments~n', [Program]),
+	ansi_format([bold], 'Usage: ~w [options] arguments~n', [Program]),
+	flush_output,
 	forall(cmd_option(Short, Long, Type, Comment),
 	       describe_option(Short, Long, Type, Comment)),
-	halt(1).
+	current_prolog_flag(argv, Argv),
+	ansi_format([fg(red)], 'Program argv: ~q~n', [Argv]),
+	(   current_prolog_flag(hwnd, _)	% swipl-win.exe console
+	->  ansi_format([bold,hfg(red)],
+			'~nPress \'b\' for break, any other key to exit > ', []),
+	    get_single_char(Key),
+	    (	Key == 0'b
+	    ->  nl, nl, break
+	    ;   true
+	    ),
+	    halt
+	;   halt(1)
+	).
 
 describe_option(-, Long, -, Comment) :- !,
 	format(user_error, '    --~w~t~40|~w~n', [Long, Comment]).

@@ -48,9 +48,9 @@ Running ClioPatria as an application requires a few steps:
 
     1. Create the start-file run.pl from run.pl.in.  On Unix, this
     is achieved by running =|./configure|= from the top directory.  On
-    Windows by double-clicking setup.pl.
+    Windows by double-clicking =|win-config.exe|=.
 
-    2. Optionally, pull in configuration files according to
+    2. Optionally, pull in additional configuration files according to
     config-enabled/README.txt.  This can also be done later.
 
     3. Start run.pl as =|./run.pl|= on Unix or double-clicking run.pl
@@ -64,6 +64,17 @@ put a Prolog file with  the   desired  extensions in =|config-enabled|=.
 Another is to run configure/setup from   another directory. This creates
 run.pl and config-enabled in the current  working directory, after which
 the extensions can be placed in =|config-enabled|=.
+
+---++++ Windows notes
+
+If the file name extension that is associated to SWI-Prolog is =pl=, you
+_may_  install  the  system  by    double-clicking  =|setup.pl|=  rather
+=|win-config.exe|=.
+
+If the file name extension that  is   associated  to SWI-Prolog is _not_
+=pl=, =|win-config.exe|= is needed to   open SWI-Prolog on =|setup.pl|=.
+The installation will  create  a  =run=   script  with  the  appropriate
+extension (typically =pro=).
 
 
 ---+++ Use as library
