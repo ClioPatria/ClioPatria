@@ -7,7 +7,7 @@
 This file provides a skeleton startup file.  It can be localized by running
 
     % ./configure			(Unix)
-    % Double-clicking setup.pl		(Windows)
+    % Double-clicking win-config.exe	(Windows)
 
 After  that,  the  system  may  be  customized  by  copying  or  linking
 customization  files  from  config-available    to  config-enabled.  See
