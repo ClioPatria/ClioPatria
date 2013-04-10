@@ -153,6 +153,9 @@ user:file_search_path(library, cliopatria(lib)).
 	cp_server(:).
 
 cp_server :-
+	current_predicate(http_unix_daemon:http_daemon/0), !,
+	http_unix_daemon:http_daemon.
+cp_server :-
 	process_argv(Options),
 	catch(cp_server(Options), E, true),
 	(   var(E)
@@ -622,3 +625,9 @@ user:message_hook(rdf(restore(_, done(_DB, _T, _Count, Nth, Total))),
 	retractall(loading_done(_,_)),
 	assert(loading_done(Nth, Total)),
 	fail.
+
+:- multifile
+	http_unix_daemon:http_server_hook/1. % +Options
+
+http_unix_daemon:http_server_hook(Options) :-
+	cp_server(Options).
