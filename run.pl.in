@@ -1,7 +1,6 @@
 @HASHBANG@@SWIPL@ -s
 
-:- initialization
-   cp_server.
+:- initialization cp_server.
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 This file provides a skeleton startup file.  It can be localized by running
@@ -12,6 +11,14 @@ This file provides a skeleton startup file.  It can be localized by running
 After  that,  the  system  may  be  customized  by  copying  or  linking
 customization  files  from  config-available    to  config-enabled.  See
 config-enabled/README.txt for details.
+
+To run the system, do one of the following:
+
+    * Running for development
+      Run ./run.pl (Unix) or open run.pl by double clicking it (Windows)
+
+    * Running as Unix daemon (service)
+      See daemon.pl
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 % Setup search path for cliopatria. We add  both a relative and absolute
@@ -33,6 +40,7 @@ file_search_path(cliopatria, '@CLIOPATRIA@').
 % Make loading files silent. Comment if you want verbose loading.
 
 :- set_prolog_flag(verbose, silent).
+
 
 		 /*******************************
 		 *	      LOAD CODE		*
