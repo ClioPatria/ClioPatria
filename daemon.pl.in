@@ -22,5 +22,6 @@ do so, follow these steps:
        % /etc/init.d/<server> start
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+:- set_prolog_flag(verbose, silent).
 :- use_module(library(http/http_unix_daemon)).
 :- [run].
