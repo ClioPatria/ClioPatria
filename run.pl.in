@@ -39,7 +39,9 @@ file_search_path(cliopatria, '@CLIOPATRIA@').
 
 % Make loading files silent. Comment if you want verbose loading.
 
-:- set_prolog_flag(verbose, silent).
+:- current_prolog_flag(verbose, Verbose),
+   asserta(saved_verbose(Verbose)),
+   set_prolog_flag(verbose, silent).
 
 
 		 /*******************************
@@ -68,6 +70,9 @@ file_search_path(cliopatria, '@CLIOPATRIA@').
 
 % Get back normal verbosity of the toplevel.
 
-:- set_prolog_flag(verbose, normal).
+:- (   retract(saved_verbose(Verbose))
+   ->  set_prolog_flag(verbose, Verbose)
+   ;   true
+   ).
 
 
