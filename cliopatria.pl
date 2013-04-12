@@ -152,9 +152,10 @@ user:file_search_path(library, cliopatria(lib)).
 :- meta_predicate
 	cp_server(:).
 
+:- if(current_predicate(http_unix_daemon:http_daemon/0)).
 cp_server :-
-	current_predicate(http_unix_daemon:http_daemon/0), !,
 	http_unix_daemon:http_daemon.
+:- else.
 cp_server :-
 	process_argv(Options),
 	catch(cp_server(Options), E, true),
@@ -166,6 +167,7 @@ cp_server :-
 	    ;	true
 	    )
 	).
+:- endif.
 
 cp_server(_Options) :-
 	setting(http:port, DefPort),
