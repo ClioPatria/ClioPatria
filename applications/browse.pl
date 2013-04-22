@@ -1537,7 +1537,7 @@ list_triples(Request) :-
 	reply_html_page(cliopatria(default),
 			title(Title),
 			[ h1(\triple_header(Count, P, Dom, Range, Graph)),
-			  \triple_table(Sorted, P, [])
+			  \triple_table(Sorted, P, [resource_format(nslabel)])
 			]).
 
 rdf_in_domain(S,P,O,Dom,Graph) :-
@@ -1586,7 +1586,7 @@ triple_table(Triples, Pred, Options) -->
 	},
 	html(table(class(block),
 		   [ \spo_header(Pred)
-		   | \table_rows_top_bottom(spo_row(Pred), Triples,
+		   | \table_rows_top_bottom(spo_row(Options, Pred), Triples,
 					    TopMax, BottomMax)
 		   ])).
 
@@ -1601,15 +1601,15 @@ spo_header(_) -->
 		  th('Object')
 		])).
 
-spo_row(Pred, rdf(S,_,O)) -->
+spo_row(Options, Pred, rdf(S,_,O)) -->
 	{ nonvar(Pred) }, !,
-	html([ td(class(subject), \rdf_link(S)),
-	       td(class(object),  \rdf_link(O))
+	html([ td(class(subject), \rdf_link(S, Options)),
+	       td(class(object),  \rdf_link(O, Options))
 	     ]).
-spo_row(_, rdf(S,P,O)) -->
-	html([ td(class(subject),   \rdf_link(S)),
-	       td(class(predicate), \rdf_link(P)),
-	       td(class(object),    \rdf_link(O))
+spo_row(Options, _, rdf(S,P,O)) -->
+	html([ td(class(subject),   \rdf_link(S, Options)),
+	       td(class(predicate), \rdf_link(P, Options)),
+	       td(class(object),    \rdf_link(O, Options))
 	     ]).
 
 
