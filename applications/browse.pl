@@ -556,7 +556,7 @@ list_instances(Request) :-
 	reply_html_page(cliopatria(default),
 			title(\instance_table_title(Graph, Class, Sort)),
 			[ h1(\html_instance_table_title(Graph, Class, Sort)),
-			  \instance_table(Table, [])
+			  \instance_table(Table, [resource_format(nslabel)])
 			]).
 
 instance_table_title(Graph, Class, Sort) -->
@@ -596,7 +596,7 @@ instance_table(Pairs, Options) -->
 	html_requires(css('rdf.css')),
 	html(table(class(block),
 		   [ \instance_table_header
-		   | \table_rows_top_bottom(instance_row, Pairs,
+		   | \table_rows_top_bottom(instance_row(Options), Pairs,
 					    TopMax, BottomMax)
 		   ])).
 
@@ -605,8 +605,8 @@ instance_table_header -->
 		  th('#Properties')
 		])).
 
-instance_row(R-C) -->
-	html([ td(\rdf_link(R)),
+instance_row(Options, R-C) -->
+	html([ td(\rdf_link(R, Options)),
 	       td(class(int), C)
 	     ]).
 
