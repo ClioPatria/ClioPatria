@@ -91,6 +91,7 @@ http_openid:openid_hook(trusted(OpenID, Server)) :-
 %	to the user. This handler overrules the default OpenID handler.
 
 login_page(Request) :-
+	http_open_session(_, []),		% we need sessions to login
 	http_parameters(Request,
 			[ 'openid.return_to'(ReturnTo,
 					     [ description('Page to visit after login')
