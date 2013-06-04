@@ -70,19 +70,14 @@ user:file_search_path(library, '../lib').
 	      [ sparql_read_xml_result/2,
 		sparql_read_json_result/2
 	      ]).
-:- use_module(library(url)).
 :- use_module(library(apply)).
 :- use_module(library(settings)).
 :- use_module(test_manifest).
-:- use_module(rdfql(sparql_xml_result)).
 :- use_module(entailment(rdf), []).
 :- use_module(entailment(none), []).
 					% Toplevel debugging utilities
 :- use_module(user:library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_turtle_write)).
-:- if(exists_source(library(semweb/rdf_ntriples))).
-:- use_module(library(semweb/rdf_ntriples)).
-:- endif.
 
 :- setting(cliopatria:optimise_query, boolean, true,
            'Optimise queries before execution').
