@@ -1671,7 +1671,7 @@ list_triples_with_object(Object, P, Graph) :-
 	reply_html_page(cliopatria(default),
 			title('Triples with object ~w'-[OLabel]),
 			[ h1(\otriple_header(Count, Object, P, Graph)),
-			  \otriple_table(Sorted, Object, [])
+			  \otriple_table(Sorted, Object, [resource_format(nslabel)])
 			]).
 
 otriple_header(Count, Object, Pred, Graph) -->
@@ -1698,7 +1698,7 @@ otriple_table(SPList, Object, Options) -->
 	},
 	html(table(class(block),
 		   [ \sp_header(Object)
-		   | \table_rows_top_bottom(sp_row(Object), SPList,
+		   | \table_rows_top_bottom(sp_row(Options,Object), SPList,
 					    TopMax, BottomMax)
 		   ])).
 
@@ -1707,9 +1707,9 @@ sp_header(_) -->
 		  th('Predicate')
 		])).
 
-sp_row(_O, S-P) -->
-	html([ td(class(subject),   \rdf_link(S)),
-	       td(class(predicate), \rdf_link(P, []))
+sp_row(Options, _O, S-P) -->
+	html([ td(class(subject),   \rdf_link(S, Options)),
+	       td(class(predicate), \rdf_link(P, Options))
 	     ]).
 
 

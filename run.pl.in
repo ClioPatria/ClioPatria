@@ -68,6 +68,12 @@ file_search_path(cliopatria, '@CLIOPATRIA@').
 
 :- load_conf_d([ 'config-enabled' ], []).
 
+% Load local application
+
+:- if(exists_source(local)).
+:- ensure_loaded(local).
+:- endif.
+
 % Get back normal verbosity of the toplevel.
 
 :- (   retract(saved_verbose(Verbose))
