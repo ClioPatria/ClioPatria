@@ -41,6 +41,7 @@
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(sparql_xml_result)).
 :- use_module(rdfql(sparql_json_result)).
+:- use_module(rdfql(sparql_csv_result)).
 :- use_module(library(settings)).
 
 :- http_handler(sparql(.),      sparql_reply, [spawn(sparql_query)]).

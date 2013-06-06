@@ -102,7 +102,8 @@ result_format -->
 	html(select(name(resultFormat),
 		    [ option([], xml),
 		      option([selected], html),
-		      option([], json)
+		      option([], json),
+		      option([], csv)
 		    ])).
 
 query_language(Options, Hidden) -->

@@ -836,7 +836,8 @@ attribute_decl(resultFormat,
 		 oneof([ xml,
 			 html,
 			 rdf,
-			 json
+			 json,
+			 csv
 		       ]),
 		 description('Serialization format of the result')
 	       ]).
