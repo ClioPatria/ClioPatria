@@ -116,9 +116,9 @@ rdf_display_label(R, Label) :-
 rdf_display_label(R, Lang, Label) :-
 	rdf_real_label(R, Lang, Label), !.
 rdf_display_label(Resource, url, Label) :-
-	(   after_char(Resource, '#', Local)
+	(   after_char(Resource, '#', Local), Local \= ''
 	->  Label = Local
-	;   after_char(Resource, '/', Local)
+	;   after_char(Resource, '/', Local), Local \= ''
 	->  Label = Local
 	;   Label = Resource
 	).
