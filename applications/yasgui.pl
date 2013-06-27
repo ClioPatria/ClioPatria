@@ -30,6 +30,7 @@
 :- module(yasgui, []).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
 :- use_module(library(http/json)).
 :- use_module(library(settings)).
 :- use_module(library(http/http_host)).
@@ -54,8 +55,16 @@ yasgui_page(Src) -->
 	html(iframe([ class(yasgui),
 		      src(Src),
 		      width('100%'),
-		      height('500px')
-		    ])).
+		      height('100%')
+		    ], [])),
+	js_script({|javascript||
+		   window.onresize = function () {
+		     var headerHeight = document.getElementById("cp-menu").clientHeight;
+		     console.log(headerHeight);
+		     document.getElementById("cp-content").style.height =
+				(document.body.clientHeight - headerHeight) + "px";
+		   };
+		  |}).
 
 yasgui_src_url(Request, Src) :-
 	http_link_to_id(sparql_query, [], SparqlLocation),

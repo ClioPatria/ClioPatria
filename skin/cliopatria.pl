@@ -107,22 +107,22 @@ user:body(cliopatria(_), Body) -->
 user:body(cliopatria(plain), Body) -->
 	html_requires(plain),
 	html(body(class(['yui-skin-sam', cliopatria]),
-		  [ div(class(menu), \cp_menu),
+		  [ div([id('cp-menu'), class(menu)], \cp_menu),
 		    \simple_search_form([value(p(q))]),
 		    br(clear(all)),
-		    div(class(content), Body),
+		    div([id('cp-content'), class(content)], Body),
 		    br(clear(all)),
-		    div(class(footer), \address)
+		    div([id('cp-footer'), class(footer)], \address)
 		  ])).
 user:body(cliopatria(_), Body) -->
 	html_requires(cliopatria),
 	html(body(class(['yui-skin-sam', cliopatria]),
-		  [ div(class(menu), \cp_menu),
+		  [ div([id('cp-menu'), class(menu)], \cp_menu),
 		    \simple_search_form([value(p(q))]),
 		    br(clear(all)),
-		    div(class(content), Body),
+		    div([id('cp-content'), class(content)], Body),
 		    br(clear(all)),
-		    div(class(footer), \address)
+		    div([id('cp-footer'), class(footer)], \address)
 		  ])).
 
 
