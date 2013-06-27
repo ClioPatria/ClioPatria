@@ -97,6 +97,7 @@ http:location(sesame,	   root(servlets),     []).
 http:location(sparql,	   root(sparql),       []).
 http:location(rdf_browser, cliopatria(browse), []).
 http:location(flint,       cliopatria(flint),  []).
+http:location(yasgui,      cliopatria(yasgui), []).
 http:location(api,	   cliopatria(api),    []).
 http:location(json,	   api(json),	       []).
 
