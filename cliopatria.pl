@@ -105,7 +105,8 @@ user:file_search_path(library, cliopatria(lib)).
 		applications(admin),
 		applications(user),
 		applications(browse),
-		applications(flint)
+		applications(flint),
+		applications(yasgui)
 	      ],
 	      [ silent(true),
 		if(not_loaded)
