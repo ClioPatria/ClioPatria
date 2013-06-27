@@ -188,7 +188,7 @@ package_status(cpack(Package, Options),
 	       cpack(Package, Options, Status)) :-
 	cpack_package_dir(Package, Dir, false),
 	directory_file_path(Dir, '.git', GitRepo),
-	(   exists_directory(GitRepo)
+	(   access_file(GitRepo, read)
 	->  option(branch(Branch), Options, master),
 	    atom_concat('origin/', Branch, Commit),
 	    git_describe(OldVersion, [directory(Dir)]),
