@@ -37,7 +37,7 @@
 
 :- http_handler(yasgui('index.html'), yasgui_editor, []).
 
-:- setting(server, uri, 'http://dev.yasgui.laurensrietveld.nl',
+:- setting(server, uri, 'http://yasgui.laurensrietveld.nl',
 	   'YASGUI server to use').
 
 %%	yasgui_editor(+Request)
