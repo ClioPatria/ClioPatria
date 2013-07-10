@@ -178,6 +178,7 @@ cp_server(_Options) :-
 cp_server(Options) :-
 	meta_options(is_meta, Options, QOptions),
 	load_settings('settings.db'),
+	set_prefix(QOptions),
 	attach_account_info,
 	set_session_options,
 	setting(http:port, DefPort),
@@ -205,6 +206,12 @@ cp_server(Options) :-
 	    http_delete_handler(id(busy_loading))).
 
 is_meta(after_load).
+
+set_prefix(Options) :-
+	option(prefix(Prefix), Options),
+	\+ setting(http:prefix, Prefix), !,
+	set_setting_default(http:prefix, Prefix).
+set_prefix(_).
 
 %%	update_public_port(+Port, +DefPort)
 %
