@@ -53,7 +53,7 @@ cliopatria_dir(Dir) :-
 install_dir(Dir) :-
 	current_prolog_flag(windows, true), !,
 	working_directory(CWD, CWD),
-	(   get(@display, win_directory,
+	(   get(@(display), win_directory,
 		'Create ClioPatria project in', CWD, Dir)
 	->  true
 	;   halt(1)
