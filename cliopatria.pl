@@ -463,11 +463,10 @@ parse_options(Rest, [], Rest).
 
 short_options([], Av, Opts, Rest) :-
 	parse_options(Av, Opts, Rest).
-short_options([H|T], Av, Opts, Rest) :-
+short_options([H|T], Av, [Opt|OptT], Rest) :-
 	cmd_option(H, Name, Type, _),
 	(   Type == (-)
 	->  Opt =.. [Name,true],
-	    Opts = [Opt|OptT],
 	    short_options(T, Av, OptT, Rest)
 	;   Av = [Av0|AvT],
 	    text_to_value(Type, Av0, Value),
