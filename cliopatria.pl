@@ -452,7 +452,8 @@ parse_options([H|T], [Opt|OT], Rest) :-
 	    sub_atom(H, 2, B2, _, Name),
 	    sub_atom(H, _, A,  0, Value),
 	    long_option(Name, Value, Opt)
-	;   long_option(Name, Opt)
+	;   sub_atom(H, 2, _, 0, Name),
+	    long_option(Name, Opt)
 	),
 	parse_options(T, OT, Rest).
 parse_options([H|T], Opts, Rest) :-
