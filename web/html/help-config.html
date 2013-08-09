@@ -13,33 +13,36 @@ File in <code>conf.d</code> are loaded into the server at startup time
 and extend or modify the server.  Example configuration files are located
 in <code>examples/conf.d</code>.  Configuration files can be in several
 states:
+</p>
 
   <dl>
-    <dt>Not installed
-    <dd>The config file is not in <code>conf.d</code> and not loaded
-    <dt>Installed (linked)
+    <dt>Not installed</dt>
+    <dd>The config file is not in <code>conf.d</code> and not loaded</dd>
+    <dt>Installed (linked)</dt>
     <dd>The config file appears in <code>conf.d</code> as a (symbolic)
-        link to the example file.
-    <dt>Installed (copied)
+        link to the example file.</dd>
+    <dt>Installed (copied)</dt>
     <dd>The config file appears in <code>conf.d</code> as an unmodified
-        copy of the example file.
-    <dt>Installed (modified)
+        copy of the example file.</dd>
+    <dt>Installed (modified)</dt>
     <dd>The config file appears in <code>conf.d</code> as an modified
-        copy of the example file.
-    <dt>Local
+        copy of the example file.</dd>
+    <dt>Local</dt>
     <dd>The config file appears in <code>conf.d</code>, but not in the
-        example directory.
+        example directory.</dd>
   </dl>
 
 <p>
 The link in the left-column shows the full documentation of the file.
 The documentation-page allows for opening the file in an editor if the
 file is loaded and a connection is made from <code>localhost</code>.
+</p>
 
 <p>
 The web interface allows for <b>changing</b> the status of configuration
 files if the user is logged in with <em>administrative rights</em>. A
 configuration file is renamed to <i>oldname</i><code>.disabled</code> if
 it is disabled while it has local modifications.
+</p>
 </body>
 </html>
