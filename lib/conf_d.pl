@@ -184,7 +184,8 @@ conf_d_members(DirSpec, InfoRecords, Options) :-
 				     ]),
 		  conf_d_files(Dir, Files, Options)
 		), FileLists),
-	append(FileLists, Files),
+	append(FileLists, Files0),
+	sort(Files0, Files), % remove duplicates introduced by absolute & relative ClioPatria paths
 	maplist(conf_file, Files, InfoRecords).
 
 conf_file(File, config_file(Path, Module, Title)) :-
