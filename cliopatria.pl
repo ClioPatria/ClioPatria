@@ -506,16 +506,26 @@ boolean(false, false).
 boolean(no,    false).
 boolean(off,   false).
 
-argv(Program, Av) :-
+%%	argv(-ProgramBaseName, -UserArgs)
+
+argv(ProgName, Argv) :-
+	current_prolog_flag(executable, Executable),
+	file_base_name(Executable, ProgName),
+	user_argv(Argv).
+
+:- if(current_prolog_flag(os_argv,_)).
+user_argv(Argv) :-
+	current_prolog_flag(argv, Argv).
+:- else.
+user_argv(Av) :-
 	current_prolog_flag(argv, Argv),
-	Argv = [Prog|Av0],
-	file_base_name(Prog, Program),
-	(   append(_, [--|Av], Av0)
+	(   append(_, [--|Av], Argv)
 	->  true
 	;   current_prolog_flag(windows, true)
-	->  Av = Av0
+	->  Av = Argv
 	;   Av = []
 	).
+:- endif.
 
 		 /*******************************
 		 *	      BANNER		*
