@@ -192,7 +192,7 @@ package_status(cpack(Package, Options),
 	->  option(branch(Branch), Options, master),
 	    atom_concat('origin/', Branch, Commit),
 	    git_describe(OldVersion, [directory(Dir)]),
-	    git([fetch], [ directory(Dir) ]),
+	    git([fetch, origin], [ directory(Dir) ]),
 	    git_describe(NewVersion, [directory(Dir),commit(Commit)]),
 	    (	OldVersion == NewVersion
 	    ->	Status = no_change(OldVersion)
