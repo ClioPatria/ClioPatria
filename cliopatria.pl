@@ -518,7 +518,7 @@ user_argv(Argv) :-
 	current_prolog_flag(argv, Argv).
 :- else.
 user_argv(Av) :-
-	current_prolog_flag(argv, Argv),
+	current_prolog_flag(argv, [_Prog|Argv]),
 	(   append(_, [--|Av], Argv)
 	->  true
 	;   current_prolog_flag(windows, true)
