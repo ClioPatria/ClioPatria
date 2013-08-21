@@ -29,7 +29,7 @@
 */
 
 :- module(api_sparql,
-	  [ sparql_reply/1
+	  [
 	  ]).
 :- use_module(user(user_db)).
 :- use_module(library(lists)).
@@ -41,19 +41,19 @@
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(sparql_xml_result)).
 :- use_module(rdfql(sparql_json_result)).
-:- use_module(rdfql(sparql_csv_result)).
+:- use_module(rdfql(sparql_csv_result), []). % provides hooks
 :- use_module(library(settings)).
 
-:- http_handler(sparql(.),      sparql_reply, [spawn(sparql_query), id(sparql_query)]).
-:- http_handler(sparql(update), sparql_reply, [spawn(sparql_query), id(sparql_update)]).
+:- http_handler(sparql(.),      sparql_query,  [spawn(sparql_query), id(sparql_query)]).
+:- http_handler(sparql(update), sparql_update, [spawn(sparql_query), id(sparql_update)]).
 
-%%	sparql_reply(+Request)
+%%	sparql_query(+Request)
 %
 %	HTTP  handler  for  SPARQL  requests.    Mounted  the  http-path
 %	sparql(.)       (by       default        =|/sparql/|=,       see
 %	library(http/http_path)).
 
-sparql_reply(Request) :-
+sparql_query(Request) :-
 	http_parameters(Request,
 			[ query(Query),
 			  'default-graph-uri'(DefaultGraphs),
@@ -63,8 +63,39 @@ sparql_reply(Request) :-
 			],
 			[ attribute_declarations(sparql_decl)
 			]),
-	append(DefaultGraphs, NamedGraphs, AllGraphs),
-	authorized(read(AllGraphs, query)),
+	append(DefaultGraphs, NamedGraphs, Graphs),
+	authorized(read(Graphs, sparql)),
+	sparql_reply(Request, Query, Graphs, ReqFormat, Entailment).
+
+
+%%	sparql_update(+Request)
+%
+%	HTTP handler for SPARQL update  requests.   This  is the same as
+%	query requests, but the takes the   query  in the =update= field
+%	rather than in the =query= field.
+
+sparql_update(Request) :-
+	http_parameters(Request,
+			[ update(Query),
+			  'default-graph-uri'(DefaultGraphs),
+			  'named-graph-uri'(NamedGraphs),
+			  format(ReqFormat),
+			  entailment(Entailment)
+			],
+			[ attribute_declarations(sparql_decl)
+			]),
+	append(DefaultGraphs, NamedGraphs, Graphs),
+	authorized(write(Graphs, sparql)),
+	sparql_reply(Request, Query, Graphs, ReqFormat, Entailment).
+
+
+%%	sparql_reply(+Request, +Query, +_Graphs, +ReqFormat, +Entailment)
+%
+%	HTTP  handler  for  SPARQL  requests.    Mounted  the  http-path
+%	sparql(.)       (by       default        =|/sparql/|=,       see
+%	library(http/http_path)).
+
+sparql_reply(Request, Query, _Graphs, ReqFormat, Entailment) :-
 	statistics(cputime, CPU0),
 	sparql_compile(Query, Compiled,
 		       [ type(Type),
@@ -120,6 +151,9 @@ write_result(json, Type, Rows, Options) :-
 write_xml_result(ask, [True], Options) :- !,
 	format('Content-type: application/sparql-results+xml; charset=UTF-8~n~n'),
 	sparql_write_xml_result(current_output, ask(True), Options).
+write_xml_result(update, [True], Options) :- !,
+	format('Content-type: application/sparql-results+xml; charset=UTF-8~n~n'),
+	sparql_write_xml_result(current_output, update(True), Options).
 write_xml_result(select(VarNames), Rows, Options) :- !,
 	format('Transfer-encoding: chunked~n'),
 	format('Content-type: application/sparql-results+xml; charset=UTF-8~n~n'),
@@ -145,6 +179,9 @@ write_json_result(_, _RDF, _Options) :-
 
 sparql_decl(query,
 	    [ description('The SPARQL query to execute')
+	    ]).
+sparql_decl(update,
+	    [ description('The SPARQL update query to execute')
 	    ]).
 sparql_decl('default-graph-uri',
 	    [ list(atom),

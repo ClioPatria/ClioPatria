@@ -58,6 +58,8 @@ sparql_write_xml_result(Out, ask(TrueFalse), _Options) :- !,
 	format(Out, '  <head/>~n', []),
 	format(Out, '  <boolean>~w</boolean>~n', [TrueFalse]),
 	format(Out, '</sparql>~n', []).
+sparql_write_xml_result(Out, update(TrueFalse), Options) :- !,
+	sparql_write_xml_result(Out, ask(TrueFalse), Options).
 sparql_write_xml_result(Out, select(VarTerm, Rows), Options) :-
 	VarTerm =.. [_|VarNames],
 	option(ordered(Ordered), Options, false),

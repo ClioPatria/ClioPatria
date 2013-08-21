@@ -181,7 +181,7 @@ endpoints([ json([ name('ClioPatria'),
 		   modes([ sparql11update ])
 		 ])
 	  ]) :-
-	http_link_to_id(sparql_reply,  [], EndPoint),
+	http_link_to_id(sparql_query,  [], EndPoint),
 	http_link_to_id(sparql_update, [], UpdateEndPoint).
 
 
