@@ -1,4 +1,4 @@
-@HASHBANG@@SWIPL@ -s
+@HASHBANG@@SWIPL@ @LOADOPTIONS@
 
 :- initialization cp_server.
 

@@ -66,16 +66,21 @@ setup:substitutions([ 'SWIPL'=PL,		% Prolog executable (for #!...)
 		      'CLIOPATRIA'=ClioDir,	% ClioPatria directory
 		      'CWD'=CWD,		% This directory
 		      'PARENTDIR'=Parent,	% Parent of CWD
-		      'HASHBANG'=HashBang	% #! (or not)
+		      'HASHBANG'=HashBang,	% #! (or not)
+		      'LOADOPTIONS'=LoadOptions % -s (or not)
 		    ]) :-
 	cliopatria_dir(ClioDir),
 	working_directory(CWD, CWD),
 	file_directory_name(CWD, Parent),
 	setup_prolog_executable(PL),
-	hashbang(HashBang).
+	hashbang(HashBang),
+	load_options(LoadOptions).
 
 hashbang('%!') :- current_prolog_flag(windows, true), !.
 hashbang('#!').
+
+load_options('') :- current_prolog_flag(os_argv, _), !.
+load_options('-s').
 
 
 %%	options(-Options) is det.
