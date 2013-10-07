@@ -139,9 +139,9 @@ rdfs_has_type(Resource, Class) :-
 	empty_nb_set(Set),
 	(   atom(Resource)
 	->  (   rdf_has(Resource, rdf:type, Class)
-	    ;	rdf_has(Resource, P, _),
+	    ;	rdf_db:rdf(Resource, P, _),
 		rdf_has(P, rdfs:domain, Class)
-	    ;	rdf_has(_, P, Resource),
+	    ;	rdf_db:rdf(_, P, Resource),
 		rdf_has(P, rdfs:range, Class)
 	    ),
 	    add_nb_set(Class, Set, New),
