@@ -216,7 +216,7 @@ query_form(_Request) :-
 
 
 warn_interactive -->
-	{ http_location_by_id(sparql_reply, HREF),
+	{ http_location_by_id(sparql_query, HREF),
 	  SparqlAPI = 'http://www.w3.org/TR/rdf-sparql-protocol/'
 	},
 	html([ br(clear(all)),
