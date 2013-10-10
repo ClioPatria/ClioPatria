@@ -55,16 +55,17 @@ yasgui_page(Src) -->
 	html(iframe([ class(yasgui),
 		      src(Src),
 		      width('100%'),
-		      height('100%')
+		      height('100%'),
+		      frameborder(0)
 		    ], [])),
 	js_script({|javascript||
-		   window.onresize = function () {
-		     var headerHeight = document.getElementById("cp-menu").clientHeight;
-		     console.log(headerHeight);
-		     document.getElementById("cp-content").style.height =
-				(document.body.clientHeight - headerHeight) + "px";
+		   window.onload=function(){
+		     document.body.style.height="100%";
+                     document.getElementsByTagName("html")[0].style.height="100%";
+		     document.getElementById("cp-content").style.height="90%";
 		   };
-		  |}).
+		   |}).
+
 
 yasgui_src_url(Request, Src) :-
 	http_link_to_id(sparql_query, [], SparqlLocation),
