@@ -79,7 +79,7 @@ yasgui_src_url(Request, Src) :-
 yasgui_config(EndPoint, Config) :-
 	JSON = json([ defaults = json([ endpoint = EndPoint
 				      ]),
-		      singleEndpointMode = @true,
+		      singleEndpointMode = @(true),
 		      defaultBookMarks = [ json([ title = 'Get 10 triples',
 						  endpoint = '',
 						  query = 'SELECT * WHERE {\n\c
