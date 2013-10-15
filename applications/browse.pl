@@ -134,10 +134,13 @@ list_graphs(_Request) :-
 			  \graph_table(Rows, [])
 			]).
 
-graph_triples(Graph, Count) :-			% RDF-DB < 3.0
-	rdf_statistics(triples_by_file(Graph, Count)).
+:- if((rdf_version(V),V>=30000)).
 graph_triples(Graph, Count) :-
 	rdf_statistics(triples_by_graph(Graph, Count)).
+:- else.
+graph_triples(Graph, Count) :-			% RDF-DB < 3.0
+	rdf_statistics(triples_by_file(Graph, Count)).
+:- endif.
 
 graph_table(Graphs, Options) -->
 	{ option(top_max(TopMax), Options, 500),
@@ -227,7 +230,7 @@ graph_property(Graph, P, V) :-
 graph_property_nc(Graph, source, Source) :-
 	rdf_source(Graph, Source).
 graph_property_nc(Graph, triples, int(Triples)) :-
-	rdf_statistics(triples_by_file(Graph, Triples)).
+	graph_triples(Graph, Triples).
 graph_property_nc(Graph, predicate_count, int(Count)) :-
 	aggregate_all(count, predicate_in_graph(Graph, _P), Count).
 graph_property_nc(Graph, subject_count, int(Count)) :-
@@ -249,7 +252,7 @@ predicate_in_graph(Graph, P) :-
 %	that we get distinct subjects for free.
 
 subject_in_graph(Graph, S) :-
-	rdf_statistics(triples_by_file(Graph, Count)),
+	graph_triples(Graph, Count),
 	rdf_statistics(triples(Total)),
 	Count * 10 > Total, !,		% Graph has more than 10% of triples
 	rdf_subject(S),
@@ -260,7 +263,7 @@ subject_in_graph(Graph, S) :-
 	member(S, Subjects).
 
 bnode_in_graph(Graph, S) :-
-	rdf_statistics(triples_by_file(Graph, Count)),
+	graph_triples(Graph, Count),
 	rdf_statistics(triples(Total)),
 	Count * 10 > Total, !,
 	rdf_subject(S),

@@ -192,9 +192,11 @@ triple_statistics -->
 		 \n(human, Count), ' ', a(href(ListGraphs), graphs),
 		 \using_core])).
 
+:- if((rdf_version(V),V<30000)).
 using_core -->
 	{ rdf_statistics(core(Core)) }, !,
 	html([', using ', \n(human, Core), 'b memory']).
+:- endif.
 using_core -->
 	[].
 

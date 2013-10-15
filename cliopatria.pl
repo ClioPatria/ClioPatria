@@ -411,6 +411,8 @@ cmd_option(p, port,    positive_integer, 'Port to connect to').
 cmd_option(w, workers, positive_integer, 'Number of workers to start').
 cmd_option(-, prefix,  atom,	         'Rebase the server to prefix/').
 cmd_option(-, store,   atom,		 'Directory for persistent store').
+% dummy to stop list_trivial_fail from warning about long_option/2.
+cmd_option(-, -, boolean, 'Dummy') :- fail.
 
 usage(Program) :-
 	ansi_format([bold], 'Usage: ~w [options] arguments~n', [Program]),
@@ -478,6 +480,11 @@ long_option(Name, Text, Opt) :-
 	cmd_option(_, Name, Type, _),
 	text_to_value(Type, Text, Value),
 	Opt =.. [Name,Value].
+
+long_option(Name, Opt) :-
+	atom_concat('no-', OptName, Name),
+	cmd_option(_, OptName, boolean, _), !,
+	Opt =.. [Name,false].
 long_option(Name, Opt) :-
 	cmd_option(_, Name, boolean, _),
 	Opt =.. [Name,true].
