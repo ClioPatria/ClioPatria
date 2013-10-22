@@ -91,20 +91,22 @@ add_error_location(error(syntax_error(What),
 	append(Before, After, Input),
 	length(Before, BL),
 	CLen = 80,
+	atom_codes('...', Elipsis),
+	atom_codes('\n**here**\n', Here),
 	(   BL =< CLen
 	->  BC = Before
 	;   length(BC0, CLen),
 	    append(_, BC0, Before),
-	    append("...", BC0, BC)
+	    append(Elipsis, BC0, BC)
 	),
 	length(After, AL),
 	(   AL =< CLen
 	->  AC = After
 	;   length(AC0, CLen),
 	    append(AC0, _, After),
-	    append(AC0, "...", AC)
+	    append(AC0, Elipsis, AC)
 	),
-	append("\n**here**\n", AC, HAC),
+	append(Here, AC, HAC),
 	append([0'\n|BC], HAC, ContextCodes),	% '
 	atom_codes(Context, ContextCodes),
 	throw(error(syntax_error(What),
@@ -998,6 +1000,15 @@ primitive(Atom) :- atom(Atom).		% IRI, '$null$'
 
 :- discontiguous term_expansion/2.
 
+:- if(current_predicate(string_codes/2)).
+goal_expansion(keyword(S,L,T), keyword(Codes,L,T)) :-
+	string(S),
+	string_codes(S, Codes).
+goal_expansion(must_see_keyword(S,L,T), must_see_keyword(Codes,L,T)) :-
+	string(S),
+	string_codes(S, Codes).
+:- endif.
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 From A.7. We keep the same naming and   order of the productions to make
 it as easy as possible to verify the correctness of the parser.
@@ -1760,7 +1771,7 @@ triples_block(Triples, Tail) -->	% [55]
 one_dot -->
 	".", !, skip_ws,
 	(   "."
-	->  syntax_error("double_dot")
+	->  syntax_error(double_dot)
 	;   ""
 	).
 
@@ -1929,7 +1940,7 @@ construct_triples(List) -->
 construct_triples(List, T) -->
 	triples_same_subject(List, T0), !,
 	(   one_dot
-	->  (   peek("}")
+	->  (   peek(0'})
 	    ->  { T = T0 }
 	    ;   construct_triples(T0, T)
 	    )
@@ -3222,11 +3233,14 @@ pn_local_esc(List, T) -->		% [173]
 	  List = [C|T]
 	}.
 
-pnle("_~.-!$&'()*+,;=/?#@%").
+pnle('_~.-!$&\'()*+,;=/?#@%').
 
 term_expansion(pn_local_esc(esc), Clauses) :-
-	pnle(Codes),
-	findall(pn_local_esc(C), member(C, Codes), Clauses).
+	pnle(Atom),
+	findall(pn_local_esc(C),
+		( sub_atom(Atom, _, 1, _, Char),
+		  char_code(Char, C)
+		), Clauses).
 
 pn_local_esc(esc).
 
@@ -3353,5 +3367,5 @@ skip_comment --> [_], skip_comment.
 
 eos([], []).
 
-peek(C, T, T) :-
-	append(C, _, T), !.
+peek(C, L, L) :-
+	L = [C|_].

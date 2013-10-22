@@ -38,6 +38,7 @@
 :- use_module(library(apply)).
 :- use_module(library(filesex)).
 :- use_module(library(conf_d)).
+:- use_module(library(apply_macros), []).
 
 
 /** <module> Configuration (setup) of ClioPatria
@@ -95,10 +96,11 @@ rename_script(Script, Script).
 %	Make a file executable if it starts with #!
 
 make_runnable(File) :-
-	open(File, read, In),
-	read_line_to_codes(In, Line),
-	close(In),
-	append("#!", _, Line), !,
+	setup_call_cleanup(
+	    open(File, read, In),
+	    read_line_to_codes(In, Line),
+	    close(In)),
+	phrase("#!", Line, _), !,
 	'$mark_executable'(File).
 make_runnable(_).
 
