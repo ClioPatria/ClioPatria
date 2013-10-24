@@ -108,14 +108,15 @@ terms as a graph.
 :- dynamic
 	closure/4.				% Hash, Closure, Options, Time
 
-graphviz_graph(_Closure, Options) -->
+graphviz_graph(_Closure, _:Options) -->
 	{ option(render(Renderer), Options, dot),
 	  \+ has_graphviz_renderer(Renderer)
 	}, !,
 	no_graph_viz(Renderer).
 graphviz_graph(Closure, Options) -->
 	{ setting(graphviz:format, DefFormat),
-	  option(format(Format), Options, DefFormat),
+	  Options = _:PlainOptions,
+	  option(format(Format), PlainOptions, DefFormat),
 	  meta_options(is_meta, Options, QOptions),
 	  variant_sha1(Closure+QOptions, Hash),
 	  get_time(Now),
