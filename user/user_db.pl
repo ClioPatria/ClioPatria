@@ -334,7 +334,7 @@ validate_password(User, Password) :-
 
 password_hash(Password, Hash) :-
 	var(Hash), !,
-	phrase("$!$", HashString, _),
+	phrase("$1$", HashString, _),
 	crypt(Password, HashString),
 	atom_codes(Hash, HashString).
 password_hash(Password, Hash) :-
