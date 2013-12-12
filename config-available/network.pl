@@ -28,3 +28,10 @@ link below for more info.
 % :- set_setting_default(http:public_port, 80).
 % :- set_setting_default(http:prefix, '/demo').
 % :- set_setting_default(http:workers, 16).
+
+% Allow  CORS  enabled  access  by    default.   Needed  for  JavaScript
+% applications loaded from other sites  to   access  the SPARQL endpoint
+% other JSON or XML APIs of ClioPatria.   One of the features that needs
+% it is YASGUI for accessing the server on http://localhost
+
+:- set_setting_default(http:cors, [*]).
