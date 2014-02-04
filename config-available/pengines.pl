@@ -9,5 +9,5 @@ Provide access to ClioPatria's RDF store using pengines.
 */
 
 % :- set_setting_default(pengine:time_limit, 60).
-% :- set_setting_default(pengine:allow_from, [*]).
+:- set_setting_default(pengine:allow_from, ['127.0.0.1']).
 % :- set_setting_default(pengine:deny_from,  []).
