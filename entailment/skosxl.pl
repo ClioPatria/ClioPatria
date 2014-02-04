@@ -41,17 +41,14 @@
 		op(_,_,_)
 	      ]).
 
-/** <module> RDFS-Lite entailment
+/** <module> SKOSXL entailment
 
 The function of an entailment module is  to provide an implementation of
 rdf/3 that extends basic triple-lookup using the entailment rules of the
-semantic web sub language of RDF.
+SKOS-XL entailent rules
 
-This entailment module does only the core RDF inferences:
+This entailment module does only some SKOS XL inferences, see the numbers of the rules.
 
-    * Every subject is of type rdfs:Resource
-    * Every resource that appears as a predicate is of type
-      rdf:Property
 */
 
 :- rdf_meta
