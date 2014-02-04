@@ -8,5 +8,6 @@ config('winpath.pl', link) :-
 	current_prolog_flag(windows, true).
 config('zlib.pl', link) :-
 	exists_source(library(zlib)).
-
+config('pengines.pl', copy) :-
+	exists_source(library(pengines)).
 
