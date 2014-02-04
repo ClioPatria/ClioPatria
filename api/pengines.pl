@@ -44,23 +44,3 @@ pengine_rpc/3.
 @see http://www.swi-prolog.org/pldoc/package/pengines.html
 */
 
-:- multifile
-	sandbox:safe_primitive/1.
-
-sandbox:safe_primitive(rdf_db:rdf(_,_,_)).
-sandbox:safe_primitive(rdf_db:rdf(_,_,_,_)).
-sandbox:safe_primitive(rdf_db:rdf_has(_,_,_)).
-sandbox:safe_primitive(rdf_db:rdf_has(_,_,_,_)).
-sandbox:safe_primitive(rdf_db:rdf_reachable(_,_,_)).
-sandbox:safe_primitive(rdf_db:rdf_reachable(_,_,_,_,_)).
-sandbox:safe_primitive(rdf_db:rdf_subject(_)).
-sandbox:safe_primitive(rdf_db:rdf_resource(_)).
-sandbox:safe_primitive(rdf_db:rdf_current_predicate(_)).
-sandbox:safe_primitive(rdf_db:rdf_current_literal(_)).
-sandbox:safe_primitive(rdf_db:rdf_graph(_)).
-sandbox:safe_primitive(rdf_db:rdf_generation(_)).
-sandbox:safe_primitive(rdf_db:rdf_estimate_complexity(_,_,_,_)).
-sandbox:safe_primitive(rdf_db:rdf_statistics(_)).
-sandbox:safe_primitive(rdf_db:lang_matches(_,_)).
-sandbox:safe_primitive(rdf_db:lang_equal(_,_)).
-
