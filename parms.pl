@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2008-2012, University of Amsterdam
+    Copyright (C): 2008-2014, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -172,8 +172,10 @@ http_settings:input_item(uri, Value, Name) -->
 	   'Session timeout.  If 0, session never times out').
 :- setting(http:server_url, atom, 'http://localhost:'+setting(http:port),
 	   'Url of the server itself').
+:- if(\+current_setting(http:prefix)).
 :- setting(http:prefix, atom, '',
 	   'Prefix to rebase the server').
+:- endif.
 
 
 		 /*******************************
