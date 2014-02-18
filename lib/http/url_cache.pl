@@ -191,7 +191,7 @@ fetch_url(URL, File, MimeType, Modified) :-
 	).
 
 server(Parts, Server) :-
-	memberchk(host(Host), Parts),
+	memberchk(host(Host), Parts), !,
 	(   memberchk(port(Port), Parts)
 	->  Server = Host:Port
 	;   Server = Host
