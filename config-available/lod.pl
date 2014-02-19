@@ -13,12 +13,21 @@ RDF URIs arrive at this server directly   or through a proxy. The latter
 assumes that /mydata/ on purl.org is   redirected  to /purl/rdf/ on this
 server and all RDF URIs start with http://www.purl.org/mydata/
 
+The bounded_description(cbd) option selects the  default Concise Bounded
+Description.  The  alternative  is  =scbd=   (Symetric  Concise  Bounded
+Description), which also includes  triples  that   have  the  target  as
+_object_.
+
 @see cliopatria(api/lod)
 */
 
+% Use this if the URIs resolve directly to this server
 %:- http_handler('/rdf/', lod_api, [prefix]).
-%:- http_handler('/purl/rdf/', lod_api,
-%		[ redirected_for('http://www.purl.org/mydata/'),
-%		  prefix
-%		]).
+
+% Use this if the URIs are redirected to this server.
+%:- http_handler('/purl/rdf/',
+%		 lod_api([ redirected_from('http://www.purl.org/mydata/'),
+%			   bounded_description(cbd)
+%			 ]),
+%		 [ prefix ]).
 
