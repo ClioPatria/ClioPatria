@@ -268,7 +268,7 @@ realname(_Options) -->
 
 add_user(Request) :-
 	(   \+ current_user(_)
-	->  true
+	->  FirstUser = true
 	;   authorized(admin(add_user))
 	),
 	http_parameters(Request,
@@ -298,7 +298,7 @@ add_user(Request) :-
 		   password(Hash),
 		   allow(Allow)
 		 ]),
-	(   User == admin
+	(   FirstUser == true
 	->  user_add(anonymous,
 		     [ realname('Define rights for not-logged in users'),
 		       allow([read(_,_)])
