@@ -312,7 +312,7 @@ ground_vars([H|T], State) :-
 %
 %	@param Goals is a list goal(Id, Goal, Vars).
 
-make_subgraphs([Goal], [Goal]) :- !.
+make_subgraphs([Goal], [[Goal]]) :- !.
 make_subgraphs([G1,G2], Graphs) :- !,
 	unbound_vars(G1, V1),
 	unbound_vars(G2, V2),
