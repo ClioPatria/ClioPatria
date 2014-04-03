@@ -131,7 +131,12 @@ rdf_optimise(Conj, Optimised, Space, Time) :-
 	State = state(Vars-Conj, S0, E0, 1),
 	debug(rdf_optimise, 'C0 = ~w~n', [E0]),
 	(   reorder(Conj, Perm),
+	    (	debugging(rdf_optimise(all))
+	    ->	dbg_portray_body(Perm)
+	    ;	true
+	    ),
 	    rdf_complexity(Perm, Perm1, S, C),
+	    debug(rdf_optimise(all), '--> space=~w, time=~w~n', [S, C]),
 
 	    arg(4, State, N),
 	    N2 is N + 1,
