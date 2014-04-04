@@ -13,7 +13,7 @@ First, the test-cases are provided as a git module. To install them, use
 To run the test suite, run
 
   ==
-  % swipl -s test_sparql.pl
+  % swipl test_sparql.pl
   ?- run_query_tests.
   ==
 
