@@ -2293,8 +2293,7 @@ var(var(Name)) -->
 	(   var1(Name)
 	->  []
 	;   var2(Name)
-	),
-	skip_ws.
+	).
 
 must_see_var(Var) -->
 	var(Var), !.
