@@ -62,6 +62,7 @@ user:file_search_path(rdfql, '../rdfql').
 user:file_search_path(entailment, '../entailment').
 user:file_search_path(library, '../lib').
 
+:- use_module(library(memfile)).
 :- use_module(rdfql(sparql_grammar)).
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(jena_functions)).
@@ -696,15 +697,9 @@ cvs_row(Arity, Cell, CSVRow, RDFRow) :-
 csv_cell(turtle, '', '$null$') :- !.
 csv_cell(turtle, CSV, RDF) :-
 	setup_call_cleanup(
-	    ( atom_to_memory_file(CSV, MF),
-	      open_memory_file(MF, read, In, [free_on_close(true)])
-	    ),
-	    ( get_code(In, C0),
-	      rdf_turtle:turtle_token(C0, In, C, RDF0),
-	      C == -1
-	    ),
-	    close(In)),
-	turtle_rdf(RDF0, RDF).
+	    new_memory_file(MF),
+	    turtle_object(MF, CSV, RDF),
+	    free_memory_file(MF)).
 csv_cell(fuzzy, CSV, RDF) :-
 	(   uri_is_global(CSV)
 	->  RDF = CSV
@@ -720,33 +715,24 @@ csv_cell(fuzzy, CSV, RDF) :-
 	;   RDF = literal(CSV)
 	).
 
+
+turtle_object(MF, Atom, Object) :-
+	setup_call_cleanup(
+	    open_memory_file(MF, write, Out),
+	    format(Out, '<http://s> <http://p> ~w .', [Atom]),
+	    close(Out)),
+	setup_call_cleanup(
+	    open_memory_file(MF, read, In),
+	    rdf_read_turtle(stream(In), [rdf(_,_,Object)], []),
+	    close(In)).
+
+
 :- rdf_meta to_rdf(+, t).
 
 to_rdf(integer(Atom), literal(type(xsd:integer, Atom))).
 to_rdf(double(Atom),  literal(type(xsd:double, Atom))).
 to_rdf(decimal(Atom), literal(type(xsd:decimal, Atom))).
 to_rdf(string(Atom),  literal(type(xsd:string, Atom))).
-
-turtle_rdf(relative_uri(RDF), RDF) :- !.
-turtle_rdf(nodeId(Id), bnode(Id)) :- !.
-turtle_rdf(numeric(Type, Codes), literal(type(RDFType, String))) :-
-	numeric_url(Type, RDFType), !,
-	atom_codes(String, Codes).
-turtle_rdf(name(true), literal(type(Boolean, true))) :- !,
-	rdf_equal(Boolean, xsd:boolean).
-turtle_rdf(name(false), literal(type(Boolean, true))) :- !,
-	rdf_equal(Boolean, xsd:boolean).
-turtle_rdf(literal(type(relative_uri(Type), Value)),
-	   literal(type(Type, Value))) :- !.
-turtle_rdf(RDF, RDF).
-
-
-:- rdf_meta
-	numeric_url(+, r).
-
-numeric_url(integer, xsd:integer).
-numeric_url(decimal, xsd:decimal).
-numeric_url(double,  xsd:double).
 
 
 		 /*******************************
