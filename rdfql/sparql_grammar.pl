@@ -1808,6 +1808,13 @@ graph_graph_pattern(graph(Graph, Pattern)) --> % [58]
 	must_see_group_graph_pattern(Pattern).
 
 %%	service_graph_pattern(P)//
+%
+%	Process a federated query.  We need to find three things
+%
+%	  - If there is a =SELECT=, the variables exposed through
+%	    the projection, _otherwise_, the default * projection
+%	    variables.
+%	  - What prefixes are required to execute the query?
 
 service_graph_pattern(service(Silent, VarOrIRI, GroupGraphPattern)) --> % [59]
 	keyword("service"), !,
