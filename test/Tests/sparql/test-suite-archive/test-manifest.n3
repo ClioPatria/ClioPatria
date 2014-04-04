@@ -40,26 +40,26 @@
     rdfs:range   rdf:List ;
 
     .
-	
+
 ## ---- Property declarations for each test ----
 
 :name rdf:type rdf:Property ;
     rdfs:comment "Optional name of this entry" ;
     rdfs:domain	 :ManifestEntry ;
     rdfs:range   rdfs:Literal ;
-    .	
-    
+    .
+
 :action rdf:type rdf:Property ;
     rdfs:comment "Action to perform" ;
     rdfs:domain	 :ManifestEntry ;
     # rdfs:range   ?? ;
-    .	
+    .
 
 :result rdf:type rdf:Property ;
     rdfs:comment "The expected outcome" ;
     rdfs:domain	 :ManifestEntry ;
     # rdfs:range   ?? ;
-    .	
+    .
 
 :result rdf:type rdf:Property ;
     rdfs:comment "The test status" ;
@@ -85,22 +85,22 @@
 
 :PositiveSyntaxTest rdf:type rdfs:Class ;
       rdfs:label "Positive Syntax Test" ;
-      rdfs:comment "A type of test specifically for syntax testing. Syntax
+      rdfs:comment """A type of test specifically for syntax testing. Syntax
       tests are not required to have an associated result, only an
-      action." .
+      action.""" .
 
 :NegativeSyntaxTest rdf:type rdfs:Class ;
       rdfs:label "Negative Syntax Test" ;
-      rdfs:comment "A type of test specifically for syntax testing. Syntax
+      rdfs:comment """A type of test specifically for syntax testing. Syntax
       tests are not required to have an associated result, only an
       action. Negative syntax tests are tests of which the result should
-      be a parser error." .
+      be a parser error.""" .
 
 :QueryEvaluationTest rdf:type rdfs:Class ;
       rdfs:label "Query Evaluation Test" ;
-      rdfs:comment "A type of test specifically for query evaluation
+      rdfs:comment """A type of test specifically for query evaluation
       testing. Query evaluation tests are required to have an associated
-      input dataset, a query, and an expected output dataset." .
+      input dataset, a query, and an expected output dataset.""" .
 
 ## ---- Test Statuses ----
 
@@ -131,13 +131,13 @@
 
 :XsdDateOperations	rdf:type :Requirement ;
     rdfs:comment "Tests that require xsd:date operations" .
-	
+
 :StringSimpleLiteralCmp	rdf:type :Requirement ;
     rdfs:comment "Tests that require simple literal is the same value as an xsd:string of the same lexicial form" .
-    
+
 :KnownTypesDefault2Neq	rdf:type :Requirement ;
     rdfs:comment "Values in disjoint value spaces are not equal" .
-    
+
 :LangTagAwareness	rdf:type :Requirement ;
     rdfs:comment "Tests that require langauge tag handling in FILTERs" .
 
@@ -153,11 +153,11 @@
 
 :LaxCardinality rdf:type :ResultCardinality ;
     rdfs:comment
-"""The given mf:result for a test with an mf:resultCardinality of mf:ReducedCardinalityTest 
+"""The given mf:result for a test with an mf:resultCardinality of mf:ReducedCardinalityTest
 is the results as if the REDUCED keyword were omitted. To pass such
-a test, an implementation must produce a result set 
-with each solution in the expected results appearing at least once and 
-no more than the number of times it appears in the expected results. Of 
-course, there must also be no results produced that are not in the 
+a test, an implementation must produce a result set
+with each solution in the expected results appearing at least once and
+no more than the number of times it appears in the expected results. Of
+course, there must also be no results produced that are not in the
 expected results.""" .
 
