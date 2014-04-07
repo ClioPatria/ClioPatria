@@ -44,6 +44,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(xsdp_types)).
 :- use_module(library(lists)).
+:- use_module(library(apply)).
 :- use_module(library(assoc)).
 :- use_module(library(uri)).
 :- use_module(library(dcg/basics)).
