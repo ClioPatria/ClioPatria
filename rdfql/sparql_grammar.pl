@@ -55,8 +55,11 @@
 %	Based on "SPARQL Query Language for RDF", April 6, 2006. Options
 %	supported:
 %
-%		* base_uri(+Base)
-%		Base used if there is no BASE clause in the query
+%	  * base_uri(+Base)
+%	  Base used if there is no BASE clause in the query.
+%	  * variable_names(+VarDict)
+%	  Prolog Name=Var list to use as initial binding list.  This
+%	  option is used to support SPARQL Quasi Quotations.
 
 sparql_parse(Codes, Query, Options) :-
 	is_list(Codes), !,
@@ -407,13 +410,24 @@ resolve_state(prologue(PrefixesList), State, Options) :-
 	option(base_uri(Base), Options, 'http://default.base.org/'),
 	resolve_state(prologue(Base, PrefixesList), State, Options).
 resolve_state(prologue(Base, PrefixesList),
-	      State, _Options) :-
+	      State, Options) :-
 	list_to_assoc(PrefixesList, Prefixes),
-	empty_assoc(Vars),
+	initial_vars(Vars, Options),
 	make_state([ base_uri(Base),
 		     prefix_assoc(Prefixes),
 		     var_assoc(Vars)
 		   ], State).
+
+initial_vars(Vars, Options) :-
+	option(variable_names(Dict), Options), !,
+	must_be(list, Dict),
+	maplist(to_pair, Dict, Pairs),
+	list_to_assoc(Pairs, Vars).
+initial_vars(Vars, _) :-
+	empty_assoc(Vars).
+
+to_pair(Name=Var, Name-(_Visible-Var)).
+
 
 %%	resolve_graph_term(+T0, -T, -Q, +State0, -State) is det.
 
