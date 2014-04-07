@@ -1722,7 +1722,7 @@ triples_template(Triples, Tail) -->	% [52]
 %
 
 group_graph_pattern(group(P)) -->		% [53]
-	"{", skip_ws,
+	skip_ws, "{", skip_ws,
 	(   sub_select(P0)
 	;   group_graph_pattern_sub(P0)
 	;   syntax_error(graph_pattern_expected)
