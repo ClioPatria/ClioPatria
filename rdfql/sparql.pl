@@ -176,6 +176,7 @@ prolog_goal(select(_Proj, _DataSets, Goal, _Solutions), Goal).
 prolog_goal(construct(_Templ, _DataSets, Goal, _Solutions), Goal).
 prolog_goal(ask(_DataSets, Goal, _Solutions), Goal).
 prolog_goal(describe(_Proj, _DataSets, Goal, _Solutions), Goal).
+prolog_goal(sparql_group(Goal), Goal).
 
 set_prolog_goal(select(Proj, DataSets, _Goal, Solutions), Goal,
 		select(Proj, DataSets, Goal, Solutions)).
@@ -185,6 +186,7 @@ set_prolog_goal(ask(DataSets, _Goal, Solutions), Goal,
 		ask(DataSets, Goal, Solutions)).
 set_prolog_goal(describe(Proj, DataSets, _Goal, Solutions), Goal,
 		describe(Proj, DataSets, Goal, Solutions)).
+set_prolog_goal(sparql_group(_Goal), Goal, Goal).
 
 
 %%	optimise_eval(+Goal0, -Goal) is det.
