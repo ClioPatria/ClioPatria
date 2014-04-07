@@ -142,8 +142,8 @@ solutions(_, true).
 
 optimise(update(Updates), update(Updates), _) :- !.
 optimise(Parsed, Optimised, Options) :-
-	(   option(optimise(true), Options)
-	->  true
+	(   option(optimise(Optimise), Options)
+	->  Optimise == true
 	;   setting(cliopatria:optimise_query, true)
 	),
 	prolog_goal(Parsed, Goal0),
