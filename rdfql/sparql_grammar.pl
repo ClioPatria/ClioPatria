@@ -31,7 +31,9 @@
 :- module(sparql_grammar,
 	  [ sparql_parse/3		% +In, -Query, +Options
 	  ]).
+:- use_module(library(pure_input)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(error), [must_be/2]).
 :- use_module(library(lists)).
 :- use_module(library(assoc)).
 :- use_module(library(uri)).
@@ -84,13 +86,11 @@ syntax_error(What) :-
 	throw(error(syntax_error(What),
 		    context(_, 'in SPARQL query'))).
 
-syntax_error(What, In, []) :-
-	throw(error(syntax_error(What),
-		    context(_, left(In)))).
-
-add_error_location(error(syntax_error(What),
-			 context(_, left(After))),
+add_error_location(error(syntax_error(What), Location),
 		   Input) :-
+	subsumes_term(end_of_file-CharCount, Location),
+	end_of_file-CharCount = Location,
+	length(After, CharCount),
 	append(Before, After, Input),
 	length(Before, BL),
 	CLen = 80,
