@@ -26,6 +26,20 @@ do so, follow these steps:
   4. Run
        % update-rc.d <server> defaults
        % /etc/init.d/<server> start
+
+Permissions
+
+Ideally, the ClioPatria directory is owned by another user than the user
+used by the daemon. If the user of   the  daemon has no write access, it
+acts as a read-only service. Write access   may be given by changing the
+group of certain files to the  group   of  the daemon and allowing group
+write.  You may want to add write access to
+
+  - The RDF-store directory to allow adding persistent triples (otherwise
+    tiples may be added, but will not persist).
+  - The file settings.db to allow changing settings through the API.
+  - The file users.db to allow modifying the user database throuh th API
+  - The '.' directory to allow creating httpd.log.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 :- set_prolog_flag(verbose, silent).
