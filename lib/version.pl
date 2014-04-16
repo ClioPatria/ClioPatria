@@ -217,5 +217,9 @@ user:message_hook(make(done(_)), _, _) :-
 	bg_git_update_versions,
 	fail.
 
-:- initialization
-	bg_git_update_versions.
+% do not update versions in background because we need to fork
+:- if(current_predicate(http_unix_daemon:http_daemon/0)).
+:- initialization git_update_versions(_).
+:- else.
+:- initialization bg_git_update_versions.
+:- endif.
