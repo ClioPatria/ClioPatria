@@ -106,7 +106,10 @@ user:file_search_path(library, cliopatria(lib)).
 		applications(user),
 		applications(browse),
 		applications(flint),
-		applications(yasgui)
+		applications(yasgui),
+
+		library(conf_d),
+		user:library(cpack/cpack)
 	      ],
 	      [ silent(true),
 		if(not_loaded)
@@ -177,6 +180,7 @@ cp_server(_Options) :-
 		      cliopatria(server_already_running(DefPort))).
 cp_server(Options) :-
 	meta_options(is_meta, Options, QOptions),
+	load_application(QOptions),
 	load_settings('settings.db'),
 	set_prefix(QOptions),
 	attach_account_info,
@@ -225,6 +229,18 @@ update_public_port(Port, DefPort) :-
 	set_setting_default(http:public_port, Port),
 	assertion(setting(http:public_port, Port)).
 update_public_port(_, _).
+
+
+%%	load_application(+Options)
+%
+%	Load cpack and local configuration.
+
+load_application(_Options) :-
+	load_conf_d([ 'config-enabled' ], []),
+	(   exists_source(local)
+	->  ensure_loaded(local)
+	;   true
+	).
 
 
 %%	rdf_attach_store(+Options, :AfterLoad) is det.
