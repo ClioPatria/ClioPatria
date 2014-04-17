@@ -235,7 +235,14 @@ update_public_port(_, _).
 %
 %	Load cpack and local configuration.
 
-load_application(_Options) :-
+load_application(Options) :-
+	current_prolog_flag(verbose, Verbose),
+	setup_call_cleanup(
+	    set_prolog_flag(verbose, silent),
+	    load_application2(Options),
+	    set_prolog_flag(verbose, Verbose)).
+
+load_application2(_Options) :-
 	load_conf_d([ 'config-enabled' ], []),
 	(   exists_source(local)
 	->  ensure_loaded(local)
