@@ -2,9 +2,9 @@
 
 ## About
 
-ClioPatria is an extension of the SWI-Prolog RDF infratructure (`semweb'
-package) that provides you with a   ready-to-run  web-server that can be
-extended into a  full-fledged  Semantic   Web  application.  The  semweb
+ClioPatria  is  an  extension  of   the  SWI-Prolog  RDF  infrastructure
+(_semweb_ package) that provides you with a ready-to-run web-server that
+can be extended into a full-fledged Semantic Web application. The semweb
 package provides reading and writing RDF   (XML and Turtle), storage and
 querying by means of rdf(Subject,   Predicate,  Object). ClioPatria adds
 the following:
@@ -39,42 +39,42 @@ the following:
 ## Installation
 
 Basic installation merely  requires  installing   a  recent  version  of
-[[SWI-Prolog][http://www.swi-prolog.org]] and unpacking  ClioPatria (see
-_Downloading_ below).  Next, you can deploy it in two ways:
+[SWI-Prolog](http://www.swi-prolog.org) and unpacking   ClioPatria  (see
+_Downloading_ below). Next, you can deploy it in two ways:
 
 ### Installation as application
 
 Running ClioPatria as an application requires a few steps:
 
     1. Create the start-file run.pl from run.pl.in.  On Unix, this
-    is achieved by running =|./configure|= from the top directory.  On
-    Windows by double-clicking =|win-config.exe|=.
+    is achieved by running `./configure` from the top directory.  On
+    Windows by double-clicking `win-config.exe`.
 
     2. Optionally, pull in additional configuration files according to
     config-enabled/README.txt.  This can also be done later.
 
-    3. Start run.pl as =|./run.pl|= on Unix or double-clicking run.pl
+    3. Start run.pl as `./run.pl` on Unix or double-clicking run.pl
     on Windows and direct your browser to the indicated address (default
     is http://localhost:3020/.  If this is the first time, you will be
     asked to enter an _admin_ password. This protects some
     web-operations, such as managing settings and loading/unloading RDF.
 
 If you want to extend the application, there  are two options. One is to
-put a Prolog file with  the   desired  extensions in =|config-enabled|=.
+put a Prolog file  with  the   desired  extensions  in `config-enabled`.
 Another is to run configure/setup from   another directory. This creates
 run.pl and config-enabled in the current  working directory, after which
-the extensions can be placed in =|config-enabled|=.
+the extensions can be placed in `config-enabled`.
 
 #### Windows notes
 
-If the file name extension that is associated to SWI-Prolog is =pl=, you
-_may_  install  the  system  by    double-clicking  =|setup.pl|=  rather
-=|win-config.exe|=.
+If the file name extension that is associated to SWI-Prolog is `pl`, you
+_may_  install  the  system   by    double-clicking   `setup.pl`  rather
+`win-config.exe`.
 
 If the file name extension that  is   associated  to SWI-Prolog is _not_
-=pl=, =|win-config.exe|= is needed to   open SWI-Prolog on =|setup.pl|=.
-The installation will  create  a  =run=   script  with  the  appropriate
-extension (typically =pro=).
+`pl`, `win-config.exe` is needed to open   SWI-Prolog on `setup.pl`. The
+installation will create a `run` script   with the appropriate extension
+(typically `pro`).
 
 
 #### Use as library
@@ -90,25 +90,25 @@ dispatching HTTP requests.
 ## Downloading
 
 Currently,    ClioPatria    can    only      be    downloaded    through
-[[GIT][http://www.git-scm.com]]. The commands for downloading the system
-are:
+[GIT](http://www.git-scm.com). The commands for downloading the
+system are:
 
-    ==
-    git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
+    git clone https://github.com/SWI-Prolog/ClioPatria.git
     cd ClioPatria
     git submodule update --init web/FlintSparqlEditor
-    ==
 
 ## Further reading
 
 Many of the design issues around handling the Semantic Web in Prolog are
 described and motivated in Jan Wielemaker's PhD thesis
-[(PDF)(http://www.swi-prolog.org/download/publications/jan-phd.pdf)
+[(PDF)](http://www.swi-prolog.org/download/publications/jan-phd.pdf)
 as well as various
-[articles(http://www.swi-prolog.org/Publications.html).  RoadMap.txt
+[articles](http://www.swi-prolog.org/Publications.html).  RoadMap.txt
 explains the basic layout of the sources.
 
-@author	Jan Wielemaker
-@author Jacco van Ossenbruggen
-@author Michiel Hildebrand
+Authors:
+
+ - Jan Wielemaker
+ - Jacco van Ossenbruggen
+ - Michiel Hildebrand
 
