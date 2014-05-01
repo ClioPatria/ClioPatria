@@ -1,6 +1,6 @@
----+ The ClioPatria Semantic Web Toolkit
+# The ClioPatria Semantic Web Toolkit
 
----++ About
+## About
 
 ClioPatria is an extension of the SWI-Prolog RDF infratructure (`semweb'
 package) that provides you with a   ready-to-run  web-server that can be
@@ -36,13 +36,13 @@ the following:
     lib/semweb/rdf_abstract.pl to transform graphs represented as
     rdf(S,P,O) terms.
 
----++ Installation
+## Installation
 
 Basic installation merely  requires  installing   a  recent  version  of
 [[SWI-Prolog][http://www.swi-prolog.org]] and unpacking  ClioPatria (see
 _Downloading_ below).  Next, you can deploy it in two ways:
 
----+++ Installation as application
+### Installation as application
 
 Running ClioPatria as an application requires a few steps:
 
@@ -65,7 +65,7 @@ Another is to run configure/setup from   another directory. This creates
 run.pl and config-enabled in the current  working directory, after which
 the extensions can be placed in =|config-enabled|=.
 
----++++ Windows notes
+#### Windows notes
 
 If the file name extension that is associated to SWI-Prolog is =pl=, you
 _may_  install  the  system  by    double-clicking  =|setup.pl|=  rather
@@ -77,7 +77,7 @@ The installation will  create  a  =run=   script  with  the  appropriate
 extension (typically =pro=).
 
 
----+++ Use as library
+#### Use as library
 
 To use ClioPatria as a library,   one  can simply compile cliopatria.pl.
 The file run.pl as generated from   installation as an application gives
@@ -87,7 +87,7 @@ started in another way, as long as   the server uses http_dispatch/1 for
 dispatching HTTP requests.
 
 
----++ Downloading
+## Downloading
 
 Currently,    ClioPatria    can    only      be    downloaded    through
 [[GIT][http://www.git-scm.com]]. The commands for downloading the system
@@ -99,13 +99,13 @@ are:
     git submodule update --init web/FlintSparqlEditor
     ==
 
----++ Further reading
+## Further reading
 
 Many of the design issues around handling the Semantic Web in Prolog are
 described and motivated in Jan Wielemaker's PhD thesis
-[[(PDF)][http://www.swi-prolog.org/download/publications/jan-phd.pdf]]
+[(PDF)(http://www.swi-prolog.org/download/publications/jan-phd.pdf)
 as well as various
-[[articles][http://www.swi-prolog.org/Publications.html]].  RoadMap.txt
+[articles(http://www.swi-prolog.org/Publications.html).  RoadMap.txt
 explains the basic layout of the sources.
 
 @author	Jan Wielemaker
