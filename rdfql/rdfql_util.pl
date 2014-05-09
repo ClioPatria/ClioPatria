@@ -436,8 +436,8 @@ bind_number(V0, V) :-
 
 :- rdf_meta empty_aggregate(t).
 
-empty_aggregate(aggregate(count(_), literal(xsd:integer, 0))).
-empty_aggregate(aggregate(sum(_), literal(xsd:integer, 0))).
+empty_aggregate(aggregate(count(_), literal(type(xsd:integer, '0')))).
+empty_aggregate(aggregate(sum(_), literal(type(xsd:integer, '0')))).
 empty_aggregate(aggregate(group_concat(_,_), literal(''))).
 
 
