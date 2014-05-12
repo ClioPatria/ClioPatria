@@ -214,6 +214,9 @@ resolve_query(group(G), Q, S0, S) :- !,
 	resolve_query(Filters, Q1, S3, S),
 	mkconj(Q0, Q1, Q2),
 	steadfast(Q2, Q).
+resolve_query((A0,minus(B0)), sparql_minus(A,B), S0, S) :- !,
+	resolve_query(A0, A, S0, S1),
+	resolve_query(B0, B, S1, S).
 resolve_query((A0,B0), Q, S0, S) :- !,
 	resolve_query(A0, A, S0, S1),
 	resolve_query(B0, B, S1, S),
@@ -263,9 +266,6 @@ resolve_query(ebv(E0), Q, S0, S) :- !,
 resolve_query(filter(E0), true, S0, S) :- !,
 	state_filters(S0, F),
 	set_filters_of_state([ebv(E0)|F], S0, S).
-resolve_query(minus(QLeft0, QRight0), sparql_minus(QLeft, QRight), S0, S) :- !,
-	resolve_query(QLeft0, QLeft, S0, S1),
-	resolve_query(QRight0, QRight, S1, S).
 resolve_query(bind(Expr0, var(VarName)), Q, S0, S) :- !,
 	resolve_var(VarName, Var, S0, S1),
 	state_aggregates(S1, A1),
@@ -1700,7 +1700,7 @@ vars([]) --> "".
 
 %%	minus_graph_pattern(-Pattern) is det.
 
-minus_graph_pattern(Pattern) -->
+minus_graph_pattern(minus(Pattern)) -->
 	keyword("minus"),
 	must_see_group_graph_pattern(Pattern).
 
@@ -1752,9 +1752,6 @@ group_graph_pattern_sub_cont(PLeft, P) -->
 group_graph_pattern_sub_cont(PLeft, PLeft) --> "".
 
 group_graph_pattern_sub_cont_1(PLeft, P) -->
-	minus_graph_pattern(PRight), !,
-	{ P = minus(PLeft, PRight) }.
-group_graph_pattern_sub_cont_1(PLeft, P) -->
 	graph_pattern_not_triples(P0),
 	(   "."
 	->  skip_ws
@@ -1797,6 +1794,7 @@ optional_dot --> "".
 
 graph_pattern_not_triples(P) --> group_or_union_graph_pattern(P), !.
 graph_pattern_not_triples(P) --> optional_graph_pattern(P), !.
+graph_pattern_not_triples(P) --> minus_graph_pattern(P), !.
 graph_pattern_not_triples(P) --> graph_graph_pattern(P), !.
 graph_pattern_not_triples(P) --> service_graph_pattern(P), !.
 graph_pattern_not_triples(P) --> filter(P).
