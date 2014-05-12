@@ -46,6 +46,7 @@
 :- use_module(library(lists)).
 :- use_module(library(apply)).
 :- use_module(library(assoc)).
+:- use_module(library(ordsets)).
 :- use_module(library(uri)).
 :- use_module(library(dcg/basics)).
 :- if(exists_source(library(uuid))).
@@ -1387,7 +1388,8 @@ rdf_current_node(From) :-
 %	      both QLeft and QRight
 %	    - Substract those from QLeft that are in QRight
 %
-%	@tbd: Do variable sharing analysis to obtain the proper results.
+%	@tbd:	Both the result set and the minus set are in standard
+%		order of terms, so we can do ordered subtraction.
 
 sparql_minus(QLeft, QRight) :-
 	term_variables(QLeft,  VarsLeft0),  sort(VarsLeft0,  VarsLeft),
@@ -1395,15 +1397,16 @@ sparql_minus(QLeft, QRight) :-
 	ord_intersection(VarsLeft, VarsRight, VarsCommon),
 	(   VarsCommon == []
 	->  QLeft
-	;   VLeft =.. [v|VarsLeft],
+	;   ord_subtract(VarsLeft, VarsCommon, ExtraLeft),
+	    VLeft =.. [v|ExtraLeft],
 	    VCommon =.. [v|VarsCommon],
 	    findall(VCommon-VLeft, (QLeft,cond_bind_null(VarsLeft)), AllSols),
 	    AllSols \== [],
 	    sort(AllSols, AllSorted),
 	    findall(VCommon, (QRight,cond_bind_null(VarsCommon)), MinusSols),
 	    sort(MinusSols, MinusSorted),
-	    member(Common-VLeft, AllSorted),
-	    \+ memberchk(Common, MinusSorted)
+	    member(VCommon-VLeft, AllSorted),
+	    \+ memberchk(VCommon, MinusSorted)
 	).
 
 cond_bind_null([]).
