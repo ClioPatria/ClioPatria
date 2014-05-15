@@ -32,7 +32,7 @@
 :- module(rdf_entailment,
 	  [ rdf/3
 	  ]).
-:- use_module(rdfql(rdfql_runtime)). 	% runtime tests
+:- use_module(rdfql(rdfql_runtime)).	% runtime tests
 :- use_module(library(semweb/rdf_db),
 	      [ rdf_global_id/2,
 		rdf_subject/1,
@@ -60,9 +60,11 @@ This entailment module does only the core RDF inferences:
 rdf(S, P, O) :-
 	rdf_db:rdf(S, P, O).
 rdf(S, rdf:type, rdf:'Property') :-
+	var_or_resource(S),
 	rdf_current_predicate(S),
 	\+ rdf_db:rdf(S, rdf:type, rdf:'Property').
 rdf(S, rdf:type, rdfs:'Resource') :-
+	var_or_resource(S),
 	rdf_subject(S),
 	\+ rdf_db:rdf(S, rdf:type, rdfs:'Resource').
 rdf(S, serql:directSubClassOf, O) :- !,
@@ -71,6 +73,12 @@ rdf(S, serql:directType, O) :- !,
 	rdf_db:rdf(S, rdf:type, O).
 rdf(S, serql:directSubPropertyOf, O) :- !,
 	rdf_db:rdf(S, rdfs:subPropertyOf, O).
+
+var_or_resource(R) :-
+	(   var(R)
+	->  true
+	;   atom(R)
+	).
 
 
 		 /*******************************
