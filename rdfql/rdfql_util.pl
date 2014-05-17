@@ -438,6 +438,7 @@ bind_number(V0, V) :-
 
 empty_aggregate(aggregate(count(_), literal(type(xsd:integer, '0')))).
 empty_aggregate(aggregate(sum(_), literal(type(xsd:integer, '0')))).
+empty_aggregate(aggregate(distinct(_,count), literal(type(xsd:integer, '0')))).
 empty_aggregate(aggregate(group_concat(_,_), literal(''))).
 
 
