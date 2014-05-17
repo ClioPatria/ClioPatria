@@ -95,7 +95,7 @@ sparql_update(Request) :-
 %	sparql(.)       (by       default        =|/sparql/|=,       see
 %	library(http/http_path)).
 
-sparql_reply(Request, Query, _Graphs, ReqFormat, Entailment) :-
+sparql_reply(Request, Query, Graphs, ReqFormat, Entailment) :-
 	statistics(cputime, CPU0),
 	sparql_compile(Query, Compiled,
 		       [ type(Type),
@@ -103,6 +103,10 @@ sparql_reply(Request, Query, _Graphs, ReqFormat, Entailment) :-
 			 distinct(Distinct),
 			 entailment(Entailment)
 		       ]),
+	(   Compiled = update(_)
+	->  authorized(write(Graphs, sparql))
+	;   true
+	),
 	findall(R, sparql_run(Compiled, R), Rows),
 	statistics(cputime, CPU1),
 	CPU is CPU1 - CPU0,
