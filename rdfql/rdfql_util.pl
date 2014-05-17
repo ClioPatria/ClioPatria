@@ -1,9 +1,9 @@
 /*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
-    E-mail:        wielemak@science.uva.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2012, University of Amsterdam
+    Copyright (C): 2004-2014, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -334,7 +334,7 @@ aggregate([], Aggregates) :-
 aggregate_setup(count(X), Count) :-
 	aggregate_step(count(X), 0, Count).
 aggregate_setup(distinct(X, _Op), Set) :-
-	( X == '$null$' -> Set = [] ; Set = [X] ).
+	( is_null(X) -> Set = [] ; Set = [X] ).
 aggregate_setup(sum(X0), X) :-
 	sparql_eval_raw(X0, X).
 aggregate_setup(min(X0), X) :-
@@ -354,9 +354,9 @@ aggregate_steps([HT|T], State0, State) :-
 	aggregate_steps(T, State1, State).
 
 aggregate_step(count(X), Count0, Count) :-
-	( X == '$null$' -> Count = Count0 ; Count is Count0 + 1 ).
+	( is_null(X) -> Count = Count0 ; Count is Count0 + 1 ).
 aggregate_step(distinct(X, _Op), S0, S) :-
-	( X == '$null$' -> S = S0 ; S = [X|S0] ).
+	( is_null(X) -> S = S0 ; S = [X|S0] ).
 aggregate_step(sum(X), Sum0, Sum) :-
 	sparql_eval_raw(X+Sum0, Sum).
 aggregate_step(min(X), Min0, Min) :-
@@ -367,7 +367,7 @@ aggregate_step(avg(X), Sum0-Count0, Sum-Count) :-
 	sparql_eval_raw(X+Sum0, Sum),
 	Count is Count0+1.
 aggregate_step(sample(X), S0, S) :-
-	(   S0 == '$null$'
+	(   is_null(S0)
 	->  S = X
 	;   S = S0
 	).
@@ -475,6 +475,11 @@ distinct_x(count(distinct(X)), distinct(X, count)).
 distinct_x(count(sum(X)), distinct(X, sum)).
 distinct_x(count(avg(X)), distinct(X, avg)).
 
+is_null(X) :-
+	(   var(X)
+	->  true
+	;   X == '$null$'
+	).
 
 		 /*******************************
 		 *	     ENTAILMENT		*
