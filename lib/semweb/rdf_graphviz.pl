@@ -105,7 +105,10 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %	    * target(Target)
 %	    If present, add target=Target to all attribute lists that
 %	    have an =href= attribute.
-
+%
+%           * display_lang(+Boolean)
+%           Display the language of literal nodes, defaults to true.
+%
 :- meta_predicate
 	gviz_write_rdf(+,+,:).
 
@@ -268,7 +271,12 @@ write_node_attributes(Lit, Stream, Options) :-
 	shape(Lit, Shape, Options),
 	option(max_label_length(MaxLen), Options, 25),
 	literal_text(Lit, Text),
-	truncate_atom(Text, MaxLen, Summary),
+	truncate_atom(Text, MaxLen, Summary0),
+	(   ( option(display_lang(true), Options, true),
+	      Lit = literal(lang(Lang, _)))
+	->  atomic_list_concat([Summary0, '@', Lang], Summary)
+	;   Summary = Summary0
+	),
 	write_attributes([label(Summary)|Shape], Stream).
 
 target_option(Attrs0, Attrs, Options) :-
