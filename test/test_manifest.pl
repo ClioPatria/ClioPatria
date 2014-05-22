@@ -302,7 +302,7 @@ show_test_data(Name) :-
 	test_name(Test, Name), !,
 	show_test_data(Test).
 show_test_data(Test) :-
-	test_data_file(Test, File),
+	test_data_file(Test, File-_Graph), !,
 	read_file_to_codes(File, Codes, []),
 	format('~s', [Codes]).
 
