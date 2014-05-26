@@ -35,6 +35,7 @@
 :- use_module(library(lists)).
 :- use_module(library(rdf_write)).
 :- use_module(library(http/http_parameters)).
+:- use_module(library(http/http_client)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_request_value)).
 :- use_module(library(http/http_cors)).
@@ -74,6 +75,24 @@ sparql_query(Request) :-
 %	query requests, but the takes the   query  in the =update= field
 %	rather than in the =query= field.
 
+% Perform a SPARQL update via POST directly.
+% @compat SPARQL 1.1 Protocol recommendation, section 2.2.2.
+sparql_update(Request) :-
+	memberchk(content_type(ContentType), Request),
+	sub_atom(ContentType, 0, _, _, 'application/sparql-update'), !,
+	http_parameters(Request,
+			['default-graph-uri'(DefaultGraphs),
+			 'named-graph-uri'(NamedGraphs)
+			],
+			[attribute_declarations(sparql_decl)
+			]),
+	append(DefaultGraphs, NamedGraphs, Graphs),
+	http_read_data(Request, Query, []),
+	Entailment = none,
+	authorized(write(Graphs, sparql)),
+	sparql_reply(Request, Query, Graphs, _, Entailment).
+% Perform a SPARQL update via POST with URL-encoded parameters.
+% @compat SPARQL 1.1 Protocol recommendation, section 2.2.1.
 sparql_update(Request) :-
 	http_parameters(Request,
 			[ update(Query),
