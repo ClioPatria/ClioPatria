@@ -82,15 +82,16 @@ sparql_update(Request) :-
 	sub_atom(ContentType, 0, _, _, 'application/sparql-update'), !,
 	http_parameters(Request,
 			['default-graph-uri'(DefaultGraphs),
-			 'named-graph-uri'(NamedGraphs)
+			 'named-graph-uri'(NamedGraphs),
+			  format(ReqFormat),
+			  entailment(Entailment)
 			],
 			[attribute_declarations(sparql_decl)
 			]),
 	append(DefaultGraphs, NamedGraphs, Graphs),
 	http_read_data(Request, Query, []),
-	Entailment = none,
 	authorized(write(Graphs, sparql)),
-	sparql_reply(Request, Query, Graphs, _, Entailment).
+	sparql_reply(Request, Query, Graphs, ReqFormat, Entailment).
 % Perform a SPARQL update via POST with URL-encoded parameters.
 % @compat SPARQL 1.1 Protocol recommendation, section 2.2.1.
 sparql_update(Request) :-
