@@ -1059,7 +1059,7 @@ list_resource(Request) :-
 
 list_resource(URI, Options) -->
 	{ \+ option(raw(true), Options) },
-	cliopatria:list_resource(URI), !.
+	cliopatria:list_resource(URI, Options), !.
 list_resource(URI, Options) -->
 	{ option(graph(Graph), Options, _)
 	},

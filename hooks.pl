@@ -71,7 +71,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 	display_link//2,		% +RDFObject, +Options
 	resource_link/2,		% +URI, -URL
 
-	list_resource//1,		% +URI
+	list_resource//2,		% +URI, +Options
 
 	user_preference_db/2,		% ?Property, ?Value
 	user_preference_default/2,	% ?Property, ?Value
@@ -168,7 +168,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 		 *	    LOCAL VIEW		*
 		 *******************************/
 
-%%	list_resource(+URI)//
+%%	list_resource(+URI, +Options)//
 %
 %	This  hook  is  called   by  cpa_browse:list_resource//2,  which
 %	display the `local view' page for a   resource. This can be used
