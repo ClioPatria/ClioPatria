@@ -35,15 +35,12 @@
 	    context_graph//2		% +URI, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_path)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/http_json)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/yui_resources)).
 
-:- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_litindex)).
@@ -51,7 +48,6 @@
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
 :- use_module(library(error)).
-:- use_module(library(uri)).
 :- use_module(library(pairs)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
