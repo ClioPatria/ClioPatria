@@ -1050,12 +1050,21 @@ list_resource(Request) :-
 %	    * sorted(Sorted)
 %	    One of =default= or =none=.
 %
+%	Calls the hook cliopatria:list_resource//2.  For compatibility
+%	reasons, it also tries the hook cliopatria:list_resource//1.
+%
 %	@see	list_resource/1 is the corresponding HTTP handler.  The
 %		component rdf_link//1 creates a link to list_resource/1.
 
+:- multifile
+	cliopatria:list_resource//1.
+
 list_resource(URI, Options) -->
 	{ \+ option(raw(true), Options) },
-	cliopatria:list_resource(URI, Options), !.
+	(   cliopatria:list_resource(URI, Options)
+	->  []
+	;   cliopatria:list_resource(URI) % deprecated
+	).
 list_resource(URI, Options) -->
 	{ option(graph(Graph), Options, _)
 	},
