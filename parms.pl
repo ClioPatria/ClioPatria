@@ -86,6 +86,8 @@ user:file_search_path(html,		web(html)).
 user:file_search_path(help,		web(help)).
 user:file_search_path(tutorial,		web(tutorial)).
 user:file_search_path(flint,		web('FlintSparqlEditor/sparql')).
+user:file_search_path(yasqe,		web('yasqe/dist')).
+user:file_search_path(yasr,		web('yasr/dist')).
 
 
 		 /*******************************
@@ -97,10 +99,11 @@ http:location(sesame,	   root(servlets),     []).
 http:location(sparql,	   root(sparql),       []).
 http:location(rdf_browser, cliopatria(browse), []).
 http:location(flint,       cliopatria(flint),  []).
-http:location(yasgui,      cliopatria(yasgui), []).
 http:location(api,	   cliopatria(api),    []).
 http:location(json,	   api(json),	       []).
-
+http:location(yasgui,      cliopatria(yasgui), []).
+http:location(yasqe,	   cliopatria(yasqe),  []).
+http:location(yasr,	   cliopatria(yasr),   []).
 
 		 /*******************************
 		 *	       TYPES		*

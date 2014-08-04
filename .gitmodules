@@ -4,3 +4,9 @@
 [submodule "test/Tests/sparql-1.1"]
 	path = test/Tests/sparql-1.1
 	url = git://eculture.cs.vu.nl/home/git/misc/sparql-1.1-test-cases.git
+[submodule "web/yasqe"]
+	path = web/yasqe
+	url = https://github.com/YASGUI/YASQE.git
+[submodule "web/yasr"]
+	path = web/yasr
+	url = https://github.com/YASGUI/YASR.git
