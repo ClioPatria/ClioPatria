@@ -65,7 +65,8 @@ yasgui_editor(_Request) :-
 
 yasgui_page -->
 	{ http_link_to_id(sparql_query, [], SparqlLocation),
-	  http_link_to_id(json_prefixes, [], JSONPrefixes)
+	  http_link_to_id(json_prefixes, [], JSONPrefixes),
+	  http_link_to_id(list_resource, [], ListResource)
 	},
 	html_requires(yasqe('yasqe.min.js')),
 	html_requires(yasqe('yasqe.min.css')),
@@ -75,7 +76,7 @@ yasgui_page -->
 	       div(id(yasr), [])
 	     ]),
 
-	js_script({|javascript(SparqlLocation, JSONPrefixes)||
+	js_script({|javascript(SparqlLocation, JSONPrefixes, ListResource)||
 		   window.onload=function(){
   var yasqe = YASQE(document.getElementById("yasqe"), {
 				 sparql: { endpoint: SparqlLocation,
@@ -104,6 +105,15 @@ yasgui_page -->
     }
     return prefixmap;
   }
+
+  YASR.plugins.table.defaults.handlers.onCellClick = function(td, event) {
+    var href = $(td).find("a").attr("href");
+
+    if (href) {
+      window.location = ListResource + "?r=" + encodeURIComponent(href);
+      event.preventDefault();
+    }
+  };
 
   var yasr = YASR(document.getElementById("yasr"), {
     getUsedPrefixes: usedPrefixes
