@@ -34,6 +34,8 @@
 :- use_module(library(http/http_server_files)).
 :- use_module(library(http/html_head)).
 
+:- use_module(api(json)).		% get /json/prefixes
+
 :- http_handler(yasgui('index.html'), yasgui_editor, []).
 :- http_handler(yasqe(.), serve_files_in_directory(yasqe), [prefix]).
 :- http_handler(yasr(.), serve_files_in_directory(yasr), [prefix]).
@@ -62,7 +64,8 @@ yasgui_editor(_Request) :-
 	    \yasgui_page).
 
 yasgui_page -->
-	{ http_link_to_id(sparql_query, [], SparqlLocation)
+	{ http_link_to_id(sparql_query, [], SparqlLocation),
+	  http_link_to_id(json_prefixes, [], JSONPrefixes)
 	},
 	html_requires(yasqe('yasqe.min.js')),
 	html_requires(yasqe('yasqe.min.css')),
@@ -72,18 +75,39 @@ yasgui_page -->
 	       div(id(yasr), [])
 	     ]),
 
-	js_script({|javascript(SparqlLocation)||
+	js_script({|javascript(SparqlLocation, JSONPrefixes)||
 		   window.onload=function(){
   var yasqe = YASQE(document.getElementById("yasqe"), {
 				 sparql: { endpoint: SparqlLocation,
 					   showQueryButton: true
 					 }
 			     });
+
+  var serverPrefixes;			// TBD: re-fetch if out-of-date?
+
+  $.ajax({ url: JSONPrefixes,
+	   dataType: "json",
+	   contentType: 'application/json',
+	   success: function(data, status) {
+			serverPrefixes = data;
+		    }
+	 });
+
+  function usedPrefixes() {
+    var prefixmap = yasqe.getPrefixesFromQuery();
+    if ( serverPrefixes ) {
+      for(var key in serverPrefixes) {
+	var yasrKey = key+":";
+        if ( !prefixmap[yasrKey] )
+	  prefixmap[yasrKey] = serverPrefixes[key];
+      }
+    }
+    return prefixmap;
+  }
+
   var yasr = YASR(document.getElementById("yasr"), {
-  // this way, the URLs in the results are prettified using
-  // the defined prefixes in the query
-			       getUsedPrefixes: yasqe.getPrefixesFromQuery
-			   });
+    getUsedPrefixes: usedPrefixes
+  });
 
   /**
   * Set some of the hooks to link YASR and YASQE
