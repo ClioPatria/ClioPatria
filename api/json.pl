@@ -39,6 +39,7 @@
 :- use_module(library(http/http_json)).
 
 :- http_handler(json(describe), json_describe, []).
+:- http_handler(json(prefixes), json_prefixes, []).
 
 /* <module> Describe resources in JSON
 
@@ -70,7 +71,7 @@ json_describe(Request) :-
 			      [ %oneof([cbd, scdb, ifcbd, lcbd, hcbd]),
 				oneof([cbd]),
 				default(cbd),
-				description('Algorithm that determines \
+				description('Algorithm that determines \c
 					     the description')
 			      ])
 			]),
@@ -78,4 +79,13 @@ json_describe(Request) :-
 	graph_json(Graph, JSON),
 	reply_json(JSON).
 
+%%	json_prefixes(+Request)
+%
+%	Return a JSON object mapping prefixes to URIs.
 
+json_prefixes(_Request) :-
+	findall(Prefix-URI,
+		rdf_current_ns(Prefix, URI),
+		Pairs),
+	dict_pairs(Dict, prefixes, Pairs),
+	reply_json(Dict).
