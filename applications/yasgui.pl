@@ -86,14 +86,6 @@ yasgui_page -->
 
   var serverPrefixes;			// TBD: re-fetch if out-of-date?
 
-  $.ajax({ url: JSONPrefixes,
-	   dataType: "json",
-	   contentType: 'application/json',
-	   success: function(data, status) {
-			serverPrefixes = data;
-		    }
-	 });
-
   function usedPrefixes() {
     var prefixmap = yasqe.getPrefixesFromQuery();
     if ( serverPrefixes ) {
@@ -115,9 +107,20 @@ yasgui_page -->
     }
   };
 
-  var yasr = YASR(document.getElementById("yasr"), {
-    getUsedPrefixes: usedPrefixes
-  });
+  var yasr = {};
+
+  $.ajax({ url: JSONPrefixes,
+	   dataType: "json",
+	   contentType: 'application/json',
+	   success: function(data, status) {
+			serverPrefixes = data;
+		    },
+	   complete: function() {
+			yasr = YASR(document.getElementById("yasr"), {
+			  getUsedPrefixes: usedPrefixes
+			});
+		     }
+	 });
 
   /**
   * Set some of the hooks to link YASR and YASQE
