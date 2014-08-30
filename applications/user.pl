@@ -336,11 +336,9 @@ load_library_rdf_form(Request) :-
 	authorized(read(status, listBaseOntologies)),
 	get_base_ontologies(Request, Ontologies),
 	reply_html_page(cliopatria(default),
-			title('Load base ontology'),
-			[ h1('Load ontology from repository'),
-
-			  p('Select an ontology from the registered libraries'),
-
+			title('Load server-side RDF library'),
+			[ h1('Load a registered RDF library'),
+			  p('Select a resource from the registered libraries'),
 			  \load_base_ontology_form(Ontologies)
 			]).
 
@@ -409,7 +407,7 @@ get_base_ontologies(Request, List) :-
 
 clear_repository_form(_Request) :-
 	reply_html_page(cliopatria(default),
-			title('Load base ontology'),
+			title('Clear triple store'),
 			[ h1('Clear entire repository'),
 
 			  p(['This operation removes ', b(all), ' triples from \c
@@ -433,7 +431,7 @@ clear_repository_form(_Request) :-
 
 remove_statements_form(_Request) :-
 	reply_html_page(cliopatria(default),
-			title('Load base ontology'),
+			title('Remove triples from store'),
 			[ h1('Remove statements'),
 
 			  p(['Remove matching triples from the database.  The three ',
