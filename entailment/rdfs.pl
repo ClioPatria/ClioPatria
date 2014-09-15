@@ -143,6 +143,10 @@ rdfs_has_type(Resource, Class) :-
 		rdf_has(P, rdfs:domain, Class)
 	    ;	rdf_db:rdf(_, P, Resource),
 		rdf_has(P, rdfs:range, Class)
+	    ;	rdf_db:rdf(Resource, rdfs:subPropertyOf, _),
+		rdf_equal(Class, rdf:'Property')
+	    ;	rdf_db:rdf(_, rdfs:subPropertyOf, Resource),
+		rdf_equal(Class, rdf:'Property')
 	    ),
 	    add_nb_set(Class, Set, New),
 	    New == true
