@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2012, University of Amsterdam
+    Copyright (C): 2004-2014, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -532,6 +532,8 @@ op(regex(A, simple_literal(Pat)), boolean(Result)) :-
 	string_op(A, Result, regex(Pat, '')).
 op(regex(A, simple_literal(Pat), simple_literal(Flags)), boolean(Result)) :-
 	string_op(A, Result, regex(Pat, Flags)).
+op(compiled_regex(Regex, A), boolean(Result)) :-
+	string_op(A, Result, compiled_regex(Regex)).
 op(replace(simple_literal(Input),
 	   simple_literal(Pattern),
 	   simple_literal(Replace),
@@ -861,6 +863,11 @@ atom_op(ucase, A, U) :-
 	upcase_atom(A, U).
 atom_op(lcase, A, U) :-
 	downcase_atom(A, U).
+atom_op(compiled_regex(Regex), Data, Matches) :-
+	(   compiled_regex(Regex, Data)
+	->  Matches = true
+	;   Matches = false
+	).
 atom_op(regex(Pat, Flags), Data, Matches) :-
 	(   regex(Data, Pat, Flags)
 	->  Matches = true
@@ -1187,6 +1194,16 @@ make_regex(Pattern, i, Regex) :- !,
 make_regex(Pattern, _, Regex) :- !,
 	new(Regex, regex(Pattern)).
 
+%%	compiled_regex(+Compiled, +Text) is semidet.
+%
+%	Test using a regex that has   been  prepared. Compiled takes the
+%	following forms:
+%
+%	  - XPCE object
+
+compiled_regex(@(Regex), String) :-
+	send(@(Regex), search, string(String)).
+
 %%	regex_replace(+Input, +Pattern, +Replace, +Flags, -Result)
 
 regex_replace(Input, Pattern, Replace0, Flags, Result) :-
@@ -1508,12 +1525,23 @@ simplify_expression(Term0, Term) :-
 	compound(Term0), !,
 	Term0 =.. [Name|Args0],
 	maplist(simplify_expression, Args0, Args),
-	Term =.. [Name|Args].
+	Term1 =.. [Name|Args],
+	simplify_test(Term1, Term).
 simplify_expression(Term, Term).
 
 list_arg(concat(_)).
 list_arg(coalesce(_)).
 
+%%	simplify_test(+Expr0, -Expr) is det.
+%
+%	Perform analysis on specific tests.   Currently  optimizes regex
+%	tests.
+
+simplify_test(regex(String, simple_literal(Pattern), simple_literal(Flags)),
+	      compiled_regex(Regex, String)) :-
+	atom(Pattern), atom(Flags), !,
+	regex_obj(Pattern, Flags, Regex).
+simplify_test(Expr, Expr).
 
 %%	simplify_eval(+Expr, +Value, -Goal) is semidet.
 
