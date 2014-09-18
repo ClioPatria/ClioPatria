@@ -41,6 +41,7 @@
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
 :- use_module(library(apply)).
+:- use_module(library(xsdp_types)).
 :- use_module(sparql_runtime).
 
 :- meta_predicate
@@ -192,7 +193,12 @@ simplify_sort_key(List, Term) :-
 %	    1. undefined/null
 %	    2. blank nodes
 %	    3. IRIs
-%	    4. RDF Literals by their plain value (simple literal)
+%	    4. RDF Literals
+%	       a. Numbers are mapped to their value space
+%	       b. Other literals are mapped to their plain literal.
+%	          Note that this works fine for some types:
+%	          - xsd:date and variants
+%	          - xsd:boolean
 %
 %	@bug This is not good enough. Literals must be compared in their
 %	value-space.  This requires some study.
@@ -209,8 +215,11 @@ sort_key(IRI, sk(N, IRI)) :-
 	;   N = 3
 	).
 
-simple_literal(lang(_Lang, SL), SL).
-simple_literal(type(_Type, SL), SL).
+simple_literal(lang(_Lang, SL), SL) :- !.
+simple_literal(type(Type, SL), Number) :-
+	xsdp_numeric_uri(Type, _),
+	atom_number(SL, Number), !.
+simple_literal(type(_Type, SL), SL) :- !.
 simple_literal(SL, SL).
 
 
