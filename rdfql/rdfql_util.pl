@@ -101,19 +101,20 @@ select_results(Distinct, Offset, Limit, SortBy, Result, Goal) :-
 select_results(Distinct, [], _:true, [], Offset, Limit,
 	       order_by(Cols), Result, Goal) :-
 	exclude(ground, Cols, SortCols), SortCols \== [], !,
-	reverse(SortCols, RevSortCols),
-	group_order(RevSortCols, GroupedCols),
-	maplist(sort_key_goal, GroupedCols, GroupedKeys, KeyGenList),
+	group_order(SortCols, GroupedCols),
+	reverse(GroupedCols, RevGroupedCols),
+	maplist(sort_key_goal, RevGroupedCols, GroupedKeys, KeyGenList),
 	list_conj(KeyGenList, KeyGenGoal),
-	findall(GroupedKeys-Result, (Goal,rdfql_util:KeyGenGoal), Results0),
+	sort_template(GroupedKeys, Result, Template),
+	findall(Template, (Goal,rdfql_util:KeyGenGoal), Results0),
 	(   Distinct == distinct
 	->  sort(Results0, Results1)
 	;   Results1 = Results0
 	),
-	order_by(GroupedCols, Results1, Results2),
+	order_by(RevGroupedCols, Results1, Results2),
 	apply_offset(Offset, Results2, Results3),
 	apply_limit(Limit, Results3, Results),
-	member(_Key-Result, Results).
+	member(Result, Results).
 
 %%	group_order(+Cols, -GroupedCols) is det.
 %
@@ -139,36 +140,29 @@ list_conj([G|T0], (G,T)) :-
 	list_conj(T0, T).
 
 
-
 %%	order_by(+Cols, +Results0, -Results) is det.
 %
-%	Order the results.  Cols is a list of ascending(Var) or
-%	descending(Var).  We need to
-
+%	Order  the  results.  Cols  is  a   list  of  ascending(Var)  or
+%	descending(Var). Note that the sorting is   done  with the least
+%	importing (right most) order declaration first and relies on the
+%	fact that keysort/2 is stable wrt to ordering the values.
+%
+%	@tbd	For DESC sorting, we need to reverse, but not the
+%		order inside the groups.  We'd need a reverse keysort/2.
 
 order_by([], Results, Results).
 order_by([ascending(_)|T], Results0, Results) :- !,
 	keysort(Results0, Results1),
-	(   T == []
-	->  Results = Results1
-	;   maplist(truncate_key, Results1, Results2),
-	    order_by(T, Results2, Results)
-	).
+	pairs_values(Results1, Results2),
+	order_by(T, Results2, Results).
 order_by([descending(_)|T], Results0, Results) :-
-	keysort(Results0, Results1),
-	reverse(Results1, Results2),
-	(   T == []
-	->  Results = Results2
-	;   maplist(truncate_key, Results2, Results3),
-	    order_by(T, Results3, Results)
-	).
+	keysort(Results0, AscSorted),
+	group_pairs_by_key(AscSorted, Grouped),
+	reverse(Grouped, DescSortedKeyedGroups),
+	pairs_values(DescSortedKeyedGroups, DescSortedGroups),
+	append(DescSortedGroups, DescSorted),
+	order_by(T, DescSorted, Results).
 
-%%	truncate_key(Keyed, Truncated)
-%
-%	Delete one level of the  key.   Because  keysort  is stable, the
-%	implied order is not changed anymore.
-
-truncate_key([_|Key]-V, Key-V).
 
 %%	sort_key_goal(+ColGroup, -KeyGroup, -Translate)
 
@@ -181,6 +175,14 @@ sort_expr_goal([V], [K], sort_key(V,K)) :- !.
 sort_expr_goal([V|TV], [K|TK], (sort_key(V,K),G)) :-
 	sort_expr_goal(TV, TK, G).
 
+sort_template([], Result, Result).
+sort_template([H0|T], Result, H-Template) :-
+	simplify_sort_key(H0, H),
+	sort_template(T, Result, Template).
+
+simplify_sort_key([One], One) :- !.
+simplify_sort_key(List, Term) :-
+	Term =.. [v|List].
 
 %%	sort_key(+Result, -Key) is det.
 %
