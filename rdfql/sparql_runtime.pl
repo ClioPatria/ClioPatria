@@ -528,15 +528,10 @@ op(langmatches(simple_literal(Lang),
 	       simple_literal(Pat)),
    boolean(Result)) :-
 	(lang_matches(Lang, Pat) -> Result = true ; Result = false).
-op(regex(simple_literal(Pat),
-	 simple_literal(String)),
-   boolean(Result)) :-
-	(regex(Pat, String, '') -> Result = true ; Result = false).
-op(regex(simple_literal(Pat),
-	 simple_literal(String),
-	 simple_literal(Flags)),
-   boolean(Result)) :-
-	(regex(Pat, String, Flags) -> Result = true ; Result = false).
+op(regex(A, simple_literal(Pat)), boolean(Result)) :-
+	string_op(A, Result, regex(Pat, '')).
+op(regex(A, simple_literal(Pat), simple_literal(Flags)), boolean(Result)) :-
+	string_op(A, Result, regex(Pat, Flags)).
 op(replace(simple_literal(Input),
 	   simple_literal(Pattern),
 	   simple_literal(Replace),
@@ -866,6 +861,11 @@ atom_op(ucase, A, U) :-
 	upcase_atom(A, U).
 atom_op(lcase, A, U) :-
 	downcase_atom(A, U).
+atom_op(regex(Pat, Flags), Data, Matches) :-
+	(   regex(Data, Pat, Flags)
+	->  Matches = true
+	;   Matches = false
+	).
 
 %%	atom_op(+Op, +Atom, +Arg, -Result).
 
