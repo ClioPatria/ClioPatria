@@ -1,51 +1,34 @@
----+ Downloading ClioPatria
+# Downloading ClioPatria
 
 ClioPatria can be downloaded using the [[GIT][http://git-scm.com/]]
 version control system only. Why? Because ClioPatria's package manager
 CPACK is based on GIT, so you need GIT anyway.
 
----++ Step one, get GIT
+## Step one, get GIT
 
-First install GIT for for your platform. On Windows, there are two
-versions. We assume
-[[msysgit][http://code.google.com/p/msysgit/downloads/list?can=3]],
-which has become the preferred version on the GIT download page as well.
-Linux systems have a package, often called =|git-core|=, so Debian or
-Ubuntu you use
+You probably already have GIT. Otherwise go to its
+[home](http://git-scm.com/).
 
-    ==
-    % sudo apt-get install git-core
-    ==
+## Step two, get SWI-Prolog
 
-You need at least version 1.6 of GIT!
-
----++ Step two, get SWI-Prolog
-
-Download and install [[SWI-Prolog][http://www.swi-prolog.org]]. As
-ClioPatria and its packages are under active development, you often need
-the [[development version][http://www.swi-prolog.org/download/devel]] of
-SWI-Prolog.
+Download and install [[SWI-Prolog][http://www.swi-prolog.org]]. Most
+of the time, the [development
+version](http://www.swi-prolog.org/download/devel) of SWI-Prolog is
+your safest choice to enjoy all features.
 
 [[alert.gif]] In particular, binary packages provided by most Linux
 distributions are often too far behind. We advice to install the latest
-development version from source.
+development version from source.  It you run Ubuntu, we provide
+[PPAs for releases](http://www.swi-prolog.org/build/Debian.txt).
 
-
----++ Step three, download ClioPatria
+## Step three, download ClioPatria
 
 With GIT installed, this is simple. Open a terminal in the right
 directory and run the command below, which creates a directory
 =ClioPatria= in the current directory.
 
     ==
-    % git clone git://www.swi-prolog.org/home/pl/git/ClioPatria.git
+    % git clone https://github.com/ClioPatria/ClioPatria.git
     ==
-
-[[alert.gif]] This may not work if you are behind a firewall. The git
-native protocol uses port 9418. If you cannot access external hosts at
-this port you can replace =|git://|= by =|http://|=.
-
-You can also [[browse][http://www.swi-prolog.org/git/ClioPatria.git]]
-the sources online.
 
 @see Next step: [[create a project][<CreateProject.html>]]!
