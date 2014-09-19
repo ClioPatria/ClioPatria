@@ -630,7 +630,7 @@ cpack_create(Name, Title, Options) :-
 	cpack_load_profile,
 	option(type(Type), Options, package),
 	option(description(Descr), Options,
-	       'Package description goes here.  You can use PlDoc markup.'),
+	       'Package description goes here.  You can use markdown.'),
 	package_class_id(Type, PkgClass),
 	default_bindings(default, Name, DefaultBindings),
 	merge_options(Options,
@@ -697,17 +697,39 @@ git_setup_push(Dir, Vars) :-
 					\tremote = origin\n\c
 					\tmerge = refs/heads/master\n', []),
 			   close(Out)),
-	catch(git_create_origin(PushURL, Title), E,
-	      print_message(error, E)).
+	catch(git_create_origin(Dir, PushURL, Title), E, true),
+	(   var(E)
+	->  true
+	;   subsumes_term(error(existence_error(source_sink, path(Exe)), _), E)
+	->  print_message(error, cpack(missing_program(Exe)))
+	;   print_message(error, E)
+	).
 git_setup_push(_,_).
 
-%%	git_create_origin(+PushURL, +Title) is det.
+%%	git_create_origin(+Dir, +PushURL, +Title) is det.
 %
 %	Try to create the repository origin. As the user has setup push,
 %	we hope he setup SSH appropriately. Note that this only works if
 %	the remote user has a real shell and not a git-shell.
+%
+%	When using GitHub, PushURL is
+%
+%	  ==
+%	  git@github.com:<user>/@CPACK@.git
+%	  https://github.com/<user>/@CPACK@.git
+%	  ==
 
-git_create_origin(PushURL, Title) :-
+git_create_origin(Dir, PushURL, Title) :-
+	(   atom_concat('git@github.com:', UserPath, PushURL)
+	->  true
+	;   atom_concat('https://github.com/', UserPath, PushURL)
+	),
+	atomic_list_concat([_User, RepoGit], /, UserPath),
+	file_name_extension(Repo, git, RepoGit), !,
+	process_create(path(hub), [create, Repo, '-d', Title],
+		       [ cwd(Dir)
+		       ]).
+git_create_origin(_Dir, PushURL, Title) :-
 	uri_components(PushURL, Components),
 	uri_data(scheme, Components, Scheme),
 	(   Scheme == ssh
@@ -773,6 +795,8 @@ cpack_template(library('cpack/DEFAULTS.in'),
 	       'config-available/DEFAULTS').
 cpack_template(library('cpack/pack.ttl.in'),
 	       'rdf/cpack/@NAME@.ttl').
+cpack_template(library('cpack/README.md.in'),
+	       'README.md').
 
 
 		 /*******************************
@@ -854,7 +878,12 @@ message(add_remote(Name, URL)) -->
 	[ 'Running "git remote add ~w ~w ..."'-[Name, URL] ].
 message(action(G)) -->
 	[ '~q'-[G] ].
-
+message(missing_program(hub)) --> !,
+	[ 'Cannot find the GitHub command line utility "hub".'-[], nl,
+	  'See https://hub.github.com/ for installation instructions'-[]
+	].
+message(missing_program(Prog)) -->
+	[ 'Cannot find helper program "~w".'-[Prog] ].
 sub_packages([]) --> [].
 sub_packages([H|T]) --> sub_package(H), sub_packages(T).
 
