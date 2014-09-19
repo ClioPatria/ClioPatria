@@ -6,10 +6,24 @@ to the structure used by ClioPatria (see [[RoadMap][RoadMap.txt]]).  The
 
 ---++ Using cpack_create/3.
 
-The predicate cpack_create/3 requires a bit of setup. First of all, it
-works best if you have a machine on which you can login through *ssh*
-and from which GIT repositories can be accessed through the *|git://|*
-protocol. If you have that, create a CPACK [[profile][profile.txt]],
+The predicate cpack_create/3 requires a bit of setup. You need a place
+where you can host a git repository that
+
+  - Is accessible from the ClioPatria cpack server for cloning without
+    authentication.
+  - Can be accessed through SSH to create a repository.
+
+The setup currently deals with two scenarios:
+
+  1. Using GitHub public repositories.  This is accessible for anyone
+     wishing to create a [GitHub](http://www.github.com) account.  You
+     need to install the [hub command
+     line utility](https://hub.github.com/)
+
+  2. You have SSH access to a machine that has =git daemon= installed,
+     providing public access to repositories using =|git://|= URLs.
+
+If you have one of the above, create a CPACK [[profile][profile.txt]],
 notably fill out the defaultAuthor and repository-templates. Now simply
 run e.g.,:
 
@@ -18,9 +32,10 @@ run e.g.,:
   ==
 
 This creates a package skeleton in cpack/my_package and initialises this
-as a GIT repository. If ssh setup is properly configured, it will also
-create the remote repository and setup the proper git remotes to allow
-you pushing into it.
+as a GIT repository. If _hub_ or ssh setup is properly configured, it
+will also create the remote repository and setup the proper git remotes
+to allow you pushing into it.  *Otherwise, you need to create the target
+repository by hand.*
 
 Next, complete the skeleton and add your files. Then configure the
 package and install it in your ClioPatria copy using cpack_configure/1

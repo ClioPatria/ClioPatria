@@ -23,9 +23,15 @@ an example profile.  Here are the key properties:
     you can define a simple profile here.  This *must* include =|foaf:mbox|=
     or =|foaf:mbox_sha1sum|=.
     * *|cpack:fetchRepositoryTemplate|* Used to instantiate the
-    default GIT URL from which the new package is publically available
+    default GIT URL from which the new package is publically available.
+    The repositiory must be reachable from the cpack server for
+    cloning without authorization. For example,
+    [GitHub](http://github.com) =|https://|= URL or a =|git://|=
+    where the server allows public access.
     * *|cpack:pushRepositoryTemplate|* Used to setup a remote respository
-    for pushing to the repository above.
+    for pushing to the repository above. This is normally an SSH enabled
+    url, such as =|git@github.com:JohnProgrammer/pack.git|= or
+    =|ssh://john@programmer.com:git/ClioPatria/pack.git|=.
 
 ==
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -42,11 +48,13 @@ an example profile.  Here are the key properties:
   cpack:name "default" ;
   cpack:defaultAuthor <john> ;
   cpack:fetchRepositoryTemplate
-	"git://server.programmers.org/git/ClioPatria/@CPACK@.git" ;
+	"https://github.com//JohnProgrammer/@CPACK@.git" ;
   cpack:pushRepositoryTemplate
-	"ssh://john@server:git/ClioPatria/@CPACK@.git" ;
+	"git@github.com:JohnProgrammer/@CPACK@.git" ;
   cpack:servers
 	( <http://cliopatria.swi-prolog.org>
 	) ;
 ] .
 ==
+
+@see [Create a CPACK](<Creating.txt>)
