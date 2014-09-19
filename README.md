@@ -9,7 +9,7 @@ package provides reading and writing RDF   (XML and Turtle), storage and
 querying by means of rdf(Subject,   Predicate,  Object). ClioPatria adds
 the following:
 
-    $ A SPARQL server :
+    - A SPARQL server <br>
     This processes HTTP SPARQL requests.  The server also includes
     support for SeRQL and the Sesame (www.openrdf.org) HTTP protocol.
 
