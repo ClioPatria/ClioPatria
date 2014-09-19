@@ -92,6 +92,10 @@ rdf_bounded_description(Expand, Type, S, Graph) :-
 	phrase(new_bnodes(Graph, Map0), BN),
 	phrase(r_bnodes(BN, Type, Expand, Map0, _Map), BNG).
 
+:- meta_predicate
+	expansion(+, 3, +, -, ?),
+	r_bnodes(+, +, 3, +, -, ?, ?).
+
 expansion(cbd, Expand, S, RDF, Tail) :-
 	findall(rdf(S,P,O), call(Expand, S,P,O), RDF, Tail).
 expansion(scbd, Expand, S, RDF, Tail) :-
@@ -150,6 +154,9 @@ graph_CBD(Expand, Graph0, Graph) :-
 	must_be(list, Graph0),
 	phrase(gr_cbd(Graph0, Expand, Map0, _Map), Graph).
 
+:- meta_predicate
+	gr_cbd(+, 3, +, -, ?, ?).
+
 gr_cbd([], _, Map, Map) -->
 	[].
 gr_cbd([rdf(S,P,O)|T], Expand, Map0, Map) -->
@@ -175,6 +182,10 @@ rdf_include_reifications(Expand, Graph0, Graph) :-
 	    rdf_include_reifications(Expand, Statements1, Graph1),
 	    append(Graph0, Graph1, Graph)
 	).
+
+:- meta_predicate
+	reified_triples(+, 3, ?, ?),
+	reification(?,?,?,3,-).
 
 reified_triples([], _) --> [].
 reified_triples([rdf(S,P,O)|T], Expand) -->
@@ -210,6 +221,10 @@ rdf_include_labels(Expand, Graph0, Graph) :-
 	->  Graph = Graph0
 	;   append(Graph0, LabelRDF, Graph)
 	).
+
+:- meta_predicate
+	label_triples(+, 3, ?, ?),
+	label_triple(+, 3, -).
 
 label_triples([], _) --> [].
 label_triples([rdf(_,_,O)|T], Expand) -->
