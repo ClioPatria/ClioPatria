@@ -9,32 +9,32 @@ package provides reading and writing RDF   (XML and Turtle), storage and
 querying by means of rdf(Subject,   Predicate,  Object). ClioPatria adds
 the following:
 
-    - A SPARQL server <br>
-    This processes HTTP SPARQL requests.  The server also includes
-    support for SeRQL and the Sesame (www.openrdf.org) HTTP protocol.
+  - *A SPARQL server*
+  This processes HTTP SPARQL requests.  The server also includes
+  support for SeRQL and the Sesame (www.openrdf.org) HTTP protocol.
 
-    $ Reasoning libraries :
-    Called entailment modules.  See entailment/README.txt
+  - *Reasoning libraries*
+  Called entailment modules.  See entailment/README.txt
 
-    $ User administration :
-    Create users, provide OpenID services, use external OpenID
-    authorization and connect users to right-tokens.
+  - *User administration*
+  Create users, provide OpenID services, use external OpenID
+  authorization and connect users to right-tokens.
 
-    $ A web-based developers front-end :
-    This provides provides browsing the RDF, loading and unloading
-    graphs, testing queries interactively, browsing the documentation of
-    HTTP services and source-code.
+  - *A web-based developers front-end*
+  This provides provides browsing the RDF, loading and unloading
+  graphs, testing queries interactively, browsing the documentation of
+  HTTP services and source-code.
 
-    $ Web-page generation components :
-    Server-side components to render an RDF resource or literals with
-    a link to the development UI, render simple graphs, etc.
+  - *Web-page generation components*
+  Server-side components to render an RDF resource or literals with
+  a link to the development UI, render simple graphs, etc.
 
-    $ Additional libraries :
-    These are additional components to the http and semweb libraries
-    that may become part of SWI-Prolog in the future.  Examples are
-    lib/semweb/rdf_optimise.pl to optimise rdf-control-structures and
-    lib/semweb/rdf_abstract.pl to transform graphs represented as
-    rdf(S,P,O) terms.
+  - *Additional libraries*
+  These are additional components to the http and semweb libraries
+  that may become part of SWI-Prolog in the future.  Examples are
+  lib/semweb/rdf_optimise.pl to optimise rdf-control-structures and
+  lib/semweb/rdf_abstract.pl to transform graphs represented as
+  rdf(S,P,O) terms.
 
 ## Installation
 
@@ -46,18 +46,18 @@ _Downloading_ below). Next, you can deploy it in two ways:
 
 Running ClioPatria as an application requires a few steps:
 
-    1. Create the start-file run.pl from run.pl.in.  On Unix, this
-    is achieved by running `./configure` from the top directory.  On
-    Windows by double-clicking `win-config.exe`.
+  1. Create the start-file run.pl from run.pl.in.  On Unix, this
+  is achieved by running `./configure` from the top directory.  On
+  Windows by double-clicking `win-config.exe`.
 
-    2. Optionally, pull in additional configuration files according to
-    config-enabled/README.txt.  This can also be done later.
+  2. Optionally, pull in additional configuration files according to
+  config-enabled/README.txt.  This can also be done later.
 
-    3. Start run.pl as `./run.pl` on Unix or double-clicking run.pl
-    on Windows and direct your browser to the indicated address (default
-    is http://localhost:3020/.  If this is the first time, you will be
-    asked to enter an _admin_ password. This protects some
-    web-operations, such as managing settings and loading/unloading RDF.
+  3. Start run.pl as `./run.pl` on Unix or double-clicking run.pl
+  on Windows and direct your browser to the indicated address (default
+  is http://localhost:3020/.  If this is the first time, you will be
+  asked to enter an _admin_ password. This protects some
+  web-operations, such as managing settings and loading/unloading RDF.
 
 If you want to extend the application, there  are two options. One is to
 put a Prolog file  with  the   desired  extensions  in `config-enabled`.
@@ -93,9 +93,10 @@ Currently,    ClioPatria    can    only      be    downloaded    through
 [GIT](http://www.git-scm.com). The commands for downloading the
 system are:
 
-    git clone https://github.com/SWI-Prolog/ClioPatria.git
+    git clone https://github.com/ClioPatria/ClioPatria.git
     cd ClioPatria
-    git submodule update --init web/FlintSparqlEditor
+    git submodule update --init web/yasqe
+    git submodule update --init web/yasqr
 
 ## Further reading
 
