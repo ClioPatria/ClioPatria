@@ -90,6 +90,7 @@ user:file_search_path(library, cliopatria(lib)).
 		library(semweb/rdf_litindex),
 
 		library(http/http_session),
+		library(http/http_server_files),
 		library(http/http_dispatch),
 		library(http/thread_httpd),
 
@@ -122,6 +123,7 @@ user:file_search_path(library, cliopatria(lib)).
 	      ]).
 :- endif.
 
+:- http_handler(web(.), serve_files_in_directory(web), [prefix]).
 
 :- dynamic
 	after_load_goal/1.

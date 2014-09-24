@@ -95,6 +95,7 @@ user:file_search_path(yasr,		web('yasr/dist')).
 		 *******************************/
 
 http:location(cliopatria,  root(.),	       []).
+http:location(web,	   cliopatria(web),    []).
 http:location(sesame,	   root(servlets),     []).
 http:location(sparql,	   root(sparql),       []).
 http:location(rdf_browser, cliopatria(browse), []).
