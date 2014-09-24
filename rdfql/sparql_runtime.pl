@@ -133,15 +133,27 @@ eval_literal(Atom, simple_literal(Atom)) :-
 eval_typed_literal(Type, Atom, numeric(Type, Value)) :-
 	xsdp_numeric_uri(Type, Generic), !,
 	numeric_literal_value(Generic, Atom, Value).
-eval_typed_literal(Type, Atom, boolean(Atom)) :-
-	rdf_equal(Type, xsd:boolean), !.
-eval_typed_literal(Type, Atom, string(Atom)) :-
-	rdf_equal(Type, xsd:string), !.
-eval_typed_literal(Type, Atom, date_time(Atom)) :-
-	rdf_equal(Type, xsd:dateTime), !.
-eval_typed_literal(Type, Atom, date(Atom)) :-
-	rdf_equal(Type, xsd:date), !.
+eval_typed_literal(Type, Atom, Value) :-
+	eval_known_typed_literal(Type, Atom, Value0), !,
+	Value = Value0.
 eval_typed_literal(Type, Atom, type(Type, Atom)).
+
+%%	eval_known_typed_literal(+Type, +Plain, -Typed) is semidet.
+%
+%	Map known datatypes to a value   that is suitable for comparison
+%	using Prolog standard order of terms.  Note that the mapped time
+%	representations can all be compared.
+
+:- rdf_meta eval_known_typed_literal(r, +, -).
+
+eval_known_typed_literal(xsd:boolean,	 Atom, boolean(Atom)).
+eval_known_typed_literal(xsd:string,	 Atom, string(Atom)).
+eval_known_typed_literal(xsd:gYear,	 Atom, date_time(Atom)).
+eval_known_typed_literal(xsd:gYearMonth, Atom, date_time(Atom)).
+eval_known_typed_literal(xsd:date,	 Atom, date_time(Atom)).
+eval_known_typed_literal(xsd:dateTime,	 Atom, date_time(Atom)).
+eval_known_typed_literal(xsd:date,	 Atom, date(Atom)).
+
 
 %%	numeric_literal_value(+Literal, -Value) is semidet.
 %
