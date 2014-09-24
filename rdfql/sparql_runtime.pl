@@ -144,16 +144,14 @@ eval_typed_literal(Type, Atom, type(Type, Atom)).
 %	using Prolog standard order of terms.  Note that the mapped time
 %	representations can all be compared.
 
-:- rdf_meta eval_known_typed_literal(r, +, -).
+:- rdf_meta eval_known_typed_literal(r, +, t).
 
 eval_known_typed_literal(xsd:boolean,	 Atom, boolean(Atom)).
 eval_known_typed_literal(xsd:string,	 Atom, string(Atom)).
-eval_known_typed_literal(xsd:gYear,	 Atom, date_time(Atom)).
-eval_known_typed_literal(xsd:gYearMonth, Atom, date_time(Atom)).
-eval_known_typed_literal(xsd:date,	 Atom, date_time(Atom)).
-eval_known_typed_literal(xsd:dateTime,	 Atom, date_time(Atom)).
-eval_known_typed_literal(xsd:date,	 Atom, date(Atom)).
-
+eval_known_typed_literal(xsd:gYear,	 Atom, time(xsd:gYear, Atom)).
+eval_known_typed_literal(xsd:gYearMonth, Atom, time(xsd:gYearMonth, Atom)).
+eval_known_typed_literal(xsd:date,	 Atom, time(xsd:date, Atom)).
+eval_known_typed_literal(xsd:dateTime,	 Atom, time(xsd:dateTime, Atom)).
 
 %%	numeric_literal_value(+Literal, -Value) is semidet.
 %
@@ -408,26 +406,26 @@ op(X >= Y, boolean(Result)) :-
 lt(numeric(_, X), numeric(_, Y)) :- X < Y.
 lt(simple_literal(X), simple_literal(Y)) :- X @< Y.
 lt(string(X), string(Y)) :- X @< Y.
-lt(date_time(X), date_time(Y)) :- X @< Y.
-lt(date(X), date(Y)) :- X @< Y.
+lt(time(T, X), time(T, Y)) :- X @< Y.
+lt(type(T, X), type(T, Y)) :- X @< Y.
 
 gt(numeric(_, X), numeric(_, Y)) :- X > Y.
 gt(simple_literal(X), simple_literal(Y)) :- X @> Y.
 gt(string(X), string(Y)) :- X @> Y.
-gt(date_time(X), date_time(Y)) :- X @> Y.
-gt(date(X), date(Y)) :- X @> Y.
+gt(time(T, X), time(T, Y)) :- X @> Y.
+gt(type(T, X), type(T, Y)) :- X @> Y.
 
 leq(numeric(_, X), numeric(_, Y)) :- X =< Y.
 leq(simple_literal(X), simple_literal(Y)) :- X @=< Y.
 leq(string(X), string(Y)) :- X @=< Y.
-leq(date_time(X), date_time(Y)) :- X @=< Y.
-leq(date(X), date(Y)) :- X @=< Y.
+leq(time(T, X), time(T, Y)) :- X @=< Y.
+leq(type(T, X), type(T, Y)) :- X @=< Y.
 
 geq(numeric(_, X), numeric(_, Y)) :- X >= Y.
 geq(simple_literal(X), simple_literal(Y)) :- X @>= Y.
 geq(string(X), string(Y)) :- X @>= Y.
-geq(date_time(X), date_time(Y)) :- X @>= Y.
-geq(date(X), date(Y)) :- X @>= Y.
+geq(time(T, X), time(T, Y)) :- X @>= Y.
+geq(type(T, X), type(T, Y)) :- X @>= Y.
 
 % arithmetic
 op(numeric(TX, X) * numeric(TY, Y), numeric(Type, Result)) :-
@@ -585,27 +583,27 @@ op(rand, numeric(xsd:double, R)) :-
 
 % SPARQL builtin date and time functions (1.1, 17.4.5)
 
-op(now, date_time(Date)) :-
+op(now, time(xsd:dateTime, Date)) :-
 	get_time(Now),
 	format_time(atom(Date), '%FT%T.%3f%:z', Now).
-op(year(date_time(DateTime)), numeric(xsd:integer, Year)) :-
-	time_part(year, DateTime, Year).
-op(month(date_time(DateTime)), numeric(xsd:integer, Month)) :-
-	time_part(month, DateTime, Month).
-op(day(date_time(DateTime)), numeric(xsd:integer, Day)) :-
-	time_part(day, DateTime, Day).
-op(hours(date_time(DateTime)), numeric(xsd:integer, Hours)) :-
-	time_part(hours, DateTime, Hours).
-op(minutes(date_time(DateTime)), numeric(xsd:integer, Minutes)) :-
-	time_part(minutes, DateTime, Minutes).
-op(seconds(date_time(DateTime)), numeric(xsd:decimal, Seconds)) :-
-	time_part(seconds, DateTime, Seconds).
-op(timezone(date_time(DateTime)), type(xsd:dayTimeDuration, Timezone)) :-
-	time_part(tzs, DateTime, TZs),
+op(year(time(Type, DateTime)), numeric(xsd:integer, Year)) :-
+	time_part(year, Type, DateTime, Year).
+op(month(time(Type, DateTime)), numeric(xsd:integer, Month)) :-
+	time_part(month, Type, DateTime, Month).
+op(day(time(Type, DateTime)), numeric(xsd:integer, Day)) :-
+	time_part(day, Type, DateTime, Day).
+op(hours(time(Type, DateTime)), numeric(xsd:integer, Hours)) :-
+	time_part(hours, Type, DateTime, Hours).
+op(minutes(time(Type, DateTime)), numeric(xsd:integer, Minutes)) :-
+	time_part(minutes, Type, DateTime, Minutes).
+op(seconds(time(Type, DateTime)), numeric(xsd:decimal, Seconds)) :-
+	time_part(seconds, Type, DateTime, Seconds).
+op(timezone(time(Type, DateTime)), type(xsd:dayTimeDuration, Timezone)) :-
+	time_part(tzs, Type, DateTime, TZs),
 	phrase(tz_offset(TZOffset), TZs),
 	xsd_duration_seconds(Timezone, TZOffset).
-op(tz(date_time(DateTime)), simple_literal(TZ)) :-
-	time_part(tz, DateTime, TZ).
+op(tz(time(Type, DateTime)), simple_literal(TZ)) :-
+	time_part(tz, Type, DateTime, TZ).
 
 % SPARQL builtin hash functions (1.1, 17.4.6)
 
@@ -651,18 +649,31 @@ atom_hash(SHA, S, Hash) :-
 		 *    TIME SUPPORT FUNCTIONS	*
 		 *******************************/
 
-time_part(Part, DateTime, Value) :-
-	atom_codes(DateTime, Codes),
-	phrase(time_part(Part, Value), Codes, _).
+%%	time_part(+Part, +Type, +String, -Value) is semidet.
 
-time_part(year,  Year)  --> digits4(Year).
-time_part(month, Month) --> time_part(year, _),    "-", digits2(Month).
-time_part(day,   Day)   --> time_part(month, _),   "-", digits2(Day).
-time_part(hours, Hours) --> time_part(day, _),     "T", digits2(Hours).
-time_part(minutes, Min) --> time_part(hours, _),   ":", digits2(Min).
-time_part(seconds, Sec) --> time_part(minutes, _), ":", number(Sec).
-time_part(tzs,     TZs) --> time_part(seconds, _),      string_without("", TZs).
-time_part(tz,      TZ)  --> time_part(tzs, TZs), { atom_codes(TZ, TZs) }.
+:- if(current_predicate(sub_string/5)).
+time_part(year, _Type, String, Value) :- !,
+	sub_string(String, 0, 4, _, Digits),
+	number_string(Value, Digits).
+time_part(month, _Type, String, Value) :- !,
+	sub_string(String, 5, 2, _, Digits),
+	number_string(Value, Digits).
+time_part(day, _Type, String, Value) :- !,
+	sub_string(String, 8, 2, _, Digits),
+	number_string(Value, Digits).
+:- endif.
+time_part(Part, _Type, DateTime, Value) :-
+	atom_codes(DateTime, Codes),
+	phrase(time_dcg(Part, Value), Codes, _).
+
+time_dcg(year,  Year)  --> digits4(Year).
+time_dcg(month, Month) --> time_dcg(year, _),    "-", digits2(Month).
+time_dcg(day,   Day)   --> time_dcg(month, _),   "-", digits2(Day).
+time_dcg(hours, Hours) --> time_dcg(day, _),     "T", digits2(Hours).
+time_dcg(minutes, Min) --> time_dcg(hours, _),   ":", digits2(Min).
+time_dcg(seconds, Sec) --> time_dcg(minutes, _), ":", number(Sec).
+time_dcg(tzs,     TZs) --> time_dcg(seconds, _),      string_without("", TZs).
+time_dcg(tz,      TZ)  --> time_dcg(tzs, TZs), { atom_codes(TZ, TZs) }.
 
 tz_offset(TZOffset) -->
 	"Z", !, { TZOffset = 0 }.
@@ -1128,8 +1139,7 @@ datatype(0, _) :- !, fail.
 datatype(literal(type(Type, _)), iri(Type)) :- !.
 datatype(numeric(Type, _), iri(Type)) :- !.
 datatype(boolean(_), iri(xsd:boolean)) :- !.
-datatype(date_time(_), iri(xsd:dateTime)) :- !.
-datatype(date(_), iri(xsd:date)) :- !.
+datatype(time(Type, _), iri(Type)) :- !.
 datatype(string(_), iri(xsd_string)) :- !.
 datatype(Expr, Type) :-
 	eval(Expr, Value),
@@ -1285,8 +1295,7 @@ to_rdf(type(T, Val), literal(type(T, Val))) :- !.
 to_rdf(lang(L, Val), literal(lang(L, Val))) :- !.
 to_rdf(simple_literal(L), literal(L)) :- !.
 to_rdf(string(L), literal(type(xsd:string, L))) :- !.
-to_rdf(date_time(D), literal(type(xsd:dateTime, D))) :- !.
-to_rdf(date(D), literal(type(xsd:date, D))) :- !.
+to_rdf(time(Type, D), literal(type(Type, D))) :- !.
 to_rdf(iri(IRI), IRI) :- !.
 to_rdf(X, X) :- is_rdf(X).
 
