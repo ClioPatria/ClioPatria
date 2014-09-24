@@ -51,6 +51,7 @@
 :- use_module(library(rdf_write)).
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(uri)).
+:- use_module(library(debug)).
 
 :- use_module(applications(browse)).
 
@@ -150,6 +151,7 @@ relocated by means of the http:prefix setting. For example:
 
 lod_api(Options, Request) :-
 	lod_uri(Request, URI, Options),
+	debug(lod, 'LOD URI: ~q', [URI]),
 	(   memberchk(accept(AcceptHeader), Request)
 	->  (   atom(AcceptHeader)	% compatibility
 	    ->	http_parse_header_value(accept, AcceptHeader, AcceptList)
@@ -163,6 +165,7 @@ lod_api(Options, Request) :-
 lod_request(URI, AcceptList, Request, Options) :-
 	lod_resource(URI), !,
 	preferred_format(AcceptList, Format),
+	debug(lod, 'LOD Format: ~q', [Format]),
 	(   cliopatria:redirect_uri(Format, URI, SeeOther)
 	->  http_redirect(see_other, SeeOther, Request)
 	;   setting(lod:redirect, true),
