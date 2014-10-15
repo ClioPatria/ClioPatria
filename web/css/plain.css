@@ -21,6 +21,18 @@
   vertical-align: top;
 }
 
+.cliopatria a.logo
+{ margin-right: 5px;
+}
+
+.cliopatria a.logo img
+{ height: 24px;
+}
+
+.cliopatria a.logo img:hover
+{ outline: 1px solid blue;
+}
+
 		 /*******************************
 		 *	   AUTO-COMPLETE	*
 		 *******************************/
