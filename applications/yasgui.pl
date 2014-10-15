@@ -27,7 +27,9 @@
     the GNU General Public License.
 */
 
-:- module(yasgui, []).
+:- module(yasgui,
+	  [ has_yasgui/0
+	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
@@ -36,7 +38,7 @@
 
 :- use_module(api(json)).		% get /json/prefixes
 
-:- http_handler(yasgui('index.html'), yasgui_editor, []).
+:- http_handler(yasgui('index.html'), yasgui_editor, [id(yasgui)]).
 :- http_handler(yasqe(.), serve_files_in_directory(yasqe), [prefix]).
 :- http_handler(yasr(.), serve_files_in_directory(yasr), [prefix]).
 
@@ -45,23 +47,26 @@
 %	HTTP handler that presents the YASGUI SPARQL editor.
 
 yasgui_editor(_Request) :-
-	(   \+ absolute_file_name(yasqe('yasqe.min.js'), _,
-				  [ access(read),
-				    file_errors(fail)
-				  ])
-	;   \+ absolute_file_name(yasr('yasr.min.js'), _,
-				  [ access(read),
-				    file_errors(fail)
-				  ])
-	), !,
-	reply_html_page(cliopatria(default),
-			title('No YASQE/YASR installed'),
-			\no_yasgui).
-yasgui_editor(_Request) :-
+	has_yasgui, !,
 	reply_html_page(
 	    cliopatria(plain),
 	    title('YASGUI SPARQL Editor'),
 	    \yasgui_page).
+yasgui_editor(_Request) :-
+	reply_html_page(cliopatria(default),
+			title('No YASQE/YASR installed'),
+			\no_yasgui).
+
+
+%%	has_yasgui is semidet.
+%
+%	True if the YASGUI SPARQL editor is installed.
+
+has_yasgui :-
+	Options = [ access(read), file_errors(fail) ],
+	absolute_file_name(yasqe('yasqe.min.js'), _, Options),
+	absolute_file_name(yasr('yasr.min.js'), _, Options).
+
 
 yasgui_page -->
 	{ http_link_to_id(sparql_query, [], SparqlLocation),
