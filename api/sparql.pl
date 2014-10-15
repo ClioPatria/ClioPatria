@@ -33,17 +33,23 @@
 	  ]).
 :- use_module(user(user_db)).
 :- use_module(library(lists)).
+:- use_module(library(option)).
+:- use_module(library(uri)).
 :- use_module(library(rdf_write)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_client)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_request_value)).
 :- use_module(library(http/http_cors)).
+:- use_module(library(http/html_write)).
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(sparql_xml_result)).
 :- use_module(rdfql(sparql_json_result)).
 :- use_module(rdfql(sparql_csv_result), []). % provides hooks
 :- use_module(library(settings)).
+:- if(exists_source(applications(yasgui))).
+:- use_module(applications(yasgui)).
+:- endif.
 
 :- http_handler(sparql(.),      sparql_query,  [spawn(sparql_query), id(sparql_query)]).
 :- http_handler(sparql(update), sparql_update, [spawn(sparql_query), id(sparql_update)]).
@@ -54,6 +60,9 @@
 %	sparql(.)       (by       default        =|/sparql/|=,       see
 %	library(http/http_path)).
 
+sparql_query(Request) :-
+	empty_get_request(Request), !,
+	redirect_human_form(Request).
 sparql_query(Request) :-
 	http_parameters(Request,
 			[ query(Query),
@@ -68,6 +77,48 @@ sparql_query(Request) :-
 	authorized(read(Graphs, sparql)),
 	sparql_reply(Request, Query, Graphs, ReqFormat, Entailment).
 
+%%	empty_get_request(+Request) is semidet.
+%
+%	True if Request is an HTTP GET request without any parameters.
+
+empty_get_request(Request) :-
+	option(request_uri(URI), Request),
+	uri_components(URI, Components),
+	uri_data(search, Components, Search),
+	var(Search),
+	option(method(get), Request).
+
+:- if(current_predicate(has_yasgui/0)).
+human_form_location(HREF) :-
+	has_yasgui, !,
+	http_link_to_id(yasgui, [], HREF).
+:- endif.
+redirect_human_form(HREF) :-
+	http_link_to_id(sparql_query_form, [], HREF).
+
+redirect_human_form(Request) :-
+	human_form_location(HREF),
+	reply_html_page(cliopatria(default),
+			[ title('Redirect to SPARQL editor'),
+			  meta([ 'http-equiv'(refresh),
+				 content('5; url='+HREF)
+			       ])
+			], \sparql_redirect_explanation(Request, HREF)).
+
+sparql_redirect_explanation(Request, EditorHREF) -->
+	{ option(request_uri(URI), Request) },
+	html({|html(URI, EditorHREF)||
+<h4>Redirecting to SPARQL editor ...</h4>
+
+<div class="warning" style="width:80%;margin:auto;border:1px solid #888;padding: 10px 5px">
+You have landed in the SPARQL access location <a href=URI>URI</a> of this server.
+<b>This URI is intended for machines</b>.  Because your request contains no parameters,
+you will be redirected to the SPARQL editor at <a href=EditorHREF>EditorHREF</a>
+in 5 seconds.
+</div>
+	     |}).
+
+
 
 %%	sparql_update(+Request)
 %
@@ -75,6 +126,10 @@ sparql_query(Request) :-
 %	query requests, but the takes the   query  in the =update= field
 %	rather than in the =query= field.
 
+% Browser pointed here
+sparql_update(Request) :-
+	empty_get_request(Request), !,
+	redirect_human_form(Request).
 % Perform a SPARQL update via POST directly.
 % @compat SPARQL 1.1 Protocol recommendation, section 2.2.2.
 sparql_update(Request) :-
