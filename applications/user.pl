@@ -96,7 +96,7 @@ in:
 :- http_handler(cliopatria(admin),		     home,
 		[ id(admin) ]).
 :- http_handler(cliopatria('user/statistics'),	     statistics,	      []).
-:- http_handler(cliopatria('user/query'),	     query_form,	      []).
+:- http_handler(cliopatria('user/query'),	     query_form,	      [id(sparql_query_form)]).
 :- http_handler(cliopatria('user/loadFile'),	     load_file_form,	      []).
 :- http_handler(cliopatria('user/loadURL'),	     load_url_form,	      []).
 :- http_handler(cliopatria('user/loadLibraryRDF'),   load_library_rdf_form, []).
