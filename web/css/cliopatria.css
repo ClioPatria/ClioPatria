@@ -5,6 +5,18 @@
 { margin-top: 10px;
 }
 
+.cliopatria a.logo
+{ margin-right: 5px;
+}
+
+.cliopatria a.logo img
+{ height: 24px;
+}
+
+.cliopatria a.logo img:hover
+{ outline: 1px solid blue;
+}
+
 .cliopatria address.footer
 { margin-top: 1ex;
   border-width: 1px 0 0 0;

@@ -79,6 +79,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 	page_body//1,			% +Body
 	page_body//2,			% +Style, +Body
 	server_address//0,
+	logo//0,
 
 	predicate_order/2,		% +P, -Order
 	context_graph/2,		% +R, -RDF
@@ -215,6 +216,12 @@ The example below adds an item to =Help= popup of ClioPatria:
 %	you want to maintain its  normal   position  in the page layout,
 %	this should create an element of class =address= using the class
 %	=cliopatria=.
+
+%%	logo//
+%
+%	Logo placed left of the menu-bar.  Must   be  an object that has
+%	`float:left` style.
+
 
 		 /*******************************
 		 *	    RDF BROWSING	*

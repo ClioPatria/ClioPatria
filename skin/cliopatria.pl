@@ -36,6 +36,7 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_path)).
 :- use_module(library(version)).
 :- use_module(components(menu)).
 :- use_module(components(simple_search)).
@@ -107,7 +108,7 @@ user:body(cliopatria(_), Body) -->
 user:body(cliopatria(plain), Body) -->
 	html_requires(plain),
 	html(body(class(['yui-skin-sam', cliopatria]),
-		  [ div([id('cp-menu'), class(menu)], \cp_menu),
+		  [ div([id('cp-menu'), class(menu)], \cp_logo_and_menu),
 		    \simple_search_form([value(p(q))]),
 		    br(clear(all)),
 		    div([id('cp-content'), class(content)], Body),
@@ -117,7 +118,7 @@ user:body(cliopatria(plain), Body) -->
 user:body(cliopatria(_), Body) -->
 	html_requires(cliopatria),
 	html(body(class(['yui-skin-sam', cliopatria]),
-		  [ div([id('cp-menu'), class(menu)], \cp_menu),
+		  [ div([id('cp-menu'), class(menu)], \cp_logo_and_menu),
 		    \simple_search_form([value(p(q))]),
 		    br(clear(all)),
 		    div([id('cp-content'), class(content)], Body),
@@ -125,6 +126,22 @@ user:body(cliopatria(_), Body) -->
 		    div([id('cp-footer'), class(footer)], \address)
 		  ])).
 
+cp_logo_and_menu -->
+	cp_logo,
+	cp_menu.
+
+cp_logo -->
+	cliopatria:logo, !.
+cp_logo -->
+	{ File = 'cliopatria-logo.png',
+          absolute_file_name(icons(File), _Logo,
+			     [access(read), file_errors(fail)]),
+	  http_absolute_location(icons(File), Src, []),
+	  http_link_to_id(home, [], Home)
+	},
+	html(a([class(logo), href(Home), style('float:left')
+	       ],
+	       img([src(Src)]))).
 
 %%	address//
 %
