@@ -119,10 +119,12 @@ complexity/2 needs to update the order of clauses inside meta calls
 %
 %	Optimise Goal and execute the result. Semantically equivalent to
 %	call/1.
+%
+%	@tbd	Module handling is not correct.
 
-rdf_optimise(Goal) :-
+rdf_optimise(Module:Goal) :-
 	rdf_optimise(Goal, Optimised),
-	call(Optimised).
+	call(Module:Optimised).
 
 
 %%	rdf_optimise(+Goal, -Optimized) is det.
