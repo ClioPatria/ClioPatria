@@ -29,17 +29,21 @@
 */
 
 :- module(rdf_optimise,
-	  [ rdf_optimise/2,		% +Query, -Optimised
+	  [ rdf_optimise/1,		% :Query
+	    rdf_optimise/2,		% +Query, -Optimised
 	    rdf_optimise/4,		% +Query, -Optimised, -Space, -Time
 	    rdf_complexity/3,		% :Goal, -SpaceEstimate, -TimeEstimate
 	    serql_select_bind_null/2	% +Goal, -WithBind
 	  ]).
-:- use_module(library('semweb/rdf_db')).
+:- use_module(library(semweb/rdf_db)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(pairs)).
 :- use_module(library(ordsets)).
 :- use_module(library(ugraphs)).
+
+:- meta_predicate
+	rdf_optimise(0).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Queries  as  returned  by  serql_compile_path/2    consists  of  a  path
@@ -109,8 +113,17 @@ Plan (conjunctions)
 
 complexity/2 needs to update the order of clauses inside meta calls
 (notably optional path expressions).
-
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+%%	rdf_optimise(:Goal) is nondet.
+%
+%	Optimise Goal and execute the result. Semantically equivalent to
+%	call/1.
+
+rdf_optimise(Goal) :-
+	rdf_optimise(Goal, Optimised),
+	call(Optimised).
+
 
 %%	rdf_optimise(+Goal, -Optimized) is det.
 %
@@ -1093,3 +1106,10 @@ pp_instantiate_args(N, Term) :-
 	pp_instantiate_args(N2, Term).
 
 
+		 /*******************************
+		 *	      SANDBOX		*
+		 *******************************/
+
+:- multifile sandbox:safe_meta_predicate/1.
+
+sandbox:safe_meta_predicate(rdf_optimise:rdf_optimise/1).
