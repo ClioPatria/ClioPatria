@@ -259,8 +259,8 @@ write_csv_result(select(VarNames), Rows, Options) :- !,
 	format('Transfer-encoding: chunked~n'),
 	sparql_write_csv_result(current_output, select(VarNames, Rows), Options).
 write_csv_result(_, _RDF, _Options) :-
-	throw(http_reply(bad_request(format('JSON output is only supported for \c
-					     ASK and SELECT queries', [])))).
+	throw(http_reply(bad_request(format('CSV output is only supported for \c
+					     SELECT queries', [])))).
 
 
 %%	sparql_decl(+OptionName, -Options)
