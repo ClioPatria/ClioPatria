@@ -45,7 +45,7 @@
 :- use_module(rdfql(sparql)).
 :- use_module(rdfql(sparql_xml_result)).
 :- use_module(rdfql(sparql_json_result)).
-:- use_module(rdfql(sparql_csv_result), []). % provides hooks
+:- use_module(rdfql(sparql_csv_result)).
 :- use_module(library(settings)).
 :- if(exists_source(applications(yasgui))).
 :- use_module(applications(yasgui)).
@@ -197,6 +197,7 @@ output_format(ReqFormat, Request, Format) :-
 	accept_output_format(Request, Format).
 output_format('rdf+xml', _, xml) :- !.
 output_format(json, _, json) :- !.
+output_format(csv, _, csv) :- !.
 output_format(Mime, _, Format) :-
 	atomic_list_concat([Major,Minor], /, Mime),
 	sparql_media(Major/Minor, Format), !.
@@ -219,6 +220,7 @@ find_media([media(Type, _, _, _)|T], Format) :-
 
 sparql_media(application/'sparql-results+xml',   xml).
 sparql_media(application/'sparql-results+json', json).
+sparql_media(text/'tab-separated-values',	 csv).
 
 write_result(xml, Type, Rows, Options) :-
 	cors_enable,
@@ -226,6 +228,9 @@ write_result(xml, Type, Rows, Options) :-
 write_result(json, Type, Rows, Options) :-
 	cors_enable,
 	write_json_result(Type, Rows, Options).
+write_result(csv, Type, Rows, Options) :-
+	cors_enable,
+	write_csv_result(Type, Rows, Options).
 
 write_xml_result(ask, [True], Options) :- !,
 	format('Content-type: application/sparql-results+xml; charset=UTF-8~n~n'),
@@ -247,6 +252,13 @@ write_json_result(select(VarNames), Rows, Options) :- !,
 	format('Transfer-encoding: chunked~n'),
 	sparql_write_json_result(current_output, select(VarNames, Rows), Options).
 write_json_result(_, _RDF, _Options) :-
+	throw(http_reply(bad_request(format('JSON output is only supported for \c
+					     ASK and SELECT queries', [])))).
+
+write_csv_result(select(VarNames), Rows, Options) :- !,
+	format('Transfer-encoding: chunked~n'),
+	sparql_write_csv_result(current_output, select(VarNames, Rows), Options).
+write_csv_result(_, _RDF, _Options) :-
 	throw(http_reply(bad_request(format('JSON output is only supported for \c
 					     ASK and SELECT queries', [])))).
 
@@ -274,6 +286,7 @@ sparql_decl(format,
 	    [ optional(true),
 	      oneof([ 'rdf+xml',
 		      json,
+		      csv,
 		      'application/sparql-results+xml',
 		      'application/sparql-results+json'
 		    ]),
