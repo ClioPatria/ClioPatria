@@ -62,10 +62,9 @@
 :- use_module(library(http/http_session)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_openid)).
-:- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_authenticate)).
 :- use_module(library(lists)).
-:- use_module(library(settings)).
+:- use_module(library(broadcast)).
 :- use_module(library(error)).
 :- use_module(library(uri)).
 :- use_module(library(debug)).
@@ -456,6 +455,13 @@ logout(User) :-
 	close_session,
 	retractall(logged_in(_Session, User, _Time)),
 	debug(login, 'Logout user ~w', [User]).
+
+% reclaim login records if a session is closed.
+
+:- listen(http_session(end(Session, _Peer)),
+	  ( atom(Session),
+	    retractall(logged_in(Session, _User, _Time))
+	  )).
 
 % Use new session management if available.
 
