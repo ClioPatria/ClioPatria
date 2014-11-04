@@ -442,7 +442,7 @@ login(User) :-
 	must_be(atom, User),
 	get_time(Time),
 	open_session(Session),
-	retractall(logged_in(_, Session, _)),
+	retractall(logged_in(Session, _, _)),
 	assert(logged_in(Session, User, Time)),
 	debug(login, 'Login user ~w on session ~w', [User, Session]).
 
