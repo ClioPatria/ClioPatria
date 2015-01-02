@@ -323,6 +323,9 @@ select_results(distinct(solutions(Group, Having, Agg, Order, Limit, Offset)),
 	       Reply, Goal) :- !,
 	select_results(distinct, Group, Having, Agg, Offset, Limit,
 		       Order, Reply, Goal).
+select_results(reduced(Solutions),
+	       Reply, Goal) :- !,
+	select_results(Solutions, Reply, Goal).
 select_results(solutions(Group, Having, Agg, Order, Limit, Offset),
 	       Reply, Goal) :-
 	select_results(all, Group, Having, Agg, Offset, Limit,
