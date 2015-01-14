@@ -88,7 +88,7 @@ http://hcs.science.uva.nl/projects/SWI-Prolog/articles/ICLP05-SeRQL.pdf
 NOTES:
 
 	* SeRQL LIKE works on resources *and* literals.  Do we want this?
-	  See http://www.openrdf.org/forum/mvnforum/viewthread?thread=275
+	  See http://rdf4j.org/forum/mvnforum/viewthread?thread=275
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 :- multifile

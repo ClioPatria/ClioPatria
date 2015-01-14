@@ -2,7 +2,7 @@
 
 ClioPatria supports two query languages:
 [[SPARQL][http://www.w3.org/TR/rdf-sparql-query/]] and
-[[SeRQL][http://www.openrdf.org]]. For both languages we provide an
+[[SeRQL][http://rdf4j.org]]. For both languages we provide an
 interactive service that presents the results as a human-readable HTML
 table and an API that presents its result as RDF/XML or XML according to
 the HTTP protocol definition for the query language.

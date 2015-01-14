@@ -233,7 +233,7 @@ warn_interactive -->
 query_docs -->
 	html(ul([ li(a(href('http://www.w3.org/TR/rdf-sparql-query/'),
 		       'SPARQL Documentation')),
-		  li(a(href('http://www.openrdf.org/'),
+		  li(a(href('http://rdf4j.org/'),
 		       'Sesame and SeRQL site'))
 		])).
 

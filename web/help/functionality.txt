@@ -9,7 +9,7 @@ the following:
 
     $ A SPARQL server :
     This processes HTTP SPARQL requests.  The server also includes
-    support for SeRQL and the Sesame (www.openrdf.org) HTTP protocol.
+    support for SeRQL and the Sesame (rdf4j.org) HTTP protocol.
 
     $ Reasoning libraries :
     Called entailment modules.  See entailment/README.txt

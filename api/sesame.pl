@@ -596,7 +596,7 @@ ntriple_part(Text, Field, _) :-
 %%	rdf_ntriple_part(+Type, -Value)//
 %
 %	Parse one of the fields of  an   ntriple.  This  is used for the
-%	SWI-Prolog Sesame (www.openrdf.org) implementation   to  realise
+%	SWI-Prolog Sesame (rdf4j.org) implementation   to  realise
 %	/servlets/removeStatements. I do not think   public  use of this
 %	predicate should be stimulated.
 

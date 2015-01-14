@@ -694,7 +694,7 @@ serql_ns(rdf,  'http://www.w3.org/1999/02/22-rdf-syntax-ns#').
 serql_ns(rdfs, 'http://www.w3.org/2000/01/rdf-schema#').
 serql_ns(owl,  'http://www.w3.org/2002/7/owl#').
 serql_ns(xsd,  'http://www.w3.org/2001/XMLSchema#'). % Wrong in SeRQL docs!
-serql_ns(serql,'http://www.openrdf.org/schema/serql#').
+serql_ns(serql,'http://rdf4j.org/schema/serql#').
 
 
 		 /*******************************
