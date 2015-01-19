@@ -355,8 +355,8 @@ aggregate_setup(max(X0), X) :-
 aggregate_setup(avg(X0), X-1) :-
 	sparql_eval_raw(X0, X).
 aggregate_setup(sample(X), X).
-aggregate_setup(group_concat(X,_), [X]).
-
+aggregate_setup(group_concat(Expr,_), [X]) :-
+	group_concat_value(Expr, X).
 
 aggregate_steps([], State, State).
 aggregate_steps([HT|T], State0, State) :-
@@ -382,7 +382,8 @@ aggregate_step(sample(X), S0, S) :-
 	->  S = X
 	;   S = S0
 	).
-aggregate_step(group_concat(X, _), S0, [X|S0]).
+aggregate_step(group_concat(Expr, _), S0, [X|S0]) :-
+	group_concat_value(Expr, X).
 
 %%	aggregate_bind(+Aggregation, +State) is det.
 %
@@ -404,7 +405,11 @@ aggregate_bind(avg(_), Avg, Sum-Count) :-
 	rdf_equal(xsd:integer, XSDInt),
 	sparql_eval(Sum/numeric(XSDInt, Count), Avg).
 aggregate_bind(sample(_), Sample, Sample).
-aggregate_bind(group_concat(_, literal(Sep)), literal(Concat), Parts) :-
+aggregate_bind(group_concat(Expr, literal(Sep)), literal(Concat), Parts0) :-
+	(   functor(Expr, distinct, 1)
+	->  sort(Parts0, Parts)
+	;   Parts = Parts0
+	),
 	maplist(text_of, Parts, Texts),
 	atomic_list_concat(Texts, Sep, Concat).
 aggregate_bind(distinct(_, Op), Value, Set) :-
@@ -444,6 +449,11 @@ bind_number(V0, V) :-
 	;   V = '$null$'
 	).
 
+group_concat_value(Expr, Value) :-
+	(   functor(Expr, distinct, 1)
+	->  arg(1, Expr, Value)
+	;   Value = Expr
+	).
 
 :- rdf_meta empty_aggregate(t).
 
