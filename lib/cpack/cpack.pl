@@ -246,9 +246,8 @@ cpack_download(_Package, Dir) :-
 	    ]).				% Too simplistic
 cpack_download(git(GitURL, Options), Dir) :-
 	findall(O, git_clone_option(O, Options), LOL),
-	append(LOL, OL),
 	append([ [clone, GitURL, Dir]
-	       | OL
+	       | LOL
 	       ], GitOptions),
 	git(GitOptions, []),
 	setup_push_for_download(Dir).
