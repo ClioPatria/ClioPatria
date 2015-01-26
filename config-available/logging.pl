@@ -18,5 +18,7 @@ Configure logging of HTTP traffic.
 :- use_module(library(http/http_log)).
 
 % Set the default name of the logfile. Setting it to '' disables logging
+% Creating the logfile in a directory is preferred if the service is not
+% running under the same user as the owner of the sources.
 
-% :- set_setting_default(http:logfile, 'cliopatria.log').
+:- set_setting_default(http:logfile, 'log/httpd.log').
