@@ -22,6 +22,7 @@ loaded RDF.
     * Download.txt ClioPatria
     * Add [[packages][cpack/Finding.txt]] to ClioPatria
     * Install.txt or restart.txt ClioPatria
+    * Run ClioPatria as a (Unix daemon) service.txt
     * About ClioPatria versions.txt.
 
   * *|Using ClioPatria|*

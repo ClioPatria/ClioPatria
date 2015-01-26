@@ -1,0 +1,202 @@
+# Running ClioPatria as a service
+
+Running ClioPatria as a normal Unix   daemon  is generally the preferred
+way to deploy the system. This  page   describes  the  setup. It targets
+Ubuntu, but most of the remarks  will   also  apply  for other Unix-like
+systems. We will setup ClioPatria as an  Ubuntu _upstart_ job, using the
+Prolog SWISH for querying and controlling the server.
+
+## Preparation
+
+Make sure SWI-Prolog is installed as `swipl` in =|$PATH|=, `git` and the
+`graphviz` packages are installed. The commands  below are for a typical
+Ubuntu server or [Linux   container](https://linuxcontainers.org/).  For
+many other Linux distributions you will   have to [build SWI-Prolog from
+source](http://www.swi-prolog.org/build/).
+
+  ==
+  % sudo apt-get install software-properties-common
+  % sudo apt-add-repository ppa:swi-prolog/devel
+  % sudo apt-get update
+  % sudo apt-get install swi-prolog git graphviz
+  ==
+
+Now ClioPatria can be installed by cloning the git repository:
+
+  ==
+  % git clone https://github.com/SWI-Prolog/ClioPatria.git
+  ==
+
+Make the user that manages the server member  of the group that runs web
+servers (typically `www-data` on an  Ubuntu   system)  using the command
+below. Replace `me` with the user.
+
+  ==
+  % sudo usermod -a -G www-data me
+  ==
+
+## Creating the server
+
+First of all, configure ClioPatria in an   empty directory. We will call
+our project =myproject=, create a directory   with that name and perform
+the basic ClioPatria setup. The   =|--without-debug|= reduces the amount
+of messages logged, which speeds up   your  server and prevents flooding
+the system logs.
+
+  ==
+  % mkdir myproject
+  % cd myproject
+  % ../ClioPatria/configure --without-debug
+  ==
+
+Available options for `configure` can be   viewed by running the command
+below. Good candidates are =|--with-lod|= and =|--with-logging|=.
+
+  ==
+  ../ClioPatria/configure --help
+  ==
+
+
+## Edit network configuration
+
+Edit `config-enabled/network.pl` to suit  your  needs.   If  a  proxy is
+needed, set `http:public_host` to the public  name of the server. Choose
+a port for running the server and   fill this in for `http:port`. Create
+the appropriate proxy rule.
+
+## Create the administrative user
+
+Run the server using =|./run.pl|=. If   all  is configured correctly, it
+now be available at the public address.   Immediately  fill in the admin
+name and password. Use a fair password, as SWISH provides full access to
+the machine under the daemon  user   permissions.  Note that by default,
+passwords are exchanged using plain HTTP, so do *not* use a password you
+use elsewhere for critical access.
+
+## Install SWISH
+
+Install SWISH for this ClioPatria instance using
+
+  ==
+  ?- cpack_install(swish).
+  ==
+
+Edit    `config-enabled/pengies.pl`    and    change      the    setting
+`pengines:allow_from` to =|[*]|= if you  want   to  enable  SWISH access
+globally.
+
+Now *shut down* the server.
+
+## Setting permissions
+
+Typically, web-services are running  under   the  user `www-data`, group
+`www-data`. One should certainly not run the  server as `root` and it is
+wise to use a different user  than   the  user  that owns the ClioPatria
+source files. Depending on the usage  scenario,   you  want  to give the
+server write access to some resources. We   assume  that you are root or
+member of the group `www-data`
+
+  - *Directories* need mode 2775 (rwxrwsr-x), group `www-data`
+  - *Files* need mode 664 (rw-rw-rw-), group `www-data`
+
+The resources that need attention are:
+
+  - *users.db* must have write access if you want to be able to add new
+    users and change passwords.
+  - *RDF-store* must have write access if you want to be able to manage
+    the triple set through the web interface.
+  - Create the directory *log* for storing the HTTP access log files if
+    you enabled logging.
+  - Create the directory *storage* and make it writeable if you want to
+    allow SWISH users to share program fragments.
+  - *cpack* must be writeable if you want to install packs through the
+    SWISH console.  We do not advice this.
+
+The typical commands are:
+
+  ==
+  % mkdir storage log
+  % chmod 2775 storage log RDF-store
+  % chmod  644 users.db
+  % chgrp www-data storage RDF-store users.db
+  ==
+
+## Install further cpacks and optionally load RDF
+
+If you wish to install further cpacks, this  is the time to do so. Start
+=|./run.pl|=  and  use  =|?-  cpack_install(Pack).|=    to  install  the
+necessary packs.
+
+You can now load RDF  using   =|?-  rdf_load('myfile.ttl').|= or, if you
+made `RDF-store` writeable you can do this later.
+
+Now *shut down* the server.
+
+## Register the service with Ubuntu upstart
+
+Create a file =myproject.conf= based  on   the  template below. Edit the
+`chdir` argument to point to the installation directory.
+
+==
+description	"ClioPatria myproject server"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+respawn limit 5 60
+umask 022
+
+console log
+chdir /home/me/src/ClioPatria/myproject
+
+script
+  export LANG=en_US.utf8
+  ./daemon.pl --no-fork --user=www-data --workers=16
+end script
+==
+
+You may test the server by running the =|./daemon.pl ...|= line from the
+script as root. Watch for error messages   on the terminal and test that
+you can access the server.  If that works nicely, close the server using
+*Control-C* and *e* (exit).
+
+Now, copy `myproject.conf` to =|/etc/init|= and start the server using
+
+  ==
+  % service myproject start
+  ==
+
+Verify   that   the   server    comes     online.    If   not,   examine
+the logfile at =|/var/log/upstart/myproject.log|=.
+
+## Managing the server using SWISH
+
+You can manage the server using SWISH   by logging into the server using
+the `admin` account and select SWISH from the *Query* pulldown menu. You
+can run any Prolog query  in  the   bottom-left  corner.  If  the needed
+predicate is in a library, you have to   load that library. You do so by
+adding a directive like this in the left window:
+
+  ==
+  :- use_module(library(semweb/rdf_persistency)).
+  ==
+
+You can run commands such as =|?- rdf_load('myfile.ttl').|= or =|?-
+make.|=
+
+Unless you have `www-data` to the cpack  and ClioPatria source tree, you
+*cannot update ClioPatria directly through SWISH*.   To  make changes to
+the software, update the ClioPatria sources  (e.g., `git pull`) and then
+run =|?- make.|= from the SWISH  console.   To  update the cpacks, run a
+copy of the server on a unique port   and  with a temporary database and
+then run your cpack commands before running  =|?- make.|= from the SWISH
+console.
+
+  ==
+  ./run.pl --port=4444 --store=tmp
+  ...
+  ?- cpack_upgrade.
+  ==
+
+New packs are installed similarly, but often require a service restart.
