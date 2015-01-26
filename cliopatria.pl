@@ -372,6 +372,7 @@ set_session_options :-
 %	Create the directory in which the log files reside.
 
 create_log_directory :-
+	current_setting(http:logfile),
 	setting(http:logfile, File), File \== '',
 	file_directory_name(File, DirName),
 	DirName \== '.', !,
