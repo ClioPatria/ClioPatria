@@ -1635,6 +1635,8 @@ update(insert_data(Quads), _) :-
 	maplist(insert_triple(user), Quads).
 update(delete_data(Quads), _) :-
 	maplist(delete_triple(user), Quads).
+update(delete_where(Quads), _):-
+	maplist(delete_triples(user), Quads).
 update(add(_Silent, From, To), _) :-	% TBD: Error of From does not exist
 	db(From, FromDB),
 	db(To, ToDB),
@@ -1698,6 +1700,18 @@ delete_triple(_, rdf(S,P,O0,G0)) :- !,
 	graph(G0, G),
 	modify_object(O0, O),
 	rdf_retractall(S,P,O,G).
+
+%%	delete_triples(+Graph:atom, +SimpleTriplePattern:compound) is det.
+
+delete_triples(G0, Triple):-
+	(   Triple = rdf(S,P,O),
+	    G = G0
+	;   Triple = rdf(S,P,O,G)
+	),
+	forall(
+	    rdf(S,P,O),
+	    delete_triple(G, rdf(S,P,O))
+	).
 
 modify_object(literal(_Q,V), literal(V)) :- !.
 modify_object(O, O).
