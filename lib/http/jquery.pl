@@ -28,7 +28,7 @@
     the GNU General Public License.
 */
 
-:- module(jquery, []).
+:- module(cp_jquery, []).
 :- use_module(library(http/html_head)).
 
 :- if(\+html_current_resource(jquery)).
