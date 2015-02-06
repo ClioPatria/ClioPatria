@@ -243,11 +243,7 @@ load_file_form(Request) :-
 			title('Upload RDF'),
 			[ h1('Upload an RDF document'),
 
-			  p(['Upload a document using POST to /servlets/uploadData. ',
-			     'Alternatively you can use ',
-			     a(href=loadURL,loadURL), ' to load data from a \c
-			     web server.'
-			    ]),
+			  \explain_file_form,
 
 			  form([ action(location_by_id(upload_data)),
 				 method('POST'),
@@ -278,6 +274,22 @@ load_file_form(Request) :-
 			       ]),
 			  \graph_script(Request)
 			]).
+
+explain_file_form -->
+	html({|html||
+<p>Upload RDF to the ClioPatria triple store. The uploaded file may
+contain <a href="http://www.w3.org/TR/REC-rdf-syntax/">RDF/XML</a>, <a
+href="http://www.w3.org/TR/turtle/">Turtle</a> or <a
+href="http://www.w3.org/TR/n-triples/">ntriples</a>. The file is
+processed using <a href="http://www.libarchive.org/"> libarchive</a>,
+which implies it can be a (nested) archive and may optionally be
+compressed. </p>
+
+<p>
+Alternatively you can use <a href="loadURL">loadURL</a> to load data from a web server.
+</p>
+	     |}).
+
 
 graph_script(Request) -->
 	{ http_public_host_url(Request, Host),

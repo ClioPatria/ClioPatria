@@ -41,6 +41,7 @@ div.messages, div.textbox
   margin-top: 2ex;
   margin-left: 5%;
   width: 90%;
+  overflow-x: auto;
 }
 
 div.messages pre
