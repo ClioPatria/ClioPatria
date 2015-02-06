@@ -32,7 +32,8 @@ particular, it implements the following methods:
 :- use_module(user:library(semweb/rdf_db)).	% Allow ?- rdf(S,P,O). in toplevel
 
 :- debug_message_context(+time).		% Add time to debug message
-:- debug(http(request)).			% Print request and reply
+% Enable to see HTTP requests
+% :- debug(http(request)).			% Print request and reply
 
 %%	prepare_editor
 %
