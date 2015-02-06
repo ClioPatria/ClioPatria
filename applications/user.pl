@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2010, University of Amsterdam,
+    Copyright (C): 2004-2015, University of Amsterdam,
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -32,17 +32,14 @@
 
 :- use_module(rdfql(serql_xml_result)).
 :- use_module(library(http/http_open)).
-:- use_module(library(http/thread_httpd)).
-:- use_module(library(http/html_write)).
+:- use_module(library(http/http_path)).
 :- use_module(library(http/html_head)).
-:- use_module(library(http/http_server_files)).
-:- use_module(library(http/mimetype)).
+:- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_session)).
 :- use_module(library(http/http_host)).
-:- use_module(api(sesame)).
+:- use_module(library(http/jquery)).
 :- use_module(api(rdflib)).
-:- use_module(library(settings)).
 :- use_module(user(user_db)).
 :- use_module(library(debug)).
 :- use_module(components(server_statistics)).
@@ -50,9 +47,7 @@
 :- use_module(components(basics)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_library)).
-:- use_module(library(url)).
 :- use_module(library(occurs)).
-:- use_module(library(pairs)).
 
 /** <Module> Basic user (developer) interaction
 
@@ -95,11 +90,12 @@ in:
 		[ priority(-100) ]).
 :- http_handler(cliopatria(admin),		     home,
 		[ id(admin) ]).
+:- http_handler(cliopatria('user/query'),	     query_form,
+		[id(sparql_query_form)]).
 :- http_handler(cliopatria('user/statistics'),	     statistics,	      []).
-:- http_handler(cliopatria('user/query'),	     query_form,	      [id(sparql_query_form)]).
 :- http_handler(cliopatria('user/loadFile'),	     load_file_form,	      []).
 :- http_handler(cliopatria('user/loadURL'),	     load_url_form,	      []).
-:- http_handler(cliopatria('user/loadLibraryRDF'),   load_library_rdf_form, []).
+:- http_handler(cliopatria('user/loadLibraryRDF'),   load_library_rdf_form,   []).
 :- http_handler(cliopatria('user/clearRepository'),  clear_repository_form,   []).
 :- http_handler(cliopatria('user/removeStatements'), remove_statements_form,  []).
 
@@ -241,7 +237,7 @@ query_docs -->
 %
 %	Provide a form for uploading triples from a local file.
 
-load_file_form(_Request) :-
+load_file_form(Request) :-
 	authorized(write(default, load(posted))),
 	reply_html_page(cliopatria(default),
 			title('Upload RDF'),
@@ -261,12 +257,14 @@ load_file_form(_Request) :-
 				 table(class(form),
 				       [tr([ th(class(label), 'File:'),
 					     td(input([ name(data),
+							id(filename),
 							type(file),
 							size(50)
 						      ]))
 					   ]),
-					tr([ th(class(label), 'BaseURI:'),
+					tr([ th(class(label), 'Graph:'),
 					     td(input([ name(baseURI),
+							id(namedgraph),
 							size(50)
 						      ]))
 					   ]),
@@ -277,8 +275,29 @@ load_file_form(_Request) :-
 						      ]))
 					   ])
 				       ])
-			       ])
+			       ]),
+			  \graph_script(Request)
 			]).
+
+graph_script(Request) -->
+	{ http_public_host_url(Request, Host),
+	  http_absolute_location(root(data/uploaded), Location, []),
+	  string_concat(Host, Location, URL)
+	},
+	html_requires(jquery),
+	js_script({|javascript(URL)||
+$(function() {
+  if ( $("#filename").val() ) {
+    $("#namedgraph").val(URL+"/"+$("#filename").val());
+  }
+
+  $("#filename").on("change", function(ev) {
+    var filename = $(ev.target).val();
+    console.log("Changed file", filename);
+    $("#namedgraph").val(URL+"/"+filename);
+  });
+});
+		  |}).
 
 
 %%	load_url_form(+Request)
