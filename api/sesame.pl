@@ -47,6 +47,7 @@
 :- use_module(library(http/http_client)).
 :- use_module(library(memfile)).
 :- use_module(library(debug)).
+:- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(settings)).
 :- use_module(components(query)).
@@ -55,9 +56,12 @@
 
 :- http_handler(sesame('login'),	      http_login,	    []).
 :- http_handler(sesame('logout'),	      http_logout,	    []).
-:- http_handler(sesame('evaluateQuery'),      evaluate_query,	    [spawn(sparql_query)]).
-:- http_handler(sesame('evaluateGraphQuery'), evaluate_graph_query, [spawn(sparql_query)]).
-:- http_handler(sesame('evaluateTableQuery'), evaluate_table_query, [spawn(sparql_query)]).
+:- http_handler(sesame('evaluateQuery'),      evaluate_query,
+		[spawn(sparql_query)]).
+:- http_handler(sesame('evaluateGraphQuery'), evaluate_graph_query,
+		[spawn(sparql_query)]).
+:- http_handler(sesame('evaluateTableQuery'), evaluate_table_query,
+		[spawn(sparql_query)]).
 :- http_handler(sesame('extractRDF'),	      extract_rdf,	    []).
 :- http_handler(sesame('listRepositories'),   list_repositories,    []).
 :- http_handler(sesame('clearRepository'),    clear_repository,	    []).
@@ -464,7 +468,13 @@ cleanup(Why, File, Out) :-
 	;   catch(delete_file(File), _, true)
 	).
 
-upload_data_file(Request, Data, TmpFile) :-
+%%	upload_data_file(+Request, +FormData, +TempFile, +FileOptions)
+%
+%	Load RDF from TempFile with  additional   form  data provided in
+%	FormData. Options are the options passed  from the uploaded file
+%	and include filename(Name) and optionally media(Type, Params).
+
+upload_data_file(Request, Data, TmpFile, FileOptions) :-
 	http_convert_parameters(Data,
 				[ repository(Repository),
 				  dataFormat(DataFormat),
@@ -475,7 +485,8 @@ upload_data_file(Request, Data, TmpFile) :-
 				attribute_decl),
 	result_format(Request, ResultFormat),
 	authorized_api(write(Repository, load(posted)), ResultFormat),
-	phrase(load_option(DataFormat, BaseURI), Options),
+	phrase(load_option(DataFormat, BaseURI), LoadOptions),
+	append(LoadOptions, FileOptions, Options),
 	api_action(Request,
 		   setup_call_cleanup(
 		       open(TmpFile, read, Stream),
@@ -489,11 +500,11 @@ upload_data(Request) :-
 	http_read_data(Request, Data,
 		       [ on_filename(create_tmp_file)
 		       ]),
-	(   option(data(file(TmpFile, _Options)), Data)
+	(   option(data(file(TmpFile, Options)), Data)
 	->  true
 	;   existence_error(attribute_declaration, data)
 	),
-	call_cleanup(upload_data_file(Request, Data, TmpFile),
+	call_cleanup(upload_data_file(Request, Data, TmpFile, Options),
 		     catch(delete_file(TmpFile), _, true)).
 :- endif.
 upload_data(Request) :-
