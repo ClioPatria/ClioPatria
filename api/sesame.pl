@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2010, University of Amsterdam,
+    Copyright (C): 2004-2015, University of Amsterdam,
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -44,8 +44,10 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_request_value)).
 :- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_client)).
 :- use_module(library(memfile)).
 :- use_module(library(debug)).
+:- use_module(library(option)).
 :- use_module(library(settings)).
 :- use_module(components(query)).
 :- use_module(components(basics)).
@@ -434,7 +436,66 @@ unload_graph(Request) :-
 %	Currently, this possitively identifies valid RDF/XML and assumes
 %	that anything else is Turtle.
 
-upload_data(Request) :- !,
+:- if(current_predicate(http_convert_parameters/3)).
+%%	create_tmp_file(+Stream, -Out, +Options) is det.
+%
+%	Called  from  library(http/http_multipart_plugin)    to  process
+%	uploaded file from a form.
+%
+%	@arg Stream is the input stream. It signals EOF at the end of
+%	the part, but must *not* be closed.
+%	@arg Options provides information about the part.  Typically,
+%	this contains filename(FileName) and optionally media(Type,
+%	MediaParams).
+
+:- public create_tmp_file/3.
+create_tmp_file(Stream, file(File, Options), Options) :-
+	setup_call_catcher_cleanup(
+	    tmp_file_stream(binary, File, Out),
+	    copy_stream_data(Stream, Out),
+	    Why,
+	    cleanup(Why, File, Out)).
+
+cleanup(Why, File, Out) :-
+	close(Out),
+	(   Why == exit
+	->  true
+	;   catch(delete_file(File), _, true)
+	).
+
+upload_data_file(Request, Data, TmpFile) :-
+	http_convert_parameters(Data,
+				[ repository(Repository),
+				  dataFormat(DataFormat),
+				  baseURI(BaseURI),
+				  verifyData(_Verify),
+				  resultFormat(ResultFormat)
+				],
+				attribute_decl),
+	result_format(Request, ResultFormat),
+	authorized_api(write(Repository, load(posted)), ResultFormat),
+	phrase(load_option(DataFormat, BaseURI), Options),
+	api_action(Request,
+		   setup_call_cleanup(
+		       open(TmpFile, read, Stream),
+		       rdf_guess_format_and_load(Stream, Options),
+		       close(Stream)),
+		   ResultFormat,
+		   'Loaded data from POST'-[]).
+
+upload_data(Request) :-
+	option(method(post), Request), !,
+	http_read_data(Request, Data,
+		       [ on_filename(create_tmp_file)
+		       ]),
+	(   option(data(file(TmpFile, _Options)), Data)
+	->  true
+	;   existence_error(attribute_declaration, data)
+	),
+	call_cleanup(upload_data_file(Request, Data, TmpFile),
+		     catch(delete_file(TmpFile), _, true)).
+:- endif.
+upload_data(Request) :-
 	http_parameters(Request,
 			[ repository(Repository),
 			  data(Data,
@@ -459,7 +520,6 @@ upload_data(Request) :- !,
 				      )),
 		   ResultFormat,
 		   'Loaded data from POST'-[]).
-
 
 %%	upload_url(+Request)
 %
