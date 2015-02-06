@@ -60,6 +60,10 @@ div.messages pre
   font-weight: bold;
 }
 
+#smiley-thinking
+{ float: left;
+}
+
 p.footnote
 { font-size: smaller;
 }
