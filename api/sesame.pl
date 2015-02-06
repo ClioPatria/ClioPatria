@@ -51,6 +51,7 @@
 :- use_module(library(settings)).
 :- use_module(components(query)).
 :- use_module(components(basics)).
+:- use_module(components(messages)).
 
 :- http_handler(sesame('login'),	      http_login,	    []).
 :- http_handler(sesame('logout'),	      http_logout,	    []).
@@ -387,7 +388,7 @@ clear_repository(Request) :-
 	api_action(Request,
 		   rdf_reset_db,
 		   ResultFormat,
-		   'Cleared database'-[]).
+		   'Clear database'-[]).
 
 %%	unload_source(+Request)
 %
@@ -405,7 +406,7 @@ unload_source(Request) :-
 	authorized_api(write(Repository, unload(Source)), ResultFormat),
 	api_action(Request, rdf_unload(Source),
 		   ResultFormat,
-		   'Unloaded triples from ~w'-[Source]).
+		   'Unload triples from ~w'-[Source]).
 
 
 %%	unload_graph(+Request)
@@ -424,7 +425,7 @@ unload_graph(Request) :-
 	authorized_api(write(Repository, unload(Graph)), ResultFormat),
 	api_action(Request, rdf_unload_graph(Graph),
 		   ResultFormat,
-		   'Unloaded triples from ~w'-[Graph]).
+		   'Unload triples from ~w'-[Graph]).
 
 
 %%	upload_data(Request).
@@ -481,7 +482,7 @@ upload_data_file(Request, Data, TmpFile) :-
 		       rdf_guess_format_and_load(Stream, Options),
 		       close(Stream)),
 		   ResultFormat,
-		   'Loaded data from POST'-[]).
+		   'Load data from POST'-[]).
 
 upload_data(Request) :-
 	option(method(post), Request), !,
@@ -519,7 +520,7 @@ upload_data(Request) :-
 					free_memory_file(MemFile)
 				      )),
 		   ResultFormat,
-		   'Loaded data from POST'-[]).
+		   'Load data from POST'-[]).
 
 %%	upload_url(+Request)
 %
@@ -551,7 +552,7 @@ upload_url(Request) :-
 	api_action(Request,
 		   rdf_load(URL, Options),
 		   ResultFormat,
-		   'Loaded data from ~w'-[URL]).
+		   'Load data from ~w'-[URL]).
 
 load_option(DataFormat, BaseURI) -->
 	data_format_option(DataFormat),
@@ -611,7 +612,7 @@ remove_statements(Request) :-
 	    api_action(Request,
 		       remove_triples(Triples),
 		       ResultFormat,
-		       'Removed ~D triples'-[NTriples])
+		       'Remove ~D triples'-[NTriples])
 	;   debug(removeStatements, 'removeStatements = ~w',
 		  [rdf(Subject, Predicate, Object)]),
 
@@ -623,7 +624,7 @@ remove_statements(Request) :-
 	    api_action(Request,
 		       rdf_retractall(S,P,O),
 		       ResultFormat,
-		       'Removed statements from ~p'-[rdf(S,P,O)])
+		       'Remove statements from ~k'-[rdf(S,P,O)])
 	).
 
 %%	remove_triples(+List)
@@ -1010,7 +1011,16 @@ sparql_media(application/'sparql-results+json', json).
 %		=xml= or =rdf=.
 %	@param	Message is passed to html_write//1.
 
-api_action(_Request, G, Format, Message) :-
+api_action(Request, G, html, Message) :- !,
+	call_showing_messages(
+	    api_action2(Request, G, html, Message),
+	    [ header(h4(Message)),
+	      footer([])
+	    ]).
+api_action(Request, G, Format, Message) :-
+	api_action2(Request, G, Format, Message).
+
+api_action2(_Request, G, Format, Message) :-
 	logged_on(User, anonymous),
 	get_time(T0), T is integer(T0),
 	statistics(cputime, CPU0),
@@ -1033,7 +1043,6 @@ subjects(Count) :- rdf_statistics(resources(Count)).
 subj_label --> html('Resources').
 :- endif.
 
-
 :- meta_predicate
 	run(0, +).
 
@@ -1046,10 +1055,9 @@ run(A, Log) :-
 	rdf_transaction(A, Log).
 
 
-done(html, Message, CPU, Subjects, Triples) :-
-	reply_html_page(cliopatria(default),
-			title('Success'),
-			\result_table(Message, CPU, Subjects, Triples)).
+done(html, _Message, CPU, Subjects, Triples) :-
+	after_messages([ \result_table(CPU, Subjects, Triples)
+		       ]).
 done(Format, _:Message, CPU, Subjects, Triples) :- !,
 	done(Format, Message, CPU, Subjects, Triples).
 done(xml, Fmt-Args, _CPU, _Subjects, _Triples) :-
@@ -1066,17 +1074,15 @@ done(rdf, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format(Fmt, Args).
 
 
-%%	result_table(+Message, +CPU, +SubDiff, +TripleDiff)// is det.
+%%	result_table(+CPU, +SubDiff, +TripleDiff)// is det.
 %
 %	HTML component that summarises the result of an operation.
 
-result_table(Message, CPU, Subjects, Triples) -->
+result_table(CPU, Subjects, Triples) -->
 	{ rdf_statistics(triples(TriplesNow)),
 	  subjects(SubjectsNow)
 	},
 	html([ h4('Operation completed'),
-	       p(class(msg_informational), Message),
-	       h4('Statistics'),
 	       table([ id('result'),
 		       class(block)
 		     ],

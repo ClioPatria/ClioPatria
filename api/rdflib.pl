@@ -66,13 +66,10 @@ load_library_ontology(Request) :-
 			]),
 	authorized(write(Repository, load(library_ontology(Ontology)))),
 	prepare_ontology_library,
-	(   Format == html
-	->  call_showing_messages(rdf_load_library(Ontology, []), [])
-	;   api_action(Request,
-		       rdf_load_library(Ontology, []),
-		       Format,
-		       \loaded_library_ontology(Ontology))
-	).
+	api_action(Request,
+		   rdf_load_library(Ontology, []),
+		   Format,
+		   \loaded_library_ontology(Ontology)).
 
 loaded_library_ontology(Id) -->
 	html('Loaded base ontology '),
