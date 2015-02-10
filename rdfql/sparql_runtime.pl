@@ -321,12 +321,7 @@ op(struuid, simple_literal(UUID)) :-
 op(bnode, iri(Id)) :-
 	rdf_bnode(Id).
 op(bnode(simple_literal(Id)), iri(BNode)) :-
-	(   bnode_store(Id, BN)
-	->  BN = BNode
-	;   rdf_bnode(BN),
-	    asserta(bnode_store(Id, BN))
-	->  BN = BNode
-	).
+	id_to_bnode(Id, BNode).
 op(iri(Spec, Base), iri(URI)) :-
 	iri(Spec, Base, URI).
 
@@ -1681,11 +1676,13 @@ modify(replace(Delete, Insert), Graph) :-
 
 %%	insert_triple(+Graph, +Triple) is det.
 
-insert_triple(Graph, rdf(S,P,O0)) :- !,
+insert_triple(Graph, rdf(S0,P,O0)) :- !,
+	modify_subject(S0, S),
 	modify_object(O0, O),
 	rdf_assert(S,P,O, Graph).
-insert_triple(_, rdf(S,P,O0,G0)) :-
+insert_triple(_, rdf(S0,P,O0,G0)) :-
 	graph(G0, G),
+	modify_subject(S0, S),
 	modify_object(O0, O),
 	rdf_assert(S,P,O,G).
 
@@ -1713,8 +1710,22 @@ delete_triples(G0, Triple):-
 	    delete_triple(G, rdf(S,P,O))
 	).
 
+modify_subject(bnode(Id), BNode) :- !,
+	id_to_bnode(Id, BNode).
+modify_subject(S, S).
+
 modify_object(literal(_Q,V), literal(V)) :- !.
+modify_object(bnode(Id), BNode) :- !,
+	id_to_bnode(Id, BNode).
 modify_object(O, O).
+
+id_to_bnode(Id, BNode):-
+	(   bnode_store(Id, BN)
+	->  BN = BNode
+	;   rdf_bnode(BN),
+	    asserta(bnode_store(Id, BN))
+	->  BN = BNode
+	).
 
 %%	graph(+Spec, -Graph)
 
