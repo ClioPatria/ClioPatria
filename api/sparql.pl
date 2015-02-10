@@ -178,7 +178,7 @@ sparql_reply(Request, Query, Graphs, ReqFormat, Entailment) :-
 			 distinct(Distinct),
 			 entailment(Entailment)
 		       ]),
-	(   Compiled = update(_)
+	(   Compiled = sparql_query(update(_), _, _)
 	->  authorized(write(Graphs, sparql))
 	;   true
 	),
