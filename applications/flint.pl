@@ -34,6 +34,7 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/json)).
+:- use_module(cliopatria(hooks)).
 
 :- http_handler(flint('index.html'), sparql_editor, []).
 :- http_handler(flint('config.js'), flint_config, []).
@@ -217,3 +218,10 @@ no_flint -->
 		   [ 'git submodule update --init web/FlintSparqlEditor'
 		   ])
 	     ]).
+
+
+		 /*******************************
+		 *	 REGISTER WITH MENU	*
+		 *******************************/
+
+cliopatria:menu_item(150=query/sparql_editor,  'Flint SPARQL Editor').

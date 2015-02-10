@@ -106,7 +106,6 @@ user:file_search_path(library, cliopatria(lib)).
 		applications(admin),
 		applications(user),
 		applications(browse),
-		applications(flint),
 		applications(yasgui),
 
 		library(conf_d),

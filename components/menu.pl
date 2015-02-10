@@ -140,7 +140,6 @@ menu_item(400=repository/remove_statements_form,	'Remove triples').
 menu_item(500=repository/clear_repository_form,		'Clear repository').
 
 menu_item(100=query/yasgui_editor,		        'YASGUI SPARQL Editor').
-menu_item(150=query/sparql_editor,			'Flint SPARQL Editor').
 menu_item(200=query/query_form,				'Simple Form').
 
 menu_item(100=places/home,				'Home').
