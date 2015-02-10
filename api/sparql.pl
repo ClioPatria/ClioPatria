@@ -93,7 +93,7 @@ human_form_location(HREF) :-
 	has_yasgui, !,
 	http_link_to_id(yasgui, [], HREF).
 :- endif.
-redirect_human_form(HREF) :-
+human_form_location(HREF) :-
 	http_link_to_id(sparql_query_form, [], HREF).
 
 redirect_human_form(Request) :-
