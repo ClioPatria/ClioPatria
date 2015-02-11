@@ -2,7 +2,9 @@
 #
 # Prepare running ClioPatria by localizing the install scripts. The real
 # work is done by the  Prolog   script  setup.pl to maintain portability
-# with Windows.  Windows users should simply double-click setup.pl.
+# with Windows. Windows users should   double-click win-config.exe. This
+# executable performs a  similar  task:   locate  SWI-Prolog  using  the
+# registry and open `setup.pl` with Prolog.
 #
 # Running (2nd variation to select a specific SWI-Prolog version)
 #
