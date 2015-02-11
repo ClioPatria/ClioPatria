@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2007-2012, University of Amsterdam
+    Copyright (C): 2007-2015, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -83,8 +83,7 @@ sparql_parse(Input, _, _) :-
 		 *******************************/
 
 syntax_error(What) :-
-	throw(error(syntax_error(What),
-		    context(_, 'in SPARQL query'))).
+	throw(error(syntax_error(sparql(What)), _)).
 
 add_error_location(error(syntax_error(What), Location),
 		   Input) :-
@@ -110,10 +109,30 @@ add_error_location(error(syntax_error(What), Location),
 	    append(AC0, Elipsis, AC)
 	),
 	append(Here, AC, HAC),
-	append([0'\n|BC], HAC, ContextCodes),	% '
-	atom_codes(Context, ContextCodes),
-	throw(error(syntax_error(What),
-		    context('SPARQL', Context))).
+	append([0'\n|BC], HAC, ContextCodes),
+	atom_codes(Context, ContextCodes), !,
+	throw(error(syntax_error(sparql(What)),
+		    context(_, Context))).
+add_error_location(Error, _Input) :-
+	throw(Error).
+
+:- multifile
+	prolog:message//1,
+	http:bad_request_error//2.
+
+http:bad_request_error(syntax_error(sparql(_)), _).
+
+prolog:message(error(syntax_error(sparql(What)), context(_, Context))) -->
+	[ 'SPARQL: syntax error "~w"'-[What] ],
+	(   { var(Context) }
+	->  []
+	;   { atomic_list_concat(Lines, '\n', Context) },
+	    [ ' at', nl ],
+	    lines(Lines)
+	).
+
+lines([]) --> [].
+lines([H|T]) --> ['~w'-[H], nl], lines(T).
 
 
 		 /*******************************
