@@ -110,6 +110,7 @@ explains the basic layout of the sources.
 Authors:
 
  - Jan Wielemaker
+ - Wouter Beek
  - Jacco van Ossenbruggen
  - Michiel Hildebrand
 
