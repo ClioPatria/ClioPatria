@@ -62,7 +62,9 @@ rdf(S, P, O) :-
 rdf(S, rdf:type, rdf:'Property') :-
 	var_or_resource(S),
 	rdf_current_predicate(S),
-	\+ rdf_db:rdf(S, rdf:type, rdf:'Property').
+	(   rdf_db:rdf(_, S, _)
+	->  \+ rdf_db:rdf(S, rdf:type, rdf:'Property')
+	).
 rdf(S, rdf:type, rdfs:'Resource') :-
 	var_or_resource(S),
 	rdf_subject(S),

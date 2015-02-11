@@ -147,6 +147,10 @@ rdfs_has_type(Resource, Class) :-
 		rdf_equal(Class, rdf:'Property')
 	    ;	rdf_db:rdf(_, rdfs:subPropertyOf, Resource),
 		rdf_equal(Class, rdf:'Property')
+	    ;	(   rdf_db:rdf(_,Resource,_)
+		->  rdf_equal(Class, rdf:'Property'),
+		    \+ rdf_has(Resource, rdf:type, Class)
+		)
 	    ),
 	    add_nb_set(Class, Set, New),
 	    New == true
@@ -156,6 +160,12 @@ rdfs_has_type(Resource, Class) :-
 		rdf_has(Resource, P, _)
 	    ;	rdf_has(P, rdfs:range, Class),
 		rdf_has(_, P, Resource)
+	    ;	(   rdf_reachable(Class, rdfs:subClassOf, rdf:'Property')
+		->  rdf_current_predicate(Resource),
+		    (   rdf(_,Resource,_)
+		    ->  \+ rdf_has(Resource, rdf:type, Class)
+		    )
+		)
 	    ),
 	    add_nb_set(Resource, Set, New),
 	    New == true
