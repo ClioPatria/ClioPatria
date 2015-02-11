@@ -54,6 +54,8 @@
 :- use_module(components(basics)).
 :- use_module(components(messages)).
 
+:- meta_predicate(api_action2(+,0,+,+)).
+
 :- http_handler(sesame('login'),	      http_login,	    []).
 :- http_handler(sesame('logout'),	      http_logout,	    []).
 :- http_handler(sesame('evaluateQuery'),      evaluate_query,
