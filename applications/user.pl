@@ -317,15 +317,12 @@ $(function() {
 %	Provide a form for uploading triples from a URL.
 
 load_url_form(_Request) :-
-	TurtleHREF = 'http://www.w3.org/TeamSubmission/turtle/',
 	reply_html_page(cliopatria(default),
 			title('Load RDF from HTTP server'),
 			[ h1('Load RDF from HTTP server'),
-			  p([ 'This form can load RDF from an HTTP server that serves ',
-			      'either RDF/XML or ', a(href(TurtleHREF), 'Turtle'), '. ',
-			      'The format is derived from the Content-type reported by ',
-			      'the server or the file name extension.'
-			    ]),
+
+			  \explain_url_form,
+
 			  form([ action(location_by_id(upload_url)),
 				 method('GET')
 			       ],
@@ -333,12 +330,15 @@ load_url_form(_Request) :-
 				 table(class(form),
 				       [tr([ th(class(label), 'URL:'),
 					     td(input([ name(url),
+							id(url),
 							value('http://'),
 							size(50)
 						      ]))
 					   ]),
-					tr([ th(class(label), 'BaseURI:'),
+					tr([ th(class(label), 'Graph:'),
 					     td(input([ name(baseURI),
+							id(namedgraph),
+							value('http://'),
 							size(50)
 						      ]))
 					   ]),
@@ -349,9 +349,40 @@ load_url_form(_Request) :-
 						      ]))
 					   ])
 				       ])
-			       ])
+			       ]),
+			  \url_graph_script
 			]).
 
+
+url_graph_script -->
+	html_requires(jquery),
+	js_script({|javascript||
+$(function() {
+  $("#url").on("change keyup", function(ev) {
+    var url = $(ev.target).val();
+    $("#namedgraph").val(url);
+  });
+});
+		   |}).
+
+
+explain_url_form -->
+	html({|html||
+
+<p>Download RDF from an URL and insert it into the ClioPatria triple
+store. The downloaded document may contain <a
+href="http://www.w3.org/TR/REC-rdf-syntax/">RDF/XML</a>, <a
+href="http://www.w3.org/TR/turtle/">Turtle</a> or <a
+href="http://www.w3.org/TR/n-triples/">ntriples</a>. The file is
+processed using <a href="http://www.libarchive.org/"> libarchive</a>,
+which implies it can be a (nested) archive and may optionally be
+compressed. </p>
+
+<p>
+Alternatively you can use <a href="loadFile">loadFile</a> to upload
+a file through your browser.
+</p>
+	     |}).
 
 %%	load_library_rdf_form(+Request)
 %

@@ -45,6 +45,7 @@
 :- use_module(library(http/http_request_value)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_client)).
+:- use_module(library(http/http_open)).
 :- use_module(library(memfile)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
@@ -551,7 +552,7 @@ upload_url(Request) :-
 			[ url(URL, []),
 			  dataFormat(DataFormat),
 			  baseURI(BaseURI,
-				  [ optional(true)
+				  [ default(URL)
 				  ]),
 			  resultFormat(ResultFormat),
 			  verifyData(_Verify),
@@ -563,9 +564,28 @@ upload_url(Request) :-
 	authorized_api(write(Repository, load(url(URL))), ResultFormat),
 	phrase(load_option(DataFormat, BaseURI), Options),
 	api_action(Request,
-		   rdf_load(URL, Options),
+		   load_from_url(URL, Options),
 		   ResultFormat,
 		   'Load data from ~w'-[URL]).
+
+load_from_url(URL, Options) :-
+	http_open(URL, In,
+		  [ cert_verify_hook(ssl_verify)
+		  ]),
+	call_cleanup(rdf_guess_format_and_load(In, Options),
+		     close(In)).
+
+:- public ssl_verify/5.
+
+%%	ssl_verify(+SSL, +ProblemCert, +AllCerts, +FirstCert, +Error)
+%
+%	Currently we accept  all  certificates.   We  organise  our  own
+%	security using SHA1 signatures, so  we   do  not  care about the
+%	source of the data.
+
+ssl_verify(_SSL,
+	   _ProblemCertificate, _AllCertificates, _FirstCertificate,
+	   _Error).
 
 load_option(DataFormat, BaseURI) -->
 	data_format_option(DataFormat),
