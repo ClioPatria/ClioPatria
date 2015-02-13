@@ -143,9 +143,10 @@ xml_doctype(Stream, DocType) :-
 	    open_string_stream(Start, In),
 	    xml_doctype_2(In, DocType),
 	    close(In)).
-:- endif.
+:- else.
 xml_doctype(Stream, DocType) :-
 	xml_doctype_2(Stream, DocType).
+:- endif.
 
 xml_doctype_2(Stream, DocType) :-
 	catch(setup_call_cleanup(make_parser(Stream, Parser, State),
