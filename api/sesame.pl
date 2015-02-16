@@ -50,6 +50,7 @@
 :- use_module(library(debug)).
 :- use_module(library(lists)).
 :- use_module(library(option)).
+:- use_module(library(apply)).
 :- use_module(library(settings)).
 :- use_module(components(query)).
 :- use_module(components(basics)).
@@ -498,17 +499,22 @@ upload_data_file(Request, Data, TmpFile, FileOptions) :-
 		   ResultFormat,
 		   'Load data from POST'-[]).
 
+upload_option(_=_) :- !.
+upload_option(Term) :- functor(Term, _, 1).
+
 upload_data(Request) :-
 	option(method(post), Request), !,
 	http_read_data(Request, Data,
 		       [ on_filename(create_tmp_file)
 		       ]),
-	(   option(data(file(TmpFile, Options)), Data)
+	(   option(data(file(TmpFile, FileOptions)), Data)
 	->  true
 	;   existence_error(attribute_declaration, data)
 	),
+	include(upload_option, FileOptions, Options),
 	call_cleanup(upload_data_file(Request, Data, TmpFile, Options),
 		     catch(delete_file(TmpFile), _, true)).
+
 :- endif.
 upload_data(Request) :-
 	http_parameters(Request,
