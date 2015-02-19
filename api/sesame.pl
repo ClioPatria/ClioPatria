@@ -1088,11 +1088,15 @@ subj_label --> html('Resources').
 run(M:(A,B), Log) :- !,
 	run(M:A, Log),
 	run(M:B, Log).
-run(_:rdf_reset_db, _) :- !,
-	rdf_reset_db.	% cannot be undone and cannot be in a transaction in 3.0
+run(Goal, _) :-
+	no_transaction(Goal), !,
+	call(Goal).
 run(A, Log) :-
 	rdf_transaction(A, Log).
 
+no_transaction(_:rdf_reset_db).
+no_transaction(_:rdf_unload_graph(_)).
+no_transaction(_:rdf_flush_journals(_)).
 
 done(html, _Message, CPU, Subjects, Triples) :-
 	after_messages([ \result_table(CPU, Subjects, Triples)
