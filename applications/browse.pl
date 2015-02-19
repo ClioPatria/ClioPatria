@@ -37,10 +37,12 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
 :- use_module(library(http/html_write)).
+:- use_module(library(http/js_write)).
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/yui_resources)).
 :- use_module(library(http/http_path)).
+:- use_module(library(http/jquery)).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
@@ -59,6 +61,7 @@
 :- use_module(components(graphviz)).
 :- use_module(components(basics)).
 :- use_module(api(lod_crawler)).
+:- use_module(api(sesame)).
 :- use_module(library(semweb/rdf_abstract)).
 :- use_module(library(semweb/rdf_label)).
 
@@ -103,6 +106,8 @@ that allow back-office applications to reuse this infrastructure.
 
 :- http_handler(rdf_browser(list_prefixes),   list_prefixes,   []).
 :- http_handler(rdf_browser(search),          search,	       []).
+:- http_handler(rdf_browser(multigraph_action), multigraph_action,
+		[ time_limit(infinite) ]).
 
 
 :- meta_predicate
@@ -141,14 +146,23 @@ graph_triples(Graph, Count) :-			% RDF-DB < 3.0
 
 graph_table(Graphs, Options) -->
 	{ option(top_max(TopMax), Options, 500),
-	  option(top_max(BottomMax), Options, 500)
+	  option(top_max(BottomMax), Options, 500),
+	  http_link_to_id(multigraph_action, [], Action),
+	  graph_actions(Options, ActionOptions)
 	},
 	html_requires(css('rdf.css')),
-	html(table(class(block),
-		   [ \graph_table_header
-		   | \table_rows_top_bottom(graph_row, Graphs,
-					    TopMax, BottomMax)
-		   ])).
+	html(form([ action(Action),
+		    class('graph-table')
+		  ],
+		  [ table(class(block),
+			  [ \graph_table_header
+			  | \table_rows_top_bottom(
+				 graph_row(ActionOptions), Graphs,
+				 TopMax, BottomMax)
+			  ]),
+		    \multigraph_actions(ActionOptions)
+		  ])),
+	mgraph_action_script.
 
 graph_table_header -->
 	html(tr([ th('RDF Graph'),
@@ -156,19 +170,22 @@ graph_table_header -->
 		  th('Persistency')
 		])).
 
-graph_row(virtual(total)) --> !,
+graph_row(_, virtual(total)) --> !,
 	{ rdf_statistics(triples(Count))
 	},
 	html([ th(class(total), 'Total #triples:'),
 	       \nc('~D', Count, [class(total)])
 	     ]).
-graph_row(Graph) -->
+graph_row(Options, Graph) -->
 	{ graph_triples(Graph, Count)
 	},
 	html([ td(\graph_link(Graph)),
 	       \nc('~D', Count),
-	       td(style('text-align:center'), \persistency(Graph))
+	       td(style('text-align:center'), \persistency(Graph)),
+	       \graph_checkbox(Graph, Options)
 	     ]).
+
+
 
 graph_link(Graph) -->
 	{ http_link_to_id(list_graph, [graph=Graph], URI)
@@ -206,6 +223,96 @@ journal(Graph) -->
 		   src(Img)
 		 ])).
 journal(_) --> [].
+
+%%	graph_actions(+Options0, -Options).
+%%	multigraph_actions(+Options)
+%
+%	Deal with actions on multiple graphs.
+
+graph_actions(Options, [show_actions(true)|Options]) :-
+	logged_on(User, X),
+	X \== User,
+	catch(check_permission(User, write(_, unload(user))), _, fail), !.
+graph_actions(Options, Options).
+
+graph_checkbox(Graph, Options) -->
+	{ option(show_actions(true), Options) }, !,
+	html(td(class('no-border'),
+		input([type(checkbox),name(graph),value(Graph),
+		       class('graph-select')]))).
+graph_checkbox(_, _) --> [].
+
+multigraph_actions(Options) -->
+	{ option(show_actions(true), Options), !,
+	  findall(Action-Format,
+		  clause(graph_action(Action,Format,_), _),
+		  Pairs)
+	},
+	html([ ul([ class('multi-graph-actions')
+		  ],
+		  \li_graph_actions(Pairs))
+	     ]).
+multigraph_actions(_) --> [].
+
+li_graph_actions([]) --> [].
+li_graph_actions([H|T]) --> li_graph_action(H), li_graph_actions(T).
+
+li_graph_action(Action-Format) -->
+	{ atomic_list_concat([Pre,Post], '~w', Format) },
+	html(li([ Pre,
+		  input([ type(submit), name(action), value(Action) ]),
+		  Post
+		])).
+
+mgraph_action_script -->
+	html_requires(jquery),
+	js_script({|javascript||
+function showActions(time) {
+  if ( time === undefined ) time = 400;
+  var val = [];
+  $('.graph-table :checkbox:checked').each(function(i) {
+    val[i] = $(this).val();
+  });
+  if ( val.length == 0 )
+    $(".multi-graph-actions").hide(time);
+  else
+    $(".multi-graph-actions").show(time);
+}
+
+$(function() {
+  showActions(0);
+  $(".graph-table .graph-select").on('click', showActions);
+});
+		   |}).
+
+%%	multigraph_action(Request)
+%
+%	HTTP Handler for user actions on multiple graphs.
+
+multigraph_action(Request) :-
+	findall(Action, clause(graph_action(Action,_,_), _), Actions),
+	http_parameters(Request,
+			[ graph(Graphs, [list(atom)]),
+			  action(Action, [oneof(Actions)])
+			]),
+	clause(graph_action(Action,Format,_), _),
+	api_action(Request, multigraph_action(Action, Graphs), html,
+		   Format-[Action]).
+
+multigraph_action(Action, Graphs) :-
+	forall(member(Graph, Graphs),
+	       ( print_message(informational,
+			       format('Processing ~w ...', [Graph])),
+		 graph_action(Action, _, Graph))).
+
+graph_action('Delete', '~w selected graphs', Graph) :-
+	rdf_unload_graph(Graph).
+graph_action(volatile, 'Make selected graphs ~w', Graph) :-
+	rdf_persistency(Graph, false).
+graph_action(persistent, 'Make selected graphs ~w', Graph) :-
+	rdf_persistency(Graph, true).
+graph_action('Merge journals', '~w for selected graphs', Graph) :-
+	rdf_flush_journals([graph(Graph)]).
 
 
 %%	list_graph(+Request)
@@ -386,7 +493,7 @@ flush_journal_button(Graph) -->
 		form(action(HREF),
 		     [ input([type(hidden), name(graph), value(Graph)]),
 		       input([type(hidden), name(resultFormat), value(html)]),
-		       input([type(submit), value('Flush journal')])
+		       input([type(submit), value('Merge journal')])
 		     ]))).
 
 
