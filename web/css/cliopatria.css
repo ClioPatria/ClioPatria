@@ -111,7 +111,7 @@ option.change
 		 *******************************/
 
 table.block
-{ border-width: 1px;
+{ border-width: 0px;
   border-style: solid;
   border-collapse: collapse;
   margin-left: 1cm;
@@ -136,6 +136,16 @@ table.block td, table.block th
   padding: 0 2px;
 }
 
+table.block tr:last-child td,
+table.block tr:last-child th
+{ border-width: 0 1px 1px 1px;
+}
+
+table.block tr:first-child td,
+table.block tr:first-child th
+{ border-width: 1px 1px 0px 1px;
+}
+
 tr.even td
 { background-color: #e0e0e0;
 }
@@ -147,6 +157,12 @@ td.int
 
 td.empty, td.int_c
 { text-align:center;
+}
+
+table.block td.no-border
+{ border-width: 0;
+  border-color: #fff;
+  background-color: transparent;
 }
 
 tr.even td.buttons
@@ -300,4 +316,8 @@ table.query span.label
 
 a.img img
 { border-width: 0px;
+}
+
+img.in-text
+{ height: 1em;
 }
