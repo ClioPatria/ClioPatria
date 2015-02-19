@@ -41,6 +41,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_http_plugin)).
 :- use_module(library(semweb/rdf_file_type)).
+:- use_module(library(semweb/rdf_persistency)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_request_value)).
 :- use_module(library(http/http_dispatch)).
@@ -78,6 +79,10 @@
 :- http_handler(sesame('uploadURL'),	      upload_url,
 		[ time_limit(infinite) ]).
 :- http_handler(sesame('removeStatements'),   remove_statements,
+		[ time_limit(infinite) ]).
+:- http_handler(sesame('flushJournal'),	      flush_journal,
+		[ time_limit(infinite) ]).
+:- http_handler(sesame('modifyPersistency'),  modify_persistency,
 		[ time_limit(infinite) ]).
 
 :- html_meta
@@ -434,6 +439,49 @@ unload_graph(Request) :-
 	api_action(Request, rdf_unload_graph(Graph),
 		   ResultFormat,
 		   'Unload triples from ~w'-[Graph]).
+
+
+%%	flush_journal(+Request)
+%
+%	Flush the journal of the requested graph
+
+flush_journal(Request) :-
+	http_parameters(Request,
+			[ repository(Repository),
+			  graph(Graph, []),
+			  resultFormat(ResultFormat)
+			],
+			[ attribute_declarations(attribute_decl)
+			]),
+	result_format(Request, ResultFormat),
+	authorized_api(write(Repository, unload(Graph)), ResultFormat),
+	api_action(Request, rdf_flush_journals([graph(Graph)]),
+		   ResultFormat,
+		   'Flushed journals for graph ~w'-[Graph]).
+
+
+%%	modify_persistency(+Request)
+%
+%	Change the persistent properties for the requested graph
+
+modify_persistency(Request) :-
+	http_parameters(Request,
+			[ repository(Repository),
+			  graph(Graph, []),
+			  resultFormat(ResultFormat),
+			  persistent(Persistent)
+			],
+			[ attribute_declarations(attribute_decl)
+			]),
+	persistency(Persistent, PVal, Action),
+	result_format(Request, ResultFormat),
+	authorized_api(write(Repository, persistent(Graph)), ResultFormat),
+	api_action(Request, rdf_persistency(Graph, PVal),
+		   ResultFormat,
+		   '~w persistency for graph ~w'-[Action, Graph]).
+
+persistency(on,  true,  'Set').
+persistency(off, false, 'Cleared').
 
 
 %%	upload_data(Request).
@@ -1004,6 +1052,10 @@ attribute_decl(password,
 attribute_decl(storeAs,
 	       [ default(''),
 		 description('Store query under this name')
+	       ]).
+attribute_decl(persistent,
+	       [ description('Modify persistency of a graph'),
+		 oneof([on, off])
 	       ]).
 
 bool(Def,
