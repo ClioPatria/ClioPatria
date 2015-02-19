@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2010, VU University Amsterdam
+    Copyright (C): 2009-2015, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -40,14 +40,15 @@
 :- use_module(library(http/html_head)).
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/yui_resources)).
+:- use_module(library(http/http_path)).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_litindex)).
+:- use_module(library(semweb/rdf_persistency)).
 
 :- use_module(library(aggregate)).
 :- use_module(library(lists)).
-:- use_module(library(error)).
 :- use_module(library(pairs)).
 :- use_module(library(debug)).
 :- use_module(library(option)).
@@ -151,7 +152,8 @@ graph_table(Graphs, Options) -->
 
 graph_table_header -->
 	html(tr([ th('RDF Graph'),
-		  th('Triples')
+		  th('Triples'),
+		  th('Persistency')
 		])).
 
 graph_row(virtual(total)) --> !,
@@ -164,13 +166,47 @@ graph_row(Graph) -->
 	{ graph_triples(Graph, Count)
 	},
 	html([ td(\graph_link(Graph)),
-	       \nc('~D', Count)
+	       \nc('~D', Count),
+	       td(style('text-align:center'), \persistency(Graph))
 	     ]).
 
 graph_link(Graph) -->
 	{ http_link_to_id(list_graph, [graph=Graph], URI)
 	},
 	html(a(href(URI), Graph)).
+
+persistency(Graph) -->
+	{ rdf_graph_property(Graph, persistent(true)) }, !,
+	snapshot(Graph),
+	journal(Graph).
+persistency(_) -->
+	{ http_absolute_location(icons('volatile.png'), Img, [])
+	},
+	html(img([ class('in-text'),
+		   title('Graph is not persistent'),
+		   src(Img)
+		 ])).
+
+snapshot(Graph) -->
+	{ rdf_snapshot_file(Graph, _),
+	  http_absolute_location(icons('snapshot.png'), Img, [])
+	},
+	html(img([ class('in-text'),
+		   title('Graph has persistent snapshot'),
+		   src(Img)
+		 ])).
+snapshot(_) --> [].
+
+journal(Graph) -->
+	{ rdf_journal_file(Graph, _),
+	  http_absolute_location(icons('journal.png'), Img, [])
+	},
+	html(img([ class('in-text'),
+		   title('Graph has a journal'),
+		   src(Img)
+		 ])).
+journal(_) --> [].
+
 
 %%	list_graph(+Request)
 %
@@ -184,7 +220,7 @@ list_graph(Request) :-
 			]),
 	(   rdf_graph(Graph)
 	->  true
-	;   existence_error(graph, Graph)
+	;   http_404([], Request)
 	),
 	reply_html_page(cliopatria(default),
 			title('RDF Graph ~w'-[Graph]),
@@ -195,6 +231,7 @@ list_graph(Request) :-
 					      ]),
 			  \graph_info(Graph),
 			  \graph_as_resource(Graph, []),
+			  \graph_persistency(Graph),
 			  \graph_actions(Graph)
 			]).
 
@@ -295,17 +332,89 @@ type_in_graph2(Graph, Class) :-
 	).
 
 
+%%	graph_persistency(+Graph)//
+%
+%	Show information about the persistency of the graph
+
+graph_persistency(Graph) -->
+	{ rdf_graph_property(Graph, persistent(true)),
+	  (   rdf_journal_file(Graph, _)
+	  ;   rdf_snapshot_file(Graph, _)
+	  )
+	}, !,
+	html([ h1('Persistency information'),
+	       table(class(block),
+		     [ tr([ td(class('no-border'),[]),
+			    th('File'), th('Size'),th('Modified'),
+			    td(class('no-border'),[])
+			  ]),
+		       \graph_shapshot(Graph),
+		       \graph_journal(Graph)
+		     ])
+	     ]).
+graph_persistency(Graph) -->
+	{ rdf_graph_property(Graph, persistent(true))
+	}, !,
+	html([ h1('Persistency information'),
+	       p('The graph has no associated persistency files')
+	     ]).
+graph_persistency(_Graph) -->
+	[].
+
+graph_shapshot(Graph) -->
+	{ rdf_snapshot_file(Graph, File)
+	},
+	html(tr([ th(class('file-role'), 'Snapshot'),
+		  \file_info(File)
+		])).
+graph_shapshot(_) --> [].
+
+
+graph_journal(Graph) -->
+	{ rdf_journal_file(Graph, File)
+	},
+	html(tr([ th(class('file-role'), 'Journal'),
+		  \file_info(File),
+		  \flush_journal_button(Graph)
+		])).
+graph_journal(_) --> [].
+
+flush_journal_button(Graph) -->
+	{ http_link_to_id(flush_journal, [], HREF)
+	},
+	html(td(class('no-border'),
+		form(action(HREF),
+		     [ input([type(hidden), name(graph), value(Graph)]),
+		       input([type(hidden), name(resultFormat), value(html)]),
+		       input([type(submit), value('Flush journal')])
+		     ]))).
+
+
+file_info(File) -->
+	{ size_file(File, Size),
+	  time_file(File, Time),
+	  format_time(string(Modified), '%+', Time)
+	},
+	html([ td(class('file-name'), File),
+	       td(class('int'), \n(human, Size)),
+	       td(class('file-time'), Modified)
+	     ]).
+
+
 %%	graph_actions(+Graph)// is det.
 %
 %	Provide a form for basic actions on the graph
 
 graph_actions(Graph) -->
-	html(ul(class(graph_actions),
-		[ \li_export_graph(Graph, show),
-		  \li_export_graph(Graph, download),
-		  \li_schema_graph(Graph),
-		  \li_delete_graph(Graph)
-		])).
+	html([ h2('Actions'),
+	       ul(class(graph_actions),
+		  [ \li_export_graph(Graph, show),
+		    \li_export_graph(Graph, download),
+		    \li_schema_graph(Graph),
+		    \li_delete_graph(Graph),
+		    \li_persistent_graph(Graph)
+		  ])
+	     ]).
 
 li_delete_graph(Graph) -->
 	{ logged_on(User, X),
@@ -320,6 +429,24 @@ li_delete_graph(Graph) -->
 		       ' this graph'
 		     ]))).
 li_delete_graph(_) --> [].
+
+li_persistent_graph(Graph) -->
+	{ logged_on(User, X),
+	  X \== User,
+	  catch(check_permission(User, write(_, persistent(Graph))), _, fail), !,
+	  http_link_to_id(modify_persistency, [], Action),
+	  (   rdf_graph_property(Graph, persistent(true))
+	  ->  Op = (volatile),   Value = off
+	  ;   Op = (persistent), Value = on
+	  )
+	}, !,
+	html(li(form(action(Action),
+		     [ input([type(hidden), name(graph), value(Graph)]),
+		       input([type(hidden), name(resultFormat), value(html)]),
+		       input([type(hidden), name(persistent), value(Value)]),
+		       'Make this graph ',
+		       input([class(gaction), type(submit), value(Op)])
+		     ]))).
 
 li_schema_graph(Graph) -->
 	{ http_link_to_id(export_graph_schema, [], Action),
@@ -504,7 +631,7 @@ graph_as_resource(Graph, Options) -->
 	  ;   rdf(_, _, Graph)
 	  ), !
 	},
-	html([ h1([ 'Local view for "',
+	html([ h2([ 'Local view for "',
 		    \location(Graph, _), '"'
 		  ]),
 	       \local_view(Graph, _, Options)
