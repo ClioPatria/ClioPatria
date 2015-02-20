@@ -183,6 +183,8 @@ rdf_collection_list(R, [H|T]) :-
 %	    * max_length(+Len)
 %	    Truncate long texts to Len characters, using ellipses to
 %	    indicate that the text is truncated.
+%	    * target(+Target)
+%	    Passed to the HTML <a> element as `target` attribute.
 %
 %	This predicate creates two types of  links. Resources are linked
 %	to the handler implementing   =list_resource= using r=<resource>
@@ -208,9 +210,10 @@ rdf_link(R, Options) -->
 	  ;   rdf_graph(R)
 	  ->  Class = r_graph
 	  ;   Class = r_undef
-	  )
+	  ),
+	  link_options(Extra, Options)
 	},
-	html(a([class(Class), href(HREF)], \resource_label(R, Options))).
+	html(a([class(Class), href(HREF)|Extra], \resource_label(R, Options))).
 rdf_link(Literal, Options) -->
 	{ (   option(graph(Graph), Options)
 	  ->  aggregate_all(count, rdf(_,_,Literal, Graph), Count)
@@ -219,15 +222,23 @@ rdf_link(Literal, Options) -->
 	  Count > 1, !,
 	  format(string(Title), 'Used ~D times', [Count]),
 	  term_to_atom(Literal, Atom),
-	  http_link_to_id(list_triples_with_object, [l=Atom], HREF)
+	  http_link_to_id(list_triples_with_object, [l=Atom], HREF),
+	  link_options(Extra, Options)
 	},
 	html(a([ class(l_count),
 		 href(HREF),
 		 title(Title)
+	       | Extra
 	       ],
 	       \turtle_label(Literal))).
 rdf_link(Literal, _) -->
 	turtle_label(Literal).
+
+link_options(LinkOptions, Options) :-
+	option(target(Target), Options), !,
+	LinkOptions = [target(Target)].
+link_options([], _).
+
 
 %%	resource_link(+URI, -URL) is det.
 %
