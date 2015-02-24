@@ -230,8 +230,7 @@ journal(_) --> [].
 %	Deal with actions on multiple graphs.
 
 graph_actions(Options, [show_actions(true)|Options]) :-
-	logged_on(User, X),
-	X \== User,
+	logged_on(User), !,
 	catch(check_permission(User, write(_, unload(user))), _, fail), !.
 graph_actions(Options, Options).
 
@@ -524,8 +523,7 @@ graph_actions(Graph) -->
 	     ]).
 
 li_delete_graph(Graph) -->
-	{ logged_on(User, X),
-	  X \== User,
+	{ logged_on(User),
 	  catch(check_permission(User, write(_, unload(Graph))), _, fail), !,
 	  http_link_to_id(unload_graph, [], Action)
 	},
@@ -538,8 +536,7 @@ li_delete_graph(Graph) -->
 li_delete_graph(_) --> [].
 
 li_persistent_graph(Graph) -->
-	{ logged_on(User, X),
-	  X \== User,
+	{ logged_on(User),
 	  catch(check_permission(User, write(_, persistent(Graph))), _, fail), !,
 	  http_link_to_id(modify_persistency, [], Action),
 	  (   rdf_graph_property(Graph, persistent(true))
@@ -554,6 +551,7 @@ li_persistent_graph(Graph) -->
 		       'Make this graph ',
 		       input([class(gaction), type(submit), value(Op)])
 		     ]))).
+li_persistent_graph(_) --> [].
 
 li_schema_graph(Graph) -->
 	{ http_link_to_id(export_graph_schema, [], Action),
