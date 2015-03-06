@@ -11,7 +11,7 @@
 #
 # Issues:
 #	- How to represent version dependencies?
-# 	- Can we use from Web-Of-Trust (http://xmlns.com/wot/0.1/)
+#	- Can we use from Web-Of-Trust (http://xmlns.com/wot/0.1/)
 
 # Classes
 
@@ -67,6 +67,11 @@ cpack:PrologFile a rdfs:Class ;
 	rdfs:subClassOf cpack:File ;
 	rdfs:label "Prolog file" ;
 	rdfs:comment "Prolog source file" .
+
+cpack:IgnoreFile a rdfs:Class ;
+	rdfs:subClassOf cpack:File ;
+	rdfs:label "Ignore file" ;
+	rdfs:comment "File holding patterns of files to be ignored by xref" .
 
 cpack:SystemFile a rdfs:Class ;
 	rdfs:subClassOf cpack:PrologFile ;
@@ -284,6 +289,12 @@ cpack:base a owl:DatatypeProperty ;
 	rdfs:domain [ a owl:Class ;
 		      owl:unionOf ( cpack:File cpack:FileRef )
 		    ] .
+
+cpack:ignored a owl:DatatypeProperty ;
+	rdfs:label "ignored" ;
+	rdfs:comment "File must be excluded from cross-referencing" ;
+	rdfs:range xsd:boolean ;
+	rdfs:domain cpack:PrologFile .
 
 cpack:size a owl:DatatypeProperty ;
 	rdfs:label "size" ;
