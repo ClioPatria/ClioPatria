@@ -430,7 +430,8 @@ resolve_state(prologue(PrefixesList), State, Options) :-
 	resolve_state(prologue(Base, PrefixesList), State, Options).
 resolve_state(prologue(Base, PrefixesList),
 	      State, Options) :-
-	list_to_assoc(PrefixesList, Prefixes),
+	sort(PrefixesList, OrdPrefixList),
+	ord_list_to_assoc(OrdPrefixList, Prefixes),
 	initial_vars(Vars, Options),
 	make_state([ base_uri(Base),
 		     prefix_assoc(Prefixes),
