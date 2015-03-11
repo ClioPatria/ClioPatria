@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2013, VU University Amsterdam
+    Copyright (C): 2013-2015, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -77,8 +77,8 @@ field_to_csv(Var, '', BNodeDict, BNodeDict) :-
 	->  true
 	;   Var == '$null$'
 	), !.
-field_to_csv(literal(Literal), Text, BNodeDict, BNodeDict) :- !,
-	literal_text(Literal, Text).
+field_to_csv(literal(Literal), Text, BNodeDict, BNodeDict) :-
+	literal_text(Literal, Text), !.
 field_to_csv(Resource, BNode, BNodeDict0, BNodeDict) :-
 	rdf_is_bnode(Resource), !,
 	BNodeDict0 = bnode(N0, Dict0),
@@ -89,18 +89,29 @@ field_to_csv(Resource, BNode, BNodeDict0, BNodeDict) :-
 	    put_assoc(Resource, Dict0, BNode, Dict),
 	    BNodeDict = bnode(N, Dict)
 	).
-field_to_csv(Resource, Resource, BNodeDict, BNodeDict).
+field_to_csv(Atomic, Atomic, BNodeDict, BNodeDict) :-
+	atomic(Atomic), !.
+field_to_csv(Term, String, BNodeDict, BNodeDict) :-
+	term_string(Term, String).
+
+%%	literal_text(+Literal, -Value) is semidet.
 
 literal_text(type(Type, Value), Text) :- !,
+	atom(Type),
 	(   rdf_equal(Type, rdf:'XMLLiteral')
 	->  with_output_to(string(Text),
 			   xml_write(Value, [header(false)]))
 	;   atomic(Value)
 	->  Text = Value
-	;   term_to_atom(Value, Text)
+	;   term_string(Value, Text)
 	).
-literal_text(lang(_Lang, Text), Text) :- !.
-literal_text(Text, Text).
+literal_text(lang(Lang, LangText), Text) :- !,
+	atom(Lang),
+	literal_text(LangText, Text).
+literal_text(Text, Text) :-
+	atom(Text), !.
+literal_text(Text, Text) :-
+	string(Text), !.
 
 
 		 /*******************************
