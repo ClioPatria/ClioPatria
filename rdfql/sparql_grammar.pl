@@ -122,14 +122,22 @@ add_error_location(Error, _Input) :-
 
 http:bad_request_error(syntax_error(sparql(_)), _).
 
+prolog:message(error(syntax_error(sparql(unknown)), _)) -->
+	[ 'SPARQL: Unclassified syntax error in query'-[] ].
 prolog:message(error(syntax_error(sparql(What)), context(_, Context))) -->
-	[ 'SPARQL: syntax error "~w"'-[What] ],
+	[ 'SPARQL: syntax error: '-[] ],
+	error_detail(What),
 	(   { var(Context) }
 	->  []
 	;   { atomic_list_concat(Lines, '\n', Context) },
 	    [ ' at', nl ],
 	    lines(Lines)
 	).
+
+error_detail(expected(What)) -->
+	[ '"~w" expected'-[What] ].
+error_detail(What) -->
+	[ '~p'-[What] ].
 
 lines([]) --> [].
 lines([H|T]) --> ['~w'-[H], nl], lines(T).
@@ -1282,7 +1290,7 @@ where_clause(Pattern) -->
 must_see_group_graph_pattern(Pattern) -->
 	group_graph_pattern(Pattern), !.
 must_see_group_graph_pattern(_) -->
-	syntax_error(group_graph_pattern_expected).
+	syntax_error(expected(group_graph_pattern)).
 
 
 %%	solution_modifier(-Solutions)// is det.
@@ -1745,7 +1753,7 @@ group_graph_pattern(group(P)) -->		% [53]
 	skip_ws, "{", skip_ws,
 	(   sub_select(P0)
 	;   group_graph_pattern_sub(P0)
-	;   syntax_error(graph_pattern_expected)
+	;   syntax_error(expected(graph_pattern))
 	), !,
 	(   "}"
 	->  skip_ws,
@@ -2622,7 +2630,8 @@ must_see_close_brace   --> must_see_punct(0'}).
 must_see_punct(C) -->
 	[C], !, skip_ws.
 must_see_punct(C) -->
-	syntax_error(expected(C)).
+	{ char_code(Char, C) },
+	syntax_error(expected(Char)).
 
 
 %%	str_replace_expression(Expr)//
