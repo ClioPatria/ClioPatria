@@ -273,6 +273,8 @@ resource_flabel(nslabel, R, _Options) -->
 	{ (   rdf_is_bnode(R)
 	  ->  NS = '_'
 	  ;   rdf_global_id(NS:_Local, R)
+	  ->  true
+	  ;   NS = '?'
 	  ), !,
 	  rdf_display_label(R, Label)
 	},
