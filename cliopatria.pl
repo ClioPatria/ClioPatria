@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://cliopatria.swi-prolog.org
-    Copyright (C): 2004-2013, University of Amsterdam
+    Copyright (C): 2004-2015, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -153,6 +153,8 @@ user:file_search_path(library, cliopatria(lib)).
 %	    * store(+Store)
 %	    Directory to use as persistent store. See also the
 %	    setting =|cliopatria:persistent_store|=.
+%	    * settings(+Settings)
+%	    Settings file.  Default is =settings.db=.
 
 :- meta_predicate
 	cp_server(:).
@@ -182,7 +184,8 @@ cp_server(_Options) :-
 cp_server(Options) :-
 	meta_options(is_meta, Options, QOptions),
 	load_application(QOptions),
-	load_settings('settings.db'),
+	option(settings(Settings), QOptions, 'settings.db'),
+	load_settings(Settings),
 	set_prefix(QOptions),
 	attach_account_info,
 	set_session_options,
