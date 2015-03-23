@@ -184,8 +184,8 @@ cp_server(_Options) :-
 cp_server(Options) :-
 	meta_options(is_meta, Options, QOptions),
 	load_application(QOptions),
-	option(settings(Settings), QOptions, 'settings.db'),
-	load_settings(Settings),
+	option(settings(SettingsFile), QOptions, 'settings.db'),
+	load_settings(SettingsFile),
 	set_prefix(QOptions),
 	attach_account_info,
 	set_session_options,
