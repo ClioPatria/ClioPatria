@@ -84,6 +84,8 @@
 		[ time_limit(infinite) ]).
 :- http_handler(sesame('modifyPersistency'),  modify_persistency,
 		[ time_limit(infinite) ]).
+:- http_handler(sesame('addPrefix'),	      add_prefix,
+		[ time_limit(infinite) ]).
 
 :- html_meta
 	api_action(+, 0, +, html).
@@ -949,6 +951,31 @@ lang_codes([]) -->
 	[].
 
 
+%%	add_prefix(+Request)
+%
+%	Register a new prefix
+
+add_prefix(Request) :-
+	http_parameters(Request,
+			[ prefix(Prefix),
+			  uri(URI),
+			  repository(Repository),
+			  resultFormat(ResultFormat)
+			],
+			[ attribute_declarations(attribute_decl)
+			]),
+	authorized_api(write(Repository, add_prefix), ResultFormat),
+	check_prefix(Prefix),
+	api_action(Request,
+		   rdf_register_prefix(Prefix, URI),
+		   ResultFormat,
+		   'Register prefix ~w --> ~w'-[Prefix, URI]).
+
+check_prefix(Prefix) :-
+	xml_name(Prefix), !.
+check_prefix(Prefix) :-
+	domain_error(xml_name, Prefix).
+
 
 		 /*******************************
 		 *	 HTTP ATTRIBUTES	*
@@ -1056,6 +1083,12 @@ attribute_decl(storeAs,
 attribute_decl(persistent,
 	       [ description('Modify persistency of a graph'),
 		 oneof([on, off])
+	       ]).
+attribute_decl(uri,
+	       [ description('URI')
+	       ]).
+attribute_decl(prefix,
+	       [ description('Prefix (abbreviation)')
 	       ]).
 
 bool(Def,

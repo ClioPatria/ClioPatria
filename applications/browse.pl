@@ -1303,11 +1303,35 @@ list_resource(URI, Options) -->
 	html([ h1([ 'Local view for "',
 		    \location(URI, Graph), '"'
 		  ]),
+	       \define_prefix(URI),
 	       \local_view(URI, Graph, Options),
 	       p(\as_object(URI, Graph)),
 	       p(\as_graph(URI)),
 	       \uri_info(URI, Graph)
 	     ]).
+
+%%	define_prefix(+URI)//
+%
+%	Allow defining a new prefix if the  resource is not covered by a
+%	prefix.
+
+define_prefix(URI) -->
+	{ rdf_global_id(_Prefix:_Local, URI) }, !.
+define_prefix(URI) -->
+	{ iri_xml_namespace(URI, Namespace, LocalName),
+	  LocalName \== '',
+	  http_link_to_id(add_prefix, [], Action)
+	},
+	html(form(action(Action),
+		  ['No prefix for ', a(href(Namespace),Namespace), '. ',
+		   \hidden(uri, Namespace),
+		   input([name(prefix), size(8),
+			  title('Short unique abbreviation')
+			 ]),
+		   input([type(submit), value('Add prefix')])
+		  ])).
+define_prefix(_) -->			% Not a suitable URI.  Warn?
+	[].
 
 
 %%	location(+URI, ?Graph) is det.
