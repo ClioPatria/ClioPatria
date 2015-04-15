@@ -1758,13 +1758,15 @@ normalize_triple(RDF, RDF).
 
 
 
-parents(URI, Up, [rdf(URI, P, Parent)|T], Visited, MaxD) :-
+parents(URI, Up, [Triple|T], Visited, MaxD) :-
 	succ(MaxD2, MaxD),
 	rdf_has(URI, Up, Parent, P),
+	normalize_triple(rdf(URI, P, Parent), Triple),
 	\+ memberchk(Parent, Visited),
 	parents(Parent, Up, T, [Parent|Visited], MaxD2).
 parents(_, _, [], _, _).
 
+transitive_context(owl:sameAs).
 transitive_context(rdfs:subClassOf).
 transitive_context(rdfs:subPropertyOf).
 transitive_context(skos:broader).
