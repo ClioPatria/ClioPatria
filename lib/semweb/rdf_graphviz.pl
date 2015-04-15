@@ -341,12 +341,21 @@ write_image_node(ImgAttrs, Attrs, Stream, _Options) :-
 	filter_attributes(Attrs, td, TDAttrs, _Attrs1),
 	html_current_option(dialect(Dialect)),
 	html_set_options([dialect(xhtml)]),
-	phrase(html(table(border(0),
-			  tr(td(TDAttrs, img([src(File)|ImgAttrs1], []))))),
+	label_row(Attrs, Extra),
+	option(border(Border), Attrs),
+	phrase(html(table(border(Border),
+			  [ tr(td(TDAttrs, img([src(File)|ImgAttrs1], [])))
+			  | Extra
+			  ])),
 	       Tokens),
 	html_set_options([dialect(Dialect)]),
 	with_output_to(string(HTML), print_html(Tokens)),
 	write_attributes([html(HTML),shape(plaintext)], Stream).
+
+label_row(Attrs, Extra) :-
+	option(label(Label), Attrs), !,
+	Extra = [tr(td([align(center)], Label))].
+label_row(_, []).
 
 
 %%	resource_label(+Resource, -Label:atom, +Options) is det.
