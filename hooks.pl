@@ -84,6 +84,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 	predicate_order/2,		% +P, -Order
 	context_graph/2,		% +R, -RDF
 	context_graph/3,		% +R, -RDF, +Options
+	context_predicate/2,		% +R, -Pred
 	node_shape/3.			% +R, -Shape, +Options
 
 
@@ -247,11 +248,14 @@ The example below adds an item to =Help= popup of ClioPatria:
 %	describe the context. Typically only   object-triples  are used,
 %	although that is not a requirement.
 %
-%	@see	This predicate hooks cpa_browse:context_graph/2.  Please
+%	@see	This predicate hooks cpa_browse:context_graph/3.  Please
 %		visit the soure to learn about available building
 %		blocks.
 
-
+%%	context_predicate(+Subject, -Predicate) is nondet.
+%
+%	True when rdf(Subject, Predicate, _)  must   be  included in the
+%	context graph for Subject.
 
 %%	node_shape(+URI, -Shape, +Options) is semidet.
 %

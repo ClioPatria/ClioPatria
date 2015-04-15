@@ -1738,12 +1738,25 @@ context_triple(URI, Triple) :-
 	transitive_context(CP),
 	parents(URI, CP, Triples, [URI], 3),
 	member(Triple, Triples).
-context_triple(URI, rdf(URI, P, O)) :-
+context_triple(URI, Triple) :-
+	cliopatria:context_predicate(URI, R),
+	rdf_has(URI, R, O, P),
+	normalize_triple(rdf(URI, P, O), Triple).
+context_triple(URI, Triple) :-
 	context(R),
-	rdf_has(URI, R, O, P).
-context_triple(URI, rdf(S, P, URI)) :-
+	rdf_has(URI, R, O, P),
+	normalize_triple(rdf(URI, P, O), Triple).
+context_triple(URI, Triple) :-
 	context(R),
-	rdf_has(S, R, URI, P).
+	rdf_has(S, R, URI, P),
+	normalize_triple(rdf(S, P, URI), Triple).
+
+normalize_triple(rdf(S, inverse_of(P0), O),
+		 rdf(O, P, S)) :- !,
+	rdf_predicate_property(P0, inverse_of(P)).
+normalize_triple(RDF, RDF).
+
+
 
 parents(URI, Up, [rdf(URI, P, Parent)|T], Visited, MaxD) :-
 	succ(MaxD2, MaxD),
