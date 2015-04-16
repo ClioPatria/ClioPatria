@@ -285,6 +285,12 @@ target_option(Attrs0, Attrs, Options) :-
 target_option(Attrs, Attrs, _).
 
 no_bag_option(img(_)).
+no_bag_option(width(_)).
+no_bag_option(height(_)).
+no_bag_option(cellpadding(_)).
+no_bag_option(fixedsize(_)).
+no_bag_option(label(_)).
+no_bag_option(border(_)).
 
 %%	bag_label(+Members, +Max, -Label, +Options) is det.
 %
