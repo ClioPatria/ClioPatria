@@ -85,7 +85,8 @@ The example below adds an item to =Help= popup of ClioPatria:
 	context_graph/2,		% +R, -RDF
 	context_graph/3,		% +R, -RDF, +Options
 	context_predicate/2,		% +R, -Pred
-	node_shape/3.			% +R, -Shape, +Options
+	node_shape/3,			% +R, -Shape, +Options
+	bag_shape/3.			% +Members, -Shape, +Options
 
 
 		 /*******************************
@@ -269,3 +270,18 @@ The example below adds an item to =Help= popup of ClioPatria:
 %	       context node for the resource StartURI.
 %	@see   http://www.graphviz.org/doc/info/shapes.html
 
+%%	node_shape(+Bag, -Shape, +Options) is semidet.
+%
+%	Compute the desired properties for a table used to display a bag
+%	of resources.  Shape options include:
+%
+%	  - max(Max)
+%	  Only show the first Max members of the bag.  Default is 5.
+%	  - shape(Shape)
+%	  Basic shape
+%	  - style(Style)
+%	  Style options
+%	  - max_label_length(Chars)
+%	  Truncate labels that have more then Chars characters.
+%
+%	@param Bag is a list of member resources

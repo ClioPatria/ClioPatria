@@ -1692,12 +1692,14 @@ context_graph(URI, Options) -->
 				 wrap_url(resource_link),
 				 graph_attributes([ rankdir('RL')
 						  ]),
-				 shape_hook(shape(URI, GraphOption))
+				 shape_hook(shape(URI, GraphOption)),
+				 bag_shape_hook(bag_shape(GraphOption))
 			       ])
 	     ]).
 
 :- public
-	shape/4.
+	shape/4,
+	bag_shape/3.
 
 %%	shape(+Start, +Options, +URI, -Shape) is semidet.
 %
@@ -1708,6 +1710,16 @@ shape(Start, Options, URI, Shape) :-
 	cliopatria:node_shape(URI, Shape, [start(Start)|Options]), !.
 shape(Start, _Options, Start,
       [ shape(tripleoctagon),style(filled),fillcolor('#ff85fd'),id(start) ]).
+
+%%	bag_shape(+Options, +Members, -Shape) is semidet.
+%
+%	Compute properties for a bag
+
+bag_shape(Options, Members, Shape) :-
+	cliopatria:bag_shape(Members, Shape, Options), !.
+bag_shape(_, _, []).
+
+
 
 %%	context_graph(+URI, -Triples, +Options) is det.
 %

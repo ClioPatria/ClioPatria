@@ -156,6 +156,7 @@ graphviz_graph_fmt(svg, Hash, Options) -->
 
 is_meta(wrap_url).
 is_meta(shape_hook).
+is_meta(bag_shape_hook).
 
 has_graphviz_renderer(Renderer) :-
 	process:exe_options(ExeOptions),

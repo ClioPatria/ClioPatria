@@ -3,8 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2007-2010, University of Amsterdam,
-		   VU University Amsterdam
+    Copyright (C): 2007-2015, University of Amsterdam,
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -98,6 +98,11 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %	    Shape).  Shape is a list of Name(Value) terms.  See
 %	    shape/3.
 %
+%	    * bag_shape_hook(:Goal)
+%	    Called to define the shape parameters for a bag (Table).
+%	    called as call(Goal, Members, Shape) Shape is a list of
+%	    Name(Value) terms.
+%
 %	    * label_hook(:Goal)
 %	    Called to define the label of a resource as call(Goal, URI,
 %	    Language, MaxLength, Label). Label is an atom.
@@ -126,6 +131,7 @@ gviz_write_rdf(Stream, Graph0, Options0) :-
 
 is_meta(wrap_url).
 is_meta(shape_hook).
+is_meta(bag_shape_hook).
 is_meta(label_hook).
 
 %%	write_graph_attributes(+List, +Out)
@@ -248,15 +254,20 @@ write_node_attributes(R, Stream, Options) :-
 	get_assoc(R, Bags, Members), !,
 	Members = [First|_],
 	shape(First, MemberShape0, Options),
+	bag_shape(Members, BagShape0, Options),
 	exclude(no_bag_option, MemberShape0, MemberShape),
-	option(bags(merge(BagShape, Max)), Options,
+	option(bags(merge(BagShape1, Max0)), Options,
 	       merge([ shape(box),
 		       style('rounded,filled,bold'),
 		       fillcolor('#ffff80')
 		     ], 5)),
-	merge_options(BagShape, MemberShape, Shape),
-	bag_label(Members, Max, Label, Options),
-	write_attributes([html(Label)|Shape], Stream).
+	select_option(max(Max), BagShape0, BagShape2, Max0),
+	partition(label_option, BagShape2, LabelOptions0, BagShape2a),
+	merge_options(BagShape1, MemberShape, BagShape3),
+	merge_options(BagShape2a, BagShape3, BagShape),
+	merge_options(LabelOptions0, Options, LabelOptions),
+	bag_label(Members, Max, Label, LabelOptions),
+	write_attributes([html(Label)|BagShape], Stream).
 write_node_attributes(R, Stream, Options) :-
 	rdf_is_resource(R), !,
 	shape(R, Shape, Options),
@@ -291,6 +302,8 @@ no_bag_option(cellpadding(_)).
 no_bag_option(fixedsize(_)).
 no_bag_option(label(_)).
 no_bag_option(border(_)).
+
+label_option(max_label_length(_)).
 
 %%	bag_label(+Members, +Max, -Label, +Options) is det.
 %
@@ -522,6 +535,15 @@ wrap_url(URL0, URL, Options) :-
 	call(Wrap, URL0, URL), !.
 wrap_url(URL, URL, _).
 
+
+%%	bag_shape(+Members, -BagShape, +Options) is det.
+%
+%	Compute parameters for a bag of resources.
+
+bag_shape(Members, Shape, Options) :-
+	option(bag_shape_hook(Hook), Options),
+	call(Hook, Members, Shape), !.
+bag_shape(_, [], _).
 
 %%	shape(+Resource, -Attributes, +Options) is det.
 %
