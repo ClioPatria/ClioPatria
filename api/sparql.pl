@@ -145,7 +145,6 @@ sparql_update(Request) :-
 			]),
 	append(DefaultGraphs, NamedGraphs, Graphs),
 	http_read_data(Request, Query, []),
-	authorized(write(Graphs, sparql)),
 	sparql_reply(Request, Query, Graphs, ReqFormat, Entailment).
 % Perform a SPARQL update via POST with URL-encoded parameters.
 % @compat SPARQL 1.1 Protocol recommendation, section 2.2.1.
@@ -160,7 +159,6 @@ sparql_update(Request) :-
 			[ attribute_declarations(sparql_decl)
 			]),
 	append(DefaultGraphs, NamedGraphs, Graphs),
-	authorized(write(Graphs, sparql)),
 	sparql_reply(Request, Query, Graphs, ReqFormat, Entailment).
 
 
