@@ -104,10 +104,10 @@ options(Options) :-
 
 cmd_option(Text, Option) :-
 	atom_concat('--without-', Module, Text), !,
-	Option =.. [without(Module)].
+	Option = without(Module).
 cmd_option(Text, Option) :-
 	atom_concat('--with-', Module, Text), !,
-	Option =.. [with(Module)].
+	Option = with(Module).
 cmd_option(Text, Option) :-
 	atom_concat(--, Rest, Text), !,
 	(   sub_atom(Rest, B, _, A, =)
