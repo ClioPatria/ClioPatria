@@ -356,6 +356,7 @@ lod_resource(Resource) :-
 	(   rdf(Resource, _, _)
 	;   rdf(_, Resource, _)
 	;   rdf(_, _, Resource)
+	;   rdf_graph(Resource)
 	), !.
 
 
