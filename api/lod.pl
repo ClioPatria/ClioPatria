@@ -274,7 +274,10 @@ format_request(URL, URI, Format) :-
 %	current output. Format is defined by mimetype_format/2.
 
 lod_describe(html, URI, Request, _) :- !,
-	http_link_to_id(list_resource, [r=URI], Redirect),
+	(   rdf_graph(URI)
+	->  http_link_to_id(list_graph, [graph=URI], Redirect)
+	;   http_link_to_id(list_resource, [r=URI], Redirect)
+	),
 	http_redirect(see_other, Redirect, Request).
 lod_describe(Format, URI, _Request, Options) :-
 	lod_description(URI, RDF, Options),
