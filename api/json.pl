@@ -40,6 +40,7 @@
 
 :- http_handler(json(describe), json_describe, []).
 :- http_handler(json(prefixes), json_prefixes, []).
+:- http_handler(json(resource_representation), json_resource_representation, []).
 
 /* <module> Describe resources in JSON
 
@@ -89,3 +90,40 @@ json_prefixes(_Request) :-
 		Pairs),
 	dict_pairs(Dict, prefixes, Pairs),
 	reply_json(Dict).
+
+%%	json_resource_representation(+Request)
+%
+%	HTTP Handler to represent a resource in a given language
+
+json_resource_representation(Request) :-
+	http_parameters(Request,
+			[ r(URI,
+			    [ description('The resource to format')
+			    ]),
+			  language(Lang,
+			      [ oneof([sparql,turtle,prolog,xml]),
+				default(turtle),
+				description('Target language')
+			      ])
+			]),
+	format_resource(Lang, URI, String),
+	reply_json_dict(String).
+
+format_resource(sparql, URI, String) :- !,
+	format_resource(turtle, URI, String).
+format_resource(turtle, URI, String) :-
+	(   rdf_global_id(Prefix:Local, URI)
+	->  format(string(String), '~w:~w', [Prefix, Local])
+	;   format(string(String), '<~w>', [URI])
+	).
+format_resource(xml, URI, String) :-
+	(   rdf_global_id(Prefix:Local, URI),
+	    xml_name(URI, utf8)
+	->  format(string(String), '~w:~w', [Prefix, Local])
+	;   format(string(String), '"~w"', [URI])
+	).
+format_resource(prolog, URI, String) :-
+	(   rdf_global_id(Prefix:Local, URI)
+	->  format(string(String), '~q', [Prefix:Local])
+	;   format(string(String), '~q', [URI])
+	).
