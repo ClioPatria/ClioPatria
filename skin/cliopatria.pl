@@ -82,6 +82,9 @@ ClioPatria skin.
 		http_reply_file(icons('favicon.ico'), []),
 		[]).
 
+:- html_resource(js('cliopatria.js'),
+		 [ requires([jquery])
+		 ]).
 :- html_resource(plain,
 		 [ virtual(true),
 		   requires([ css('plain.css')
@@ -89,7 +92,8 @@ ClioPatria skin.
 		 ]).
 :- html_resource(cliopatria,
 		 [ virtual(true),
-		   requires([ css('cliopatria.css')
+		   requires([ css('cliopatria.css'),
+			      js('cliopatria.js')
 			    ])
 		 ]).
 

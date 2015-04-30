@@ -213,7 +213,8 @@ rdf_link(R, Options) -->
 	  ),
 	  link_options(Extra, Options)
 	},
-	html(a([class(Class), href(HREF)|Extra], \resource_label(R, Options))).
+	html(a([class(['rdf-r',Class]), href(HREF)|Extra],
+	       \resource_label(R, Options))).
 rdf_link(Literal, Options) -->
 	{ (   option(graph(Graph), Options)
 	  ->  aggregate_all(count, rdf(_,_,Literal, Graph), Count)
