@@ -66,7 +66,7 @@ rdf_guess_format_and_load(Stream, Options) :-
 	    forall(archive_data_stream(Archive, DataStream, [meta_data(MetaData)]),
 		   call_cleanup(
 		       ( member_base_uri(MetaData, Options, Options2),
-			 option(base_uri(Base), Options2),
+			 option(base_uri(Base), Options2, 'http://example.org/'),
 			 set_stream(DataStream, file_name(Base)),
 			 (   file_base_name(Base, FileName),
 			     non_rdf_file(FileName)
