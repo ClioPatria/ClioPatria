@@ -100,6 +100,10 @@ system are:
 
 ## Further reading
 
+We submitted an article to the [Semantic Web
+Journal](http://www.semantic-web-journal.net/content/cliopatria-logical-programming-infrastructure-semantic-web-0)
+that explains the rationale behind ClioPatria.
+
 Many of the design issues around handling the Semantic Web in Prolog are
 described and motivated in Jan Wielemaker's PhD thesis
 [(PDF)](http://www.swi-prolog.org/download/publications/jan-phd.pdf)
