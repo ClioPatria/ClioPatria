@@ -224,9 +224,10 @@ component_version(Component) -->
 %	implementation) of this page. This link   is created only if the
 %	library applications(help/http_help) is loaded.
 
+:- if(current_predicate(http_help:page_documentation_link//1)).
 current_page_doc_link -->
-	{ current_predicate(http_help:page_documentation_link//1), !,
-	  http_current_request(Request)
-	},
+	{ http_current_request(Request) },
 	http_help:page_documentation_link(Request).
+:- else.
 current_page_doc_link --> [].
+:- endif.
