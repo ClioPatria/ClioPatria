@@ -21,8 +21,15 @@ _object_.
 @see cliopatria(api/lod)
 */
 
+% The bounded_description option is one of `cbd` (Consise Bounded
+% Description) or `scbd` (Symmetric CBD).  The latter includes triples
+% that have the target resource as object.
+
 % Use this if the URIs resolve directly to this server
-%:- http_handler('/rdf/', lod_api, [prefix]).
+%:- http_handler('/rdf/',
+%		 lod_api([ bounded_description(cbd)
+%			 ]),
+%		 [ prefix ]).
 
 % Use this if the URIs are redirected to this server.
 %:- http_handler('/purl/rdf/',
