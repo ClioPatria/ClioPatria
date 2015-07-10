@@ -100,7 +100,7 @@ collect_dirs([H|T], Sols) --> !,
 	collect_dirs(H, Sols),
 	collect_dirs(T, Sols).
 collect_dirs(Spec, Sols) -->
-	findall(Dir, absolute_file_name(Spec, Dir,
+	findall(Dir, absolute_file_name(cp_application(Spec), Dir,
 					[ file_type(directory),
 					  file_errors(fail),
 					  access(read),
@@ -229,16 +229,15 @@ conf_d_member_data(loaded, config_file(F, _, _), B) :-
 %	is the directory holding =|run.pl|=.
 
 set_top_dir :-
+	user:file_search_path(cp_application, _), !.
+set_top_dir :-
 	(   source_file(add_relative_search_path(_,_), File)
 	->  file_directory_name(File, Dir)
 	;   prolog_load_context(directory, Dir)
 	->  true
 	;   working_directory(Dir,Dir)
 	),
-	(   user:file_search_path(cp_application, Dir)
-	->  true
-	;   assert(user:file_search_path(cp_application, Dir))
-	).
+	assert(user:file_search_path(cp_application, Dir)).
 
 %%	conf_d_configuration(+Available, +Enabled, -Configs) is det.
 %
