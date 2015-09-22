@@ -1182,6 +1182,7 @@ run(A, Log) :-
 no_transaction(_:rdf_reset_db).
 no_transaction(_:rdf_unload_graph(_)).
 no_transaction(_:rdf_flush_journals(_)).
+no_transaction(cpa_browse:multigraph_action(_,_)).
 
 done(html, _Message, CPU, Subjects, Triples) :-
 	after_messages([ \result_table(CPU, Subjects, Triples)
