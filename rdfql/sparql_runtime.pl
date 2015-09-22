@@ -1238,7 +1238,7 @@ locked_replace(Input, Pattern, Replace, Flags, Result) :-
 	regex_obj(Pattern, Flags, Regex),
 	new(S, string('%s', Input)),
 	send(Regex, for_all, S,
-	     message(@(arg1), replace, @arg2, Replace)),
+	     message(@(arg1), replace, @(arg2), Replace)),
 	get(S, value, Result).
 
 
