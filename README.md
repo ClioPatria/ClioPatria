@@ -96,7 +96,7 @@ system are:
     git clone https://github.com/ClioPatria/ClioPatria.git
     cd ClioPatria
     git submodule update --init web/yasqe
-    git submodule update --init web/yasqr
+    git submodule update --init web/yasr
 
 ## Further reading
 
