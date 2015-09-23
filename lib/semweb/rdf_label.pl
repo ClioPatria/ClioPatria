@@ -227,3 +227,12 @@ truncate_atom(Atom, MaxLen, Truncated) :-
 	    sub_atom(Atom, 0, TLen, _, S0),
 	    atom_concat(S0, ' ...', Truncated)
 	).
+
+		 /*******************************
+		 *	      SANDBOX		*
+		 *******************************/
+
+:- multifile
+	sandbox:safe_primitive/1.
+
+sandbox:safe_primitive(rdf_label:typed_text(_,_,_)).
