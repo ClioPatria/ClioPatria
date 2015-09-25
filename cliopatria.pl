@@ -102,6 +102,7 @@ user:file_search_path(library, cliopatria(lib)).
 		api(journal),			% export journal information
 		api(sparql),
 		api(export),
+		api(void),
 
 		applications(admin),
 		applications(user),
