@@ -133,8 +133,22 @@ list_graphs(_Request) :-
 	reply_html_page(cliopatria(default),
 			title('RDF Graphs'),
 			[ h1('Named graphs in the RDF store'),
+			  \warn_volatile,
 			  \graph_table(Rows, [])
 			]).
+
+:- if(current_predicate(rdf_persistency_property/1)).
+warn_volatile -->
+	{ rdf_persistency_property(access(read_only)), !,
+	  rdf_persistency_property(directory(Dir))
+	},
+	html(div(class(msg_warning),
+		 [ 'WARNING: The persistent store ', code(Dir), ' was loaded in ',
+		   b('read-only'), ' mode.  All changes will be lost when ',
+		   'the server is stopped.'
+		 ])).
+:- endif.
+warn_volatile --> [].
 
 :- if((rdf_version(V),V>=30000)).
 graph_triples(Graph, Count) :-
