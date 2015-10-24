@@ -37,7 +37,7 @@
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
-:- use_module(library(http/jquery)).
+:- use_module(library(http/cp_jquery)).
 :- use_module(library(option)).
 :- use_module(library(lists)).
 

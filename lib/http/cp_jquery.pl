@@ -29,11 +29,8 @@
 */
 
 :- module(cp_jquery, []).
-:- use_module(library(http/html_head)).
 
-:- if(\+html_current_resource(jquery)).
-:- html_resource(jquery,
-		 [ virtual(true),
-		   requires([js('jquery-2.1.3.min.js')])
-		 ]).
-:- endif.
+:- use_module(library(http/jquery)).
+:- use_module(library(settings)).
+
+:- set_setting(jquery:version, '2.1.3.min').

@@ -38,7 +38,7 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_host)).
-:- use_module(library(http/jquery)).
+:- use_module(library(http/cp_jquery)).
 :- use_module(api(rdflib)).
 :- use_module(user(user_db)).
 :- use_module(library(debug)).

@@ -42,7 +42,7 @@
 :- use_module(library(http/http_wrapper)).
 :- use_module(library(http/yui_resources)).
 :- use_module(library(http/http_path)).
-:- use_module(library(http/jquery)).
+:- use_module(library(http/cp_jquery)).
 
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
