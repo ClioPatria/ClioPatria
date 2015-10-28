@@ -78,7 +78,7 @@ another, there are two solutions:
 %	@param	Spec is either the specification of a directory according
 %		to absolute_file_name/3 or a list thereof.  Duplicate
 %		directories are removed.
-%	@tbd	There is a but forking processes in one thread and
+%	@tbd	There is a bug forking processes in one thread and
 %		waiting for X11 in another, which deadlocks in
 %		fork_atfree().  So, we must ensure we have the git
 %		versions in time :-(
