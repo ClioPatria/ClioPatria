@@ -64,8 +64,8 @@ yasgui_editor(_Request) :-
 
 has_yasgui :-
 	Options = [ access(read), file_errors(fail) ],
-	absolute_file_name(yasqe('yasqe.min.js'), _, Options),
-	absolute_file_name(yasr('yasr.min.js'), _, Options).
+	absolute_file_name(yasqe('yasqe.bundled.min.js'), _, Options),
+	absolute_file_name(yasr('yasr.bundled.min.js'), _, Options).
 
 
 yasgui_page -->
@@ -73,9 +73,9 @@ yasgui_page -->
 	  http_link_to_id(json_prefixes, [], JSONPrefixes),
 	  http_link_to_id(list_resource, [], ListResource)
 	},
-	html_requires(yasqe('yasqe.min.js')),
+	html_requires(yasqe('yasqe.bundled.min.js')),
 	html_requires(yasqe('yasqe.min.css')),
-	html_requires(yasr('yasr.min.js')),
+	html_requires(yasr('yasr.bundled.min.js')),
 	html_requires(yasr('yasr.min.css')),
 	html([ div(id(yasqe), []),
 	       div(id(yasr), [])
@@ -103,8 +103,8 @@ yasgui_page -->
     return prefixmap;
   }
 
-  YASR.plugins.table.defaults.handlers.onCellClick = function(td, event) {
-    var href = $(td).find("a").attr("href");
+  YASR.plugins.table.defaults.callbacks.onCellClick = function(td, event) {
+    var href = YASR.$(td).find("a").attr("href");
 
     if (href) {
       window.location = ListResource + "?r=" + encodeURIComponent(href);
@@ -114,7 +114,7 @@ yasgui_page -->
 
   var yasr = {};
 
-  $.ajax({ url: JSONPrefixes,
+  YASQE.$.ajax({ url: JSONPrefixes,
 	   dataType: "json",
 	   contentType: 'application/json',
 	   success: function(data, status) {
@@ -131,11 +131,11 @@ yasgui_page -->
   * Set some of the hooks to link YASR and YASQE
   */
 
-  yasqe.options.sparql.handlers.success = function(data, textStatus, xhr) {
+  yasqe.options.sparql.callbacks.success = function(data, textStatus, xhr) {
     yasr.setResponse({response: data, contentType: xhr.getResponseHeader("Content-Type")});
   };
 
-  yasqe.options.sparql.handlers.error = function(xhr, textStatus, errorThrown) {
+  yasqe.options.sparql.callbacks.error = function(xhr, textStatus, errorThrown) {
     var exceptionMsg = textStatus + " (response status code " + xhr.status + ")";
     if (errorThrown && errorThrown.length)
       exceptionMsg += ": " + errorThrown;
