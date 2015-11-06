@@ -158,6 +158,10 @@ lod_api(_Options, Request) :-
 	;   http_link_to_id(well_known_void, [], Redirect)
 	),
 	http_redirect(see_other, Redirect, Request).
+lod_api(_Options, Request) :-
+	memberchk(path_info('/.well-known/void'), Request), !,
+	http_link_to_id(well_known_void, [], Redirect),
+	http_redirect(see_other, Redirect, Request).
 lod_api(Options, Request) :-
 	lod_uri(Request, URI, Options),
 	debug(lod, 'LOD URI: ~q', [URI]),
