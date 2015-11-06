@@ -58,10 +58,10 @@ term_expansion((sparql:functional_property(S, NS:Term0) :- Body),
 %	cannot refer to literals, the function  both accepts a predicate
 %	and match.
 
-sparql:functional_property(S, tfp:match(P, Pattern)) :-
+sparql:functional_property(S, tpf:match(P, Pattern)) :-
 	compile_pattern(Pattern, Spec, LV),
 	search(S, P, Spec, LV).
-sparql:functional_property(S, tfp:match(P, Pattern, literal(Found))) :-
+sparql:functional_property(S, tpf:match(P, Pattern, literal(Found))) :-
 	compile_pattern(Pattern, Spec, Found),
 	search(S, P, Spec, Found).
 
