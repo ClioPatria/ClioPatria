@@ -1,0 +1,75 @@
+# Full-text text search
+
+The SWI-Prolog RDF database allow for indexed search in literals,
+searching both entire literal values and _tokens_ inside literals.
+The search facilities on entire literals are described with rdf/3
+and take the form below.  See rdf/3 for details.
+
+    rdf(S, P, literal(Query, Value))
+
+Search _inside_ literals is provided by the
+library(semweb/rdf_litindex). It brings searching for entire tokens,
+token prefixes, stemming, metaphone (sounds as) and token (number)
+ranges.
+
+These facilities can be exploited when programming in Prolog against the
+ClioPatria server, either by loading additional services into ClioPatria
+or by using the [SWISH](http://cliopatria.swi-prolog.org/browse/list_resource?r=http%3A//cliopatria.swi-prolog.org/packs/swish)
+query interface.
+
+
+## Full-text search from SPARQL
+
+SPARQL only provides some string operations (notably =CONTAINS=) and
+regular expressions. These constructs are hard to index, in particular
+because SPARQL regular expressions have no _word break_ anchors. Similar
+to
+[Tracker](https://wiki.gnome.org/Projects/Tracker/Documentation/Examples/SPARQL/FTS)
+, we solve the issue using _property functions_ as introduced by
+[Jena](https://jena.apache.org/documentation/query/library-propfunc.html)
+
+We associate our full-text property with the namespace
+=|http://cliopatria.swi-prolog.org/pf/text#|=, which has the default
+abbreviation =tpf= (Text Property Functions). The basic SPARQL syntax
+is:
+
+    ?s tpf:match (?p, <query>, ?o)
+
+The above represents the triple <?s ?p ?o>, where ?o is a literal that
+matches <query>. Query is an RDF literal. If the literal has no @lang,
+text is searched language-neutral. If it has @lang, ?o has the specified
+language and if stemming is required it will be done with the
+appropriate snowball stemmer.  The <query> satisfies the following
+syntax:
+
+    query              ::= '^' prefix
+                         | token-query
+    token-query        ::= '(' token-query ')'
+		         | simple-token-query
+		         | simple-token-query 'AND'? token-query
+		         | simple-token-query 'OR' token-query
+    simple-token-query ::=
+			 | word modifier
+			 | number
+			 | number..number	(between)
+			 | >=number
+			 | =<number
+    word	       ::= alpha+
+    modifier           ::= '*'			(prefix)
+			 | '/i'			(case insentitive)
+			 | '/s'			(stemming)
+			 | '/S'			(sounds as)
+
+*Notes*
+
+  - '^' _prefix_ performs a prefix search on the _entire_ literal.
+    Note that this is *not* the same as SPARQL regex =|/^prefix.*/|=
+    because the SPARQL regex '^' anchor matches the start of a _line_
+    rather than the start of the entire literal.
+  - The =|'AND'|= is optional and =|bob alice|= is the interpreted
+    as =|bob 'AND' alice|=
+
+@tbd	Implement _phrase search_ using '"' _phrase_ '"'
+@tbd	Possibly fall back to simple token search if the query is
+	invalid?  Right now the query produces no results if it
+	cannot be parsed.

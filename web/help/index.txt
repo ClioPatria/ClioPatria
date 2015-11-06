@@ -28,6 +28,7 @@ loaded RDF.
   * *|Using ClioPatria|*
     * Howto [[load RDF][howto/LoadRDF.txt]] into ClioPatria
     * [[Exploring RDF][howto/ExploreRDF.txt]] with ClioPatria
+    * Howto perform [full-text search](howto/fulltext.txt) with ClioPatria
     * [[Supported browsers][Browsers.txt]]
     * Provide howto/LOD.txt (Linked Open Data) services from ClioPatria
     * [[Client authentication][howto/ClientAuth.txt]] to access
