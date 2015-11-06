@@ -33,7 +33,7 @@ We associate our full-text property with the namespace
 abbreviation =tpf= (Text Property Functions). The basic SPARQL syntax
 is:
 
-    ?s tpf:match (?p, <query>, ?o)
+    ?s tpf:match (?p <query> ?o)
 
 The above represents the triple <?s ?p ?o>, where ?o is a literal that
 matches <query>. Query is an RDF literal. If the literal has no @lang,
