@@ -48,7 +48,8 @@
 :- setting(cliopatria:void_graph, atom, '',
 	   'Graph holding void data').
 
-:- http_handler(cliopatria('.well-known/void'), handle_void, []).
+:- http_handler(cliopatria('.well-known/void'), handle_void,
+		[id(well_known_void)]).
 
 handle_void(Request) :-
 	setting(cliopatria:void_file, File), File \== '',

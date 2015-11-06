@@ -149,18 +149,30 @@ relocated by means of the http:prefix setting. For example:
 %	    Description style to use.  See rdf_bounded_description/4.
 %	    The default is =cbd= (Concise Bounded Description)
 
+lod_api(_Options, Request) :-
+	\+ memberchk(path_info(_), Request), !,
+	accepts(Request, AcceptList),
+	preferred_format(AcceptList, Format),
+	(   Format == html
+	->  http_link_to_id(home, [], Redirect)
+	;   http_link_to_id(well_known_void, [], Redirect)
+	),
+	http_redirect(see_other, Redirect, Request).
 lod_api(Options, Request) :-
 	lod_uri(Request, URI, Options),
 	debug(lod, 'LOD URI: ~q', [URI]),
+	accepts(Request, AcceptList),
+	cors_enable,
+	lod_request(URI, AcceptList, Request, Options).
+
+accepts(Request, AcceptList) :-
 	(   memberchk(accept(AcceptHeader), Request)
 	->  (   atom(AcceptHeader)	% compatibility
 	    ->	http_parse_header_value(accept, AcceptHeader, AcceptList)
 	    ;	AcceptList = AcceptHeader
 	    )
 	;   AcceptList = []
-	),
-	cors_enable,
-	lod_request(URI, AcceptList, Request, Options).
+	).
 
 lod_request(URI, AcceptList, Request, Options) :-
 	lod_resource(URI), !,
