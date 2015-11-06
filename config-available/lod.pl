@@ -26,14 +26,14 @@ _object_.
 % that have the target resource as object.
 
 % Use this if the URIs resolve directly to this server
-%:- http_handler('/rdf/',
+%:- http_handler('/rdf',
 %		 lod_api([ bounded_description(cbd)
 %			 ]),
 %		 [ prefix ]).
 
 % Use this if the URIs are redirected to this server.
-%:- http_handler('/purl/rdf/',
-%		 lod_api([ redirected_from('http://www.purl.org/mydata/'),
+%:- http_handler('/purl/rdf',
+%		 lod_api([ redirected_from('http://www.purl.org/mydata'),
 %			   bounded_description(cbd)
 %			 ]),
 %		 [ prefix ]).
