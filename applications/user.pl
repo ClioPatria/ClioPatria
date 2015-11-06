@@ -107,15 +107,17 @@ in:
 %	it redirects to id=create_admin.
 
 root(Request) :-
-	(   current_user(_)
-	->  http_redirect(moved_temporary,
-			  location_by_id(home),
-			  Request)
-	;   http_redirect(moved_temporary,
-			  location_by_id(create_admin),
-			  Request)
-	).
+	redirect_create_admin(Request),
+	http_redirect(moved_temporary,
+		      location_by_id(home),
+		      Request).
 
+redirect_create_admin(Request) :-
+	\+ current_user(_), !,
+	http_redirect(moved_temporary,
+		      location_by_id(create_admin),
+		      Request).
+redirect_create_admin(_).
 
 %%	home(+Request)
 %
@@ -123,6 +125,7 @@ root(Request) :-
 %	decorated version of html('welcome.html').
 
 home(Request) :-
+	redirect_create_admin(Request),
 	reply_decorated_file(html('welcome.html'), Request).
 
 
