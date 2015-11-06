@@ -40,6 +40,7 @@
 :- use_module(library(option)).
 :- use_module(library(record)).
 :- use_module(jena_properties).
+:- use_module(text_properties).
 :- use_module(library(debug)).
 :- use_module(library(apply)).
 :- use_module(library(ordsets)).
