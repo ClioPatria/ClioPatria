@@ -194,7 +194,9 @@ cp_server(Options) :-
 	setting(http:port, DefPort),
 	setting(http:workers, DefWorkers),
 	setting(http:worker_options, Settings),
-	merge_options(QOptions, Settings, HTTPOptions),
+	https_options(HTTPSOptions),
+	merge_options(QOptions, Settings, HTTPOptions0),
+	merge_options(HTTPOptions0, HTTPSOptions, HTTPOptions),
 	option(port(Port), QOptions, DefPort),
 	update_public_port(Port, DefPort),
 	option(workers(Workers), QOptions, DefWorkers),
@@ -634,6 +636,52 @@ http:create_pool(cliopatria) :-
 			   [ global(Global),
 			     trail(Trail)
 			   ]).
+
+
+		 /*******************************
+		 *	      HTTPS		*
+		 *******************************/
+
+%%	https_options(-Options) is det.
+%
+%	Fetch options for running an HTTPS   server.  HTTP is started if
+%	there is a directory =https= with these files:
+%
+%	  $ =|server-cert.pem|= :
+%	  Contains the server certificate.  This may be omitted, in
+%	  which case the =|server-key.pem|= is also passed using the
+%	  key_file(+File) option.
+%	  $ =|server-key.pem|= :
+%	  Contains the private key for the server.
+%	  % =|passwd|= :
+%	  Needs to hold the password if the private key is protected
+%	  with a password.
+
+https_options(Options) :-
+	https_file('server-key.pem', KeyFile), !,
+	(   https_file('server-cert.pem', CertFile)
+	->  true
+	;   CertFile = KeyFile
+	),
+	Options = [ ssl([ certificate_file(CertFile),
+			  key_file(KeyFile)
+			| PasswdOption
+			])
+		  ],
+	(   https_file(passwd, PasswordFile)
+	->  read_file_to_string(PasswordFile, Content, []),
+	    split_string(Content, "", " \n\r", [Passwd]),
+	    PasswdOption = [password(Passwd)]
+	;   PasswdOption = []
+	).
+https_options([]).
+
+https_file(Base, File) :-
+	absolute_file_name(config_https(Base), File,
+			   [ access(read),
+			     file_errors(fail)
+			   ]).
+
 
 
 		 /*******************************

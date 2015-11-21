@@ -65,6 +65,9 @@ user:file_search_path(cpack,	        cliopatria(cpack)).
 % Allow local file overwrites
 user:file_search_path(web,		web).
 
+% Configuration
+user:file_search_path(config_https,	cp_application('config-enabled/https')).
+
 % Package merge
 user:file_search_path(cpacks,	        cliopatria('.')).
 
