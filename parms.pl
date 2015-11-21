@@ -169,8 +169,8 @@ http_settings:input_item(uri, Value, Name) -->
 		 *	       HTTP		*
 		 *******************************/
 
-:- setting(http:port, nonneg, env('PORT', 3020),
-	   'Port the http server listens to').
+:- setting(http:port, any, env('PORT', 3020),
+	   'Port the http server listens to or interface:port').
 :- setting(http:workers, between(1, 20), env('PROLOG_HTTP_WORKERS', 5),
 	   'Number of server threads').
 :- setting(http:worker_options, list(any), [],

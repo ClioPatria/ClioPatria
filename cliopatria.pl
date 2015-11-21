@@ -200,6 +200,7 @@ cp_server(Options) :-
 	option(port(Port), QOptions, DefPort),
 	update_public_port(Port, DefPort),
 	option(workers(Workers), QOptions, DefWorkers),
+gtrace,
 	http_server(http_dispatch,
 		    [ port(Port),
 		      workers(Workers)
@@ -692,7 +693,7 @@ https_file(Base, File) :-
 	prolog:message//1.
 
 prolog:message(cliopatria(server_started(Port))) -->
-	{ cp_host(Host),
+	{ cp_host(Port, Host),
 	  cp_port(Port, PublicPort),
 	  http_location_by_id(root, Root)
 	},
@@ -719,16 +720,18 @@ prolog:message(cliopatria(server_already_running(Port))) -->
 	  [Host, PublicPort, Root]
 	].
 
-cp_host(Host) :-
+cp_host(_, Host) :-
 	setting(http:public_host, Host),
 	Host \== '', !.
-cp_host(Host) :-
+cp_host(Host:_, Host) :- !.
+cp_host(_,Host) :-
 	gethostname(Host).
 
 cp_port(_ServerPort, PublicPort) :-
 	setting(http:public_host, Host),
 	Host \== '', Host \== localhost,
 	setting(http:public_port, PublicPort), !.
+cp_port(_Host:Port, Port) :- !.
 cp_port(ServerPort, ServerPort).
 
 

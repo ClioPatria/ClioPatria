@@ -3,9 +3,15 @@
 
 /** <module> Configure the HTTP server
 
-Change  the  default  port  on  which    the  HTTP  server  listens.  If
-host-detection does not work or this server   is behind a proxy, you may
-also need the public_host/public_port settings.
+Change the default port on which the HTTP server listens. If the port is
+an integer, the server is  available   from  all  interfaces. The common
+alternative is `localhost:Port`, binding  the   server  to  th localhost
+network only. This is particularly intertesting if  the same host runs a
+reverse proxy.
+
+If host-detection does not work  or  this   server  is  behind a reverse
+proxy, you may also need the   public_host/public_port  settings to tell
+ClioPatria where it can be reached.
 
 The =prefix= setting rebases all paths on   the  server to the indicated
 path. Note that the prefix has *no* trailing /. E.g. a setting =|/demo|=
@@ -24,6 +30,7 @@ link below for more info.
 */
 
 % :- set_setting_default(http:port, 8080).
+% :- set_setting_default(http:port, localhost:8080).
 % :- set_setting_default(http:public_host, 'www.example.org').
 % :- set_setting_default(http:public_port, 80).
 % :- set_setting_default(http:prefix, '/demo').
