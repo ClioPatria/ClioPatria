@@ -1,4 +1,4 @@
----+ Configuration examples
+# Configuration examples
 
 The   <cliopatria>/config-available   provides   example   configuration
 modules. Some of them can simply be  copied to the target config-enabled
@@ -18,6 +18,9 @@ matter.
   Configure RDF prefixes (namespaces).  This should typically be loaded
   early in the process.
 
+  $ authenticate.pl :
+  Demand HTTP basic authentication for the entire server.
+
   $ cache.pl (edit) :
   Control caching of RDF inputs.
 
@@ -29,6 +32,9 @@ matter.
 
   $ https.pl (edit) :
   Add access through HTTPS (HTTP over SSL).
+
+  $ https_only.pl (edit) :
+  Make the server available using HTTPS only.
 
   $ localhost.pl :
   Make ClioPatria work on localhost only.  For development on machines
@@ -52,14 +58,14 @@ matter.
   $ zlib.pl :
   Enable loading of compressed (=|.gz|=) RDF data without decompressing.
 
----++ Plugins
+## Plugins
 
   $ EDM.pl :
   Load examples/customise/EDM.pl, providing additional support to
   vizualise the Europeana Data Model.  See http://www.europeana.eu/portal/
 
 
----++ Structure of a config file
+## Structure of a config file
 
 Each config file is  a  module   named  conf_<filebase>.  Typically, the
 module has a PlDoc comment that  indicates   the  purpose of the module.
@@ -67,6 +73,6 @@ Otherwise, they are ordinary Prolog  modules   that  have  to follow all
 rules that apply to them. Modules that   define  hooks must include this
 text:
 
-    ==
+    ```
     :- use_module(cliopatria(hooks)).
-    ==
+    ```
