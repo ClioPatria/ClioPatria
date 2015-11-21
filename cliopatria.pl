@@ -712,7 +712,7 @@ prolog:message(cliopatria(use_port_option)) -->
 	  '   use the network plugin to change the default port.'
 	].
 prolog:message(cliopatria(server_already_running(Port))) -->
-	{ cp_host(Host),
+	{ cp_host(Port, Host),
 	  cp_port(Port, PublicPort),
 	  http_location_by_id(root, Root)
 	},
