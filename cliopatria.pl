@@ -200,7 +200,6 @@ cp_server(Options) :-
 	option(port(Port), QOptions, DefPort),
 	update_public_port(Port, DefPort),
 	option(workers(Workers), QOptions, DefWorkers),
-gtrace,
 	http_server(http_dispatch,
 		    [ port(Port),
 		      workers(Workers)
