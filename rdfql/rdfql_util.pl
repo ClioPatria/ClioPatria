@@ -443,7 +443,8 @@ text_of(Expr, Atom) :-
 
 raw_text(string(X), X).
 raw_text(simple_literal(X), X).
-
+raw_text(lang(_Lang, SL), SL).		% allow lang qualified strings in
+					% group_concat
 
 bind_number(V0, V) :-
 	(   V0 = numeric(_, _)
