@@ -413,7 +413,7 @@ assign_bagids(Bags, IDBags) :-
 
 assign_bagids([], _, []).
 assign_bagids([H|T0], I, [Id-H|T]) :-
-	atom_concat('__bag_', I, Id),
+	atom_concat('_:bag_', I, Id),
 	I2 is I + 1,
 	assign_bagids(T0, I2, T).
 
@@ -827,7 +827,7 @@ bagify_resource(R0, R, _Map, Nodes, Nodes) -->
 	{ get_assoc(R0, Nodes, R) }, !.
 bagify_resource(R0, BagID, Map, Nodes0, Nodes) -->
 	{ get_assoc(R0, Map, Set), Set = [_,_|_], !,
-	  atom_concat('__rbag_', R0, BagID),
+	  atom_concat('_:rbag_', R0, BagID),
 	  put_assoc(R0, Nodes0, BagID, Nodes)
 	},
 	make_rdf_graphs([BagID-Set]).

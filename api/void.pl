@@ -75,10 +75,10 @@ triple_in(RDF, S,P,O,_G) :-
 
 %%	void_triple(+Request, -Subject, -Predicate, -Object)
 
-void_triple('__dataset', rdf:type, void:'DataSet').
-void_triple('__dataset', dcterms:creator,
+void_triple('_:dataset', rdf:type, void:'DataSet').
+void_triple('_:dataset', dcterms:creator,
 	    literal('ClioPatria')).
-void_triple('__dataset', dcterms:description,
+void_triple('_:dataset', dcterms:description,
 	    literal(lang(en, D))) :-
 	D = 'This Void dataset description is auto-generated from \c
 	     the ClioPatria store content. It supports auto-discovery \c
@@ -87,7 +87,7 @@ void_triple('__dataset', dcterms:description,
 	     file and use the setting `cliopatria:void_file` to serve this \c
 	     file from `.well-known/void` or create a named graph in the \c
 	     RDF store and use the setting `cliopatria:void_graph`.'.
-void_triple('__dataset', void:sparqlEndpoint, EndPoint) :-
+void_triple('_:dataset', void:sparqlEndpoint, EndPoint) :-
 	http_current_request(Request),
 	http_public_host_url(Request, Host),
 	http_link_to_id(sparql_query, [], Location),
@@ -97,7 +97,7 @@ void_triple(S, P, O) :-
 	graph_dataset_uri(Graph, DataSet),
 	graph_triple(Graph, DataSet, S, P, O).
 
-graph_triple(_, DataSet, '__dataset', void:subset, DataSet).
+graph_triple(_, DataSet, '_:dataset', void:subset, DataSet).
 graph_triple(_, DataSet, DataSet, rdf:type, void:'DataSet') .
 graph_triple(Graph, DataSet, DataSet, void:triples, literal(type(xsd:integer, Triples))) :-
 	rdf_graph_property(Graph, triples(Count)),
