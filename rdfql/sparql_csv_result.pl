@@ -32,8 +32,14 @@
 	  ]).
 :- use_module(library(csv)).
 :- use_module(library(assoc)).
+:- use_module(library(option)).
 :- use_module(library(sgml_write)).
 :- use_module(library(semweb/rdf_db)).
+:- if(exists_source(library(semweb/rdf11))).
+:- use_module(library(semweb/rdf11),
+	      [ rdf_lexical_form/2
+	      ]).
+:- endif.
 
 /** <module> Write SPARQL results as CSV
 
@@ -42,17 +48,31 @@
 
 sparql_csv_mime_type('text/tab-separated-values; charset=UTF-8').
 
-%%	sparql_write_json_result(+Out:stream, +Result, +Options) is det.
+%%	sparql_write_csv_result(+Out:stream, +Result, +Options) is det.
 %
-%	Emit results from a SPARQL SELECT query as CSV.
+%	Emit results from a SPARQL SELECT query as CSV.  Options:
+%
+%	  - bnode_state(State0-State)
+%	  Maintain blank node mapping accross multiple calls.  State0
+%	  is either a variable or a state returned by a previous call.
+%	  - http_header(+Boolean)
+%	  if `true` (default), emit an HTTP =Content-type= header.
 %
 %	@see http://www.w3.org/TR/rdf-sparql-json-res/
 
-sparql_write_csv_result(Out, select(VarTerm, Rows), _Options) :- !,
-	empty_assoc(BNodeDict),
-	rows_to_csv(Rows, CSVRows, bnode(1, BNodeDict), _),
-	sparql_csv_mime_type(ContentType),
-	format('Content-type: ~w~n~n', [ContentType]),
+sparql_write_csv_result(Out, select(VarTerm, Rows), Options) :- !,
+	option(bnode_state(BNodes0-BNodes), Options, _),
+	(   var(BNodes0)
+	->  empty_assoc(BNodeDict),
+	    BNodes0 = bnode(1, BNodeDict)
+	;   true
+	),
+	rows_to_csv(Rows, CSVRows, BNodes0, BNodes),
+	(   option(http_header(true), Options, true)
+	->  sparql_csv_mime_type(ContentType),
+	    format('Content-type: ~w~n~n', [ContentType])
+	;   true
+	),
 	csv_write_stream(Out, [VarTerm|CSVRows], []).
 sparql_write_csv_result(_Out, Result, _Options) :- !,
 	domain_error(csv_sparql_result, Result).
@@ -79,6 +99,10 @@ field_to_csv(Var, '', BNodeDict, BNodeDict) :-
 	), !.
 field_to_csv(literal(Literal), Text, BNodeDict, BNodeDict) :-
 	literal_text(Literal, Text), !.
+field_to_csv(@(LangString,Lang), Text, BNodeDict, BNodeDict) :-
+	literal_text(@(LangString,Lang), Text), !.
+field_to_csv(^^(Lexical,Type), Text, BNodeDict, BNodeDict) :-
+	literal_text(^^(Lexical,Type), Text), !.
 field_to_csv(Resource, BNode, BNodeDict0, BNodeDict) :-
 	rdf_is_bnode(Resource), !,
 	BNodeDict0 = bnode(N0, Dict0),
@@ -108,6 +132,13 @@ literal_text(type(Type, Value), Text) :- !,
 literal_text(lang(Lang, LangText), Text) :- !,
 	atom(Lang),
 	literal_text(LangText, Text).
+literal_text(@(LangText, Lang), Text) :- !,
+	atom(Lang),
+	literal_text(LangText, Text).
+:- if(current_predicate(rdf_lexical_form/2)).
+literal_text(^^(Lexical, Type), Text) :- !,
+	rdf_lexical_form(^^(Lexical,Type), ^^(Text,_)).
+:- endif.
 literal_text(Text, Text) :-
 	atom(Text), !.
 literal_text(Text, Text) :-
