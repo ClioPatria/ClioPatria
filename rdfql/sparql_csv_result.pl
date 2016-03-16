@@ -57,6 +57,8 @@ sparql_csv_mime_type('text/tab-separated-values; charset=UTF-8').
 %	  is either a variable or a state returned by a previous call.
 %	  - http_header(+Boolean)
 %	  if `true` (default), emit an HTTP =Content-type= header.
+%	  - header_row(+Boolean)
+%	  if `true` (default), emit header row with binding names.
 %
 %	@see http://www.w3.org/TR/rdf-sparql-json-res/
 
@@ -73,7 +75,10 @@ sparql_write_csv_result(Out, select(VarTerm, Rows), Options) :- !,
 	    format('Content-type: ~w~n~n', [ContentType])
 	;   true
 	),
-	csv_write_stream(Out, [VarTerm|CSVRows], []).
+	(   option(header_row(true), Options, true)
+	->  csv_write_stream(Out, [VarTerm|CSVRows], [])
+	;   csv_write_stream(Out, CSVRows, [])
+	).
 sparql_write_csv_result(_Out, Result, _Options) :- !,
 	domain_error(csv_sparql_result, Result).
 
