@@ -1699,7 +1699,8 @@ uri_predicate_info(_, _) --> [].
 %	    the context graph.
 
 context_graph(URI, Options) -->
-	{ merge_options(Options, [style(_)], GraphOption)
+	{ merge_options(Options, [style(_)], GraphOption),
+	  rdf_equal(owl:sameAs, SameAs)
 	},
 	html([ \graphviz_graph(context_graph(URI, GraphOption),
 			       [ object_attributes([width('100%')]),
@@ -1707,7 +1708,8 @@ context_graph(URI, Options) -->
 				 graph_attributes([ rankdir('RL')
 						  ]),
 				 shape_hook(shape(URI, GraphOption)),
-				 bag_shape_hook(bag_shape(GraphOption))
+				 bag_shape_hook(bag_shape(GraphOption)),
+				 smash([SameAs])
 			       ])
 	     ]).
 
