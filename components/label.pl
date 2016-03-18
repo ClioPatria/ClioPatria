@@ -43,6 +43,9 @@
 :- use_module(library(semweb/rdf_label)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/http_dispatch)).
+:- if(exists_source(library(semweb/rdf11))).
+:- use_module(library(semweb/rdf11), [rdf_lexical_form/2]).
+:- endif.
 
 :- use_module(cliopatria(hooks)).
 
@@ -85,7 +88,16 @@ turtle_label(R, _) -->
 	html(['<',R,'>']).
 turtle_label(literal(Lit), Options) --> !,
 	literal_label(Lit, Options).
-
+turtle_label(@(String,Lang), Options) --> !,
+	literal_label(lang(Lang, String), Options).
+:- if(current_predicate(rdf_lexical_form/2)).
+turtle_label(^^(Value,Type), Options) --> !,
+	(   {rdf_equal(Type, xsd:string)}
+	->  literal_label(type(Value, Type), Options)
+	;   {rdf_lexical_form(^^(Value,Type), ^^(String,_))},
+	    literal_label(type(Type, String), Options)
+	).
+:- endif.
 
 literal_label(type(Type, Value), Options) --> !,
 	{ truncate_text(Value, Show, Options) },
@@ -216,10 +228,7 @@ rdf_link(R, Options) -->
 	html(a([class(['rdf-r',Class]), href(HREF)|Extra],
 	       \resource_label(R, Options))).
 rdf_link(Literal, Options) -->
-	{ (   option(graph(Graph), Options)
-	  ->  aggregate_all(count, rdf(_,_,Literal, Graph), Count)
-	  ;   aggregate_all(count, rdf(_,_,Literal), Count)
-	  ),
+	{ aggregate_all(count, literal_occurrence(Literal, Options), Count),
 	  Count > 1, !,
 	  format(string(Title), 'Used ~D times', [Count]),
 	  term_to_atom(Literal, Atom),
@@ -234,6 +243,20 @@ rdf_link(Literal, Options) -->
 	       \turtle_label(Literal))).
 rdf_link(Literal, _) -->
 	turtle_label(Literal).
+
+literal_occurrence(Literal, Options) :-
+	Literal = literal(_), !,
+	(   option(graph(Graph), Options)
+	->  rdf_db:rdf(_,_,Literal,Graph)
+	;   rdf_db:rdf(_,_,Literal)
+	).
+:- if(current_predicate(rdf11:rdf/4)).
+literal_occurrence(Literal, Options) :-
+	(   option(graph(Graph), Options)
+	->  rdf11:rdf(_,_,Literal,Graph)
+	;   rdf11:rdf(_,_,Literal)
+	).
+:- endif.
 
 link_options(LinkOptions, Options) :-
 	option(target(Target), Options), !,
