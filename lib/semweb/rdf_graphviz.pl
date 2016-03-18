@@ -164,10 +164,10 @@ combine_bags(Graph, Triples, Bags, _Options) :-
 	find_bags(Graph, Graph1, Bags0, Bags1),
 	collect_bags(Graph1, Triples, Bags1, Bags).
 
+:- rdf_meta find_bags(t, -, +, -).
+
 find_bags([], [], Bags, Bags).
-find_bags([rdf(S,P,O)|Graph], Triples, Bags0, Bags) :-
-	rdf_equal(P, rdf:type),
-	rdf_equal(O, rdf:'Bag'), !,
+find_bags([rdf(S,rdf:type,rdf:'Bag')|Graph], Triples, Bags0, Bags) :- !,
 	put_assoc(S, Bags0, [], Bags1),
 	find_bags(Graph, Triples, Bags1, Bags).
 find_bags([H|T0], [H|T], Bags0, Bags) :-
@@ -175,21 +175,21 @@ find_bags([H|T0], [H|T], Bags0, Bags) :-
 
 collect_bags([], [], Bags, Bags).
 collect_bags([rdf(S,P,O)|Graph], Triples, Bags0, Bags) :-
-	bagid_property(P),
+	bagid_property(P, _),
 	get_assoc(S, Bags0, L, Bags1, [O|L]), !,
 	collect_bags(Graph, Triples, Bags1, Bags).
 collect_bags([H|T0], [H|T], Bags0, Bags) :-
 	collect_bags(T0, T, Bags0, Bags).
 
 
-%	bagid_property(+P) is semidet.
+%%	bagid_property(+P, -I) is semidet.
 %
 %	True if P is of the format   =|_:N|=,  where N is a non-negative
 %	integer.
 
-bagid_property(P) :-
-	atom_concat('_:', N, P),
-	catch(atom_number(N, I), _, fail),
+bagid_property(P, I) :-
+	string_concat('_:', N, P),
+	number_string(I, N),
 	integer(I), I >= 0.
 
 
