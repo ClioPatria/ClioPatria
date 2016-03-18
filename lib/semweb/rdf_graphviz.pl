@@ -42,6 +42,7 @@
 :- use_module(library(gensym)).
 :- use_module(library(lists)).
 :- use_module(library(apply)).
+:- use_module(library(ugraphs)).
 :- use_module(library(semweb/rdf_label)).
 
 :- rdf_register_ns(graphviz, 'http://www.graphviz.org/').
@@ -73,6 +74,10 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %	    * lang(+Lang)
 %	    Lang is the language used for the labels.  See
 %	    resource_label/4.
+%
+%	    * smash(+Properties)
+%	    Smash networks connected by one of the given properties.
+%	    Currently only [owl:sameAs].
 %
 %	    * bags(Bags)
 %	    How to handle bags.  Values are
@@ -114,16 +119,18 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %           * display_lang(+Boolean)
 %           Display the language of literal nodes, defaults to true.
 %
-:- meta_predicate
-	gviz_write_rdf(+,+,:).
+
+:- meta_predicate gviz_write_rdf(+,+,:).
+:- rdf_meta gviz_write_rdf(+,t,t).
 
 gviz_write_rdf(Stream, Graph0, Options0) :-
-	exclude(exclude_triple, Graph0, Graph),
+	exclude(exclude_triple, Graph0, Graph1),
 	meta_options(is_meta, Options0, Options),
 	format(Stream, 'digraph G~n{ ', []),
 	option(graph_attributes(Attrs), Options, []),
 	write_graph_attributes(Attrs, Stream),
-	combine_bags(Graph, Triples, Bags, Options),
+	smash_graph(Graph1, Graph2, Options),
+	combine_bags(Graph2, Triples, Bags, Options),
 	gv_write_edges(Triples, Done, Stream, Options),
 	assoc_to_list(Done, Nodes),
 	gv_write_nodes(Nodes, Stream, [bag_assoc(Bags)|Options]),
@@ -188,9 +195,82 @@ collect_bags([H|T0], [H|T], Bags0, Bags) :-
 %	integer.
 
 bagid_property(P, I) :-
+	atom(P), !,
 	string_concat('_:', N, P),
 	number_string(I, N),
 	integer(I), I >= 0.
+bagid_property(P, I) :-
+	atom_concat('_:', I, P).
+
+%%	smash_graph(+GraphIn, -GraphOut, +Options)
+%
+%	Smash networks of equivalent properties.
+
+smash_graph(GraphIn, GraphOut, Options) :-
+	option(smash(Props), Options, []), !,
+	smash_graph_(Props, GraphIn, GraphOut).
+
+smash_graph_([], Graph, Graph).
+smash_graph_([H|T], Graph0, Graph) :-
+	smash_on_property(H, Graph0, Graph1),
+	smash_graph_(T, Graph1, Graph).
+
+%%	smash_on_property(+P, +GraphIn, -GraphOut)
+%
+%	Merge owl:sameAs nodes, replacing the node with a bag.
+
+smash_on_property(P, GraphIn, GraphOut) :-
+	smash_edges(GraphIn, P, Edges, Rest),
+	vertices_edges_to_ugraph([], Edges, Graph),
+	partition_ugraph(Graph, VerticeSets),
+	make_eq_bags(VerticeSets, VerticeBags, MapAssoc),
+	maplist(smash_triple(MapAssoc), Rest, Mapped),
+	append(Mapped, VerticeBags, GraphOut).
+
+smash_edges([], _, [], []).
+smash_edges([rdf(S,P,O)|T0], P, [S-O,O-S|T], Rest) :- !,
+	smash_edges(T0, P, T, Rest).
+smash_edges([H|T0], P, Edges, [H|T]) :-
+	smash_edges(T0, P, Edges, T).
+
+partition_ugraph([], []) :- !.
+partition_ugraph(G0, [Vs0|Vs]) :-
+	G0 = [V-_|_],
+	reachable(V, G0, Vs0),
+	del_vertices(G0, Vs0, G1),
+	partition_ugraph(G1, Vs).
+
+make_eq_bags(Vertices, Bags, MapAssoc) :-
+	make_eq_bags(Vertices, 1, Bags, Mapping),
+	list_to_assoc(Mapping, MapAssoc).
+
+:- rdf_meta make_eq_bags(+, +, t, -).
+
+make_eq_bags([], _, [], []).
+make_eq_bags([Vs|T0], I, [rdf(BagId, rdf:type, rdf:'Bag')|Bags], Mapping) :-
+	atom_concat('_:sameAs', I, BagId),
+	make_eq_bag(Vs, 1, BagId, Bags, BagsT),
+	make_mapping(Vs, BagId, Mapping, MappingT),
+	I2 is I + 1,
+	make_eq_bags(T0, I2, BagsT, MappingT).
+
+make_eq_bag([], _, _, Triples, Triples).
+make_eq_bag([H|T], I, BagId, [rdf(BagId, P, H)|Triples0], Triples) :-
+	bagid_property(P, I),
+	I2 is I + 1,
+	make_eq_bag(T, I2, BagId, Triples0, Triples).
+
+make_mapping([], _, Mapping, Mapping).
+make_mapping([H|T], BagId, [H-BagId|Mapping0], Mapping) :-
+	make_mapping(T, BagId, Mapping0, Mapping).
+
+smash_triple(Mapping, rdf(S0,P,O0), rdf(S,P,O)) :-
+	smash(Mapping, S0, S),
+	smash(Mapping, O0, O).
+
+smash(Assoc, R0, R) :-
+	get_assoc(R0, Assoc, R), !.
+smash(_, R, R).
 
 
 %%	gv_write_edges(+Graph, -Done, +Stream, +Options) is det.
