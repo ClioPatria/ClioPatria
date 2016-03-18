@@ -354,9 +354,15 @@ write_node_attributes(R, Stream, Options) :-
 	wrap_url(R, URL, Options),
 	resource_label(R, Label, Options),
 	target_option([href(URL), label(Label)|Shape], Attrs, Options),
-	(   select(img(IMGOptions), Attrs, RAttrs)
-	->  write_image_node(IMGOptions, RAttrs, Stream, Options)
-	;   write_attributes(Attrs, Stream)
+	(   select(img(IMGOptions), Attrs, RAttrs),
+	    catch(write_image_node(IMGOptions, RAttrs, Stream, Options),
+		  error(existence_error(url,URL2),Context),
+		  ( print_message(warning,
+				  error(existence_error(url,URL2),Context)),
+		    fail))
+	->  true
+	;   delete(Attrs, img(_), RAttrs),
+	    write_attributes(RAttrs, Stream)
 	).
 write_node_attributes(Lit, Stream, Options) :-
 	shape(Lit, Shape, Options),
