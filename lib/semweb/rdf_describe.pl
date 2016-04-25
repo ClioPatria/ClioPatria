@@ -3,8 +3,8 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2010, University of Amsterdam,
-		   VU University Amsterdam
+    Copyright (C): 2010-2016, University of Amsterdam,
+			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -30,6 +30,7 @@
 
 :- module(rdf_describe,
 	  [ rdf_bounded_description/4,	% :Expand, +Type, +URI, -Graph
+	    rdf_bounded_description/5,	% :Expand, +Type, +Pattern, +URI, -Graph
 	    resource_CBD/3,		% :Expand, +URI, -Graph
 	    graph_CBD/3,		% :Expand, +Graph0, -Graph
 	    rdf_include_reifications/3,	% :Expand, +Graph0, -Graph
@@ -72,6 +73,7 @@ expanded using rdf_include_reifications/3 and/or rdf_include_labels/3.
 		 *******************************/
 
 %%	rdf_bounded_description(:Expand, +Type, +URI, -Graph) is det.
+%%	rdf_bounded_description(:Expand, +Type, +Pattern, +URI, -Graph)	is det.
 %
 %	Graph is a Bounded Description of   URI.  The literature defines
 %	various types of  bounding   descriptions.  Currently  supported
@@ -85,29 +87,41 @@ expanded using rdf_include_reifications/3 and/or rdf_include_labels/3.
 %	    =cbd=, but includes triples with both URI as subject and
 %	    object.
 
-
 rdf_bounded_description(Expand, Type, S, Graph) :-
+	rdf_bounded_description(Expand, Type, [], S, Graph).
+
+rdf_bounded_description(Expand, Type, Pattern, S, Graph) :-
 	empty_assoc(Map0),
-	expansion(Type, Expand, S, Graph, BNG),
+	compile_pattern(Pattern, Triple, Expand, Filter),
+	expansion(Type, Expand, S, Triple, Filter, Graph, BNG),
 	phrase(new_bnodes(Graph, Map0), BN),
 	phrase(r_bnodes(BN, Type, Expand, Map0, _Map), BNG).
 
+compile_pattern([], _, _, true).
+compile_pattern([rdf(S,P,O)], rdf(S,P,O), Expand,
+		call(Expand, S,P,O)) :- !.
+compile_pattern([rdf(S,P,O)|T], rdf(S,P,O), Expand,
+		( call(Expand, S,P,O) ; More )) :-
+	compile_pattern(T, rdf(S,P,O), Expand, More).
+
+
+
 :- meta_predicate
-	expansion(+, 3, +, -, ?),
+	expansion(+, 3, +, +, +, -, ?),
 	r_bnodes(+, +, 3, +, -, ?, ?).
 
-expansion(cbd, Expand, S, RDF, Tail) :-
-	findall(rdf(S,P,O), call(Expand, S,P,O), RDF, Tail).
-expansion(scbd, Expand, S, RDF, Tail) :-
-	findall(rdf(S,P,O), call(Expand, S,P,O), RDF, T0),
-	findall(rdf(O,P,S), call(Expand, O,P,S), T0, Tail).
+expansion(cbd, Expand, S, rdf(S,P,O), Filter, RDF, Tail) :-
+	findall(rdf(S,P,O), (call(Expand, S,P,O),Filter), RDF, Tail).
+expansion(scbd, Expand, S, rdf(S,P,O), Filter, RDF, Tail) :-
+	findall(rdf(S,P,O), (call(Expand, S,P,O),Filter), RDF, T0),
+	findall(rdf(O,P,S), (call(Expand, O,P,S),Filter), T0, Tail).
 
 r_bnodes([], _, _, Map, Map) -->
 	[].
 r_bnodes([H|T], Type, Expand, Map0, Map, Graph, Tail) :-
 	rdf_is_bnode(H), !,
 	put_assoc(H, Map0, true, Map1),
-	expansion(Type, Expand, H, Graph, Tail0),
+	expansion(Type, Expand, H, _, true, Graph, Tail0),
 	phrase(new_bnodes(Graph, Map1), BN, T),
 	r_bnodes(BN, Type, Expand, Map1, Map, Tail0, Tail).
 r_bnodes([_|T], Type, Expand, Map0, Map) -->

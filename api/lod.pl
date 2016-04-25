@@ -4,7 +4,7 @@
     Author:        Jan Wielemaker
     E-mail:        michielh@few.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2010, VU University Amsterdam
+    Copyright (C): 2016, VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -32,19 +32,13 @@
 	  [ lod_api/2			% +Request
 	  ]).
 
-:- use_module(library(http/thread_httpd)).
 :- use_module(library(http/http_dispatch)).
-:- use_module(library(http/http_parameters)).
 :- use_module(library(http/http_json)).
-:- use_module(library(http/http_path)).
 :- use_module(library(http/http_host)).
 :- use_module(library(http/http_request_value)).
-:- use_module(library(http/html_write)).
 :- use_module(library(http/http_cors)).
 :- use_module(library(semweb/rdf_db)).
-:- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_json)).
-:- use_module(library(semweb/rdf_label)).
 :- use_module(library(semweb/rdf_describe)).
 :- use_module(library(settings)).
 :- use_module(library(option)).
@@ -52,8 +46,8 @@
 :- use_module(library(semweb/rdf_turtle_write)).
 :- use_module(library(uri)).
 :- use_module(library(debug)).
-
-:- use_module(applications(browse)).
+:- use_module(library(apply)).
+:- use_module(library(dcg/basics)).
 
 
 /** <module> LOD - Linked Open Data server
@@ -166,8 +160,9 @@ lod_api(Options, Request) :-
 	lod_uri(Request, URI, Options),
 	debug(lod, 'LOD URI: ~q', [URI]),
 	accepts(Request, AcceptList),
+	phrase(triple_pattern(Request), Pattern),
 	cors_enable,
-	lod_request(URI, AcceptList, Request, Options).
+	lod_request(URI, AcceptList, Request, Pattern, Options).
 
 accepts(Request, AcceptList) :-
 	(   memberchk(accept(AcceptHeader), Request)
@@ -178,7 +173,41 @@ accepts(Request, AcceptList) :-
 	;   AcceptList = []
 	).
 
-lod_request(URI, AcceptList, Request, Options) :-
+%%	triple_pattern(+Text)//
+%
+%	Translate an RDF triple pattern into a list of rdf(S,P,O) terms.
+
+triple_pattern([]) -->
+	[].
+triple_pattern([triple_pattern(Pattern)|T]) --> !,
+	one_triple_pattern(Pattern),
+	triple_pattern(T).
+triple_pattern([_|T]) -->
+	triple_pattern(T).
+
+one_triple_pattern(Encoded) -->
+	{ base64(Pattern, Encoded),
+	  split_string(Pattern, "\r\n", "\r\n", Patterns),
+	  maplist(triple_pattern, Patterns, Triples)
+	},
+	string(Triples).
+
+triple_pattern(String, rdf(S,P,O)) :-
+	split_string(String, "\s\t", "\s\t", [SS,SP,SO]),
+	triple_term(SS, S),
+	triple_term(SP, P),
+	triple_term(SO, O).
+
+triple_term("?", _) :- !.
+triple_term(S, N) :-
+	string_codes(S, Codes),
+	phrase(sparql_grammar:graph_term(N), Codes).
+
+%%	lod_request(+URI, +AcceptList, +Request, +Pattern, +Options)
+%
+%	Handle an LOD request.
+
+lod_request(URI, AcceptList, Request, Pattern, Options) :-
 	lod_resource(URI), !,
 	preferred_format(AcceptList, Format),
 	debug(lod, 'LOD Format: ~q', [Format]),
@@ -187,12 +216,12 @@ lod_request(URI, AcceptList, Request, Options) :-
 	;   setting(lod:redirect, true),
 	    redirect(URI, AcceptList, SeeOther)
 	->  http_redirect(see_other, SeeOther, Request)
-	;   lod_describe(Format, URI, Request, Options)
+	;   lod_describe(Format, URI, Request, Pattern, Options)
 	).
-lod_request(URL, _AcceptList, Request, Options) :-
+lod_request(URL, _AcceptList, Request, Pattern, Options) :-
 	format_request(URL, URI, Format), !,
-	lod_describe(Format, URI, Request, Options).
-lod_request(URI, _AcceptList, _Request, _) :-
+	lod_describe(Format, URI, Request, Pattern, Options).
+lod_request(URI, _AcceptList, _Request, _Pattern, _) :-
 	throw(http_reply(not_found(URI))).
 
 
@@ -284,19 +313,19 @@ format_request(URL, URI, Format) :-
 	lod_resource(URI).
 
 
-%%	lod_describe(+Format, +URI, +Request, +Options) is det.
+%%	lod_describe(+Format, +URI, +Request, +Pattern, +Options) is det.
 %
 %	Write an HTTP document  describing  URI   to  in  Format  to the
 %	current output. Format is defined by mimetype_format/2.
 
-lod_describe(html, URI, Request, _) :- !,
+lod_describe(html, URI, Request, _, _) :- !,
 	(   rdf_graph(URI)
 	->  http_link_to_id(list_graph, [graph=URI], Redirect)
 	;   http_link_to_id(list_resource, [r=URI], Redirect)
 	),
 	http_redirect(see_other, Redirect, Request).
-lod_describe(Format, URI, _Request, Options) :-
-	lod_description(URI, RDF, Options),
+lod_describe(Format, URI, _Request, Pattern, Options) :-
+	lod_description(URI, RDF, Pattern, Options),
 	send_graph(Format, RDF).
 
 send_graph(xmlrdf, RDF) :-
@@ -327,7 +356,7 @@ triple_in(RDF, S,P,O,_G) :-
 	member(rdf(S,P,O), RDF).
 
 
-%%	lod_description(+URI, -RDF, +Options) is det.
+%%	lod_description(+URI, -RDF, +Pattern, +Options) is det.
 %
 %	RDF is a  graph  represented  as   a  list  of  rdf(S,P,O)  that
 %	describes URI.
@@ -337,11 +366,11 @@ triple_in(RDF, S,P,O,_G) :-
 %
 %	@see SPARQL DESCRIBE
 
-lod_description(URI, RDF, _) :-
+lod_description(URI, RDF, _, _) :-
 	cliopatria:lod_description(URI, RDF), !.
-lod_description(URI, RDF, Options) :-
+lod_description(URI, RDF, Pattern, Options) :-
 	option(bounded_description(Type), Options, cbd),
-	rdf_bounded_description(rdf, Type, URI, RDF).
+	rdf_bounded_description(rdf, Type, Pattern, URI, RDF).
 
 
 %%	mimetype_format(?MimeType, ?Format) is nondet.
