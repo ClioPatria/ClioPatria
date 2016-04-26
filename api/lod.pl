@@ -48,6 +48,8 @@
 :- use_module(library(debug)).
 :- use_module(library(apply)).
 :- use_module(library(dcg/basics)).
+:- use_module(library(base64)).
+:- use_module(library(utf8)).
 
 
 /** <module> LOD - Linked Open Data server
@@ -186,7 +188,10 @@ triple_pattern([_|T]) -->
 	triple_pattern(T).
 
 one_triple_pattern(Encoded) -->
-	{ base64(Pattern, Encoded),
+	{ string_codes(Encoded, EncCodes),
+	  phrase(base64(UTF8Bytes), EncCodes),
+	  phrase(utf8_codes(PlainCodes), UTF8Bytes),
+	  string_codes(Pattern, PlainCodes),
 	  split_string(Pattern, "\r\n", "\r\n", Patterns),
 	  maplist(triple_pattern, Patterns, Triples)
 	},
