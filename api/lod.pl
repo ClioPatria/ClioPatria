@@ -162,7 +162,7 @@ lod_api(Options, Request) :-
 	lod_uri(Request, URI, Options),
 	debug(lod, 'LOD URI: ~q', [URI]),
 	accepts(Request, AcceptList),
-	phrase(triple_filter(Request), Filter),
+	triple_filter(Request, Filter),
 	cors_enable,
 	lod_request(URI, AcceptList, Request, Filter, Options).
 
@@ -174,6 +174,17 @@ accepts(Request, AcceptList) :-
 	    )
 	;   AcceptList = []
 	).
+
+%%	triple_filter(+Request, -Filter) is det.
+%
+%	Extract Triple-Filter from Request.  Ignores the filter if it
+%	is invalid.
+
+triple_filter(Request, Filter) :-
+	catch(phrase(triple_filter(Request), Filter), E,
+	      (print_message(warning, E),fail)), !.
+triple_filter(_, []).
+
 
 %%	triple_filter(+Text)//
 %
@@ -380,11 +391,25 @@ lod_description(URI, RDF, Filter, Options) :-
 
 echo_filter([]) :- !.
 echo_filter(Filters) :-
-	filters_to_ntriples(Filters, NTriples),
-	split_string(NTriples, "\n", "\n.\s", Strings),
+	copy_term(Filters, Filters1),
+	term_variables(Filters1, Vars),
+	maplist(=(?), Vars),
+	filters_to_ntriples(Filters1, NTriples),
+	split_string(NTriples, "\n", "\n.\s", Strings0),
+	maplist(insert_q, Strings0, Strings),
 	atomics_to_string(Strings, "\n", String),
 	base64(String, Encoded),
 	format('Triple-Filter: ~w\r\n', [Encoded]).
+
+insert_q(String, QString) :-
+	split_string(String, " ", "", [S,P,O|M]),
+	map_q(S, QS),
+	map_q(P, QP),
+	map_q(O, QO),
+	atomics_to_string([QS,QP,QO|M], " ", QString).
+
+map_q("<?>", "?") :- !.
+map_q(S, S).
 
 filters_to_ntriples(Filters, String) :-
 	with_output_to(
