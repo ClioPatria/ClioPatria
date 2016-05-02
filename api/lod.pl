@@ -162,9 +162,9 @@ lod_api(Options, Request) :-
 	lod_uri(Request, URI, Options),
 	debug(lod, 'LOD URI: ~q', [URI]),
 	accepts(Request, AcceptList),
-	phrase(triple_pattern(Request), Pattern),
+	phrase(triple_filter(Request), Filter),
 	cors_enable,
-	lod_request(URI, AcceptList, Request, Pattern, Options).
+	lod_request(URI, AcceptList, Request, Filter, Options).
 
 accepts(Request, AcceptList) :-
 	(   memberchk(accept(AcceptHeader), Request)
@@ -175,29 +175,29 @@ accepts(Request, AcceptList) :-
 	;   AcceptList = []
 	).
 
-%%	triple_pattern(+Text)//
+%%	triple_filter(+Text)//
 %
 %	Translate an RDF triple pattern into a list of rdf(S,P,O) terms.
 
-triple_pattern([]) -->
+triple_filter([]) -->
 	[].
-triple_pattern([triple_pattern(Pattern)|T]) --> !,
-	one_triple_pattern(Pattern),
-	triple_pattern(T).
-triple_pattern([_|T]) -->
-	triple_pattern(T).
+triple_filter([triple_filter(Filter)|T]) --> !,
+	one_triple_filter(Filter),
+	triple_filter(T).
+triple_filter([_|T]) -->
+	triple_filter(T).
 
-one_triple_pattern(Encoded) -->
+one_triple_filter(Encoded) -->
 	{ string_codes(Encoded, EncCodes),
 	  phrase(base64(UTF8Bytes), EncCodes),
 	  phrase(utf8_codes(PlainCodes), UTF8Bytes),
-	  string_codes(Pattern, PlainCodes),
-	  split_string(Pattern, "\r\n", "\r\n", Patterns),
-	  maplist(triple_pattern, Patterns, Triples)
+	  string_codes(Filter, PlainCodes),
+	  split_string(Filter, "\r\n", "\r\n", Filters),
+	  maplist(triple_filter, Filters, Triples)
 	},
 	string(Triples).
 
-triple_pattern(String, rdf(S,P,O)) :-
+triple_filter(String, rdf(S,P,O)) :-
 	split_string(String, "\s\t", "\s\t", [SS,SP,SO]),
 	triple_term(SS, S),
 	triple_term(SP, P),
@@ -208,11 +208,11 @@ triple_term(S, N) :-
 	string_codes(S, Codes),
 	phrase(sparql_grammar:graph_term(N), Codes).
 
-%%	lod_request(+URI, +AcceptList, +Request, +Pattern, +Options)
+%%	lod_request(+URI, +AcceptList, +Request, +Filter, +Options)
 %
 %	Handle an LOD request.
 
-lod_request(URI, AcceptList, Request, Pattern, Options) :-
+lod_request(URI, AcceptList, Request, Filter, Options) :-
 	lod_resource(URI), !,
 	preferred_format(AcceptList, Format),
 	debug(lod, 'LOD Format: ~q', [Format]),
@@ -221,12 +221,12 @@ lod_request(URI, AcceptList, Request, Pattern, Options) :-
 	;   setting(lod:redirect, true),
 	    redirect(URI, AcceptList, SeeOther)
 	->  http_redirect(see_other, SeeOther, Request)
-	;   lod_describe(Format, URI, Request, Pattern, Options)
+	;   lod_describe(Format, URI, Request, Filter, Options)
 	).
-lod_request(URL, _AcceptList, Request, Pattern, Options) :-
+lod_request(URL, _AcceptList, Request, Filter, Options) :-
 	format_request(URL, URI, Format), !,
-	lod_describe(Format, URI, Request, Pattern, Options).
-lod_request(URI, _AcceptList, _Request, _Pattern, _) :-
+	lod_describe(Format, URI, Request, Filter, Options).
+lod_request(URI, _AcceptList, _Request, _Filter, _) :-
 	throw(http_reply(not_found(URI))).
 
 
@@ -318,7 +318,7 @@ format_request(URL, URI, Format) :-
 	lod_resource(URI).
 
 
-%%	lod_describe(+Format, +URI, +Request, +Pattern, +Options) is det.
+%%	lod_describe(+Format, +URI, +Request, +Filter, +Options) is det.
 %
 %	Write an HTTP document  describing  URI   to  in  Format  to the
 %	current output. Format is defined by mimetype_format/2.
@@ -329,8 +329,8 @@ lod_describe(html, URI, Request, _, _) :- !,
 	;   http_link_to_id(list_resource, [r=URI], Redirect)
 	),
 	http_redirect(see_other, Redirect, Request).
-lod_describe(Format, URI, _Request, Pattern, Options) :-
-	lod_description(URI, RDF, Pattern, Options),
+lod_describe(Format, URI, _Request, Filter, Options) :-
+	lod_description(URI, RDF, Filter, Options),
 	send_graph(Format, RDF).
 
 send_graph(xmlrdf, RDF) :-
@@ -361,7 +361,7 @@ triple_in(RDF, S,P,O,_G) :-
 	member(rdf(S,P,O), RDF).
 
 
-%%	lod_description(+URI, -RDF, +Pattern, +Options) is det.
+%%	lod_description(+URI, -RDF, +Filter, +Options) is det.
 %
 %	RDF is a  graph  represented  as   a  list  of  rdf(S,P,O)  that
 %	describes URI.
@@ -373,9 +373,24 @@ triple_in(RDF, S,P,O,_G) :-
 
 lod_description(URI, RDF, _, _) :-
 	cliopatria:lod_description(URI, RDF), !.
-lod_description(URI, RDF, Pattern, Options) :-
+lod_description(URI, RDF, Filter, Options) :-
 	option(bounded_description(Type), Options, cbd),
-	rdf_bounded_description(rdf, Type, Pattern, URI, RDF).
+	echo_filter(Filter),
+	rdf_bounded_description(rdf, Type, Filter, URI, RDF).
+
+echo_filter([]) :- !.
+echo_filter(Filters) :-
+	filters_to_ntriples(Filters, NTriples),
+	split_string(NTriples, "\n", "\n.\s", Strings),
+	atomics_to_string(Strings, "\n", String),
+	base64(String, Encoded),
+	format('Triple-Filter: ~w\r\n', [Encoded]).
+
+filters_to_ntriples(Filters, String) :-
+	with_output_to(
+	    string(String),
+	    rdf_save_ntriples(stream(current_output),
+			      [ expand(api_lod:triple_in(Filters))])).
 
 
 %%	mimetype_format(?MimeType, ?Format) is nondet.

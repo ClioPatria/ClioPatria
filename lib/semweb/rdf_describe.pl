@@ -73,7 +73,7 @@ expanded using rdf_include_reifications/3 and/or rdf_include_labels/3.
 		 *******************************/
 
 %%	rdf_bounded_description(:Expand, +Type, +URI, -Graph) is det.
-%%	rdf_bounded_description(:Expand, +Type, +Pattern, +URI, -Graph)	is det.
+%%	rdf_bounded_description(:Expand, +Type, +Filter, +URI, -Graph)	is det.
 %
 %	Graph is a Bounded Description of   URI.  The literature defines
 %	various types of  bounding   descriptions.  Currently  supported
@@ -90,10 +90,10 @@ expanded using rdf_include_reifications/3 and/or rdf_include_labels/3.
 rdf_bounded_description(Expand, Type, S, Graph) :-
 	rdf_bounded_description(Expand, Type, [], S, Graph).
 
-rdf_bounded_description(Expand, Type, Pattern, S, Graph) :-
+rdf_bounded_description(Expand, Type, Filter, S, Graph) :-
 	empty_assoc(Map0),
-	compile_pattern(Pattern, Triple, Expand, Filter),
-	expansion(Type, Expand, S, Triple, Filter, Graph, BNG),
+	compile_pattern(Filter, Triple, Expand, Filter1),
+	expansion(Type, Expand, S, Triple, Filter1, Graph, BNG),
 	phrase(new_bnodes(Graph, Map0), BN),
 	phrase(r_bnodes(BN, Type, Expand, Map0, _Map), BNG).
 
