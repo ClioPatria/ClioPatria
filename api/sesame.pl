@@ -47,6 +47,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_client)).
 :- use_module(library(http/http_open)).
+:- use_module(library(http/json)).
 :- use_module(library(memfile)).
 :- use_module(library(debug)).
 :- use_module(library(lists)).
@@ -1189,6 +1190,14 @@ done(html, _Message, CPU, Subjects, Triples) :-
 		       ]).
 done(Format, _:Message, CPU, Subjects, Triples) :- !,
 	done(Format, Message, CPU, Subjects, Triples).
+done(json, Fmt-Args, _CPU, _Subjects, _Triples) :-
+	format(string(Message), Fmt, Args),
+	format('Content-type: application/json~n~n'),
+	json_write(current_output,
+		json([transaction=
+			 json([status=
+				  json([msg=Message])])])),
+	format('~n').
 done(xml, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format(string(Message), Fmt, Args),
 	format('Content-type: text/xml~n~n'),
@@ -1197,9 +1206,9 @@ done(xml, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format('     <msg>~w</msg>~n', [Message]),
 	format('  </status>~n'),
 	format('</transaction>~n').
-done(rdf, Fmt-Args, _CPU, _Subjects, _Triples) :-
+done(Format, Fmt-Args, _CPU, _Subjects, _Triples) :-
 	format('Content-type: text/plain~n~n'),
-	format('resultFormat=rdf not yet supported~n~n'),
+	format('resultFormat=~w not yet supported~n~n', Format),
 	format(Fmt, Args).
 
 
