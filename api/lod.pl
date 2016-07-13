@@ -204,11 +204,11 @@ one_triple_filter(Encoded) -->
 	  phrase(utf8_codes(PlainCodes), UTF8Bytes),
 	  string_codes(Filter, PlainCodes),
 	  split_string(Filter, "\r\n", "\r\n", Filters),
-	  maplist(triple_filter, Filters, Triples)
+	  maplist(map_triple_filter, Filters, Triples)
 	},
 	string(Triples).
 
-triple_filter(String, rdf(S,P,O)) :-
+map_triple_filter(String, rdf(S,P,O)) :-
 	split_string(String, "\s\t", "\s\t", [SS,SP,SO]),
 	triple_term(SS, S),
 	triple_term(SP, P),
