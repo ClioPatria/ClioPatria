@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://cliopatria.swi-prolog.org
-    Copyright (C): 2004-2015, University of Amsterdam
+    Copyright (C): 2004-2016, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -84,6 +84,7 @@ user:file_search_path(library, cliopatria(lib)).
 		library(error),
 		library(broadcast),
 		library(thread_pool),
+		library(apply),
 
 		library(semweb/rdf_db),
 		library(semweb/rdf_persistency),
@@ -160,6 +161,14 @@ user:file_search_path(library, cliopatria(lib)).
 :- meta_predicate
 	cp_server(:).
 
+cp_server :-
+	argv(_ProgName, [cpack|Argv]), !,
+	load_conf_d([ 'config-enabled' ], []),
+	catch(cpack_control(Argv), E,
+	      (	  print_message(error, E),
+		  halt(1)
+	      )),
+	halt.
 :- if(current_predicate(http_unix_daemon:http_daemon/0)).
 cp_server :-
 	http_unix_daemon:http_daemon.
@@ -413,7 +422,9 @@ update_workers(New) :-
 
 process_argv(Options) :-
 	argv(Program, Argv),
-	(   catch((   parse_options(Argv, Options, Rest),
+	(   Argv == ['--help']
+	->  usage(Program)
+	;   catch((   parse_options(Argv, Options, Rest),
 		      maplist(process_argument, Rest)
 		  ),
 		  E,
@@ -451,6 +462,7 @@ rdf_extension(ttl).
 rdf_extension(nt).
 rdf_extension(ntriples).
 
+cmd_option(-, help,	  -,                'Print command usage').
 cmd_option(p, port,	  positive_integer, 'Port to connect to').
 cmd_option(w, workers,    positive_integer, 'Number of workers to start').
 cmd_option(-, after_load, term,	            'Goal to run after loading').
@@ -460,12 +472,14 @@ cmd_option(-, store,	  atom,	            'Directory for persistent store').
 cmd_option(-, -, boolean, 'Dummy') :- fail.
 
 usage(Program) :-
-	ansi_format([bold], 'Usage: ~w [options] arguments~n', [Program]),
+	format(user_error,
+	       'Run ClioPatria for interactive usage.~n~n', []),
+	ansi_format([bold], 'Usage: ~w [options] arguments', [Program]), nl, nl,
 	flush_output,
 	forall(cmd_option(Short, Long, Type, Comment),
 	       describe_option(Short, Long, Type, Comment)),
-	current_prolog_flag(argv, Argv),
-	ansi_format([fg(red)], 'Program argv: ~q~n', [Argv]),
+	cpack_usage(Program),
+	describe_argv,
 	(   current_prolog_flag(hwnd, _)	% swipl-win.exe console
 	->  ansi_format([bold,hfg(red)],
 			'~nPress \'b\' for break, any other key to exit > ', []),
@@ -489,6 +503,18 @@ describe_option(Short, Long, _, Comment) :- !,
 	format(user_error, '    -~w ~w, --~w=~w~t~40|~w~n',
 	       [Short, Long, Long, Long, Comment]).
 
+describe_argv :-
+	current_prolog_flag(argv, Argv),
+	(   Argv == ['--help']
+	->  true
+	;   ansi_format([fg(red)], 'Program argv: ~q~n', [Argv])
+	).
+
+cpack_usage(Program) :-
+	nl, ansi_format([bold], 'CPACK commands', []), nl, nl,
+	flush_output,
+	format(user_error, '   ~w cpack install pack ...~n', [Program]),
+	format(user_error, '   ~w cpack upgrade pack ...~n', [Program]).
 
 parse_options([], [], []).
 parse_options([--|Rest], [], Rest) :- !.
@@ -563,8 +589,7 @@ boolean(off,   false).
 %%	argv(-ProgramBaseName, -UserArgs)
 
 argv(ProgName, Argv) :-
-	current_prolog_flag(executable, Executable),
-	file_base_name(Executable, ProgName),
+	current_prolog_flag(os_argv, [_Swipl,ProgName|_]),
 	user_argv(Argv).
 
 :- if(current_prolog_flag(os_argv,_)).
@@ -580,6 +605,27 @@ user_argv(Av) :-
 	;   Av = []
 	).
 :- endif.
+
+		 /*******************************
+		 *	       CPACK		*
+		 *******************************/
+
+%%	cpack_control(+Commands:list)
+%
+%	Execute a CPACK configuration instruction.  For example:
+%
+%	    ./run.pl cpack install swish
+
+cpack_control([install|Packs]) :- !,
+	maplist(cpack_install, Packs).
+cpack_control([upgrade|Packs]) :- !,
+	(   Packs == []
+	->  cpack_upgrade
+	;   maplist(cpack_upgrade, Packs)
+	).
+cpack_control(Command) :-
+	domain_error(cpack_command, Command).
+
 
 		 /*******************************
 		 *	      BANNER		*
