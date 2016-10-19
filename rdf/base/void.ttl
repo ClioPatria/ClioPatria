@@ -37,8 +37,10 @@
 <owl>
         a void:Dataset ;
 	void:subset <rdfs> ;
-        void:dataDump <owl.owl> ;
-        dcterms:title "Web Ontology Language (DL)" ;
+        # void:dataDump <owl.owl> ;
+        # dcterms:title "Web Ontology Language (DL)" ;
+	dcterms:title "The OWL 2 Schema vocabulary (OWL 2)" ;
+        void:dataDump <owl2.ttl> ;
         lib:source <http://www.w3.org/2002/07/owl> .
 
 <owlfull>
