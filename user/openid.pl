@@ -43,7 +43,7 @@
 :- use_module(library(lists)).
 :- use_module(library(error)).
 :- use_module(library(option)).
-:- use_module(library(url)).
+:- use_module(library(uri)).
 :- use_module(library(socket)).
 :- use_module(library(debug)).
 :- use_module(library(settings)).
@@ -105,8 +105,8 @@ login_page(Request) :-
 			]).
 
 explain_login(ReturnTo) -->
-	{ parse_url(ReturnTo, Parts),
-	  memberchk(path(Path), Parts)
+	{ uri_components(ReturnTo, Components),
+	  uri_data(path, Components, Path)
 	},
 	html(div(class('rdfql-login'),
 		 [ p([ 'You are trying to access a page (~w) that requires authorization. '-[Path],
