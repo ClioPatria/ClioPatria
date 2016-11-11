@@ -589,7 +589,10 @@ boolean(off,   false).
 %%	argv(-ProgramBaseName, -UserArgs)
 
 argv(ProgName, Argv) :-
-	current_prolog_flag(os_argv, [_Swipl,ProgName|_]),
+	current_prolog_flag(os_argv, [_Swipl,ProgName|_]), !,
+	user_argv(Argv).
+argv(ProgName, Argv) :-
+	current_prolog_flag(os_argv, [ProgName|_]),
 	user_argv(Argv).
 
 :- if(current_prolog_flag(os_argv,_)).
