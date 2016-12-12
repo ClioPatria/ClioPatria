@@ -188,7 +188,8 @@ graph_row(_, virtual(total)) --> !,
 	{ rdf_statistics(triples(Count))
 	},
 	html([ th(class(total), 'Total #triples:'),
-	       \nc('~D', Count, [class(total)])
+	       \nc('~D', Count, [class(total)]),
+	       td([],[]) % # Empty cell for persistency column
 	     ]).
 graph_row(Options, Graph) -->
 	{ graph_triples(Graph, Count)
