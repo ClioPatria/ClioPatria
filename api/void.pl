@@ -54,7 +54,7 @@
 handle_void(Request) :-
 	setting(cliopatria:void_file, File), File \== '',
 	absolute_file_name(File, Path, [access(exist)]), !,
-	http_reply_file(Path, [],  Request).
+	http_reply_file(Path, [unsafe(true)],  Request).
 handle_void(Request) :-
 	setting(cliopatria:void_graph, Graph), Graph \== '',
 	http_link_to_id(export_graph, graph(Graph), HREF),
