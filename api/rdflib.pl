@@ -72,7 +72,7 @@ load_library_ontology(Request) :-
 		   \loaded_library_ontology(Ontology)).
 
 loaded_library_ontology(Id) -->
-	html('Loaded base ontology '),
+	html('Loaded RDF library '),
 	(   { rdf_library_index(Id, title(Title)) }
 	->  html([Id, ' -- ', Title])
 	;   html(Id)
