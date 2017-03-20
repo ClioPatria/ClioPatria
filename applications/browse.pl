@@ -1941,10 +1941,15 @@ list_triples_with_object(Request) :-
 				       ]),
 			  graph(Graph, [optional(true),
 					description('Limit to a given graph (URI)')
-				       ])
+				       ]),
+			  sortBy(Sort,
+				 [ oneof([label, subject, predicate]),
+				   default(label),
+				   description('How to sort the result')
+				 ])
 			]),
 	target_object(RObject, LObject, Object),
-	list_triples_with_object(Object, P, Graph).
+	list_triples_with_object(Object, P, Graph, [sortBy(Sort)]).
 
 target_object(RObject, _LObject, RObject) :-
 	atom(RObject), !.
@@ -1967,26 +1972,34 @@ list_triples_with_literal(Request) :-
 			     description('Object as resource (URI)')
 			    ])
 			]),
-	list_triples_with_object(literal(Text), _, _).
+	list_triples_with_object(literal(Text), _, _, []).
 
 
-list_triples_with_object(Object, P, Graph) :-
+list_triples_with_object(Object, P, Graph, Options) :-
 	findall(S-P, rdf(S,P,Object,Graph), Pairs0),
 	sort(Pairs0, Pairs),
-	sort_pairs_by_label(Pairs, Sorted),
+	(   option(sortBy(label), Options)
+	->  sort_pairs_by_label(Pairs, Sorted)
+	;   option(sortBy(predicate), Options)
+	->  transpose_pairs(Pairs, Transposed),
+	    flip_pairs(Transposed, Sorted)
+	;   Sorted = Pairs
+	),
 	length(Pairs, Count),
 	label_of(Object, OLabel),
 	reply_html_page(cliopatria(default),
 			title('Triples with object ~w'-[OLabel]),
-			[ h1(\otriple_header(Count, Object, P, Graph)),
+			[ h1(\otriple_header(Count, Object, P, Graph, Options)),
 			  \otriple_table(Sorted, Object, [resource_format(nslabel)])
 			]).
 
-otriple_header(Count, Object, Pred, Graph) -->
+otriple_header(Count, Object, Pred, Graph, Options) -->
+	{ option(sortBy(SortBy), Options) },
 	html([ 'Table for the ~D triples'-[Count],
 	       \with_object(Object),
 	       \on_predicate(Pred),
-	       \in_graph(Graph)
+	       \in_graph(Graph),
+	       \sorted_by(SortBy)
 	     ]).
 
 with_object(Obj) -->
