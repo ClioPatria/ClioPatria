@@ -100,9 +100,9 @@ system are:
 
 ## Further reading
 
-We submitted an article to the [Semantic Web
+We published an article in the [Semantic Web
 Journal](http://www.semantic-web-journal.net/content/cliopatria-logical-programming-infrastructure-semantic-web-0)
-that explains the rationale behind ClioPatria.
+that explains the rationale behind ClioPatria. Please cite this when you are using ClioPatria in your research (full reference below).
 
 Many of the design issues around handling the Semantic Web in Prolog are
 described and motivated in Jan Wielemaker's PhD thesis
@@ -119,4 +119,24 @@ Authors:
  - Wouter Beek
  - Jacco van Ossenbruggen
  - Michiel Hildebrand
+
+```bibtex
+  @article{DBLP:journals/semweb/WielemakerBHO15,
+    author    = {Jan Wielemaker and
+                 Wouter Beek and
+                 Michiel Hildebrand and
+                 Jacco van Ossenbruggen},
+  title     = {ClioPatria: {A} SWI-Prolog infrastructure for the Semantic Web},
+  journal   = {Semantic Web},
+  volume    = {7},
+  number    = {5},
+  pages     = {529--541},
+  year      = {2016},
+  url       = {http://dx.doi.org/10.3233/SW-150191},
+  doi       = {10.3233/SW-150191},
+  timestamp = {Mon, 12 Dec 2016 16:21:50 +0100},
+  biburl    = {http://dblp2.uni-trier.de/rec/bib/journals/semweb/WielemakerBHO15},
+  bibsource = {dblp computer science bibliography, http://dblp.org}
+  }
+```
 
