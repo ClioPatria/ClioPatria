@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2014, University of Amsterdam
+    Copyright (C): 2004-2017, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -39,9 +39,11 @@
 	    sparql_minus/2,		% :Pattern1, :Pattern2
 	    sparql_group/1,		% :Query
 	    sparql_group/3,		% :Query, +OuterVars, +InnerVars
+	    sparql_service/5,		% +Silent, +URL, +Prefixes, +Vars, +QText
 	    sparql_reset_bnodes/0
 	  ]).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11), [rdf_lexical_form/2]).
 :- use_module(library(xsdp_types)).
 :- use_module(library(lists)).
 :- use_module(library(apply)).
@@ -49,6 +51,8 @@
 :- use_module(library(ordsets)).
 :- use_module(library(uri)).
 :- use_module(library(dcg/basics)).
+:- use_module(library(semweb/sparql_client)).
+:- use_module(library(debug)).
 :- if(exists_source(library(uuid))).
 :- use_module(library(uuid)).
 :- endif.
@@ -1471,6 +1475,61 @@ sparql_group(Goal) :-
 sparql_group(Goal, OuterVars, InnerVars) :-
 	call(Goal),
 	OuterVars = InnerVars.
+
+
+		 /*******************************
+		 *	      SERVICE		*
+		 *******************************/
+
+%!	sparql_service(+Silent, +URL, +Prefixes, +Bindings, +QText)
+%
+%	Execute a remote SPARQL SERVICE request
+%
+%	@arg Silent is one of `silent` or `error`
+%	@arg URL is the address of the SPARQL server
+%	@arg Prefixes is a list `Prefix-URL`
+%	@arg Bindings is a list `VarName=Var`
+%	@arg QText is a string holding the remote query
+
+sparql_service(Silent, URL, Prefixes, Bindings, QText) :-
+	parse_url(URL, Options),
+	maplist(prefix_line, Prefixes, PrefLines),
+	partition(bound_binding, Bindings, In, Out),
+	maplist(proj, Out, Proj),
+	atomics_to_string(Proj, " ", Projection),
+	format(string(SubSel), 'SELECT ~w WHERE {', [Projection]),
+	maplist(binding_line, In, BindLines),
+	append([ PrefLines, [SubSel], BindLines, [QText], ["}"] ], Lines),
+	atomics_to_string(Lines, "\n", Query),
+	debug(sparql(service), 'SERVICE:~n~w', [Query]),
+	maplist(binding_var, Out, Vars),
+	Row =.. [row|Vars],
+	(   Silent == error
+	->  sparql_query(Query, Row, Options)
+	;   catch(sparql_query(Query, Row, Options), _, true)
+	).
+
+prefix_line(Pref-URL, Line) :-
+	format(string(Line), 'PREFIX ~w: <~w>', [Pref, URL]).
+
+bound_binding(_Name = Var) :-
+	ground(Var).
+
+proj(Name=_, Proj) :-
+	format(string(Proj), '?~w', [Name]).
+
+binding_line(Name=IRI, Line) :-
+	atom(IRI), !,
+	format(string(Line), 'BIND(<~w> as ?~w)', [IRI, Name]).
+binding_line(Name=Literal, Line) :-
+	rdf_lexical_form(Literal, Lex),
+	(   Lex = ^^(String,Type)
+	->  format(string(Line), 'BIND(~w^^<~w> as ?~w)', [String, Type, Name])
+	;   Lex = @(String,Lang)
+	->  format(string(Line), 'BIND(~w@~w as ?~w)', [String, Lang, Name])
+	).
+
+binding_var(_Name=Var, Var).
 
 
 		 /*******************************

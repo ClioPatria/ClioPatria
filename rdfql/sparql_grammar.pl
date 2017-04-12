@@ -151,6 +151,7 @@ lines([H|T]) --> ['~w'-[H], nl], lines(T).
 :- record
 	state(base_uri,
 	      prefix_assoc,
+	      prefixes_used=[],
 	      var_assoc,
 	      var_list=[],
 	      graph=[],
@@ -242,6 +243,16 @@ resolve_query(group(G), Q, S0, S) :- !,
 	resolve_query(Filters, Q1, S3, S),
 	mkconj(Q0, Q1, Q2),
 	steadfast(Q2, Q).
+resolve_query(service(Silent, VarOrIRI, G, QText),
+	      sparql_service(Silent, Address, Prefixes, Vars, QText),
+	      S0, S) :- !,
+	resolve_graph_term(VarOrIRI, Address, true, S0, S0),
+	assertion(Address \== '$null$'),	% Fresh variable
+	service_state(S0, ServState0),
+	resolve_query(G, _, ServState0, ServState),
+	service_prefixes(ServState, Prefixes),
+	state_var_list(ServState, Vars),
+	resolve_service_vars(Vars, S0, S).
 resolve_query((A0,minus(B0)), sparql_minus(A,B), S0, S) :- !,
 	resolve_query(A0, A, S0, S1),
 	resolve_query(B0, B, S1, S).
@@ -430,7 +441,7 @@ resolve_having(Having0, Having, true, State0, State) :-
 	resolve_query(Having0, Having, State0, State).
 
 
-%%	resolve_state(+Prolog, -State)
+%%	resolve_state(+Prolog, -State, +Options)
 %
 %	Create initial state.
 
@@ -555,7 +566,7 @@ resolve_predicate(T, IRI, S, S) :-
 %%	resolve_negated_property_set(+PSet, -NegSet, -RevSet, +S) is det.
 %
 %	True when NegSet is the  set   of  forward negated properties in
-%	PSet and RevSet is the seet of backward negated properties.
+%	PSet and RevSet is the set of backward negated properties.
 
 resolve_negated_property_set(PSet, NegSet, RevSet, S) :-
 	resolve_netaged_property_set(PSet, NegSet, [], RevSet, [], S).
@@ -718,7 +729,8 @@ resolve_var(Name, Var, State0, State) :-
 	    state_var_list(State0, VL),
 	    set_var_list_of_state([Name=Var|VL], State0, State)
 	).
-resolve_var(Name, Var, State0, State) :- !,
+resolve_var(Name, Var, State0, State) :-
+	State0 \== State, !,
 	state_var_assoc(State0, Vars0),
 	state_var_list(State0, VL),
 	put_assoc(Name, Vars0, true-Var, Vars),
@@ -749,6 +761,7 @@ resolve_var_invisible(_, '$null$', State, State).
 
 resolve_iri(P:N, IRI, State) :- !,
 	resolve_prefix(P, Prefix, State),
+	used_prefix(P, State),
 	url_iri(N, LocalIRI),
 	atom_concat(Prefix, LocalIRI, IRI).
 resolve_iri(URL0, IRI, State) :-
@@ -764,6 +777,18 @@ resolve_prefix(P, IRI, State) :-
 	;   rdf_db:ns(P, IRI)		% Extension: database known
 	->  true
 	;   throw(error(existence_error(prefix, P), _))
+	).
+
+%!	used_prefix(+P, !State) is det.
+%
+%	Keep track of the prefixes  that   are  actually used to support
+%	service statements.
+
+used_prefix(P, State) :-
+	state_prefixes_used(State, Used0),
+	(   memberchk(P, Used0)
+	->  true
+	;   set_prefixes_used_of_state([P|Used0], State)
 	).
 
 %%	resolve_values(+Values0, -Values, +State) is det.
@@ -1035,6 +1060,46 @@ compile_expression(Expr0, Var, Goal, State0, State) :-
 
 primitive(Var)  :- var(Var), !.
 primitive(Atom) :- atom(Atom).		% IRI, '$null$'
+
+
+		 /*******************************
+		 *	      SERVICE		*
+		 *******************************/
+
+%!	service_state(+S0, -S)
+%
+%	Make a resolver state for a SERVICE.  We want to know
+%
+%	  - The prefixes used by the service query
+%	  - The projection variables of the service query
+
+service_state(S0, S) :-
+	state_base_uri(S0, Base),
+	state_prefix_assoc(S0, PrefixAssoc),
+	empty_assoc(VarAssoc),
+	make_state([ base_uri(Base),
+		     prefix_assoc(PrefixAssoc),
+		     var_assoc(VarAssoc)
+		   ], S).
+
+
+%!	service_prefixes(+State, -List:list(pair)) is det.
+%
+%	Obtain a list of  Prefix-URL  pairs   for  the  prefixes used in
+%	State.
+
+service_prefixes(State, List) :-
+	state_prefixes_used(State, Prefixes),
+	maplist(prefix_binding(State), Prefixes, List).
+
+prefix_binding(State, Prefix, Prefix-IRI) :-
+	resolve_prefix(Prefix, IRI, State).
+
+resolve_service_vars([], State, State).
+resolve_service_vars([VarName=Var|T], S0, S) :-
+	resolve_var(VarName, Var, S0, S1),
+	resolve_service_vars(T,S1, S).
+
 
 
 		 /*******************************
@@ -1634,7 +1699,7 @@ quads_cont([Graph|Tail0], Tail) -->
 
 quads_not_triples(graph(IRI, Triples)) -->
 	keyword("graph"),
-	var_or_iri_ref(IRI),
+	must_see_var_or_iri_ref(IRI),
 	must_see_open_brace,
 	(   triples_template(Triples, [])
 	->  ""
@@ -1845,10 +1910,10 @@ optional_graph_pattern(Pattern) -->	% [57]
 
 graph_graph_pattern(graph(Graph, Pattern)) --> % [58]
 	keyword("graph"), !,
-	var_or_iri_ref(Graph),
+	must_see_var_or_iri_ref(Graph),
 	must_see_group_graph_pattern(Pattern).
 
-%%	service_graph_pattern(P)//
+%%	service_graph_pattern(-P)//
 %
 %	Process a federated query.  We need to find three things
 %
@@ -1856,12 +1921,41 @@ graph_graph_pattern(graph(Graph, Pattern)) --> % [58]
 %	    the projection, _otherwise_, the default * projection
 %	    variables.
 %	  - What prefixes are required to execute the query?
-
-service_graph_pattern(service(Silent, VarOrIRI, GroupGraphPattern)) --> % [59]
+%
+%	We issue the following query on the remote service:
+%
+%	```
+%	PREFIX ...
+%	SELECT ?out1,?out2,... WHERE {
+%	  BIND(in1 as ?v1)
+%	  BIND(in2 as ?v2)
+%	  ...
+%	  <Original query>
+%	}
+%	```
+					% [59]
+service_graph_pattern(service(Silent, VarOrIRI, GroupGraphPattern, Query)) -->
 	keyword("service"), !,
 	silent(Silent),
-	var_or_iri_ref(VarOrIRI),
-	group_graph_pattern(GroupGraphPattern).
+	must_see_var_or_iri_ref(VarOrIRI),
+	mark(Here),
+	must_see_group_graph_pattern(group(GroupGraphPattern)),
+	string_from_mark(Here, Query).
+
+mark(Here, Here, Here).
+
+string_from_mark(Start, String) -->
+	mark(End),
+	{ codes_between(Start, End, Codes),
+	  string_codes(String, Codes)
+	}.
+
+codes_between(Start, End, Codes) :-
+	same_term(Start, End), !,
+	Codes = [].
+codes_between([H|T], End, [H|C]) :-
+	codes_between(T, End, C).
+
 
 %%	bind(P)
 
@@ -2340,6 +2434,11 @@ must_see_var(Var) -->
 	var(Var), !.
 must_see_var(_) -->
 	syntax_error(var_expected).
+
+must_see_var_or_iri_ref(Var) -->
+	var_or_iri_ref(Var), !.
+must_see_var_or_iri_ref(_) -->
+	syntax_error(var_or_iri_ref_expected).
 
 %%	graph_term(-T)//
 
