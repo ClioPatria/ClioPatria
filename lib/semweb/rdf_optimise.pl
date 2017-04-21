@@ -83,7 +83,7 @@ This  algorithm  reaches  optimal  performance  under  quite  reasonable
 assumptions  while  the  planning  overhead   is  very  reasonable.  The
 algorithm is described in "An  optimised   Semantic  Web  query language
 implementation        in        Prolog",          available         from
-http://hcs.science.uva.nl/projects/SWI-Prolog/articles/ICLP05-SeRQL.pdf
+http://www.swi-prolog.org/download/publications/ICLP05-SeRQL.pdf
 
 NOTES:
 
