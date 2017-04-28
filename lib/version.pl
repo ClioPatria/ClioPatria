@@ -194,6 +194,13 @@ gen_module_property(Name, version(Version)) :-
 	Version = Version0.
 gen_module_property(Name, directory(Dir)) :-
 	current_git_module(Name, Dir, _).
+gen_module_property(Name, remote(Alias, Remote)) :-
+	(   ground(Alias)
+	->  true
+	;   Alias = origin
+	),
+	current_git_module(Name, Dir, _),
+	git_remote_url(Alias, Remote, [directory(Dir)]).
 gen_module_property(Name, Term) :-
 	current_git_module(Name, _, Options),
 	member(Term, Options).
