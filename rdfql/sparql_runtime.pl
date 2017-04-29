@@ -53,6 +53,7 @@
 :- use_module(library(dcg/basics)).
 :- use_module(library(semweb/sparql_client)).
 :- use_module(library(debug)).
+:- use_module(library(error)).
 :- if(exists_source(library(uuid))).
 :- use_module(library(uuid)).
 :- endif.
@@ -1190,6 +1191,55 @@ isliteral(Expr) :-
 	Value \= iri(_).
 
 
+		 /*******************************
+		 *     REGULAR EXPRESSIONS	*
+		 *******************************/
+
+:- if(exists_source(library(pcre))).
+:- use_module(library(pcre)).
+
+%!	regex(+Haystack, +Needle, +Flags) is semidet.
+
+regex(String, Pattern, '') :- !,
+	re_match(Pattern, String).
+regex(String, Pattern, Flags) :-
+	re_match(Pattern/Flags, String).
+
+%%	compiled_regex(+Compiled, +Text) is semidet.
+%
+%	Test using a regex that has been   prepared. Compiled is a regex
+%	blob created by regex_obj/3.
+
+compiled_regex(Regex, String) :-
+	re_match(Regex, String).
+
+regex_obj(Pattern, Flags, Regex) :-
+	flag_options(Flags, Options),
+	re_compile(Pattern, Regex, Options).
+
+flag_options(Flags, Options) :-
+	atom_chars(Flags, Chars),
+	maplist(re_flag_option, Chars, Options).
+
+re_flag_option(Flag, Option) :-
+	re_flag_option_(Flag, Option), !.
+re_flag_option(Flag, _) :-
+	existence_error(re_flag, Flag).
+
+re_flag_option_(i, caseless(true)).
+re_flag_option_(m, multiline(true)).
+re_flag_option_(x, extended(true)).
+re_flag_option_(s, dotall(true)).
+
+
+%%	regex_replace(+Input, +Pattern, +Replace, +Flags, -Result)
+
+regex_replace(Input, Pattern, Replace, Flags, Result) :-
+	re_replace(Pattern/Flags, Replace, Input, ResultS),
+	atom_string(Result, ResultS).
+
+:- else.					% XPCE based version
+
 %%	regex(+String, +Pattern, +Flags)
 %
 %	TBD:
@@ -1245,6 +1295,7 @@ locked_replace(Input, Pattern, Replace, Flags, Result) :-
 	     message(@(arg1), replace, @(arg2), Replace)),
 	get(S, value, Result).
 
+:- endif.					% regex pcre/xpce
 
 
 %%	effective_boolean_value(+Expr, -Bool)
