@@ -2,6 +2,7 @@
 # This is provided just to make it easy to load
 # the associated schemas in ClioPatria applications.
 
+@prefix    dcat: <http://www.w3.org/ns/dcat#> .
 @prefix     owl: <http://www.w3.org/2002/07/owl#> .
 @prefix     rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix    rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -17,6 +18,7 @@
 @prefix    void: <http://rdfs.org/ns/void#> .
 @prefix    vann: <http://purl.org/vocab/vann/> .
 
+[ vann:preferredNamespacePrefix "dcat" ; vann:preferredNamespaceUri "http://www.w3.org/ns/dcat#" ] .
 [ vann:preferredNamespacePrefix "owl"  ; vann:preferredNamespaceUri "http://www.w3.org/2002/07/owl#" ] .
 [ vann:preferredNamespacePrefix "rdf"  ; vann:preferredNamespaceUri "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ] .
 [ vann:preferredNamespacePrefix "rdfs" ; vann:preferredNamespaceUri "http://www.w3.org/2000/01/rdf-schema#" ] .
@@ -81,6 +83,12 @@
         void:dataDump <dcelements.rdf> ;
 	dcterms:title "Original 15 DC Elements, please use dcterms instead" ;
         lib:source <http://purl.org/dc/dcmitype/>.
+
+<dcat>
+        a void:Dataset ;
+        void:dataDump <dcat.ttl> ;
+	dcterms:title "The data catalog vocabulary"@en ;
+        lib:source <https://www.w3.org/ns/> .
 
 <eor>
         a void:Dataset ;
