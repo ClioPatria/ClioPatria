@@ -111,7 +111,7 @@ as well as various
 [articles](http://www.swi-prolog.org/Publications.html).  RoadMap.txt
 explains the basic layout of the sources.
 
-Feel free to join the ClioPatria mailing list at http://mailman.few.vu.nl/mailman/listinfo/cliopatria-list
+Feel free to join the ClioPatria mailing list at  https://listserver.vu.nl/mailman/listinfo/cliopatria.few
 
 Authors:
 
