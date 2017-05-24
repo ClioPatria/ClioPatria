@@ -51,7 +51,12 @@
 :- use_module(applications(yasgui)).
 :- endif.
 
-:- http_handler(sparql(.),      sparql_query,  [spawn(sparql_query), id(sparql_query)]).
+% We serve both `/sparql/`  and  `/sparql`.   The  first  is  merely for
+% historical reasons. Note that we cannot turn  a path alias into a path
+% without a `/`, so we must use root(sparql) as a hack.
+
+:- http_handler(sparql(.),      sparql_query,  [spawn(sparql_query), id('sparql_query/')]).
+:- http_handler(root(sparql),   sparql_query,  [spawn(sparql_query), id(sparql_query)]).
 :- http_handler(sparql(update), sparql_update, [spawn(sparql_query), id(sparql_update)]).
 
 %%	sparql_query(+Request)
