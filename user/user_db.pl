@@ -442,7 +442,8 @@ login(User) :-
 	get_time(Time),
 	open_session(Session),
 	retractall(logged_in(Session, _, _)),
-	assert(logged_in(Session, User, Time)),
+	asserta(logged_in(Session, User, Time)),
+	broadcast(cliopatria(login(User, Session))),
 	debug(login, 'Login user ~w on session ~w', [User, Session]).
 
 
@@ -452,7 +453,7 @@ login(User) :-
 
 logout(User) :-
 	must_be(atom, User),
-	close_session,
+	broadcast(cliopatria(logout(User))),
 	retractall(logged_in(_Session, User, _Time)),
 	debug(login, 'Logout user ~w', [User]).
 
@@ -465,23 +466,7 @@ logout(User) :-
 
 % Use new session management if available.
 
-:- if(current_predicate(http_open_session/2)).
-
 :- http_set_session_options([ create(noauto)
 			    ]).
 open_session(Session) :-
-	http_open_session(Session, [renew(true)]).
-close_session :-
-	(   http_in_session(SessionId)
-	->  http_close_session(SessionId)
-	;   true
-	).
-
-:- else.
-
-open_session(Session) :-
-	http_session_id(Session).
-close_session.
-
-:- endif.
-
+	http_open_session(Session, []).
