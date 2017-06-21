@@ -44,6 +44,10 @@ span.l_type, span.l_lang
 { font-weight: bold;
 }
 
+span.insecure-uri
+{ color: #fa0;
+}
+
 a.l_count				/* linked literal */
 { color: black;
 }

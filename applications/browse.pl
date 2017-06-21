@@ -1488,26 +1488,47 @@ local_view(URI, Graph, Options) -->
 	;   { lod_uri_graph(URI, LODGraph),
 	      rdf_graph(LODGraph)
 	    }
-	->  html(p([ 'No triples for ', a(href(URI), 'this URI'), '. ',
+	->  html(p([ 'No triples for ', \show_link(URI), '. ',
 		     'Linked Data was loaded into ', \graph_link(LODGraph),
 		     '.'
 		   ]))
-	;   { http_link_to_id(lod_crawl, [], FetchURL),
+	;   { sane_uri(URI) }
+	->  { http_link_to_id(lod_crawl, [], FetchURL),
 	      http_current_request(Request),
 	      memberchk(request_uri(Here), Request)
 	    },
 	    html(form(action(FetchURL),
 		      [ \hidden(r, URI),
 			\hidden(return_to, Here),
-			'No triples for ', a(href(URI), 'this URI'),
+			'No triples for ', \show_link(URI),
 			'.  Would you like to ',
 			input([ type(submit),
 				value('Query the Linked Data cloud')
 			      ]),
 			'?'
 		      ]))
+	;   html_requires(css('rdf.css')),
+	    html(p([ 'No triples for ', \show_link(URI),
+		     ' (unknown URI scheme).']))
 	).
 
+show_link(URI) -->
+	{ sane_uri(URI) }, !,
+	html(a(href(URI), 'this URI')).
+show_link(URI) -->
+	html(span(class('insecure-uri'), URI)).
+
+sane_uri(URI) :-
+	uri_components(URI, Components),
+	uri_data(scheme, Components, Scheme),
+	valid_scheme(Scheme),
+	uri_data(authority, Components, Authority),
+	nonvar(Authority).
+
+valid_scheme(http).
+valid_scheme(https).
+valid_scheme(ftp).
+valid_scheme(ftps).
 
 lview_header(Options) -->
 	{ option(sorted(Sorted), Options, default),
