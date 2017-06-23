@@ -2,7 +2,7 @@
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ClioPatria is prepared to be combined with the SWI-Prolog library
-library(http/http_unix_daemon).  ClioPatria is started as a deamon
+library(http/http_unix_daemon).  ClioPatria is started as a daemon
 using
 
   % ./daemon.pl --port=Port [option ...]
