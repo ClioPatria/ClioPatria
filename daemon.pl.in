@@ -12,9 +12,9 @@ Options are briefly described by running the daemon with --help:
   % ./daemon.pl --help
 
 See library(http/http_unix_daemon) for details.  The SWI-Prolog
-distribution contains a file debian-init-script, which can be
-used as a skeleton for managing the server from /etc/init.d.  To
-do so, follow these steps:
+distribution contains a file ./packages/http/examples/debian-init-script, 
+which can be used as a skeleton for managing the server from /etc/init.d.  
+To do so, follow these steps:
 
   1. copy debian-init-script to /etc/init.d/<server>.  This
      script is in the directory doc/packages/examples/http of
