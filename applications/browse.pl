@@ -1993,18 +1993,17 @@ list_triples_with_literal(Request) :-
 			     description('Object as resource (URI)')
 			    ])
 			]),
-	list_triples_with_object(literal(Text), _, _, []).
+	list_triples_with_object(literal(Text), _, _, [sortBy(subject)]).
 
 
 list_triples_with_object(Object, P, Graph, Options) :-
-	findall(S-P, rdf(S,P,Object,Graph), Pairs0),
-	sort(Pairs0, Pairs),
+	findall(S-P, rdf(S,P,Object,Graph), Pairs),
 	(   option(sortBy(label), Options)
 	->  sort_pairs_by_label(Pairs, Sorted)
 	;   option(sortBy(predicate), Options)
-	->  transpose_pairs(Pairs, Transposed),
-	    flip_pairs(Transposed, Sorted)
-	;   Sorted = Pairs
+	->  transpose_pairs(Pairs, Transposed), % flip pairs and sort on new key
+	    flip_pairs(Transposed, Sorted)      % flip back without sort
+	;   sort(Pairs, Sorted)
 	),
 	length(Pairs, Count),
 	label_of(Object, OLabel),
