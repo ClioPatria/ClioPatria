@@ -1,24 +1,31 @@
-/*  This file is part of ClioPatria.
+/*  Part of ClioPatria SeRQL and SPARQL server
 
-    Author:	Jan Wielemaker <J.Wielemak@uva.nl>
-    HTTP:	http://e-culture.multimedian.nl/
-    GITWEB:	http://gollem.science.uva.nl/git/ClioPatria.git
-    GIT:	git://gollem.science.uva.nl/home/git/ClioPatria.git
-    GIT:	http://gollem.science.uva.nl/home/git/ClioPatria.git
-    Copyright:  2007, E-Culture/MultimediaN
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2017, University of Amsterdam,
+		   VU University Amsterdam
 
-    ClioPatria is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
 
-    ClioPatria is distributed in the hope that it will be useful,
+    This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with ClioPatria.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
 */
 
 :- module(http_jspaths,
@@ -73,21 +80,21 @@ serverpaths(_Request) :-
 	format('/* Server paths as generated on ~w */~n~n', [RFC]),
 	write_js_prefixes([]),
 	write_js_locations([]).
-	
+
 
 %%	write_js_prefixes(+Options) is det.
 %
 %	Write a JavaScript declaration for all server paths that are
 %	flagged using js(true).  Options processed:
-%	
+%
 %	    * variable(+Name)
 %	    Name of the JavaScript variable.  Default is =serverPrefixes=.
 %	    * all(Bool)
 %	    If =true= (default =false=), emit all paths instead of those
 %	    flagged with js(true).
-%	    
+%
 %	If these values are needed in a string, use
-%	
+%
 %	==
 %	with_output_to(string(S), write_js_prefixes(Options))
 %	==
@@ -126,7 +133,7 @@ js_alias(_, Alias) :-
 %
 %	Write a JavaScript declaration for all HTTP location whose option
 %	list provides js(true).  Options processed:
-%	
+%
 %	    * variable(+Name)
 %	    Name of the JavaScript variable.  Default is =serverLocations=.
 %	    * all(Bool)
