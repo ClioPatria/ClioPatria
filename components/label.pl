@@ -93,7 +93,7 @@ turtle_label(@(String,Lang), Options) --> !,
 :- if(current_predicate(rdf_lexical_form/2)).
 turtle_label(^^(Value,Type), Options) --> !,
 	(   {rdf_equal(Type, xsd:string)}
-	->  literal_label(type(Value, Type), Options)
+	->  literal_label(type(Type, Value), Options)
 	;   {rdf_lexical_form(^^(Value,Type), ^^(String,_))},
 	    literal_label(type(Type, String), Options)
 	).
