@@ -1571,13 +1571,26 @@ proj(Name=_, Proj) :-
 
 binding_line(Name=IRI, Line) :-
 	atom(IRI), !,
-	format(string(Line), 'BIND(<~w> as ?~w)', [IRI, Name]).
+	with_output_to(string(QIRI),
+		       turtle:turtle_write_uri(current_output, IRI)),
+	format(string(Line), 'BIND(~s as ?~w)', [QIRI, Name]).
 binding_line(Name=Literal, Line) :-
 	rdf_lexical_form(Literal, Lex),
 	(   Lex = ^^(String,Type)
-	->  format(string(Line), 'BIND(~w^^<~w> as ?~w)', [String, Type, Name])
+	->  with_output_to(
+		string(QString),
+		turtle:turtle_write_quoted_string(current_output, String)),
+	    with_output_to(
+		string(QType),
+		turtle:turtle_write_uri(current_output, Type)),
+	    format(string(Line), 'BIND(~s^^<~w> as ?~w)',
+		   [QString, QType, Name])
 	;   Lex = @(String,Lang)
-	->  format(string(Line), 'BIND(~w@~w as ?~w)', [String, Lang, Name])
+	->  with_output_to(
+		string(QString),
+		turtle:turtle_write_quoted_string(current_output, String)),
+	    format(string(Line), 'BIND(~s@~w as ?~w)',
+		   [QString, Lang, Name])
 	).
 
 binding_var(_Name=Var, Var).
