@@ -30,7 +30,8 @@
 
 
 :- module(rdf_entailment,
-	  [ rdf/3
+	  [ rdf/3,
+	    rdf/4
 	  ]).
 :- use_module(rdfql(rdfql_runtime)).	% runtime tests
 :- use_module(library(semweb/rdf_db),
@@ -81,6 +82,11 @@ var_or_resource(R) :-
 	->  true
 	;   atom(R)
 	).
+
+%!	rdf(?S, ?P, ?O, ?G)
+
+rdf(S, P, O, G) :-
+	rdf_db:rdf(S, P, O, G).
 
 
 		 /*******************************

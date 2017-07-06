@@ -69,7 +69,8 @@ type-reasoning on the basis of domains/ranges of properties. It does:
 	rdf(o,o,o).
 
 :- public
-	rdf/3.
+	rdf/3,
+	rdf/4.
 
 rdf(S, P, O) :-
 	var(P), !,
@@ -96,6 +97,15 @@ rdf(S, rdf:type, O) :- !,
 rdf(S, P, O) :-
 	rdf_has(S, P, O).
 
+%!	rdf(?S, ?P, ?O, ?G)
+
+rdf(S, P, O, G) :-
+	var(P),
+	!,
+	rdf_db:rdf(S, P, O, G).
+rdf(S, P, O, G) :-
+	rdf_has(S, P, O, RP),
+	rdf_db:rdf(S, RP, O, G).
 
 		 /*******************************
 		 *	       REGISTER		*

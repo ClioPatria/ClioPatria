@@ -39,6 +39,7 @@
 		rdf_global_id/2,
 		rdf_reachable/3,
 		rdf_has/3,
+		rdf_has/4,
 		rdf_subject/1,
 		rdf_equal/2,
 		(rdf_meta)/1,
@@ -65,7 +66,8 @@ This entailment module does RDFS entailment.
 	individual_of(r,r).
 
 :- public
-	rdf/3.
+	rdf/3,
+	rdf/4.
 
 rdf(literal(L), _, _) :-		% should move to compiler
 	nonvar(L), !, fail.
@@ -106,6 +108,16 @@ rdf(S, serql:directSubPropertyOf, O) :- !,
 	rdf_has(S, rdfs:subPropertyOf, O).
 rdf(S, P, O) :-
 	rdf_has(S, P, O).
+
+%!	rdf(?S, ?P, ?O, ?G)
+
+rdf(S, P, O, G) :-
+	var(P),
+	!,
+	rdf_db:rdf(S, P, O, G).
+rdf(S, P, O, G) :-
+	rdf_has(S, P, O, RP),
+	rdf_db:rdf(S, RP, O, G).
 
 
 %%	individual_of(?Resource, ?Class)
