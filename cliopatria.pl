@@ -262,7 +262,7 @@ load_application(Options) :-
 load_application2(_Options) :-
 	load_conf_d([ 'config-enabled' ], []),
 	(   exists_source(local)
-	->  ensure_loaded(local)
+	->  ensure_loaded(user:local)
 	;   true
 	).
 
