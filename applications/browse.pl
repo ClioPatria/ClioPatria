@@ -353,7 +353,8 @@ list_graph(Request) :-
 			  \graph_info(Graph),
 			  \graph_as_resource(Graph, []),
 			  \graph_persistency(Graph),
-			  \graph_actions(Graph)
+			  \graph_actions(Graph),
+			  \uri_info(Graph, Graph)
 			]).
 
 %%	graph_info(+Graph)//
