@@ -37,6 +37,7 @@
 	      [ rdf_global_id/2,
 		rdf_reachable/3,
 		rdf_has/3,
+		rdf_has/4,
 		rdf_subject/1,
 		rdf_equal/2,
 		(rdf_meta)/1,
