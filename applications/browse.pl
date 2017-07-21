@@ -181,7 +181,8 @@ graph_table(Graphs, Options) -->
 graph_table_header -->
 	html(tr([ th('RDF Graph'),
 		  th('Triples'),
-		  th('Persistency')
+		  th('Persistency'),
+		  th('Modified')
 		])).
 
 graph_row(_, virtual(total)) --> !,
@@ -189,18 +190,33 @@ graph_row(_, virtual(total)) --> !,
 	},
 	html([ th(class(total), 'Total #triples:'),
 	       \nc('~D', Count, [class(total)]),
-	       td([],[]) % # Empty cell for persistency column
+	       td([],[]),  % Empty cell for persistency column
+	       td([],[])   % Empty cell for modified column
 	     ]).
 graph_row(Options, Graph) -->
 	{ graph_triples(Graph, Count)
+
 	},
 	html([ td(\graph_link(Graph)),
 	       \nc('~D', Count),
 	       td(style('text-align:center'), \persistency(Graph)),
-	       \graph_checkbox(Graph, Options)
+	       \graph_checkbox(Graph, Options),
+	       \modified(Graph)
 	     ]).
 
-
+modified(Graph) -->
+	{ rdf_graph_property(Graph, source_last_modified(Time)),
+	  format_time(string(Modified), '%+', Time), !
+	},
+	html(td([class('file-time')], Modified)).
+modified(Graph) -->
+	{ rdf_journal_file(Graph, File),
+	  time_file(File, Time),
+	  format_time(string(Modified), '%+', Time)
+	},
+	html(td([class('file-time')], Modified)).
+modified(_Graph) -->
+	html(td([class('file-time')], '')).
 
 graph_link(Graph) -->
 	{ http_link_to_id(list_graph, [graph=Graph], URI)

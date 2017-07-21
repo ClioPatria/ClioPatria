@@ -219,6 +219,9 @@ table.form th.label
   padding: 0 3px;
 }
 
+table td.file-time
+{ text-align: right;
+}
 
 		 /*******************************
 		 *	   AUTO-COMPLETE	*
