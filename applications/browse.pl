@@ -199,9 +199,9 @@ graph_row(Options, Graph) -->
 	},
 	html([ td(\graph_link(Graph)),
 	       \nc('~D', Count),
+	       \modified(Graph),
 	       td(style('text-align:center'), \persistency(Graph)),
-	       \graph_checkbox(Graph, Options),
-	       \modified(Graph)
+	       \graph_checkbox(Graph, Options)
 	     ]).
 
 modified(Graph) -->
