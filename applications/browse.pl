@@ -181,8 +181,8 @@ graph_table(Graphs, Options) -->
 graph_table_header -->
 	html(tr([ th('RDF Graph'),
 		  th('Triples'),
-		  th('Persistency'),
-		  th('Modified')
+		  th('Modified'),
+		  th('Persistency')
 		])).
 
 graph_row(_, virtual(total)) --> !,
