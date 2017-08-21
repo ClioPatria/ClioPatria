@@ -57,6 +57,11 @@ cliopatria(web/help)  and  integrates   SWI-Prolog's    PlDoc   literate
 programming system to provide documentation of the source-code.
 */
 
+:- if(current_predicate(doc_enable/1)).
+:- initialization
+	doc_enable(true).
+:- endif.
+
 %       http:location(pldoc, Location, Options) is det.
 %
 %       Rebase PlDoc to <prefix>/help/source/
