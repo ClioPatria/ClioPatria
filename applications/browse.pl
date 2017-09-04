@@ -800,6 +800,11 @@ list_instances(Request) :-
 				 default(any),
 				 description('Any instance or only bnodes?')
 			       ]),
+			  resource_format(Format,
+				[ default(nslabel),
+				  atom,
+				  description('Display format as passed to rdf_link//2 ')
+				]),
 			  sortBy(Sort,
 				 [ oneof([label,properties]),
 				   default(label),
@@ -819,7 +824,7 @@ list_instances(Request) :-
 	reply_html_page(cliopatria(default),
 			title(\instance_table_title(Graph, Class, Sort)),
 			[ h1(\html_instance_table_title(Graph, Class, Sort)),
-			  \instance_table(Table, [resource_format(nslabel)])
+			  \instance_table(Table, [resource_format(Format)])
 			]).
 
 instance_table_title(Graph, Class, Sort) -->
@@ -1286,6 +1291,11 @@ list_resource(Request) :-
 				[ optional(true),
 				  description('Limit to properties from graph')
 				]),
+			  resource_format(Format,
+				[ default(nslabel),
+				  atom,
+				  description('Display format as passed to rdf_link//2 ')
+				]),
 			  raw(Raw,
 			      [ default(false),
 				boolean,
@@ -1299,7 +1309,7 @@ list_resource(Request) :-
 				       [ graph(Graph),
 					 sorted(Sorted),
 					 raw(Raw),
-					 resource_format(nslabel)
+					 resource_format(Format)
 				       ])).
 
 %%	list_resource(+URI, +Options)// is det.
