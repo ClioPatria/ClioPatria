@@ -192,6 +192,8 @@ rdf_collection_list(R, [H|T]) :-
 %	        Try to display a resource using its label
 %	        * nslabel
 %	        Try to display a resource as <prefix>:<Label>
+%	        * turtle
+%	        Try to display as Turtle <prefix>:<local>
 %	    * max_length(+Len)
 %	    Truncate long texts to Len characters, using ellipses to
 %	    indicate that the text is truncated.
