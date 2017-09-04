@@ -55,6 +55,7 @@
 :- use_module(library(debug)).
 :- use_module(library(option)).
 :- use_module(library(apply)).
+:- use_module(library(settings)).
 
 :- use_module(components(label)).
 :- use_module(components(simple_search)).
@@ -81,7 +82,6 @@ that allow back-office applications to reuse this infrastructure.
 
 @see	cliopatria(hooks) for available hooks.
 */
-
 
 		 /*******************************
 		 *	      PATHS		*
@@ -801,7 +801,7 @@ list_instances(Request) :-
 				 description('Any instance or only bnodes?')
 			       ]),
 			  resource_format(Format,
-				[ default(nslabel),
+				[ default(DefaultFormat),
 				  atom,
 				  description('Display format as passed to rdf_link//2 ')
 				]),
@@ -811,6 +811,7 @@ list_instances(Request) :-
 				   description('How to sort the result-table')
 				 ])
 			]),
+	setting(resource_format, DefaultFormat),
 	findall(I-PC, instance_in_graph(Graph, Class, Type, I, PC), IPairs),
 	sort_pairs_by_label(IPairs, TableByName),
 	(   Sort == properties
@@ -1292,7 +1293,7 @@ list_resource(Request) :-
 				  description('Limit to properties from graph')
 				]),
 			  resource_format(Format,
-				[ default(nslabel),
+				[ default(DefaultFormat),
 				  atom,
 				  description('Display format as passed to rdf_link//2 ')
 				]),
@@ -1302,6 +1303,7 @@ list_resource(Request) :-
 				description('If true, omit application hook')
 			      ])
 			]),
+	setting(resource_format, DefaultFormat),
 	rdf_display_label(URI, Label),
 	reply_html_page(cliopatria(default),
 			title('Resource ~w'-[Label]),

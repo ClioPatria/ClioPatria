@@ -215,3 +215,10 @@ http_settings:input_item(uri, Value, Name) -->
 	   'Maximum number of concurrent requests').
 :- setting(sparql:stack_size, nonneg, 1000,
 	   'Size of the global stack in mega-bytes').
+
+		 /*******************************
+		 *	  BROWSE-SETTINGS	*
+		 *******************************/
+
+:- setting(cpa_browse:resource_format, atom, nslabel,
+	   'Default resource_format passed to rdf_link//2').
