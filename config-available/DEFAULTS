@@ -1,6 +1,5 @@
 % Default action when creating an empty configuration directory.
 
-config('debug.pl', link).
 config('config.pl', link).
 config('store.pl', link).
 config('network.pl', copy).
