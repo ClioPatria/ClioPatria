@@ -1,6 +1,6 @@
 @HASHBANG@@SWIPL@ @LOADOPTIONS@
 
-:- initialization cp_server.
+:- initialization(cp_server, main).
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 This file provides a skeleton startup file.  It can be localized by running

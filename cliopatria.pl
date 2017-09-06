@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://cliopatria.swi-prolog.org
-    Copyright (C): 2004-2016, University of Amsterdam
+    Copyright (C): 2004-2017, University of Amsterdam
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -69,7 +69,7 @@ user should set up a the search path =cliopatria=. For example:
 user:file_search_path(library, cliopatria(lib)).
 
 :- load_files(library(version), [silent(true), if(not_loaded)]).
-:- check_prolog_version(or(60200,60300)). % Demand >= 6.2.x, 6.3.x
+:- check_prolog_version(or(70600, 70514)).		% Demand >= 7.6.0, 7.5.14
 :- register_git_module('ClioPatria',
 		       [ home_url('http://cliopatria.swi-prolog.org/')
 		       ]).
@@ -164,11 +164,7 @@ user:file_search_path(library, cliopatria(lib)).
 cp_server :-
 	argv(_ProgName, [cpack|Argv]), !,
 	load_conf_d([ 'config-enabled' ], []),
-	catch(cpack_control(Argv), E,
-	      (	  print_message(error, E),
-		  halt(1)
-	      )),
-	halt.
+	cpack_control(Argv).
 :- if(current_predicate(http_unix_daemon:http_daemon/0)).
 cp_server :-
 	http_unix_daemon:http_daemon.
@@ -177,7 +173,7 @@ cp_server :-
 	process_argv(Options),
 	catch(cp_server(Options), E, true),
 	(   var(E)
-	->  true
+	->  set_prolog_flag(toplevel_goal, prolog) % become interactive
 	;   print_message(error, E),
 	    (	E = error(socket_error('Address already in use'), _)
 	    ->	print_message(error, cliopatria(use_port_option))
