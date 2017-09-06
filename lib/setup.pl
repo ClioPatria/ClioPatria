@@ -301,7 +301,8 @@ setup_config_help(ConfigEnabled, ConfigAvail) :-
 	maplist(config_help(with), NonDefault, With),
 	print_message(informational, setup(general)),
 	print_message(informational, setup(without(Without))),
-	print_message(informational, setup(with(With))).
+	print_message(informational, setup(with(With))),
+	print_message(informational, setup(advice)).
 
 default_config(Defaults, Key-_) :-
 	memberchk(file(Key,_,_), Defaults).
@@ -510,7 +511,11 @@ message(with(List)) -->
 message(general) -->
 	[ 'ClioPatria setup program', nl, nl,
 	  'General options', nl,
-	  ' --link~t~28|Use symbolic links in config-enabled'-[]
+	  '  --link~t~28|Use symbolic links in config-enabled'-[]
+	].
+message(advice) -->
+	[ nl, 'Typical setup for local interactive usage', nl,
+	  '  --with-debug --with-localhost'-[]
 	].
 
 help([]) --> [].
