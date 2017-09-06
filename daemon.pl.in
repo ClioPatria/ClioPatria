@@ -12,8 +12,8 @@ Options are briefly described by running the daemon with --help:
   % ./daemon.pl --help
 
 See library(http/http_unix_daemon) for details.  The SWI-Prolog
-distribution contains init scripts in /packages/http/examples/, 
-which can be used as a skeleton for managing the server from /etc/init.d.  
+distribution contains init scripts in /packages/http/examples/,
+which can be used as a skeleton for managing the server from /etc/init.d.
 To do so, follow these steps:
 
   1. copy your init-script to /etc/init.d/<server>.  This
@@ -42,6 +42,5 @@ write.  You may want to add write access to
   - The '.' directory to allow creating httpd.log.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-:- set_prolog_flag(verbose, silent).
 :- use_module(library(http/http_unix_daemon)).
 :- [run].

@@ -736,14 +736,8 @@ https_file(Base, File) :-
 :- multifile
 	prolog:message//1.
 
-prolog:message(cliopatria(server_started(Port))) -->
-	{ cp_host(Port, Host),
-	  cp_port(Port, PublicPort),
-	  http_location_by_id(root, Root)
-	},
-	[ 'Started ClioPatria server at port ~w'-[Port], nl,
-	  'You may access the server at http://~w:~w~w'-[Host, PublicPort, Root]
-	].
+prolog:message(cliopatria(server_started(_Port))) -->
+	[].
 prolog:message(cliopatria(welcome(DefaultPort))) -->
 	[ nl,
 	  'Use one of the calls below to start the ClioPatria server:', nl, nl,
