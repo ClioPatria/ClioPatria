@@ -1,10 +1,47 @@
+/*  Part of ClioPatria SeRQL and SPARQL server
+
+    Author:        Jan Wielemaker
+    E-mail:        J.Wielemaker@cs.vu.nl
+    WWW:           http://www.swi-prolog.org
+    Copyright (C): 2017, University of Amsterdam,
+		   VU University Amsterdam
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    As a special exception, if you link this library with other files,
+    compiled with a Free Software compiler, to produce an executable, this
+    library does not by itself cause the resulting executable to be covered
+    by the GNU General Public License. This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
+*/
+
 :- module(cp_setup,
 	  [ setup/0
 	  ]).
 :- prolog_load_context(directory, Dir),
    directory_file_path(Dir, lib, LibDir),
    asserta(user:file_search_path(library, LibDir)).
-:- load_files(library(setup), [silent(true)]).
+
+user:message_hook(git(update_versions), informational, _).
+
+:- use_module(library(setup)).
+:- use_module(library(option)).
+:- use_module(library(lists)).
+:- use_module(library(apply)).
+:- use_module(library(filesex)).
 
 :- multifile
 	user:file_search_path/2.
@@ -14,9 +51,7 @@
 :- prolog_load_context(directory, Dir),
    asserta(user:file_search_path(cliopatria, Dir)).
 
-:- initialization
-	set_prolog_flag(verbose, normal),
-	setup.
+:- initialization(setup, main).
 
 %%	setup
 %
@@ -79,8 +114,7 @@ setup:substitutions([ 'SWIPL'=PL,		% Prolog executable (for #!...)
 hashbang('%!') :- current_prolog_flag(windows, true), !.
 hashbang('#!').
 
-load_options('') :- current_prolog_flag(os_argv, _), !.
-load_options('-s').
+load_options('').
 
 
 %%	options(-Options) is det.

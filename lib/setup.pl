@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2007-2010, University of Amsterdam,
+    Copyright (C): 2007-2017, University of Amsterdam,
 		   VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -37,6 +37,8 @@
 	  ]).
 :- use_module(library(apply)).
 :- use_module(library(filesex)).
+:- use_module(library(option)).
+:- use_module(library(lists)).
 :- use_module(library(conf_d)).
 :- use_module(library(apply_macros), []).
 
@@ -185,7 +187,7 @@ default_config(ConfigEnabled, ConfigAvail, Options) :-
 			       maplist(install_config(Installed,
 						      ConfigEnabled,
 						      ConfigAvail,
-						      Out),
+						      Out, Options),
 				       Install),
 			       close(Out))
 	;   true
@@ -212,17 +214,25 @@ open_done(DoneFile, Out) :-
 	format(Out, '   Keep track of installed config files~n', []),
 	format(Out, '*/~n~n', []).
 
-install_config(Installed, ConfigEnabled, ConfigAvail, Out,
-	       file(_Key, File, How)) :-
+install_config(Installed, ConfigEnabled, ConfigAvail, Out, Options,
+	       file(_Key, File, How0)) :-
 	file_base_name(File, Base),
 	\+ ( memberchk(file(IFile,_,_), Installed),
 	     file_base_name(IFile, Base)
 	   ), !,
+	final_how(How0, How, Options),
 	install_config_file(How, ConfigEnabled, File),
 	get_time(Now),
 	Stamp is round(Now),
 	format(Out, '~q.~n', [file(Base, ConfigAvail, Stamp)]).
-install_config(_, _, _, _, _).
+install_config(_, _, _, _, _, _).
+
+final_how(link, How, Options) :- !,
+	(   option(link(true), Options)
+	->  How = link
+	;   How = include
+	).
+final_how(How, How, _).
 
 
 %%	config_defaults(+ConfigAvail, -Defaults) is det.
@@ -289,6 +299,7 @@ setup_config_help(ConfigEnabled, ConfigAvail) :-
 	partition(default_config(Defaults), Configs, Default, NonDefault),
 	maplist(config_help(without), Default, Without),
 	maplist(config_help(with), NonDefault, With),
+	print_message(informational, setup(general)),
 	print_message(informational, setup(without(Without))),
 	print_message(informational, setup(with(With))).
 
@@ -312,6 +323,8 @@ config_help(With, Key-[Example,_], Help) :-
 %	  * link
 %	  Link the file. This means that the configured system updates
 %	  the config file if it is updated in the package.
+%	  * include
+%	  As `link`, but avoiding the nead for symlinks
 %	  * copy
 %	  Copy the file.  This is used if the config file in the package
 %	  is merely a skeleton that needs to be instantiated for the
@@ -326,6 +339,11 @@ install_config_file(link, ConfDir, Source) :-
 	directory_file_path(ConfDir, File, Dest),
 	print_message(informational, setup(install_file(File))),
 	link_prolog_file(Source, Dest).
+install_config_file(include, ConfDir, Source) :-
+	file_base_name(Source, File),
+	directory_file_path(ConfDir, File, Dest),
+	print_message(informational, setup(install_file(File))),
+	include_prolog_file(Source, Dest).
 install_config_file(copy, ConfDir, Source) :-
 	file_base_name(Source, File),
 	directory_file_path(ConfDir, File, Dest),
@@ -344,30 +362,30 @@ link_prolog_file(Source, Dest) :-
 	catch(link_file(Rel, Dest, symbolic), Error, true),
 	(   var(Error)
 	->  true
-	;   catch(create_link_file(Dest, Rel), E2, true)
-	->  (   var(E2)
-	    ->	true
-	    ;	throw(E2)
-	    )
+	;   include_prolog_file(Source, Dest)
+	->  true
 	;   throw(Error)
 	).
 
-%%	create_link_file(+Dest, +Rel) is det.
+%%	include_prolog_file(+Source, +Dest) is det.
 %
 %	Creat a _|link file|_ for a Prolog file. Make sure to delete the
 %	target first, to avoid an accidental   write  through a symbolic
 %	link.
 
-create_link_file(Dest, Rel) :-
+include_prolog_file(Source, Dest) :-
 	(   access_file(Dest, exist)
 	->  delete_file(Dest)
 	;   true
 	),
-	setup_call_cleanup(open(Dest, write, Out),
-			   ( format(Out, '/* Linked config file */~n', []),
-			     format(Out, ':- ~q.~n', [consult(Rel)])
-			   ),
-			   close(Out)).
+	file_base_name(Source, File),
+	file_name_extension(Base, pl, File),
+	setup_call_cleanup(
+	    open(Dest, write, Out),
+	    ( format(Out, '/* Linked config file */~n', []),
+	      format(Out, ':- ~q.~n', [consult(config_available(Base))])
+	    ),
+	    close(Out)).
 
 %%	setup_goodbye
 %
@@ -489,6 +507,11 @@ message(without(List)) -->
 message(with(List)) -->
 	[ nl, 'Use --with-X to enable non-default components' ],
 	help(List).
+message(general) -->
+	[ 'ClioPatria setup program', nl, nl,
+	  'General options', nl,
+	  ' --link~t~28|Use symbolic links in config-enabled'-[]
+	].
 
 help([]) --> [].
 help([H|T]) -->
