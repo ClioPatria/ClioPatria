@@ -120,7 +120,7 @@ main(int argc, char **argv)
   if ( (home=PrologHome()) )
   { char cmdline[1024];
 
-    sprintf(cmdline, "\"%s\\bin\\swipl-win.exe\" -s setup.pl", home);
+    sprintf(cmdline, "\"%s\\bin\\swipl-win.exe\" setup.pl", home);
     printf("Running %s\n", cmdline);
 
     return system(cmdline) ? 1 : 0;

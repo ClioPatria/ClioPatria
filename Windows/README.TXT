@@ -8,7 +8,7 @@ The program win-config.exe performs two steps:
           version and otherwise falls back to the 32-bit version.
 	- Change working directory to the place where win-config.exe
 	  is installed.
-	- Run "<path>swipl-win.exe -s setup.pl" to configure ClioPatria
+	- Run "<path>swipl-win.exe setup.pl" to configure ClioPatria
 
 I tried to write this as a  .bat   file,  but handling the registry from
 there in a portable way is really a nightmare.
