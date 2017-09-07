@@ -3,7 +3,7 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2004-2010, University of Amsterdam,
+    Copyright (C): 2004-2017, University of Amsterdam,
 			      VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
@@ -66,7 +66,7 @@ check_prolog_version(Required) :-
 	get_single_char(_), nl(user_error),
 	halt(1).
 
-prolog_version_ok(or(V1, V2)) :-
+prolog_version_ok(or(V1, V2)) :- !,
 	(   prolog_version_ok(V1)
 	->  true
 	;   prolog_version_ok(V2)
