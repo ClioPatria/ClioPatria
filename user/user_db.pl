@@ -1,11 +1,9 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2007-2010, University of Amsterdam,
+    Copyright (C): 2007-2017, University of Amsterdam,
 			      VU University Amsterdam.
 
     This program is free software; you can redistribute it and/or
@@ -50,6 +48,7 @@
 	    password_hash/2,		% +Password, ?Hash
 
 	    login/1,			% +User
+	    login/2,			% +User, +Options
 	    logout/1,			% +User
 	    current_user/1,		% ?User
 	    logged_on/1,		% -User
@@ -77,7 +76,7 @@ Core user administration. The  user  administration   is  based  on  the
 following:
 
 	* A persistent fact user/2
-	* A dynamic fact logged_in/3
+	* A dynamic fact logged_in/4
 	* Session management
 
 @see	preferences.pl implements user preferences
@@ -85,7 +84,7 @@ following:
 */
 
 :- dynamic
-	logged_in/3,			% Session, User, Time
+	logged_in/4,			% Session, User, Time, Options
 	user/2,				% Name, Options
 	denied/1.			% Deny to all users
 
@@ -278,12 +277,17 @@ uprop(session(SessionID), User) :-
 	->  !
 	;   true
 	),
-	logged_in(SessionID, User, _).
+	logged_in(SessionID, User, _, _).
 uprop(connection(LoginTime, Idle), User) :-
-	logged_in(SessionID, User, LoginTime),
+	logged_in(SessionID, User, LoginTime, _),
 	http_current_session(SessionID, idle(Idle)).
 uprop(url(URL), User) :-
-	user_url(User, URL).
+	(   http_in_session(SessionID),
+	    logged_in(SessionID, User, _LoginTime, Options)
+	->  true
+	;   Options = []
+	),
+	user_url(User, URL, Options).
 uprop(Prop, User) :-
 	nonvar(User), !,
 	(   user(User, Properties)
@@ -305,11 +309,11 @@ uprop(Prop, User) :-
 	member(Prop, Properties).
 
 
-user_url(User, URL) :-
+user_url(User, URL, _) :-
 	uri_is_global(User), !,
 	URL = User.
-user_url(User, URL) :-
-	openid_for_local_user(User, URL).
+user_url(User, URL, Options) :-
+	openid_for_local_user(User, URL, Options).
 
 
 		 /*******************************
@@ -438,11 +442,13 @@ deny_all_users(Term) :-
 %	session.
 
 login(User) :-
+	login(User, []).
+login(User, Options) :-
 	must_be(atom, User),
 	get_time(Time),
 	open_session(Session),
-	retractall(logged_in(Session, _, _)),
-	asserta(logged_in(Session, User, Time)),
+	retractall(logged_in(Session, _, _, _)),
+	asserta(logged_in(Session, User, Time, Options)),
 	broadcast(cliopatria(login(User, Session))),
 	debug(login, 'Login user ~w on session ~w', [User, Session]).
 
@@ -454,14 +460,14 @@ login(User) :-
 logout(User) :-
 	must_be(atom, User),
 	broadcast(cliopatria(logout(User))),
-	retractall(logged_in(_Session, User, _Time)),
+	retractall(logged_in(_Session, User, _Time, _Options)),
 	debug(login, 'Logout user ~w', [User]).
 
 % reclaim login records if a session is closed.
 
 :- listen(http_session(end(Session, _Peer)),
 	  ( atom(Session),
-	    retractall(logged_in(Session, _User, _Time))
+	    retractall(logged_in(Session, _User, _Time, _Options))
 	  )).
 
 % Use new session management if available.

@@ -650,7 +650,10 @@ user_login(Request) :- !,
 			]),
 	(   var(ReturnTo)
 	->  Extra = []
-	;   Extra = [ return_to(ReturnTo) ]
+	;   uri_normalized(/, ReturnTo, PublicHost),
+	    Extra = [ return_to(ReturnTo),
+		      public_host(PublicHost)
+		    ]
 	),
 	reply_login([ user(User),
 		      password(Password)
@@ -662,7 +665,7 @@ reply_login(Options) :-
 	option(user(User), Options),
 	option(password(Password), Options),
 	validate_password(User, Password), !,
-	login(User),
+	login(User, Options),
 	(   option(return_to(ReturnTo), Options)
 	->  throw(http_reply(moved_temporary(ReturnTo)))
 	;   reply_html_page(cliopatria(default),

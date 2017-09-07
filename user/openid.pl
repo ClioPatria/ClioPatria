@@ -1,11 +1,9 @@
-/*  $Id$
-
-    Part of SWI-Prolog
+/*  Part of SWI-Prolog
 
     Author:        Jan Wielemaker
     E-mail:        wielemak@science.uva.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2007, University of Amsterdam
+    Copyright (C): 2007-2017, University of Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -30,7 +28,8 @@
 */
 
 :- module(cliopatria_openid,
-	  [ openid_for_local_user/2
+	  [ openid_for_local_user/2,		% +User, -URL
+	    openid_for_local_user/3		% +User, -URL, +Options
 	  ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_wrapper)).
@@ -248,6 +247,15 @@ user_property(_) -->
 %	URL is the OpenID for the local user User.
 
 openid_for_local_user(User, URL) :-
+	openid_for_local_user(User, URL, []).
+
+openid_for_local_user(User, URL, Options) :-
+	option(public_host(Host), Options), !,
+	http_location_by_id(openid_userpage, UserPages),
+	atom_concat(/, BelowRoot, UserPages),
+	format(atom(URL), '~w~w/~w',
+		   [ Host, BelowRoot, User ]).
+openid_for_local_user(User, URL, _Options) :-
 	http_current_request(Request),
 	openid_current_host(Request, Host, Port),
 	http_location_by_id(openid_userpage, UserPages),
