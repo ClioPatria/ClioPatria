@@ -92,7 +92,9 @@ load_conf_d(Spec, Options) :-
 		      ], LoadOptions),
 	phrase(collect_dirs(Spec, Sols), Dirs),
 	list_to_set(Dirs, Set),
-	maplist(load_conf_dir(LoadOptions), Set),
+	maplist(conf_d_files(Options), Set, Pairs),
+	keep_last(Pairs, Final),
+	maplist(load_conf_dir(LoadOptions), Final),
 	git_update_versions(_).		% See above
 
 collect_dirs([], _) --> !.
@@ -111,22 +113,45 @@ collect_dirs(Spec, Sols) -->
 :- dynamic
 	conf_d/3.			% Directory, Options, Files
 
-load_conf_dir(Options, Dir) :-
-	conf_d_files(Dir, Files, Options),
+load_conf_dir(Options, Dir-Files) :-
 	delete(Options, extension(_), LoadOptions),
 	update_conf_d(Dir, Files, Options),
-	load_files(user:Files, LoadOptions).
+	maplist(load_conf(LoadOptions), Files).
 
-conf_d_files(Dir, Files, Options) :-
+load_conf(Options, File) :-
+	print_message(informational, conf_d(load(File))),
+	load_files(user:File, [module(File)|Options]).
+
+conf_d_files(Options, Dir, Dir-Files) :-
 	option(extension(Ext), Options, pl),
 	atomic_list_concat([Dir, '/*.', Ext], Pattern),
 	expand_file_name(Pattern, Matches),
-	include(accessible, Matches, AccessibleFiles),
-	maplist(absolute_file_name, AccessibleFiles, CanonicalFiles),
+	include(accessible, Matches, MatchedFiles),
+	maplist(absolute_file_name, MatchedFiles, CanonicalFiles),
 	sort(CanonicalFiles, Files).
 
 accessible(File) :-
 	access_file(File, read).
+
+%!	keep_last(+PairsIn, -PairsOut) is det.
+%
+%	PairsIn is a list Dir-Files holding Files to be loaded from Dir.
+%	We remove all  files  from  Files   that  appear  with  a  later
+%	directory.
+
+keep_last([], []).
+keep_last([Dir-Files0|T0], [Dir-Files|T]) :-
+	exclude(in_later_dir(T0), Files0, Files),
+	keep_last(T0, T).
+
+in_later_dir(Pairs, File) :-
+	file_base_name(File, Base),
+	\+ multi(Base),
+	member(_-Files, Pairs),
+	member(F2, Files),
+	file_base_name(F2, Base).
+
+multi('010-packs.pl').
 
 update_conf_d(Dir, Files, Options) :-
 	\+ conf_d(Dir, _, _), !,
@@ -329,12 +354,17 @@ take_key([List|T0], K, NewLists, NewKs, Vs) :-
 :- multifile
 	prolog:message//1.
 
-prolog:message(conf_d(unload(Files))) -->
+prolog:message(conf_d(Message)) -->
+	message(Message).
+
+message(unload(Files)) -->
 	[ 'Unloaded the following config files:'-[] ],
 	files(Files).
-prolog:message(conf_d(new(Files))) -->
+message(new(Files)) -->
 	[ 'Added the following config files:'-[] ],
 	files(Files).
+message(load(File)) -->
+	[ 'Config: ~w'-[File] ].
 
 files([]) --> [].
 files([H|T]) --> [ nl, '    ~w'-[H] ], files(T).
