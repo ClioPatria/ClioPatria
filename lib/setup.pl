@@ -381,10 +381,12 @@ include_prolog_file(Source, Dest) :-
 	),
 	file_base_name(Source, File),
 	file_name_extension(Base, pl, File),
+	atomic_list_concat([link_, Base, '_conf'], LinkModule),
 	setup_call_cleanup(
 	    open(Dest, write, Out),
 	    ( format(Out, '/* Linked config file */~n', []),
-	      format(Out, ':- ~q.~n', [consult(config_available(Base))])
+	      format(Out, ':- module(~q, []).~n', [LinkModule]),
+	      format(Out, ':- ~q.~n', [reexport(config_available(Base))])
 	    ),
 	    close(Out)).
 
