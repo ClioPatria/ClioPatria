@@ -86,7 +86,7 @@ menu([Key-Items|T]) -->
 menu_items([]) --> [].
 menu_items([H|T]) --> menu_item(H), menu_items(T).
 
-menu_item(item(_Rank, Spec, Label)) -->
+menu_item(item(_Rank, Spec, Label, Options)) -->
 	{ atom(Spec) }, !,
 	{ (   \+ sub_atom(Spec, 0, _, _, 'http://'),
 	      catch(http_location_by_id(Spec, Location), E,
@@ -96,7 +96,7 @@ menu_item(item(_Rank, Spec, Label)) -->
 	  ;   Location = Spec
 	  )
 	},
-	html(li(a([href(Location)], Label))).
+	html(li(a([href(Location)|Options], Label))).
 
 
 %%	current_menu_item(-PopupKey, -Item) is nondet.
@@ -107,9 +107,9 @@ menu_item(item(_Rank, Spec, Label)) -->
 %	computed by menu_label/3 and the ordering by menu_popup_order/2.
 %	@param Item is a term item(Rank, Location, Label).
 
-current_menu_item(Key, item(Rank, Location, Label)) :-
+current_menu_item(Key, item(Rank, Location, Label, Options)) :-
 	menu_item(Spec, DefLabel),
-	rank(Spec, Rank, Where),
+	rank(Spec, Rank, Where, Options),
 	(   Where = Key/Location
 	->  menu_label(Location, DefLabel, Label)
 	;   Where = Location,
@@ -117,8 +117,15 @@ current_menu_item(Key, item(Rank, Location, Label)) :-
 	    menu_label(Location, DefLabel, Label)
 	).
 
-rank(Rank=Where, Rank, Where) :- !.
-rank(Where,      0,    Where).
+rank(Rank=Spec, Rank, Where, Options) :- !,
+	item_options(Spec, Where, Options).
+rank(Spec,      0,    Where, Options) :-
+	item_options(Spec, Where, Options).
+
+item_options(Spec+Option, Where, [Option|T]) :- !,
+	item_options(Spec, Where, T).
+item_options(Where, Where, []).
+
 
 %%	menu_item(Item, ?Label) is nondet.
 %
@@ -150,7 +157,7 @@ menu_item(100=admin/list_users,				'Users').
 menu_item(200=admin/settings,				'Settings').
 menu_item(300=admin/statistics,				'Statistics').
 
-menu_item(100=user/login_form,				'Login') :-
+menu_item(100=user/login_form+class(login),		'Login') :-
 	\+ someone_logged_on.
 menu_item(100=current_user/user_logout,			'Logout') :-
 	someone_logged_on.
