@@ -37,31 +37,15 @@ add_relative_search_path(Alias, Rel) :-
 file_search_path(cliopatria, '@CLIOPATRIA@').
 :- add_relative_search_path(cliopatria, '@CLIOPATRIA@').
 
-% Make loading files silent. Comment if you want verbose loading.
-
-:- current_prolog_flag(verbose, Verbose),
-   asserta(saved_verbose(Verbose)),
-   set_prolog_flag(verbose, silent).
-
-
 		 /*******************************
 		 *	      LOAD CODE		*
 		 *******************************/
 
 % Use the ClioPatria help system.  May   be  commented to disable online
 % help on the source-code.
-
 :- use_module(cliopatria('applications/help/load')).
 
 % Load ClioPatria itself.  Better keep this line.
-
 :- use_module(cliopatria(cliopatria)).
-
-% Get back normal verbosity of the toplevel.
-
-:- (   retract(saved_verbose(Verbose))
-   ->  set_prolog_flag(verbose, Verbose)
-   ;   true
-   ).
 
 

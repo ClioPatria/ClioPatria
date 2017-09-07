@@ -68,13 +68,13 @@ user should set up a the search path =cliopatria=. For example:
 
 user:file_search_path(library, cliopatria(lib)).
 
-:- load_files(library(version), [silent(true), if(not_loaded)]).
+:- use_module(library(version)).
 :- check_prolog_version(or(70600, 70514)).		% Demand >= 7.6.0, 7.5.14
 :- register_git_module('ClioPatria',
 		       [ home_url('http://cliopatria.swi-prolog.org/')
 		       ]).
 
-:- load_files([ parms,
+:- use_module([ parms,
 		skin(cliopatria),			% HTML Page layout
 		library(option),
 		library(bundle),
@@ -89,6 +89,7 @@ user:file_search_path(library, cliopatria(lib)).
 		library(semweb/rdf_db),
 		library(semweb/rdf_persistency),
 		library(semweb/rdf_litindex),
+		library(semweb/rdf_ntriples),
 
 		library(http/http_session),
 		library(http/http_server_files),
@@ -112,17 +113,7 @@ user:file_search_path(library, cliopatria(lib)).
 
 		library(conf_d),
 		user:library(cpack/cpack)
-	      ],
-	      [ silent(true),
-		if(not_loaded)
 	      ]).
-
-:- if(exists_source(library(semweb/rdf_ntriples))).
-:- load_files([ library(semweb/rdf_ntriples) ],
-	      [ silent(true),
-		if(not_loaded)
-	      ]).
-:- endif.
 
 :- http_handler(web(.), serve_files_in_directory(web), [prefix]).
 
@@ -163,9 +154,7 @@ user:file_search_path(library, cliopatria(lib)).
 
 cp_server :-
 	argv(_ProgName, [cpack|Argv]), !,
-	load_conf_d([ cliopatria('config-enabled'),
-		      'config-enabled'
-		    ], []),
+	load_conf_d([ 'config-enabled' ], []),
 	cpack_control(Argv).
 :- if(current_predicate(http_unix_daemon:http_daemon/0)).
 cp_server :-
@@ -250,20 +239,22 @@ update_public_port(_, _).
 %
 %	Load cpack and local configuration.
 
-load_application(Options) :-
-	current_prolog_flag(verbose, Verbose),
-	setup_call_cleanup(
-	    set_prolog_flag(verbose, silent),
-	    load_application2(Options),
-	    set_prolog_flag(verbose, Verbose)).
+load_application(_Options) :-
+	load_conf_d([ cliopatria('config-enabled'),
+		      'config-enabled'
+		    ], []),
+	load_local.
 
-load_application2(_Options) :-
-	load_conf_d([ 'config-enabled' ], []),
-	(   exists_source(local)
-	->  ensure_loaded(user:local)
-	;   true
-	).
-
+load_local :-
+	absolute_file_name(local, Local,
+			   [ file_type(prolog),
+			     access(read),
+			     file_errors(fail)
+			   ]),
+	!,
+	print_message(informational, conf_d(load(Local))),
+	ensure_loaded(user:Local).
+load_local.
 
 %%	rdf_attach_store(+Options, :AfterLoad) is det.
 %
