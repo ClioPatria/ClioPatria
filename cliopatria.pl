@@ -163,7 +163,9 @@ user:file_search_path(library, cliopatria(lib)).
 
 cp_server :-
 	argv(_ProgName, [cpack|Argv]), !,
-	load_conf_d([ 'config-enabled' ], []),
+	load_conf_d([ cliopatria('config-enabled'),
+		      'config-enabled'
+		    ], []),
 	cpack_control(Argv).
 :- if(current_predicate(http_unix_daemon:http_daemon/0)).
 cp_server :-
