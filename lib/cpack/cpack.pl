@@ -557,7 +557,14 @@ full_dir(Dir, Dir) :-
 	compound(Dir), !.
 full_dir(Dir, Dir) :-
 	is_absolute_file_name(Dir), !.
-full_dir(Dir, cp_application(Dir)).
+full_dir(Dir, AbsDir) :-
+	prolog_load_context(directory, ConfigEnabled),
+	file_directory_name(ConfigEnabled, RelTo),
+	absolute_file_name(Dir, AbsDir,
+			   [ relative_to(RelTo),
+			     file_type(directory),
+			     access(exist)
+			   ]).
 
 
 
