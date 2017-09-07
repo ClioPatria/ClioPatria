@@ -224,7 +224,7 @@ conf_d_member_data(loaded, config_file(F, _, _), B) :-
 
 %%	set_top_dir
 %
-%	Maintains a file search path  =cpapp_topdir=   to  point  to the
+%	Maintains a file search path =cp_application=   to  point to the
 %	directory from which the configuration is loaded. Normally, that
 %	is the directory holding =|run.pl|=.
 
