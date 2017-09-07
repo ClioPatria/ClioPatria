@@ -30,7 +30,7 @@
 :- module(http_request_value,
 	  [ http_parse_header_value/3	% +Header, +HeaderValue, -MediaTypes
 	  ]).
-:- use_module(library(http/dcg_basics)).
+:- use_module(library(dcg/basics)).
 :- use_module(library(pairs)).
 :- use_module(library(lists)).
 

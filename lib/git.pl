@@ -46,7 +46,7 @@
 :- use_module(library(process)).
 :- use_module(library(readutil)).
 :- use_module(library(option)).
-:- use_module(library(http/dcg_basics)).
+:- use_module(library(dcg/basics)).
 
 :- meta_predicate
 	git_process_output(+, 1, +).
