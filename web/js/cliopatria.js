@@ -33,4 +33,13 @@ $(function() {
       return true;
     }
   });
+
+  $("body").on("click", "a.login", function(ev) {
+    var a = $(ev.target).closest("a");
+    var href = a.attr("href");
+
+    href += "?referer="+encodeURIComponent(window.location.href);
+    window.location.href = href;
+    return false;
+  });
 });
