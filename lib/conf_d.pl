@@ -189,9 +189,9 @@ conf_d_enabled(Dir) :-
 %	directives, are *not* reverted.
 
 conf_d_reload :-
-	findall(Dir-Options, conf_d(Dir, Options, _Files), Pairs),
-	forall(member(Dir-Options, Pairs),
-	       load_conf_dir(Options, Dir)).
+	findall(Dir-Options-Files, conf_d(Dir, Options, Files), Triples),
+	forall(member(Dir-Options-Files, Triples),
+	       load_conf_dir(Options, Dir-Files)).
 
 %%	conf_d_members(+Dir, -InfoRecords:list, Options) is det
 %
