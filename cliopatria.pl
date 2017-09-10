@@ -153,7 +153,7 @@ user:file_search_path(library, cliopatria(lib)).
 	cp_server(:).
 
 cp_server :-
-	argv(_ProgName, [cpack|Argv]), !,
+	current_prolog_flag(argv, [cpack|Argv]), !,
 	load_conf_d([ 'config-enabled' ], []),
 	cpack_control(Argv).
 :- if(current_predicate(http_unix_daemon:http_daemon/0)).
@@ -239,11 +239,19 @@ update_public_port(_, _).
 %
 %	Load cpack and local configuration.
 
+:- dynamic
+	application_loaded/0.
+:- volatile
+	application_loaded/0.
+
+load_application(_Options) :-
+	application_loaded, !.
 load_application(_Options) :-
 	load_conf_d([ cliopatria('config-enabled'),
 		      'config-enabled'
 		    ], []),
-	load_local.
+	load_local,
+	assertz(application_loaded).
 
 load_local :-
 	absolute_file_name(local, Local,
@@ -406,14 +414,14 @@ update_workers(New) :-
 %%	process_argv(-Options)
 %
 %	Processes the ClioPatria commandline options.
-%
-%	@tbd	Move most of this to the Prolog library
 
 process_argv(Options) :-
-	argv(Program, Argv),
+	current_prolog_flag(argv, Argv),
+	current_prolog_flag(os_argv, [Program|_]),
 	(   Argv == ['--help']
 	->  usage(Program)
 	;   catch((   parse_options(Argv, Options, Rest),
+		      load_application(Options),
 		      maplist(process_argument, Rest)
 		  ),
 		  E,
@@ -575,28 +583,6 @@ boolean(false, false).
 boolean(no,    false).
 boolean(off,   false).
 
-%%	argv(-ProgramBaseName, -UserArgs)
-
-argv(ProgName, Argv) :-
-	current_prolog_flag(os_argv, [_Swipl,ProgName|_]), !,
-	user_argv(Argv).
-argv(ProgName, Argv) :-
-	current_prolog_flag(os_argv, [ProgName|_]),
-	user_argv(Argv).
-
-:- if(current_prolog_flag(os_argv,_)).
-user_argv(Argv) :-
-	current_prolog_flag(argv, Argv).
-:- else.
-user_argv(Av) :-
-	current_prolog_flag(argv, [_Prog|Argv]),
-	(   append(_, [--|Av], Argv)
-	->  true
-	;   current_prolog_flag(windows, true)
-	->  Av = Argv
-	;   Av = []
-	).
-:- endif.
 
 		 /*******************************
 		 *	       CPACK		*
