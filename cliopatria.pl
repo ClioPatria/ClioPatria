@@ -161,8 +161,10 @@ cp_server :-
 	http_unix_daemon:http_daemon.
 :- else.
 cp_server :-
-	process_argv(Options),
-	catch(cp_server(Options), E, true),
+	process_argv(Options, PrologFiles, RDFInputs),
+	load_application(Options),
+	user:maplist(ensure_loaded, PrologFiles),
+	catch(cp_server([rdf_load(RDFInputs)|Options]), E, true),
 	(   var(E)
 	->  set_prolog_flag(toplevel_goal, prolog) % become interactive
 	;   print_message(error, E),
@@ -202,6 +204,7 @@ cp_server(Options) :-
 		    | HTTPOptions
 		    ]),
 	option(after_load(AfterLoad), QOptions, true),
+	option(rdf_load(RDFInputs), QOptions, []),
 	print_message(informational, cliopatria(server_started(Port))),
 	setup_call_cleanup(
 	    http_handler(root(.), busy_loading,
@@ -210,10 +213,17 @@ cp_server(Options) :-
 			   id(busy_loading),
 			   prefix
 			 ]),
-	    rdf_attach_store(QOptions, AfterLoad),
+	    rdf_attach_store(QOptions, after_load(AfterLoad, RDFInputs)),
 	    http_delete_handler(id(busy_loading))).
 
 is_meta(after_load).
+
+:- public after_load/2.
+
+after_load(AfterLoad, RDFInputs) :-
+	forall(member(Input, RDFInputs),
+	       call_warn(rdf_load(Input))),
+	call(AfterLoad).
 
 set_prefix(Options) :-
 	option(prefix(Prefix), Options),
@@ -411,18 +421,27 @@ update_workers(New) :-
 		 *	       ARGV		*
 		 *******************************/
 
-%%	process_argv(-Options)
+%%	process_argv(-Options, -PrologFiles, -RDFInputs)
 %
 %	Processes the ClioPatria commandline options.
 
-process_argv(Options) :-
+process_argv(Options, PrologFiles, RDFInputs) :-
 	current_prolog_flag(argv, Argv),
 	current_prolog_flag(os_argv, [Program|_]),
 	(   Argv == ['--help']
 	->  usage(Program)
 	;   catch((   parse_options(Argv, Options, Rest),
-		      load_application(Options),
-		      maplist(process_argument, Rest)
+	              maplist(load_argument, Rest, Load),
+		      keysort(Load, Sorted),
+		      group_pairs_by_key(Sorted, Keyed),
+		      (	  memberchk(prolog-PrologFiles, Keyed)
+		      ->  true
+		      ;	  PrologFiles = []
+		      ),
+		      (	  memberchk(rdf-RDFInputs, Keyed)
+		      ->  true
+		      ;	  RDFInputs = []
+		      )
 		  ),
 		  E,
 		  (   print_message(error, E),
@@ -432,26 +451,22 @@ process_argv(Options) :-
 	;   usage(Program)
 	).
 
-process_argument(URL) :-
+load_argument(URL, rdf-URL) :-
 	(   sub_atom('http://', 0, _, _, URL)
 	;   sub_atom('https://', 0, _, _, URL)
-	), !,
-	rdf_load(URL).
-process_argument(File) :-
+	), !.
+load_argument(File, Type-File) :-
 	file_name_extension(_Base, Ext, File),
-	process_argument(Ext, File).
+	load_argument(Ext, File, Type).
 
-process_argument(Ext, File) :-
-	user:prolog_file_type(Ext, prolog), !,
-	ensure_loaded(user:File).
-process_argument(gz, File) :-
+load_argument(Ext, _File, prolog) :-
+	user:prolog_file_type(Ext, prolog), !.
+load_argument(gz, File, rdf) :-
 	file_name_extension(Plain, gz, File),
 	file_name_extension(_, RDF, Plain),
-	rdf_extension(RDF),
-	rdf_load(File).
-process_argument(RDF, File) :-
-	rdf_extension(RDF),
-	rdf_load(File).
+	rdf_extension(RDF).
+load_argument(RDF, _File, rdf) :-
+	rdf_extension(RDF).
 
 rdf_extension(rdf).
 rdf_extension(owl).
