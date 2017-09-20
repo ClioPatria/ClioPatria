@@ -677,7 +677,7 @@ class_row(Graph, Class-InstanceCount) -->
 	  ),
 	  http_link_to_id(list_instances, Params, ILink)
 	},
-	html([ td(\rdf_link(Class)),
+	html([ td(\rdf_link(Class, [role(class)])),
 	       td(class(int), a(href(ILink), InstanceCount))
 	     ]).
 
@@ -847,7 +847,7 @@ html_instance_table_title(Graph, Class, Sort) -->
 of_class(Class) -->
 	{ var(Class) }, !.
 of_class(Class) -->
-	html([' of class ', \rdf_link(Class)]).
+	html([' of class ', \rdf_link(Class, [role(class)])]).
 
 in_graph(Graph) -->
 	{ var(Graph) }, !.
@@ -875,7 +875,7 @@ instance_table_header -->
 		])).
 
 instance_row(Options, R-C) -->
-	html([ td(\rdf_link(R, Options)),
+	html([ td(\rdf_link(R, [role(inst)|Options])),
 	       td(class(int), C)
 	     ]).
 
@@ -931,12 +931,12 @@ predicate_row(Graph, Pred) -->
 	  ),
 	  http_link_to_id(list_triples,   Params, PLink)
 	},
-	html([ td(\rdf_link(Pred)),
+	html([ td(\rdf_link(Pred, [role(pred)])),
 	       td(class(int), a(href(PLink), Triples)),
-	       \resources(Subjects, subject, Params, []),
-	       \resources(Objects, object, Params, []),
-	       \resources(Doms, domain, Params, []),
-	       \resources(Ranges, range, Params, [])
+	       \resources(Subjects, subject, Params, [role(subj)]),
+	       \resources(Objects, object, Params, [role(obj)]),
+	       \resources(Doms, domain, Params, [role(domain)]),
+	       \resources(Ranges, range, Params, [role(range)])
 	     ]).
 
 resources([], _, _, _) --> !,
@@ -1120,7 +1120,7 @@ html_resource_table_title(Graph, Pred, Which, Sort, SkosMap) -->
 for_predicate(Pred) -->
 	{ var(Pred) }, !.
 for_predicate(Pred) -->
-	html([' for predicate ', \rdf_link(Pred, [])]).
+	html([' for predicate ', \rdf_link(Pred, [role(pred)])]).
 
 showing_skosmap(true) --> !,
 	html(' with mapping to SKOS').
@@ -1135,7 +1135,7 @@ resource_frequency_table(Pairs, Options) -->
 	html_requires(css('rdf.css')),
 	html(table(class(block),
 		   [ \resource_table_header(Options)
-		   | \table_rows_top_bottom(resource_row(Pred, Side, Options), Pairs,
+		   | \table_rows_top_bottom(resource_row(Pred, Side, [role(pred)|Options]), Pairs,
 					    TopMax, BottomMax)
 		   ])).
 
@@ -1227,7 +1227,7 @@ skos_references([H|T]) -->
 	).
 
 skos_reference(Concept-Scheme) -->
-	html([\rdf_link(Concept), ' in ', \rdf_link(Scheme)]).
+	html([\rdf_link(Concept, [role(concept)]), ' in ', \rdf_link(Scheme, [role(scheme)])]).
 
 
 flip_pairs([], []).
@@ -1398,20 +1398,20 @@ location(URI, _) -->
 	html(URI).
 
 bnode_location([P-URI]) --> !,
-	html([ '[', \rdf_link(P, []), ' ',
-	            \rdf_link(URI),
+	html([ '[', \rdf_link(P,  [role(pred)]), ' ',
+	            \rdf_link(URI,[role(bnode)]),
 	       ']'
 	     ]).
 bnode_location([P-URI|More]) --> !,
 	html([ '[', div(class(bnode_attr),
-			[ div(\rdf_link(P, [])),
-			  div(\rdf_link(URI))
+			[ div(\rdf_link(P,  [ role(pred)])),
+			  div(\rdf_link(URI,[ role(bnode)]))
 			]), ' ',
 	       \bnode_location(More),
 	       ']'
 	     ]).
 bnode_location([URI|More]) --> !,
-	rdf_link(URI),
+	rdf_link(URI, [role(subj)]),
 	html(' '),
 	bnode_location(More).
 bnode_location([]) -->
@@ -1466,9 +1466,9 @@ as_object_locations([S-P], URI, _) --> !,
 	html([ 'The resource appears as object in one triple:',
 	       blockquote(class(triple),
 			  [ '{ ',
-			    \rdf_link(S), ', ',
-			    \rdf_link(P, []), ', ',
-			    \rdf_link(URI),
+			    \rdf_link(S, [role(subj)]), ', ',
+			    \rdf_link(P, [role(pred)]), ', ',
+			    \rdf_link(URI, [role(obj)]),
 			    ' }'
 			  ])
 	     ]).
@@ -1574,7 +1574,7 @@ alt_sorted(none, default).
 
 
 lview_row(Options, S, Graphs, P-OList) -->
-	html([ td(class(predicate), \rdf_link(P, Options)),
+	html([ td(class(predicate), \rdf_link(P, [role(pred)|Options])),
 	       td(class(object), \object_list(OList, S, P, Graphs, Options, 1))
 	     ]).
 
@@ -1584,7 +1584,7 @@ object_list([H|T], S, P, Graphs, Options, Row) -->
 	  obj_class(Row, Class)
 	},
 	html(div(class(Class),
-		 [ \rdf_link(H, Options),
+		 [ \rdf_link(H, [role(obj)|Options]),
 		   \graph_marks(S, P, H, Graphs)
 		 ])),
 	object_list(T, S, P, Graphs, Options, NextRow).
@@ -1926,12 +1926,12 @@ triple_header(Count, Pred, Dom, Range, Graph) -->
 with_domain(Dom) -->
 	{ var(Dom) }, !.
 with_domain(Dom) -->
-	html([' with domain ', \rdf_link(Dom, [])]).
+	html([' with domain ', \rdf_link(Dom, [role(domain)])]).
 
 with_range(Range) -->
 	{ var(Range) }, !.
 with_range(Range) -->
-	html([' with range ', \rdf_link(Range, [])]).
+	html([' with range ', \rdf_link(Range, [role(range)])]).
 
 %%	triple_table(+Triples, +Predicate, +Options)// is det.
 %
@@ -1961,13 +1961,13 @@ spo_header(_) -->
 
 spo_row(Options, Pred, rdf(S,_,O)) -->
 	{ nonvar(Pred) }, !,
-	html([ td(class(subject), \rdf_link(S, Options)),
-	       td(class(object),  \rdf_link(O, Options))
+	html([ td(class(subject), \rdf_link(S, [role(subj)|Options])),
+	       td(class(object),  \rdf_link(O, [role(obj) |Options]))
 	     ]).
 spo_row(Options, _, rdf(S,P,O)) -->
-	html([ td(class(subject),   \rdf_link(S, Options)),
-	       td(class(predicate), \rdf_link(P, Options)),
-	       td(class(object),    \rdf_link(O, Options))
+	html([ td(class(subject),   \rdf_link(S, [role(subj)|Options])),
+	       td(class(predicate), \rdf_link(P, [role(pred)|Options])),
+	       td(class(object),    \rdf_link(O, [role(obj) |Options]))
 	     ]).
 
 
@@ -2054,12 +2054,12 @@ otriple_header(Count, Object, Pred, Graph, Options) -->
 with_object(Obj) -->
 	{ var(Obj)}, !.
 with_object(Obj) -->
-	html([' with object ', \rdf_link(Obj)]).
+	html([' with object ', \rdf_link(Obj, [role(obj)])]).
 
 on_predicate(P) -->
 	{ var(P) }, !.
 on_predicate(P) -->
-	html([' on predicate ', \rdf_link(P, [])]).
+	html([' on predicate ', \rdf_link(P, [role(pred)])]).
 
 
 otriple_table(SPList, Object, Options) -->
@@ -2078,8 +2078,8 @@ sp_header(_) -->
 		])).
 
 sp_row(Options, _O, S-P) -->
-	html([ td(class(subject),   \rdf_link(S, Options)),
-	       td(class(predicate), \rdf_link(P, Options))
+	html([ td(class(subject),   \rdf_link(S, [role(subj)|Options])),
+	       td(class(predicate), \rdf_link(P, [role(pred)|Options]))
 	     ]).
 
 
@@ -2276,9 +2276,9 @@ rdf_table(Triples, Options) -->
 		   ])).
 
 triple(rdf(S,P,O)) -->
-	html([ td(class(subject),   \rdf_link(S)),
-	       td(class(predicate), \rdf_link(P)),
-	       td(class(object),    \rdf_link(O))
+	html([ td(class(subject),   \rdf_link(S, [role(subj)])),
+	       td(class(predicate), \rdf_link(P, [role(pred)])),
+	       td(class(object),    \rdf_link(O, [role(obj) ]))
 	     ]).
 
 

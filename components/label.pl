@@ -199,6 +199,10 @@ rdf_collection_list(R, [H|T]) :-
 %	    indicate that the text is truncated.
 %	    * target(+Target)
 %	    Passed to the HTML <a> element as `target` attribute.
+%	    * role(+Role)
+%	    Passed to cliopatria:display_link/2 hook as option.
+%	    Can be used to differentiate display of URI depending on role
+%	    as subject, predicate, object, bnode, domain, or range.
 %
 %	This predicate creates two types of  links. Resources are linked
 %	to the handler implementing   =list_resource= using r=<resource>
