@@ -526,7 +526,8 @@ cpack_usage(Program) :-
 	nl, ansi_format([bold], 'CPACK commands', []), nl, nl,
 	flush_output,
 	format(user_error, '   ~w cpack install pack ...~n', [Program]),
-	format(user_error, '   ~w cpack upgrade pack ...~n', [Program]).
+	format(user_error, '   ~w cpack upgrade pack ...~n', [Program]),
+	format(user_error, '   ~w cpack configure pack ...~n', [Program]).
 
 parse_options([], [], []).
 parse_options([--|Rest], [], Rest) :- !.
@@ -611,6 +612,8 @@ boolean(off,   false).
 
 cpack_control([install|Packs]) :- !,
 	maplist(cpack_install, Packs).
+cpack_control([configure|Packs]) :- !,
+	maplist(cpack_configure, Packs).
 cpack_control([upgrade|Packs]) :- !,
 	(   Packs == []
 	->  cpack_upgrade
