@@ -220,6 +220,9 @@ is_meta(after_load).
 
 :- public after_load/2.
 
+:- meta_predicate
+	after_load(0, +).
+
 after_load(AfterLoad, RDFInputs) :-
 	forall(member(Input, RDFInputs),
 	       call_warn(rdf_load(Input))),
