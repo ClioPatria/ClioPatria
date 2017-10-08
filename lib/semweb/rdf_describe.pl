@@ -63,6 +63,8 @@ expanded using rdf_include_reifications/3 and/or rdf_include_labels/3.
 
 :- meta_predicate
 	rdf_bounded_description(3, +, +, -),
+	rdf_bounded_description(3, +, +, +, -),
+	rdf_include_labels(3, +, -),
 	resource_CBD(3, +, -),
 	graph_CBD(3, +, -),
 	rdf_include_reifications(3, +, -).
