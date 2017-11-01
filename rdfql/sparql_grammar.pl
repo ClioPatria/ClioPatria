@@ -1125,9 +1125,46 @@ it as easy as possible to verify the correctness of the parser.
 %%	query(-Prologue, -Query)//
 
 sparql_query(Prologue, Query, In, Out) :-
-	catch(query(Prologue, Query, In, Out),
+	catch(uquery(Prologue, Query, In, Out),
 	      E,
 	      add_error_location(E, In)).
+
+uquery(Prologue, Query, In, Out) :-
+	phrase(unescape_code_points(Unescaped), In, Out),
+	phrase(query(Prologue, Query), Unescaped).
+
+%!	unescape_code_points(-Unescaped)//
+%
+%	According to the SPARQL grammar, any   code point may be escaped
+%	using \uXXXX or \UXXXXXXXX anywhere and must be decoded first.
+
+unescape_code_points([H|T]) -->
+	uchar(H), !,
+	unescape_code_points(T).
+unescape_code_points([H|T]) -->
+	[H], !,
+	unescape_code_points(T).
+unescape_code_points([]) -->
+	[].
+
+%%	uchar(-Code)//
+%
+%	\uXXXX or \UXXXXXXXX, returning character value
+
+uchar(Code) -->
+	"\\u", !,
+	(   hex(D1), hex(D2), hex(D3), hex(D4)
+	->  { Code is D1<<12 + D2<<8 + D3<<4 + D4 }
+	;   syntax_error(illegal_uchar)
+	).
+uchar(Code) -->
+	"\\U", !,
+	(   hex(D1), hex(D2), hex(D3), hex(D4),
+	    hex(D5), hex(D6), hex(D7), hex(D8)
+	->  { Code is D1<<28 + D2<<24 + D3<<20 + D4<<16 +
+	              D5<<12 + D6<<8 + D7<<4 + D8 }
+	;   syntax_error(illegal_Uchar)
+	).
 
 query(Prologue, Query) -->		% [2]
 	skip_ws,
@@ -2938,8 +2975,6 @@ iri_codes([]) -->
 iri_code(Code) -->
 	[Code],
 	{ \+ not_iri_code(Code) }, !.
-iri_code(Code) -->
-	uchar(Code).
 
 not_iri_code(0'<).
 not_iri_code(0'>).
@@ -3098,7 +3133,6 @@ string_literal_codes([]) -->
 	"".
 string_literal_codes([H|T]) -->
 	(   echar(H)
-	;   uchar(H)
 	;   [H], { \+ not_in_string_literal(H) }
 	),
 	string_literal_codes(T).
@@ -3127,7 +3161,6 @@ string_literal_codes_long([]) -->
 	"".
 string_literal_codes_long([H|T]) -->
 	(   echar(H)
-	;   uchar(H)
 	;   [H], { H \== 0'\\ }
 	),
 	string_literal_codes_long(T).
@@ -3148,25 +3181,6 @@ echar2(0'\f) --> "f".
 echar2(0'\\) --> "\\".
 echar2(0'")  --> "\"".
 echar2(0'')  --> "'".
-
-%%	uchar(-Code)//
-%
-%	\uXXXX or \UXXXXXXXX, returning character value
-
-uchar(Code) -->
-	"\\u", !,
-	(   hex(D1), hex(D2), hex(D3), hex(D4)
-	->  { Code is D1<<12 + D2<<8 + D3<<4 + D4 }
-	;   syntax_error(illegal_uchar)
-	).
-uchar(Code) -->
-	"\\U", !,
-	(   hex(D1), hex(D2), hex(D3), hex(D4),
-	    hex(D5), hex(D6), hex(D7), hex(D8)
-	->  { Code is D1<<28 + D2<<24 + D3<<20 + D4<<16 +
-	              D5<<12 + D6<<8 + D7<<4 + D8 }
-	;   syntax_error(illegal_Uchar)
-	).
 
 %%	hex(-Weigth)//
 %
@@ -3227,8 +3241,6 @@ pn_chars_base(Code) :- between(0xF900, 0xFDCF, Code).
 pn_chars_base(Code) :- between(0xFDF0, 0xFFFD, Code).
 pn_chars_base(Code) :- between(0x10000, 0xEFFFF, Code).
 
-esc_code(Code) -->
-	uchar(Code), !.
 esc_code(Code) -->
 	[ Code ].
 
