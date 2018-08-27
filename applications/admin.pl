@@ -1006,7 +1006,7 @@ del_openid_server(Request) :- !,
 settings(_Request) :-
 	(   catch(authorized(admin(edit_settings)), _, fail)
 	->  Edit = true
-	;   authorized(read(admin, settings)),
+	;   authorized(admin(read_settings)),
 	    Edit = false
 	),
 	reply_html_page(cliopatria(default),

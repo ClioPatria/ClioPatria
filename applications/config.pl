@@ -59,18 +59,13 @@ cliopatria:menu_item(250=admin/configuration,  'Plugins').
 %	installed configuration modules.
 
 configuration(_Request) :-
-	if_allowed(admin(config), [edit(true)], Options),
+	authorized(admin(config)),
 	reply_html_page(cliopatria(admin),
 			title('Server plugin configuration'),
 			[ h1('Server plugin configuration'),
-			  \edit_config_table(Options),
+			  \edit_config_table([edit(true)]),
 			  \insert_html_file(html('help-config.html'))
 			]).
-
-if_allowed(Token, Options, Options) :-
-	logged_on(User, anonymous),
-	catch(check_permission(User, Token), _, fail), !.
-if_allowed(_, _, []).
 
 %%	edit_config_table(+Options)
 %
