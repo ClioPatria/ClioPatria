@@ -193,10 +193,11 @@ server_stats(Port-Workers) -->
 	       \request_statistics,
 	       \server_stat('# worker threads:', NWorkers, odd),
 	       tr(th(colspan(6), 'Statistics by worker')),
-	       tr([ th('Thread'),
-		    th('CPU'),
-		    th(''),
-		    th('Local'),
+	       tr([ th(rowspan(2), 'Thread'),
+		    th(rowspan(2), 'CPU'),
+		    th(colspan(3), 'Stack usage')
+		  ]),
+	       tr([ th('Local'),
 		    th('Global'),
 		    th('Trail')
 		  ]),
@@ -231,27 +232,17 @@ http_workers([H|T], OE) -->
 	http_workers(T, OE2).
 
 http_worker(H, OE) -->
-	{ thread_statistics(H, locallimit, LL),
-	  thread_statistics(H, globallimit, GL),
-	  thread_statistics(H, traillimit, TL),
-	  thread_statistics(H, localused, LU),
+	{ thread_statistics(H, localused, LU),
 	  thread_statistics(H, globalused, GU),
 	  thread_statistics(H, trailused, TU),
 	  thread_statistics(H, cputime, CPU)
 	},
 	html([ tr(class(OE),
-		  [ td(rowspan(2), H),
-		    \nc('~3f', CPU, [rowspan(2)]),
-		    th('In use'),
+		  [ td(H),
+		    \nc('~3f', CPU),
 		    \nc(human, LU),
 		    \nc(human, GU),
 		    \nc(human, TU)
-		  ]),
-	       tr(class(OE),
-		  [ th('Limit'),
-		    \nc(human, LL),
-		    \nc(human, GL),
-		    \nc(human, TL)
 		  ])
 	     ]).
 
