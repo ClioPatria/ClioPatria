@@ -473,10 +473,9 @@ label_row(_, []).
 
 resource_label(Resource, Label, Options) :-
 	option(label_hook(Hook), Options),
-	!,
 	option(lang(Lang), Options, _),
 	option(max_label_length(MaxLen), Options, 25),
-	call(Hook, Resource, Lang, MaxLen, Label).
+	call(Hook, Resource, Lang, MaxLen, Label), !.
 resource_label(Resource, Label, Options) :-
 	option(lang(Lang), Options, _),
 	rdf_display_label(Resource, Lang, Text),

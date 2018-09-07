@@ -1760,6 +1760,7 @@ context_graph(URI, Options) -->
 						  ]),
 				 shape_hook(shape(URI, GraphOption)),
 				 bag_shape_hook(bag_shape(GraphOption)),
+				 label_hook(cliopatria:node_label),
 				 smash([SameAs])
 			       ])
 	     ]).

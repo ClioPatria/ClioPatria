@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2010, University of Amsterdam,
-		   VU University Amsterdam
+    Copyright (C): 2010-2018, University of Amsterdam,
+		              VU University Amsterdam,
+                              CWI, Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -85,6 +86,7 @@ The example below adds an item to =Help= popup of ClioPatria:
 	context_graph/2,		% +R, -RDF
 	context_graph/3,		% +R, -RDF, +Options
 	context_predicate/2,		% +R, -Pred
+        node_label/4,                   % +R, +Lang, +MaxLen, -Label
 	node_shape/3,			% +R, -Shape, +Options
 	bag_shape/3.			% +Members, -Shape, +Options
 
@@ -257,6 +259,11 @@ The example below adds an item to =Help= popup of ClioPatria:
 %
 %	True when rdf(Subject, Predicate, _)  must   be  included in the
 %	context graph for Subject.
+
+%!	node_label(+URI, +Lang, +MaxLen, -Label) is semidet.
+%
+%       Compute a label for URI in the given language, truncating the
+%       label to MaxLen characters.
 
 %%	node_shape(+URI, -Shape, +Options) is semidet.
 %
