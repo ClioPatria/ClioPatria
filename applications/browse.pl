@@ -1,9 +1,10 @@
 /*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@cs.vu.nl
+    E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2009-2015, VU University Amsterdam
+    Copyright (C): 2009-2018, VU University Amsterdam
+			      CWI, Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -2419,13 +2420,19 @@ list_prefixes(Request) :-
 		rdf_current_ns(Prefix, URI),
 		Pairs),
 	keysort(Pairs, Sorted),
+	prefix_actions(Options),
 	reply_html_page(cliopatria(default),
 			title('RDF prefixes (namespaces)'),
 			[ h1('Known RDF prefixes (namespaces)'),
 			  \explain_prefixes,
-			  \ns_table(Format, Sorted),
+			  \prefix_table(Format, Sorted, Options),
 			  \prefix_formats(Formats, Format, Request)
 			]).
+
+prefix_actions([edit(true)]) :-
+	logged_on(User), !,
+	catch(check_permission(User, write(_, del_prefix(_))), _, fail), !.
+prefix_actions([]).
 
 explain_prefixes -->
 	html(p([ 'The following prefixes are known and may be used \c
@@ -2451,12 +2458,12 @@ alt_formats([H|T], Request) -->
 	    alt_formats(T, Request)
 	).
 
-ns_table(html, Pairs) -->
+prefix_table(html, Pairs, Options) -->
 	html(table(class(block),
 		   [ \prefix_table_header,
-		     \table_rows(prefix_row, Pairs)
+		     \table_rows(prefix_row(Options), Pairs)
 		   ])).
-ns_table(turtle, Pairs) -->
+prefix_table(turtle, Pairs, _) -->
 	html(pre(class(code),
 		 \turtle_prefixes(Pairs))).
 
@@ -2465,7 +2472,19 @@ prefix_table_header -->
 		  th('URI')
 		])).
 
-prefix_row(Prefix-URI) -->
+prefix_row(Options, Prefix-URI) -->
+	{ option(edit(true), Options),
+	  !,
+	  http_link_to_id(del_prefix, [prefix(Prefix)], HREF)
+	},
+	html([ td(Prefix),
+	       td(URI),
+	       td(a([ href(HREF),
+		      class('delete'),
+		      title('Remove prefix')
+		    ], '\u232B'))
+	     ]).
+prefix_row(_Options, Prefix-URI) -->
 	html([ td(Prefix),
 	       td(URI)
 	     ]).

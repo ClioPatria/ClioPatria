@@ -85,8 +85,8 @@
 		[ time_limit(infinite) ]).
 :- http_handler(sesame('modifyPersistency'),  modify_persistency,
 		[ time_limit(infinite) ]).
-:- http_handler(sesame('addPrefix'),	      add_prefix,
-		[ time_limit(infinite) ]).
+:- http_handler(sesame('addPrefix'),	      add_prefix, []).
+:- http_handler(sesame('defPrefix'),	      del_prefix, []).
 
 :- html_meta
 	api_action(+, 0, +, html).
@@ -971,6 +971,31 @@ add_prefix(Request) :-
 		   rdf_register_prefix(Prefix, URI),
 		   ResultFormat,
 		   'Register prefix ~w --> ~w'-[Prefix, URI]).
+
+del_prefix(Request) :-
+	http_parameters(Request,
+			[ prefix(Prefix),
+			  repository(Repository),
+			  resultFormat(ResultFormat)
+			],
+			[ attribute_declarations(attribute_decl)
+			]),
+	authorized_api(write(Repository, del_prefix), ResultFormat),
+	(   rdf_current_prefix(Prefix, URI)
+	->  api_action(Request,
+		       rdf_unregister_prefix(Prefix),
+		       ResultFormat,
+		       'Removed prefix ~w (was ~w)'-[Prefix, URI])
+	;   api_action(Request,
+		       true,
+		       ResultFormat,
+		       'Prefix ~w was unknown'-[Prefix])
+	).
+
+:- if(\+current_predicate(rdf_unregister_prefix/1)).
+rdf_unregister_prefix(Prefix) :-
+	retractall(rdf_db:ns(Prefix, _)).
+:- endif.
 
 check_prefix(Prefix) :-
 	xml_name(Prefix), !.
