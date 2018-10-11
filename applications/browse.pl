@@ -1000,17 +1000,26 @@ resource_type_in(List, Graph, T) :-
 	member(URI, List),
 	resource_type(URI, Graph, T).
 
-%%	resource_type(+URI, +Graph, -Type) is det.
+%%	resource_type(+URI, +Graph, -Type) is multi.
 
-resource_type(URI, Graph, T) :-
-	(   URI = literal(Lit)
-	->  (   Lit = type(T, _)
-	    ->	true
-	    ;	rdf_equal(T, rdfs:'Literal')
-	    )
-	;   rdf(URI, rdf:type, T, Graph)
+resource_type(literal(Lit), _, Type) :-
+	!,
+	(   Lit = type(Type, _)
+	->  true
+	;   rdf_equal(Type, rdfs:'Literal')
+	).
+resource_type(^^(_, Type0), _, Type) :-
+	!,
+	Type = Type0.
+resource_type(@(_,_), _, Type) :-
+	!,
+	rdf_equal(Type, rdf:langString).
+resource_type(URI, Graph, Type) :-
+	(   string(URI)
+	->  rdf_equal(Type, xsd:string)
+	;   rdf(URI, rdf:type, Type, Graph)
 	*-> true
-	;   rdf_equal(T, rdfs:'Resource')
+	;   rdf_equal(Type, rdfs:'Resource')
 	).
 
 
@@ -2006,9 +2015,17 @@ target_object(RObject, _LObject, RObject) :-
 	atom(RObject), !.
 target_object(_, LObject, Object) :-
 	atom(LObject), !,
-	term_to_atom(Object, LObject).
+	term_to_atom(Object0, LObject),
+	rdf11_rdf_db(Object0, Object).
 target_object(_, _, _) :-
 	throw(existence_error(http_parameter, r)).
+
+rdf11_rdf_db(^^(String, Type), literal(type(Type, Atom))) :-
+	atom_string(Atom, String).
+rdf11_rdf_db(@(String, Lang), literal(lang(Lang, Atom))) :-
+	atom_string(Atom, String).
+rdf11_rdf_db(literal(Lit),   literal(Lit)).
+
 
 %%	list_triples_with_literal(+Request)
 %
