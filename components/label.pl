@@ -285,7 +285,10 @@ resource_link(R, HREF) :-
 	http_link_to_id(list_resource, [r=R], HREF).
 
 resource_label(R, Options) -->
-	{ option(resource_format(Format), Options) }, !,
+	{ debug(rdf(label), 'resource_label(~p,~p)',
+		[R, Options]),
+	  option(resource_format(Format), Options)
+	}, !,
 	resource_flabel(Format, R, Options).
 resource_label(R, Options) -->
 	turtle_label(R, Options).
