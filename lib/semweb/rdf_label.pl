@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2010, University of Amsterdam,
-		   VU University Amsterdam
+    Copyright (C): 2018, University of Amsterdam,
+		         VU University Amsterdam,
+			 CWI, Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -36,9 +37,8 @@
 	    truncate_atom/3,		% +Atom, -MaxLen -Text
 	    label_property/1		% ?Property
 	  ]).
-:- use_module(library(error)).
-:- use_module(library(sgml_write)).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdf11), [rdf_lexical_form/2]).
 :- use_module(user(preferences)).
 
 
@@ -178,7 +178,7 @@ literal_lang(literal(Lang0, _), Lang) :- !,
 	Lang = Lang0.
 literal_lang(_, _).
 
-%%	literal_text(+Object, -Text:atom) is semidet.
+%%	literal_text(++Object, -Text:text) is semidet.
 %
 %	Text is the textual content of Object. Fails if Object is not an
 %	RDF literal (term literal(Value)). If   Object is an XMLLiteral,
@@ -186,31 +186,18 @@ literal_lang(_, _).
 %
 %	@error instantiation_error if Object is not ground
 
-literal_text(X, _) :-
-	\+ ground(X), !, !,
-	instantiation_error(X).
-literal_text(literal(L), Text) :- !,
-	literal_text(L, Text).
-literal_text(type(Type, Value), Text) :- !,
-	typed_text(Type, Value, Text).
-literal_text(lang(_, Text), Text) :- !.
-literal_text(Text, Text).
-
-:- rdf_meta
-	typed_text(r, +, -).
-
-typed_text(_, Value, Text) :-
-	atom(Value), !,
-	Text = Value.
-typed_text(rdfs:'XMLLiteral', Value, Text) :-
-	xml_is_dom(Value), !,
-	with_output_to(atom(Text),
-		       xml_write(current_output, Value,
-				 [ header(false),
-				   layout(false)
-				 ])).
-typed_text(_, Value, Text) :-
-	format(atom(Text), '~w', [Value]).
+literal_text(Literal, Text) :-
+	ground(Literal),
+	(   atom(Literal)
+	->  Text = Literal
+	;   string(Literal)
+	->  Text = Literal
+	;   rdf_lexical_form(Literal, Lexical),
+	    (   Lexical = @(Text, _Lang)
+	    ->  true
+	    ;   Lexical = ^^(Text, _Type)
+	    )
+	).
 
 %%	truncate_atom(+Atom, +MaxLen, -Truncated) is det.
 %
@@ -235,4 +222,4 @@ truncate_atom(Atom, MaxLen, Truncated) :-
 :- multifile
 	sandbox:safe_primitive/1.
 
-sandbox:safe_primitive(rdf_label:typed_text(_,_,_)).
+sandbox:safe_primitive(rdf_label:literal_text(_,_)).
