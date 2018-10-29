@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (C): 2007-2015, University of Amsterdam,
-			      VU University Amsterdam
+    Copyright (C): 2007-2018, University of Amsterdam,
+			      VU University Amsterdam,
+			      CWI, Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -98,9 +99,14 @@ represented as a list of rdf(S,P,O) into a .dot file.
 %	    If present, URLs of the graph are replaced with the
 %	    result of call(Goal, URL0, URL)
 %
+%	    * edge_hook(:Goal)
+%	    Called to define the attributes for a link as
+%	    call(Goal, URI, Attributes, Options). Attributes is a list
+%	    of Name(Value) terms. See edge_attributes/3.
+%
 %	    * shape_hook(:Goal)
 %	    Called to define the shape of a resource as call(Goal, URI,
-%	    Shape).  Shape is a list of Name(Value) terms.  See
+%	    Shape, Options).  Shape is a list of Name(Value) terms.  See
 %	    shape/3.
 %
 %	    * bag_shape_hook(:Goal)
@@ -126,18 +132,27 @@ represented as a list of rdf(S,P,O) into a .dot file.
 gviz_write_rdf(Stream, Graph0, Options0) :-
 	exclude(exclude_triple, Graph0, Graph1),
 	meta_options(is_meta, Options0, Options),
+	debug(edge(hook), 'Options = ~p', [Options]),
 	format(Stream, 'digraph G~n{ ', []),
 	option(graph_attributes(Attrs), Options, []),
 	write_graph_attributes(Attrs, Stream),
 	smash_graph(Graph1, Graph2, Options),
 	combine_bags(Graph2, Triples, Bags, Options),
-	gv_write_edges(Triples, Done, Stream, Options),
+	gv_write_edges(Triples, Done, Stream,
+		       [ graph(Graph0)
+		       | Options
+		       ]),
 	assoc_to_list(Done, Nodes),
-	gv_write_nodes(Nodes, Stream, [bag_assoc(Bags)|Options]),
+	gv_write_nodes(Nodes, Stream,
+		       [ bag_assoc(Bags),
+			 graph(Graph0)
+		       | Options
+		       ]),
 	format(Stream, '~n}~n', []).
 
 is_meta(wrap_url).
 is_meta(shape_hook).
+is_meta(edge_hook).
 is_meta(bag_shape_hook).
 is_meta(label_hook).
 
@@ -294,12 +309,17 @@ write_edge(rdf(S,P,O), Done0, Done2, Stream, Options) :-
 	write_node_id(S, Done0, Done1, Stream),
 	write(Stream, ' -> '),
 	write_node_id(O, Done1, Done2, Stream),
-	resource_label(P, Label, Options),
+	edge_attributes(rdf(S,P,O), Attributes0, Options),
+	(   option(label(Label), Attributes0)
+	->  Attributes = Attributes0
+	;   resource_label(P, Label, Options),
+	    Attributes = [label(Label)|Attributes0]
+	),
 	(   option(edge_links(true), Options, true)
 	->  wrap_url(P, URL, Options),
-	    target_option([href(URL), label(Label)], Attrs, Options),
+	    target_option([href(URL), label(Label)|Attributes], Attrs, Options),
 	    write_attributes(Attrs, Stream)
-	;   write_attributes([label(Label)], Stream)
+	;   write_attributes(Attributes, Stream)
 	),
 	nl(Stream).
 
@@ -519,6 +539,7 @@ string_attribute(href(_)).
 string_attribute(id(_)).
 string_attribute('URL'(_)).
 string_attribute(fillcolor(_)).
+string_attribute(tooltip(_)).
 string_attribute(style(_)).
 
 html_attribute(html(_), label).
@@ -644,7 +665,7 @@ bag_shape(_, [], _).
 
 shape(Resource, Shape, Options) :-
 	option(shape_hook(Hook), Options),
-	call(Hook, Resource, Shape), !.
+	call(Hook, Resource, Shape, Options), !.
 shape(Resource, Shape, _Options) :-
 	findall(Style, gv_style(Resource, Style), Shape),
 	debug(gv, '~p: shape = ~q', [Resource, Shape]).
@@ -657,6 +678,18 @@ gv_class_style(Class, Style) :-
 	rdf_has(Class, graphviz:styleParameter, literal(V), P),
 	rdf_has(P, rdfs:label, literal(A)),
 	Style =.. [A,V].
+
+
+%!	edge_attributes(+Triple, -Attributes, +Options) is det.
+%
+%	@arg Triple is a term rdf(S,P,O).
+
+edge_attributes(Predicate, Attributes, Options) :-
+	option(edge_hook(Hook), Options),
+	debug(edge(hook), 'Hook = ~p', [Hook]),
+	call(Hook, Predicate, Attributes, Options),
+	!.
+edge_attributes(_, [], _).
 
 
 		 /*******************************

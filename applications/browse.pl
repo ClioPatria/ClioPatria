@@ -1770,24 +1770,28 @@ context_graph(URI, Options) -->
 						  ]),
 				 shape_hook(shape(URI, GraphOption)),
 				 bag_shape_hook(bag_shape(GraphOption)),
+				 edge_hook(edge(URI, GraphOption)),
 				 label_hook(cliopatria:node_label),
 				 smash([SameAs])
 			       ])
 	     ]).
 
 :- public
-	shape/4,
+	shape/5,
+	edge/5,
 	bag_shape/3.
 
-%%	shape(+Start, +Options, +URI, -Shape) is semidet.
+%%	shape(+Start, +Options, +URI, -Shape, +GVOptions) is semidet.
 %
 %	Specify GraphViz shape for URI. This   predicate  calls the hook
 %	cliopatria:node_shape/3.
 
-shape(Start, Options, URI, Shape) :-
-	cliopatria:node_shape(URI, Shape, [start(Start)|Options]), !.
+shape(Start, Options, URI, Shape, GVOptions) :-
+	append(Options, GVOptions, AllOptions),
+	cliopatria:node_shape(URI, Shape, [start(Start)|AllOptions]), !.
 shape(Start, _Options, Start,
-      [ shape(tripleoctagon),style(filled),fillcolor('#ff85fd'),id(start) ]).
+      [ shape(tripleoctagon),style(filled),fillcolor('#ff85fd'),id(start) ],
+      _GVOptions).
 
 %%	bag_shape(+Options, +Members, -Shape) is semidet.
 %
@@ -1797,7 +1801,9 @@ bag_shape(Options, Members, Shape) :-
 	cliopatria:bag_shape(Members, Shape, Options), !.
 bag_shape(_, _, []).
 
-
+edge(Start, Options, Predicate, Shape, GVOptions) :-
+	append(Options, GVOptions, AllOptions),
+	cliopatria:edge_shape(Predicate, Shape, [start(Start)|AllOptions]), !.
 
 %%	context_graph(+URI, -Triples, +Options) is det.
 %
