@@ -5,12 +5,12 @@
 
 Configure logging of HTTP traffic.
 
-@tbd	Include programs to convert and process log-files.
+@tbd    Include programs to convert and process log-files.
 */
 
-		 /*******************************
-		 *	      LOGGING		*
-		 *******************************/
+                 /*******************************
+                 *            LOGGING           *
+                 *******************************/
 
 % Log  HTTP  traffic  to  httpd.log.    Logging   may  seriously  affect
 % performance on servers that handle many tiny requests.

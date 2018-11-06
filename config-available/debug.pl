@@ -24,33 +24,34 @@ particular, it implements the following methods:
     * Define tmon/0 that brings up a graphical tool showing thread
     activity.
 
-@see	http://www.swi-prolog.org/howto/http/Developing.html
+@see    http://www.swi-prolog.org/howto/http/Developing.html
 */
 
-:- use_module(library(http/http_error)).	% Print stack on error
-:- use_module(library(semweb/rdf_portray)).	% Print e.g., rdf:type
-:- use_module(user:library(semweb/rdf_db)).	% Allow ?- rdf(S,P,O). in toplevel
+:- use_module(library(http/http_error)).        % Print stack on error
+:- use_module(library(semweb/rdf_portray)).     % Print e.g., rdf:type
+:- use_module(user:library(semweb/rdf_db)).     % Allow ?- rdf(S,P,O). in toplevel
 
-:- debug_message_context(+time).		% Add time to debug message
+:- debug_message_context(+time).                % Add time to debug message
 % Enable to see HTTP requests
-% :- debug(http(request)).			% Print request and reply
+% :- debug(http(request)).                      % Print request and reply
 
-%%	prepare_editor
+%!  prepare_editor
 %
-%	Start XPCE as edit requests comming from the document server can
-%	only be handled if XPCE is running.
+%   Start XPCE as edit requests comming from the document server can
+%   only be handled if XPCE is running.
 
 prepare_editor :-
-	current_prolog_flag(editor, pce_emacs), !,
-	start_emacs.
+    current_prolog_flag(editor, pce_emacs),
+    !,
+    start_emacs.
 prepare_editor.
 
 :- prepare_editor.
 
-%%	tmon
+%!  tmon
 %
-%	Show the graphical thread-monitor. Can be  useful to examine and
-%	debug active goals.
+%   Show the graphical thread-monitor. Can be  useful to examine and
+%   debug active goals.
 
 tmon :-
-	call(prolog_ide(thread_monitor)).
+    call(prolog_ide(thread_monitor)).

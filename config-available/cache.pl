@@ -16,7 +16,7 @@ Unloading this plugin  does  _not_   disable  caching.  Instead,  change
 */
 
 :- rdf_set_cache_options([ enabled(true),
-			   global_directory('cache/rdf'),
-			   create_global_directory(true)
-			 ]).
+                           global_directory('cache/rdf'),
+                           create_global_directory(true)
+                         ]).
 

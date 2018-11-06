@@ -22,11 +22,11 @@ find paths for internal services.
 The setting =workers= sets the number of   HTTP  worker threads. See the
 link below for more info.
 
-@see	localhost.pl
-@see	http_location_by_id/2 and http_link_to_id/3 for finding the
-	locations of internal services.
-@see	http://www.swi-prolog.org/howto/http/HTTPScale.html for more
-	info on server scalability.
+@see    localhost.pl
+@see    http_location_by_id/2 and http_link_to_id/3 for finding the
+        locations of internal services.
+@see    http://www.swi-prolog.org/howto/http/HTTPScale.html for more
+        info on server scalability.
 */
 
 % :- set_setting_default(http:port, 8080).

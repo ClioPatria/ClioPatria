@@ -1,10 +1,10 @@
 /*  This file is part of ClioPatria.
 
     Author:
-    HTTP:	http://e-culture.multimedian.nl/
-    GITWEB:	http://gollem.science.uva.nl/git/ClioPatria.git
-    GIT:	git://gollem.science.uva.nl/home/git/ClioPatria.git
-    GIT:	http://gollem.science.uva.nl/home/git/ClioPatria.git
+    HTTP:       http://e-culture.multimedian.nl/
+    GITWEB:     http://gollem.science.uva.nl/git/ClioPatria.git
+    GIT:        git://gollem.science.uva.nl/home/git/ClioPatria.git
+    GIT:        http://gollem.science.uva.nl/home/git/ClioPatria.git
     Copyright:  2007, E-Culture/MultimediaN
 
     ClioPatria is free software: you can redistribute it and/or modify
@@ -26,11 +26,11 @@
 query(s1, 'select * from {S} P {O}').
 query(s2, 'select * from {S} P {O1, O2}').
 query(s3, 'select * from {S} P {O1};
- 			     Q {O2}').
+ \t\t\t     Q {O2}').
 query(s4, 'select * from {S} P1 {O1} P2 {O2}').
-					% fig 5.5
+                                        % fig 5.5
 query(s5, 'select * from {first} pred {} pred1 {obj1};
-				 	 pred2 {obj2} pred3 {obj3}').
+\t\t\t\t \t pred2 {obj2} pred3 {obj3}').
 query(s6, 'select * from {S} P {O} limit 10').
 query(s7, 'select * from {S} P {O} limit 10 offset 10').
 query(s8, 'select * from {S} <rdf:type> {<rdfs:Class>}').
@@ -45,62 +45,64 @@ query(c1, 'construct * from {S} <rdf:type> {P}').
 query(c2, 'construct {P} <rdf:hasInstance> {S} from {S} <rdf:type> {P}').
 
 t(Q) :-
-	query(Q, Codes),
-	serql_compile(Codes, Query, []),
-	print(Query).
+    query(Q, Codes),
+    serql_compile(Codes, Query, []),
+    print(Query).
 
 :- multifile
-	ok/2.
+    ok/2.
 
 test(Q) :-
-	query(Q, Text),
-	serql_compile(Text, Query, []),
-%%	numbervars(Query, 0, _, [singleton(true)]),
-%%	format('ok(~q, ~W).~n', [Q, Query, [numbervars(true), quoted(true)]]),
-	(   ok(Q, Reply)
-	->  (   Reply =@= Query
-	    ->  true
-	    ;   format(user_error, 'ERROR: failed on ~w~n', [Q])
-	    )
-	;   name_vars(Query),
-	    numbervars(Query, 0, _),
-	    format('ok(~q, ~p).~n', [Q, Query])
-	).
+    query(Q, Text),
+    serql_compile(Text, Query, []),
+%%      numbervars(Query, 0, _, [singleton(true)]),
+%%      format('ok(~q, ~W).~n', [Q, Query, [numbervars(true), quoted(true)]]),
+        (   ok(Q, Reply)
+    ->  (   Reply =@= Query
+        ->  true
+        ;   format(user_error, 'ERROR: failed on ~w~n', [Q])
+        )
+    ;   name_vars(Query),
+        numbervars(Query, 0, _),
+        format('ok(~q, ~p).~n', [Q, Query])
+    ).
 
-name_vars(select(Row, Names, _Path, _Where, _Limit, _Offset)) :- !,
-	functor(Row, _, Arity),
-	name_vars(0, Arity, Row, Names).
+name_vars(select(Row, Names, _Path, _Where, _Limit, _Offset)) :-
+    !,
+    functor(Row, _, Arity),
+    name_vars(0, Arity, Row, Names).
 name_vars(_).
 
 name_vars(Arity, Arity, _, _) :- !.
 name_vars(I0, Arity, Row, Names) :-
-	I is I0 + 1,
-	arg(I, Names, Name),
-	pl_var_name(Name, VarName),
-	arg(I, Row, '$VAR'(VarName)),
-	name_vars(I, Arity, Row, Names).
+    I is I0 + 1,
+    arg(I, Names, Name),
+    pl_var_name(Name, VarName),
+    arg(I, Row, '$VAR'(VarName)),
+    name_vars(I, Arity, Row, Names).
 
 pl_var_name(Name, Name) :-
-	sub_atom(Name, 0, 1, _, First),
-	char_type(First, upper), !.
+    sub_atom(Name, 0, 1, _, First),
+    char_type(First, upper),
+    !.
 pl_var_name(Name, Upper) :-
-	atom_concat('_', Name, Upper).
+    atom_concat('_', Name, Upper).
 
 user:portray('$VAR'(Name)) :-
-	atom(Name),
-	write(Name).
+    atom(Name),
+    write(Name).
 
 test :-
-	(   query(Q, _),
-	    test(Q),
-	    fail
-	;   true
-	).
+    (   query(Q, _),
+        test(Q),
+        fail
+    ;   true
+    ).
 
 ok(s1, serql_query(select((rdf(A, B, C), true, true),
-			  solutions(unsorted, inf, 0)),
-		   row(A, B, C),
-		   rdfs_entailment)).
+                          solutions(unsorted, inf, 0)),
+                   row(A, B, C),
+                   rdfs_entailment)).
 ok(s1, serql_query(select((rdf(A, B, C), true, true), solutions(unsorted, inf, 0)), row(A, B, C), rdfs_entailment)).
 ok(s2, serql_query(select(((rdf(A, B, C), true, rdf(A, B, D), C\==D), true, true), solutions(unsorted, inf, 0)), row(A, B, C, D), rdfs_entailment)).
 ok(s2, serql_query(select(((rdf(A, B, C), true, rdf(A, B, D), C\==D), true, true), solutions(unsorted, inf, 0)), row(A, B, C, D), rdfs_entailment)).

@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2010, University of Amsterdam,
-		   VU University Amsterdam
+                   VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -29,8 +29,8 @@
 */
 
 :- module(api_lod_crawler,
-	  [ lod_uri_graph/2
-	  ]).
+          [ lod_uri_graph/2
+          ]).
 :- use_module(library(uri)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(http/http_dispatch)).
@@ -40,47 +40,49 @@
 
 :- http_handler(api(lod_crawl), lod_crawl, []).
 
-%%	lod_crawl(+Request)
+%!  lod_crawl(+Request)
 %
-%	HTTP handler requesting ClioPatria to crawl LOD.
+%   HTTP handler requesting ClioPatria to crawl LOD.
 
 lod_crawl(Request) :-
-	authorized(write(default, load(lod))),
-	http_parameters(Request,
-			[ r(URI,
-			    [ description('URI to start')
-			    ]),
-			  return_to(Return,
-				    [ optional(true),
-				      description('URI to return to')
-				    ])
-			]),
-	lod_uri_graph(URI, Graph),
-	return_option(Return, Options),
-	call_showing_messages(rdf_load(Graph,
-				       [ graph(Graph)
-				       ]),
-			      Options).
+    authorized(write(default, load(lod))),
+    http_parameters(Request,
+                    [ r(URI,
+                        [ description('URI to start')
+                        ]),
+                      return_to(Return,
+                                [ optional(true),
+                                  description('URI to return to')
+                                ])
+                    ]),
+    lod_uri_graph(URI, Graph),
+    return_option(Return, Options),
+    call_showing_messages(rdf_load(Graph,
+                                   [ graph(Graph)
+                                   ]),
+                          Options).
 
 return_option(Return, []) :-
-	var(Return), !.
+    var(Return),
+    !.
 return_option(Return, [ return_to(Return) ]).
 
 
-%%	lod_uri_graph(+URI, -Graph)
+%!  lod_uri_graph(+URI, -Graph)
 %
-%	Determine the graph in which to dump   LOD from URI. This simply
-%	deletes a possible fragment (#...) from the URI.
+%   Determine the graph in which to dump   LOD from URI. This simply
+%   deletes a possible fragment (#...) from the URI.
 
 lod_uri_graph(URI, Graph) :-
-	uri_components(URI, Components),
-	uri_data(fragment, Components, Fragment),
-	nonvar(Fragment), !,
-	uri_data(fragment, Components, _, NewComponents),
-	uri_components(Graph, NewComponents).
+    uri_components(URI, Components),
+    uri_data(fragment, Components, Fragment),
+    nonvar(Fragment),
+    !,
+    uri_data(fragment, Components, _, NewComponents),
+    uri_components(Graph, NewComponents).
 lod_uri_graph(URI, URI).
 
 :- multifile
-	rdf_http_plugin:rdf_content_type/2.
+    rdf_http_plugin:rdf_content_type/2.
 
 rdf_http_plugin:rdf_content_type('text/xml', xml).

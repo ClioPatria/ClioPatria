@@ -15,14 +15,14 @@ add a declaration like this:
 
     ==
     :- html_resource(css('fix_menu.css'),
-		     [ requires([css('cliopatria.css')])
-		     ]).
+                     [ requires([css('cliopatria.css')])
+                     ]).
     ==
 */
 
 :- html_resource(cliopatria,
-		 [ virtual(true),
-		   requires([ css('fix_menu.css')
-			    ])
-		 ]).
+                 [ virtual(true),
+                   requires([ css('fix_menu.css')
+                            ])
+                 ]).
 

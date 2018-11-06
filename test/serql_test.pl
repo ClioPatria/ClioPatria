@@ -1,10 +1,10 @@
 /*  This file is part of ClioPatria.
 
     Author:
-    HTTP:	http://e-culture.multimedian.nl/
-    GITWEB:	http://gollem.science.uva.nl/git/ClioPatria.git
-    GIT:	git://gollem.science.uva.nl/home/git/ClioPatria.git
-    GIT:	http://gollem.science.uva.nl/home/git/ClioPatria.git
+    HTTP:       http://e-culture.multimedian.nl/
+    GITWEB:     http://gollem.science.uva.nl/git/ClioPatria.git
+    GIT:        git://gollem.science.uva.nl/home/git/ClioPatria.git
+    GIT:        http://gollem.science.uva.nl/home/git/ClioPatria.git
     Copyright:  2007, E-Culture/MultimediaN
 
     ClioPatria is free software: you can redistribute it and/or modify
@@ -29,18 +29,18 @@ the produced complexity?
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 :- load_files([ library('semweb/rdf_db'),
-		serql
-	      ],
-	      [ if(not_loaded),
-		silent(true)
-	      ]).
+                serql
+              ],
+              [ if(not_loaded),
+                silent(true)
+              ]).
 :- use_module(rdf_entailment, []).
 
 % :- debug(serql(compiled)).
 
-		 /*******************************
-		 *	     DATABASE		*
-		 *******************************/
+                 /*******************************
+                 *           DATABASE           *
+                 *******************************/
 
 db(r1, p1, r2).
 db(r2, p1, r3).
@@ -53,66 +53,66 @@ db(c1, label, literal(class_one)).
 db(c1, comment, literal('Nice class')).
 
 init_db :-
-	rdf_reset_db,
-	forall(db(S,P,O),
-	       rdf_assert(S,P,O)).
-	
+    rdf_reset_db,
+    forall(db(S,P,O),
+           rdf_assert(S,P,O)).
+        
 
-		 /*******************************
-		 *	    TEST DRIVER		*
-		 *******************************/
+                 /*******************************
+                 *          TEST DRIVER         *
+                 *******************************/
 
 :- dynamic failed/1.
 
 test(N, Row) :-
-	q(N, Q),
-	serql_query(Q, Row).
+    q(N, Q),
+    serql_query(Q, Row).
 
 test :-
-	forall(q(N, _), test(N)),
-	findall(N, failed(N), Failed),
-	(   Failed == []
-	->  format('All tests passed~n')
-	;   format('Tests failed: ~p~n', [Failed])
-	).
+    forall(q(N, _), test(N)),
+    findall(N, failed(N), Failed),
+    (   Failed == []
+    ->  format('All tests passed~n')
+    ;   format('Tests failed: ~p~n', [Failed])
+    ).
 
 test(N) :-
-	init_db,
-	retractall(failed(_)),
-	q(N, Q),
-	setof(Row, serql_query(Q, Row), Rows),
-	(   ok(N, OKRows)
-	->  (   OKRows == Rows
-	    ->  true
-	    ;   format('FAILED: ~w~n', [N]),
-		assert(failed(N))
-	    )
-	;   format('ok(~q, ~q).~n', [N, Rows])
-	).
+    init_db,
+    retractall(failed(_)),
+    q(N, Q),
+    setof(Row, serql_query(Q, Row), Rows),
+    (   ok(N, OKRows)
+    ->  (   OKRows == Rows
+        ->  true
+        ;   format('FAILED: ~w~n', [N]),
+            assert(failed(N))
+        )
+    ;   format('ok(~q, ~q).~n', [N, Rows])
+    ).
 
 
-		 /*******************************
-		 *	      QUERIES		*
-		 *******************************/
+                 /*******************************
+                 *            QUERIES           *
+                 *******************************/
 
 q(1, 'select X from
-	{X} <!label> {L} where label(L) like "label*"').
+\t{X} <!label> {L} where label(L) like "label*"').
 q(2, 'select L from
-	{X} <!label> {L} where X = "r1"').
+\t{X} <!label> {L} where X = "r1"').
 q(3, 'select L from 
-	{X} <!label> {L} where X = "r1" or X = "r2"').
+\t{X} <!label> {L} where X = "r1" or X = "r2"').
 q(4, 'select L from
-	{X} <!label> {L} where isliteral(L) and L like "label*"').
+\t{X} <!label> {L} where isliteral(L) and L like "label*"').
 q(5, 'select A,B from
-	{A} <!label> {X},
-	{B} <!comment> {Y}').
+\t{A} <!label> {X},
+\t{B} <!comment> {Y}').
 q(6, 'select A,B from
-	{A} <!type> {Y} <!label> {B}').
+\t{A} <!type> {Y} <!label> {B}').
 
 
-		 /*******************************
-		 *	 GOLDEN STANDARD	*
-		 *******************************/
+                 /*******************************
+                 *       GOLDEN STANDARD        *
+                 *******************************/
 
 ok(_,_) :- fail.
 

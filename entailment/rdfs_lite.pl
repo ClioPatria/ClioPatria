@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2004-2010, University of Amsterdam,
-			      VU University Amsterdam
+                              VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -30,24 +30,24 @@
 
 
 :- module(rdfslite_entailment,
-	  [
-	  ]).
-:- use_module(rdfql(rdfql_runtime)).	% runtime tests
+          [
+          ]).
+:- use_module(rdfql(rdfql_runtime)).    % runtime tests
 :- use_module(library('semweb/rdf_db'),
-	      [ rdf_global_id/2,
-		rdf_reachable/3,
-		rdf_has/3,
-		rdf_has/4,
-		rdf_subject/1,
-		rdf_equal/2,
-		(rdf_meta)/1,
-		op(_,_,_)
-	      ]).
+              [ rdf_global_id/2,
+                rdf_reachable/3,
+                rdf_has/3,
+                rdf_has/4,
+                rdf_subject/1,
+                rdf_equal/2,
+                (rdf_meta)/1,
+                op(_,_,_)
+              ]).
 :- use_module(library('semweb/rdfs'),
-	      [ rdfs_subclass_of/2,
-		rdfs_subproperty_of/2,
-		rdfs_individual_of/2
-	      ]).
+              [ rdfs_subclass_of/2,
+                rdfs_subproperty_of/2,
+                rdfs_individual_of/2
+              ]).
 
 /** <module> RDFS-Lite entailment
 
@@ -59,60 +59,68 @@ This entailment module does the part  of   RDFS  that can be implemented
 efficiently  using  backward  chaining.  Notably    it   does  *not*  do
 type-reasoning on the basis of domains/ranges of properties. It does:
 
-	* Use the property hierarchy
-	* Define the serql special relations
-	* Handle rdfs:subClassOf as transitive
-	* Handle rdfs:subPropertyOf as transitive
-	* Handle rdf:type using subProperties and rdfs:subClassOf
+        * Use the property hierarchy
+        * Define the serql special relations
+        * Handle rdfs:subClassOf as transitive
+        * Handle rdfs:subPropertyOf as transitive
+        * Handle rdf:type using subProperties and rdfs:subClassOf
 */
 
 :- rdf_meta
-	rdf(o,o,o).
+        rdf(o,o,o).
 
 :- public
-	rdf/3,
-	rdf/4.
+    rdf/3,
+    rdf/4.
 
 rdf(S, P, O) :-
-	var(P), !,
-	rdf_db:rdf(S,P,O).
-rdf(S, serql:directSubClassOf, O) :- !,
-	rdf_has(S, rdfs:subClassOf, O).
-rdf(S, serql:directType, O) :- !,
-	rdf_has(S, rdf:type, O).
-rdf(S, serql:directSubPropertyOf, O) :- !,
-	rdf_has(S, rdfs:subPropertyOf, O).
-rdf(S, rdfs:subClassOf, O) :- ( atom(S) ; atom(O) ), !,
-	rdf_reachable(S, rdfs:subClassOf, O).
-rdf(S, rdfs:subClassOf, O) :- !,
-       rdf_has(S, rdfs:subClassOf, Direct),
-       rdf_reachable(Direct, rdfs:subClassOf, O).
-rdf(S, rdfs:subPropertyOf, O) :- !,
-	rdf_reachable(S, rdfs:subPropertyOf, O).
-rdf(S, rdf:type, O) :- !,
-	(   var(S), var(O)
-	->  rdf_subject(S)
-	;   true
-	),
-	rdfs_individual_of(S, O).
+    var(P),
+    !,
+    rdf_db:rdf(S,P,O).
+rdf(S, serql:directSubClassOf, O) :-
+    !,
+    rdf_has(S, rdfs:subClassOf, O).
+rdf(S, serql:directType, O) :-
+    !,
+    rdf_has(S, rdf:type, O).
+rdf(S, serql:directSubPropertyOf, O) :-
+    !,
+    rdf_has(S, rdfs:subPropertyOf, O).
+rdf(S, rdfs:subClassOf, O) :- ( atom(S) ; atom(O) ),
+    !,
+    rdf_reachable(S, rdfs:subClassOf, O).
+rdf(S, rdfs:subClassOf, O) :-
+    !,
+    rdf_has(S, rdfs:subClassOf, Direct),
+    rdf_reachable(Direct, rdfs:subClassOf, O).
+rdf(S, rdfs:subPropertyOf, O) :-
+    !,
+    rdf_reachable(S, rdfs:subPropertyOf, O).
+rdf(S, rdf:type, O) :-
+    !,
+    (   var(S), var(O)
+    ->  rdf_subject(S)
+    ;   true
+    ),
+    rdfs_individual_of(S, O).
 rdf(S, P, O) :-
-	rdf_has(S, P, O).
+    rdf_has(S, P, O).
 
-%!	rdf(?S, ?P, ?O, ?G)
+%!  rdf(?S, ?P, ?O, ?G)
 
 rdf(S, P, O, G) :-
-	var(P),
-	!,
-	rdf_db:rdf(S, P, O, G).
+    var(P),
+    !,
+    rdf_db:rdf(S, P, O, G).
 rdf(S, P, O, G) :-
-	rdf_has(S, P, O, RP),
-	rdf_db:rdf(S, RP, O, G).
+    rdf_has(S, P, O, RP),
+    rdf_db:rdf(S, RP, O, G).
 
-		 /*******************************
-		 *	       REGISTER		*
-		 *******************************/
+                 /*******************************
+                 *             REGISTER         *
+                 *******************************/
 
 :- multifile
-	cliopatria:entailment/2.
+    cliopatria:entailment/2.
 
 cliopatria:entailment(rdfslite, rdfslite_entailment).

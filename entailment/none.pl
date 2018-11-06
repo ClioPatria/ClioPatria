@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2004-2010, University of Amsterdam,
-			      VU University Amsterdam
+                              VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -29,14 +29,14 @@
 */
 
 :- module(no_entailment,
-	  [ rdf/3,
-	    rdf/4
-	  ]).
-:- use_module(rdfql(rdfql_runtime)).	% runtime tests
+          [ rdf/3,
+            rdf/4
+          ]).
+:- use_module(rdfql(rdfql_runtime)).    % runtime tests
 :- use_module(library('semweb/rdf_db'),
-	      [ rdf/3,
-		rdf/4
-	      ]).
+              [ rdf/3,
+                rdf/4
+              ]).
 
 /** <module> Empty RDF entailment module
 
@@ -44,11 +44,11 @@ This module provides only access to the triples in the database.
 */
 
 
-		 /*******************************
-		 *	       REGISTER		*
-		 *******************************/
+                 /*******************************
+                 *             REGISTER         *
+                 *******************************/
 
 :- multifile
-	cliopatria:entailment/2.
+    cliopatria:entailment/2.
 
 cliopatria:entailment(none, no_entailment).

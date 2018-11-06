@@ -22,8 +22,8 @@ directory of the application and add the following files:
       with a password.  Passed using the password(Password) option
       of ssl_context/3.
 
-@see	http://www.swi-prolog.org/pldoc/doc_for?object=ssl_context/3 for
-	a description of these files.
+@see    http://www.swi-prolog.org/pldoc/doc_for?object=ssl_context/3 for
+        a description of these files.
 */
 
 % uncomment the following to add a server that redirects requests from a
@@ -35,18 +35,19 @@ directory of the application and add the following files:
 % :- initialization cp_after_load(plain_http_server).
 
 plain_http_server :-
-	plain_http_server([port(5020)]).
+    plain_http_server([port(5020)]).
 
 plain_http_server(Options) :-
-	option(port(Port), Options),
-	http_server_property(Port, goal(redirect_to_https)), !.
+    option(port(Port), Options),
+    http_server_property(Port, goal(redirect_to_https)),
+    !.
 plain_http_server(Options) :-
-	http_server(redirect_to_https,
-		    Options).
+    http_server(redirect_to_https,
+                Options).
 
 redirect_to_https(Request) :-
-	option(host(Host), Request),
-	option(request_uri(ReqURI), Request),
-	http_server_property(Port, scheme(https)),
-	format(string(URL), 'https://~w:~w~w', [Host, Port, ReqURI]),
-	http_redirect(see_other, URL, Request).
+    option(host(Host), Request),
+    option(request_uri(ReqURI), Request),
+    http_server_property(Port, scheme(https)),
+    format(string(URL), 'https://~w:~w~w', [Host, Port, ReqURI]),
+    http_redirect(see_other, URL, Request).

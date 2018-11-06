@@ -28,76 +28,77 @@
 */
 
 :- module(yasgui,
-	  [ has_yasgui/0
-	  ]).
+          [ has_yasgui/0
+          ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/html_write)).
 :- use_module(library(http/js_write)).
 :- use_module(library(http/http_server_files)).
 :- use_module(library(http/html_head)).
 
-:- use_module(api(json)).		% get /json/prefixes
+:- use_module(api(json)).               % get /json/prefixes
 
 :- http_handler(yasgui('index.html'), yasgui_editor, [id(yasgui)]).
 :- http_handler(yasqe(.), serve_files_in_directory(yasqe), [prefix]).
 :- http_handler(yasr(.), serve_files_in_directory(yasr), [prefix]).
 
-%%	yasgui_editor(+Request)
+%!  yasgui_editor(+Request)
 %
-%	HTTP handler that presents the YASGUI SPARQL editor.
+%   HTTP handler that presents the YASGUI SPARQL editor.
 
 yasgui_editor(_Request) :-
-	has_yasgui, !,
-	reply_html_page(
-	    cliopatria(plain),
-	    title('YASGUI SPARQL Editor'),
-	    \yasgui_page).
+    has_yasgui,
+    !,
+    reply_html_page(
+        cliopatria(plain),
+        title('YASGUI SPARQL Editor'),
+        \yasgui_page).
 yasgui_editor(_Request) :-
-	reply_html_page(cliopatria(default),
-			title('No YASQE/YASR installed'),
-			\no_yasgui).
+    reply_html_page(cliopatria(default),
+                    title('No YASQE/YASR installed'),
+                    \no_yasgui).
 
 
-%%	has_yasgui is semidet.
+%!  has_yasgui is semidet.
 %
-%	True if the YASGUI SPARQL editor is installed.
+%   True if the YASGUI SPARQL editor is installed.
 
 has_yasgui :-
-	Options = [ access(read), file_errors(fail) ],
-	absolute_file_name(yasqe('yasqe.bundled.min.js'), _, Options),
-	absolute_file_name(yasr('yasr.bundled.min.js'), _, Options).
+    Options = [ access(read), file_errors(fail) ],
+    absolute_file_name(yasqe('yasqe.bundled.min.js'), _, Options),
+    absolute_file_name(yasr('yasr.bundled.min.js'), _, Options).
 
 
 yasgui_page -->
-	{ http_link_to_id(sparql_query, [], SparqlLocation),
-	  http_link_to_id(json_prefixes, [], JSONPrefixes),
-	  http_link_to_id(list_resource, [], ListResource)
-	},
-	html_requires(yasqe('yasqe.bundled.min.js')),
-	html_requires(yasqe('yasqe.min.css')),
-	html_requires(yasr('yasr.bundled.min.js')),
-	html_requires(yasr('yasr.min.css')),
-	html([ div(id(yasqe), []),
-	       div(id(yasr), [])
-	     ]),
+    { http_link_to_id(sparql_query, [], SparqlLocation),
+      http_link_to_id(json_prefixes, [], JSONPrefixes),
+      http_link_to_id(list_resource, [], ListResource)
+    },
+    html_requires(yasqe('yasqe.bundled.min.js')),
+    html_requires(yasqe('yasqe.min.css')),
+    html_requires(yasr('yasr.bundled.min.js')),
+    html_requires(yasr('yasr.min.css')),
+    html([ div(id(yasqe), []),
+           div(id(yasr), [])
+         ]),
 
-	js_script({|javascript(SparqlLocation, JSONPrefixes, ListResource)||
-		   window.onload=function(){
+    js_script({|javascript(SparqlLocation, JSONPrefixes, ListResource)||
+                   window.onload=function(){
   var yasqe = YASQE(document.getElementById("yasqe"), {
-				 sparql: { endpoint: SparqlLocation,
-					   showQueryButton: true
-					 }
-			     });
+                                 sparql: { endpoint: SparqlLocation,
+                                           showQueryButton: true
+                                         }
+                             });
 
-  var serverPrefixes;			// TBD: re-fetch if out-of-date?
+  var serverPrefixes;                   // TBD: re-fetch if out-of-date?
 
   function usedPrefixes() {
     var prefixmap = yasqe.getPrefixesFromQuery();
     if ( serverPrefixes ) {
       for(var key in serverPrefixes) {
-	var yasrKey = key+":";
+        var yasrKey = key+":";
         if ( !prefixmap[yasrKey] )
-	  prefixmap[yasrKey] = serverPrefixes[key];
+          prefixmap[yasrKey] = serverPrefixes[key];
       }
     }
     return prefixmap;
@@ -115,17 +116,17 @@ yasgui_page -->
   var yasr = {};
 
   YASQE.$.ajax({ url: JSONPrefixes,
-	   dataType: "json",
-	   contentType: 'application/json',
-	   success: function(data, status) {
-			serverPrefixes = data;
-		    },
-	   complete: function() {
-			yasr = YASR(document.getElementById("yasr"), {
-			  getUsedPrefixes: usedPrefixes
-			});
-		     }
-	 });
+           dataType: "json",
+           contentType: 'application/json',
+           success: function(data, status) {
+                        serverPrefixes = data;
+                    },
+           complete: function() {
+                        yasr = YASR(document.getElementById("yasr"), {
+                          getUsedPrefixes: usedPrefixes
+                        });
+                     }
+         });
 
   /**
   * Set some of the hooks to link YASR and YASQE
@@ -142,26 +143,26 @@ yasgui_page -->
     yasr.setResponse({exception: exceptionMsg});
   };
 };
-		   |}).
+              |}).
 
 
-%%	no_yasgui//
+%!  no_yasgui//
 %
-%	Display a message indicating the user how to install YASQE/YASR
+%   Display a message indicating the user how to install YASQE/YASR
 
 no_yasgui -->
-	{ absolute_file_name(cliopatria(.), CD0,
-			     [ file_type(directory),
-			       access(read)
-			     ]),
-	  prolog_to_os_filename(CD0, ClioHome)
-	},
-	html_requires(pldoc),
-	html([ h1('YASGUI (YASQE and YASR) is not installed'),
-	       p([ 'Please run the following command in the ClioPatria ',
-		   'installation directory "~w" to install YASQE/YASR.'-[ClioHome]
-		 ]),
-	       pre(class(code),
-		   [ 'git submodule update --init web/yasqe web/yasr'
-		   ])
-	     ]).
+    { absolute_file_name(cliopatria(.), CD0,
+                         [ file_type(directory),
+                           access(read)
+                         ]),
+      prolog_to_os_filename(CD0, ClioHome)
+    },
+    html_requires(pldoc),
+    html([ h1('YASGUI (YASQE and YASR) is not installed'),
+           p([ 'Please run the following command in the ClioPatria ',
+               'installation directory "~w" to install YASQE/YASR.'-[ClioHome]
+             ]),
+           pre(class(code),
+               [ 'git submodule update --init web/yasqe web/yasr'
+               ])
+         ]).

@@ -43,48 +43,50 @@ is will be used to synchronise servers.
 */
 
 :- http_handler(cliopatria(list_journals), list_journals, []).
-:- http_handler(cliopatria(journal),	   journal,	  []).
+:- http_handler(cliopatria(journal),       journal,       []).
 
-%%	list_journals(+Request)
+%!  list_journals(+Request)
 %
-%	HTTP handler to list the available journals from the persistent
-%	store as an XML document.  Here is an example document:
+%   HTTP handler to list the available journals from the persistent
+%   store as an XML document.  Here is an example document:
 %
-%	==
-%	<journals>
-%	  <journal db="http://www.example.org/db1"/>
-%	  <journal db="http://www.example.org/db2"/>
-%	  ...
-%	</journals>
-%	==
+%   ==
+%   <journals>
+%     <journal db="http://www.example.org/db1"/>
+%     <journal db="http://www.example.org/db2"/>
+%     ...
+%   </journals>
+%   ==
 %
-%	@see /journal
+%   @see /journal
 
-list_journals(_Request) :- !,
-	authorized(read(default, list_journals)),
-	format('Content-type: text/xml~n~n'),
-	format('<journals>~n'),
-	forall(rdf_journal_file(DB, _File),
-	       format('  <journal db="~w"/>~n', [DB])),
-	format('</journals>~n').
+list_journals(_Request) :-
+    !,
+    authorized(read(default, list_journals)),
+    format('Content-type: text/xml~n~n'),
+    format('<journals>~n'),
+    forall(rdf_journal_file(DB, _File),
+           format('  <journal db="~w"/>~n', [DB])),
+    format('</journals>~n').
 
-%%	journal(+Request)
+%!  journal(+Request)
 %
-%	HTTP handler that serves the journal for an RDF named graph as a
-%	Prolog text. If no journal  is   available  for  the given named
-%	graph, it returns a 404 page.
+%   HTTP handler that serves the journal for an RDF named graph as a
+%   Prolog text. If no journal  is   available  for  the given named
+%   graph, it returns a 404 page.
 %
-%	@see /list_journals
+%   @see /list_journals
 
 
-journal(Request) :- !,
-	http_parameters(Request,
-			[ 'DB'(DB, [description('URI for the named graph')])
-			],
-			[
-			]),
-	authorized(read(DB, read_journal)),
-	(   rdf_journal_file(DB, Path)
-	->  http_reply_file(Path, [mime_type(text/'x-prolog')], Request)
-	;   existence_error(http_location, DB)
-	).
+journal(Request) :-
+    !,
+    http_parameters(Request,
+                    [ 'DB'(DB, [description('URI for the named graph')])
+                    ],
+                    [
+                        ]),
+    authorized(read(DB, read_journal)),
+    (   rdf_journal_file(DB, Path)
+    ->  http_reply_file(Path, [mime_type(text/'x-prolog')], Request)
+    ;   existence_error(http_location, DB)
+    ).

@@ -6,7 +6,7 @@
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2004-2010, University of Amsterdam
-			      VU University Amsterdam
+                              VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -31,12 +31,12 @@
 */
 
 :- module(rdf_turtle_io,
-	  [
-	  ]).
+          [
+          ]).
 :- use_module(library(semweb/rdf_turtle_write)).
 
 :- multifile
-	rdf_io:write_graph/4.
+    rdf_io:write_graph/4.
 
 /** <module> Write query-result graphs as Turtle
 
@@ -44,42 +44,42 @@ This module writes a SPARQL graph results   using  the Turtle format. It
 acts as a hook into rdf_io.pl.
 */
 
-		 /*******************************
-		 *	    GRAPH OUTPUT	*
-		 *******************************/
+                 /*******************************
+                 *          GRAPH OUTPUT        *
+                 *******************************/
 
-%%	rdf_io:write_graph(+Format, +Serialization, +Triples, +Options)
+%!  rdf_io:write_graph(+Format, +Serialization, +Triples, +Options)
 %
-%	Write an RDF result-graph as an  HTML table, where resources are
-%	links to the ClioPatria local view.
+%   Write an RDF result-graph as an  HTML table, where resources are
+%   links to the ClioPatria local view.
 %
-%	@param Format is one of =turtle= or =canonical_turtle=
-%	@param Serialization is ignored
-%	@param Triples is a list of rdf(S,P,O) triples
+%   @param Format is one of =turtle= or =canonical_turtle=
+%   @param Serialization is ignored
+%   @param Triples is a list of rdf(S,P,O) triples
 
 rdf_io:write_graph(turtle, _Serialization, Triples, Options) :-
-	option(mimetype(Type), Options, 'text/turtle'),
-	format('Transfer-encoding: chunked~n'),
-	format('Content-type: Type~n~n', [Type]),
-	(   Triples == []
-	->  format('# Graph contains no data~n', [])
-	;   rdf_save_turtle(stream(current_output),
-			    [ expand(triple_in(Triples))
-			    ])
-	).
+    option(mimetype(Type), Options, 'text/turtle'),
+    format('Transfer-encoding: chunked~n'),
+    format('Content-type: Type~n~n', [Type]),
+    (   Triples == []
+    ->  format('# Graph contains no data~n', [])
+    ;   rdf_save_turtle(stream(current_output),
+                        [ expand(triple_in(Triples))
+                        ])
+    ).
 rdf_io:write_graph(canonical_turtle, _Serialization, Triples, Options) :-
-	option(mimetype(Type), Options, 'text/turtle'),
-	format('Transfer-encoding: chunked~n'),
-	format('Content-type: Type~n~n', [Type]),
-	(   Triples == []
-	->  format('# Graph contains no data~n', [])
-	;   rdf_save_canonical_turtle(stream(current_output),
-				      [ expand(triple_in(Triples))
-				      ])
-	).
+    option(mimetype(Type), Options, 'text/turtle'),
+    format('Transfer-encoding: chunked~n'),
+    format('Content-type: Type~n~n', [Type]),
+    (   Triples == []
+    ->  format('# Graph contains no data~n', [])
+    ;   rdf_save_canonical_turtle(stream(current_output),
+                                  [ expand(triple_in(Triples))
+                                  ])
+    ).
 
 :- public
-	triple_in/5.
+    triple_in/5.
 
 triple_in(RDF, S,P,O,_G) :-
-	member(rdf(S,P,O), RDF).
+    member(rdf(S,P,O), RDF).

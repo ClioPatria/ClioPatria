@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2010, University of Amsterdam,
-		   VU University Amsterdam
+                   VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -29,8 +29,8 @@
 */
 
 :- module(user_preferences,
-	  [ user_preference/2		% ?Preference, ?Value
-	  ]).
+          [ user_preference/2           % ?Preference, ?Value
+          ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(cliopatria(hooks)).
 
@@ -48,53 +48,54 @@ cliopatria:user_preference_default/2.
 Preferences are defines in the RDF   namespace with prefix =user=, which
 expands to:
 
-	==
-	http://www.swi-prolog.org/cliopatria/user/
-	==
+        ==
+        http://www.swi-prolog.org/cliopatria/user/
+        ==
 */
 
 :- rdf_meta
-	user_preference(r,o),
-	builtin_default(r,o).
+    user_preference(r,o),
+    builtin_default(r,o).
 
-%%	user_preference(?Preference:resource, ?Value:object) is nondet.
+%!  user_preference(?Preference:resource, ?Value:object) is nondet.
 %
-%	True if Preference has Value.  Preference and Value use the RDF
-%	data-representation.  E.g.,
+%   True if Preference has Value.  Preference and Value use the RDF
+%   data-representation.  E.g.,
 %
-%	    ==
-%	    ?- user_preference(user:lang, literal(Lang))
+%       ==
+%       ?- user_preference(user:lang, literal(Lang))
 %
-%	    Lang = en
-%	    ==
+%       Lang = en
+%       ==
 %
-%	@see cliopatria:user_preference_db/2 provides the storage hook
-%	@see cliopatria:user_preference_default/2 provides a hook for
-%	defaults
-%	@see builtin_default/2 provides built-in defaults
+%   @see cliopatria:user_preference_db/2 provides the storage hook
+%   @see cliopatria:user_preference_default/2 provides a hook for
+%   defaults
+%   @see builtin_default/2 provides built-in defaults
 
 user_preference(Pref, Value) :-
-	nonvar(Pref), !,
-	(   cliopatria:user_preference_db(Pref, Value)
-	*-> true
-	;   cliopatria:user_preference_default(Pref, Value)
-	*-> true
-	;   builtin_default(Pref, Value)
-	).
+    nonvar(Pref),
+    !,
+    (   cliopatria:user_preference_db(Pref, Value)
+    *-> true
+    ;   cliopatria:user_preference_default(Pref, Value)
+    *-> true
+    ;   builtin_default(Pref, Value)
+    ).
 user_preference(Pref, Value) :-
-	current_preference(Pref),
-	user_preference(Pref, Value).
+    current_preference(Pref),
+    user_preference(Pref, Value).
 
 current_preference(Pref) :-
-	setof(P, current_pref(P), Prefs),
-	member(Pref, Prefs).
+    setof(P, current_pref(P), Prefs),
+    member(Pref, Prefs).
 
 current_pref(P) :- cliopatria:user_preference_db(P, _).
 current_pref(P) :- cliopatria:user_preference_default(P, _).
 current_pref(P) :- builtin_default(P, _).
 
-%%	builtin_default(?Preference, ?Value) is nondet.
+%!  builtin_default(?Preference, ?Value) is nondet.
 %
-%	Provide defaults for commonly used preferences.
+%   Provide defaults for commonly used preferences.
 
 builtin_default(user:lang, literal(en)).

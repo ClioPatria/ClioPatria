@@ -13,21 +13,23 @@ ClioPatria will not force login if  no   users  are yet defined. In this
 case you will be redirected to the `create admin user page'.  If youn do
 not want that, delete the second clause.
 
-@tbd	If you use this login mechanism, you cannot logout.  Maybe we
-	should implement http://stackoverflow.com/questions/233507
+@tbd    If you use this login mechanism, you cannot logout.  Maybe we
+        should implement http://stackoverflow.com/questions/233507
 */
 
 :- multifile
-	http:request_expansion/2.
+    http:request_expansion/2.
 
 http:request_expansion(Request, Request) :-
-	memberchk(authorization(Text), Request), !,
-	(   http_authorization_data(Text, basic(User, Password)),
-	    validate_password(User, Password)
-	->  true
-	;   throw(http_reply(authorise(basic, 'ClioPatria')))
-	).
+    memberchk(authorization(Text), Request),
+    !,
+    (   http_authorization_data(Text, basic(User, Password)),
+        validate_password(User, Password)
+    ->  true
+    ;   throw(http_reply(authorise(basic, 'ClioPatria')))
+    ).
 http:request_expansion(Request, Request) :-
-	\+ current_user(_), !.			% allow if no users are defined
+    \+ current_user(_),
+    !.                  % allow if no users are defined
 http:request_expansion(Request, Request) :-
-	throw(http_reply(authorise(basic, 'ClioPatria'))).
+    throw(http_reply(authorise(basic, 'ClioPatria'))).

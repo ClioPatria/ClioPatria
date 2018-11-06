@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2004-2010, University of Amsterdam,
-			      VU University Amsterdam
+                              VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -30,17 +30,17 @@
 
 
 :- module(rdf_entailment,
-	  [ rdf/3,
-	    rdf/4
-	  ]).
-:- use_module(rdfql(rdfql_runtime)).	% runtime tests
+          [ rdf/3,
+            rdf/4
+          ]).
+:- use_module(rdfql(rdfql_runtime)).    % runtime tests
 :- use_module(library(semweb/rdf_db),
-	      [ rdf_global_id/2,
-		rdf_subject/1,
-		rdf_current_predicate/1,
-		(rdf_meta)/1,
-		op(_,_,_)
-	      ]).
+              [ rdf_global_id/2,
+                rdf_subject/1,
+                rdf_current_predicate/1,
+                (rdf_meta)/1,
+                op(_,_,_)
+              ]).
 
 /** <module> RDFS-Lite entailment
 
@@ -56,44 +56,47 @@ This entailment module does only the core RDF inferences:
 */
 
 :- rdf_meta
-	rdf(r,r,o).
+        rdf(r,r,o).
 
 rdf(S, P, O) :-
-	rdf_db:rdf(S, P, O).
+    rdf_db:rdf(S, P, O).
 rdf(S, rdf:type, rdf:'Property') :-
-	var_or_resource(S),
-	rdf_current_predicate(S),
-	(   rdf_db:rdf(_, S, _)
-	->  \+ rdf_db:rdf(S, rdf:type, rdf:'Property')
-	).
+    var_or_resource(S),
+    rdf_current_predicate(S),
+    (   rdf_db:rdf(_, S, _)
+    ->  \+ rdf_db:rdf(S, rdf:type, rdf:'Property')
+    ).
 rdf(S, rdf:type, rdfs:'Resource') :-
-	var_or_resource(S),
-	rdf_subject(S),
-	\+ rdf_db:rdf(S, rdf:type, rdfs:'Resource').
-rdf(S, serql:directSubClassOf, O) :- !,
-	rdf_db:rdf(S, rdfs:subClassOf, O).
-rdf(S, serql:directType, O) :- !,
-	rdf_db:rdf(S, rdf:type, O).
-rdf(S, serql:directSubPropertyOf, O) :- !,
-	rdf_db:rdf(S, rdfs:subPropertyOf, O).
+    var_or_resource(S),
+    rdf_subject(S),
+    \+ rdf_db:rdf(S, rdf:type, rdfs:'Resource').
+rdf(S, serql:directSubClassOf, O) :-
+    !,
+    rdf_db:rdf(S, rdfs:subClassOf, O).
+rdf(S, serql:directType, O) :-
+    !,
+    rdf_db:rdf(S, rdf:type, O).
+rdf(S, serql:directSubPropertyOf, O) :-
+    !,
+    rdf_db:rdf(S, rdfs:subPropertyOf, O).
 
 var_or_resource(R) :-
-	(   var(R)
-	->  true
-	;   atom(R)
-	).
+    (   var(R)
+    ->  true
+    ;   atom(R)
+    ).
 
-%!	rdf(?S, ?P, ?O, ?G)
+%!  rdf(?S, ?P, ?O, ?G)
 
 rdf(S, P, O, G) :-
-	rdf_db:rdf(S, P, O, G).
+    rdf_db:rdf(S, P, O, G).
 
 
-		 /*******************************
-		 *	       REGISTER		*
-		 *******************************/
+                 /*******************************
+                 *             REGISTER         *
+                 *******************************/
 
 :- multifile
-	cliopatria:entailment/2.
+    cliopatria:entailment/2.
 
 cliopatria:entailment(rdf, rdf_entailment).

@@ -1,10 +1,10 @@
 /*  This file is part of ClioPatria.
 
     Author:
-    HTTP:	http://e-culture.multimedian.nl/
-    GITWEB:	http://gollem.science.uva.nl/git/ClioPatria.git
-    GIT:	git://gollem.science.uva.nl/home/git/ClioPatria.git
-    GIT:	http://gollem.science.uva.nl/home/git/ClioPatria.git
+    HTTP:       http://e-culture.multimedian.nl/
+    GITWEB:     http://gollem.science.uva.nl/git/ClioPatria.git
+    GIT:        git://gollem.science.uva.nl/home/git/ClioPatria.git
+    GIT:        http://gollem.science.uva.nl/home/git/ClioPatria.git
     Copyright:  2007, E-Culture/MultimediaN
 
     ClioPatria is free software: you can redistribute it and/or modify
@@ -24,14 +24,14 @@
 :- use_module(serql).
 
 test :-
-	forall(e(N, _), test(N)).
+    forall(e(N, _), test(N)).
 
 test(N) :-
-	e(N, Query),
-	format('~`=t~72|~n'),
-	format('Query: ~w~n', [Query]),
-	format('~`=t~72|~n'),
-	catch(serql_compile(Query, _, []), E, print_message(error, E)).
+    e(N, Query),
+    format('~`=t~72|~n'),
+    format('Query: ~w~n', [Query]),
+    format('~`=t~72|~n'),
+    catch(serql_compile(Query, _, []), E, print_message(error, E)).
 
 e(1, 'select x y from').
 e(2, 'select x from {x}').

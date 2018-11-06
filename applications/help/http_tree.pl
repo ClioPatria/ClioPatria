@@ -4,8 +4,8 @@
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (c)  2010 University of Amsterdam
-		        CWI, Asterdam
-			VU University Amsterdam
+                        CWI, Asterdam
+                        VU University Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,8 @@
 */
 
 :- module(http_tree,
-	  [ http_tree_view//1
-	  ]).
+          [ http_tree_view//1
+          ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_path)).
 :- use_module(library(http/http_parameters)).
@@ -55,13 +55,13 @@ helpers.
 
 :- http_handler(root(help/expand_http_node), expand_http_node, []).
 
-%%	http_tree_view(+Options)//
+%!  http_tree_view(+Options)//
 %
-%	Show hierarchy of HTTP locations (paths).  The tree is a YUI
-%	tree that can be expanded dynamically.
+%   Show hierarchy of HTTP locations (paths).  The tree is a YUI
+%   tree that can be expanded dynamically.
 
 http_tree_view(Options) -->
-	tree_view(expand_http_node, Options).
+    tree_view(expand_http_node, Options).
 
 
 % the folders/tree.css file must be last.  Because requirements are made
@@ -69,26 +69,26 @@ http_tree_view(Options) -->
 % declaring the other files as dependencies.
 
 :- html_resource(yui_examples('treeview/assets/css/folders/tree.css'),
-		 [ requires([ yui('treeview/treeview.js'),
-			      yui('connection/connection.js'),
-			      yui('treeview/assets/skins/sam/treeview.css')
-			    ])
-		 ]).
+                 [ requires([ yui('treeview/treeview.js'),
+                              yui('connection/connection.js'),
+                              yui('treeview/assets/skins/sam/treeview.css')
+                            ])
+                 ]).
 
 
 tree_view(Handler, Options) -->
-	{ http_location_by_id(Handler, Path),
-	  TreeViewID = treeDiv1
-	},
-	html([ \html_requires(yui_examples('treeview/assets/css/folders/tree.css')),
+    { http_location_by_id(Handler, Path),
+      TreeViewID = treeDiv1
+    },
+    html([ \html_requires(yui_examples('treeview/assets/css/folders/tree.css')),
 
-	       div(id(TreeViewID), []),
-	       \tree_view_script(Path, TreeViewID, Options)
-	     ]).
+           div(id(TreeViewID), []),
+           \tree_view_script(Path, TreeViewID, Options)
+         ]).
 
 tree_view_script(Path, TreeViewID, Options) -->
-	html(script(type('text/javascript'), \[
-'var currentIconMode = 0;\n',		% ??
+    html(script(type('text/javascript'), \[
+'var currentIconMode = 0;\n',           % ??
 'function buildTree() {\n',
 '   tree = new YAHOO.widget.TreeView("~w");\n'-[TreeViewID],
 '   tree.setDynamicLoad(loadNodeData, currentIconMode);\n',
@@ -104,9 +104,9 @@ tree_view_script(Path, TreeViewID, Options) -->
 '    var sUrl = "~w?node=" + encodeURIComponent(node.data.path);\n'-[Path],
 '    var callback = {\n',
 '        success: function(oResponse) {\n',
-'	     var children = eval(oResponse.responseText);\n',
-'	     for (var i=0, j=children.length; i<j; i++) {\n',
-'		 var tempNode = new YAHOO.widget.TextNode(children[i], node, false);\n',
+'\t     var children = eval(oResponse.responseText);\n',
+'\t     for (var i=0, j=children.length; i<j; i++) {\n',
+'\t\t var tempNode = new YAHOO.widget.TextNode(children[i], node, false);\n',
 '            }\n',
 '            oResponse.argument.fnLoadComplete();\n',
 '        },\n',
@@ -124,71 +124,75 @@ tree_view_script(Path, TreeViewID, Options) -->
 
 %'YAHOO.util.Event.onDOMReady(buildTree());\n'
 'buildTree();\n'
-					     ])).
+                                         ])).
 
 tree_options([]) --> [].
 tree_options([H|T]) --> tree_option(H), tree_options(T).
 
-tree_option(labelClick(JS)) --> !,
-	html([ 'tree.subscribe("labelClick", ~w);\n'-[JS] ]).
+tree_option(labelClick(JS)) -->
+    !,
+    html([ 'tree.subscribe("labelClick", ~w);\n'-[JS] ]).
 tree_option(_) -->
-	[].
+    [].
 
-%%	expand_http_node(+Request)
+%!  expand_http_node(+Request)
 %
-%	HTTP handler that returns the children of an HTTP node.
+%   HTTP handler that returns the children of an HTTP node.
 
 expand_http_node(Request) :-
-	http_parameters(Request,
-			[ node(Parent, [ description('HTTP location to refine')])
-			]),
-	node_children(Parent, Children),
-	reply_json(Children, []).
+    http_parameters(Request,
+                    [ node(Parent, [ description('HTTP location to refine')])
+                    ]),
+    node_children(Parent, Children),
+    reply_json(Children, []).
 
 node_children(Parent, Children) :-
-	ensure_ends_slash(Parent, Parent1),
-	findall(Sub, sub_handler(Parent1, Sub), Subs),
-	map_list_to_pairs(first_component(Parent), Subs, Keyed0),
-	keysort(Keyed0, Keyed),
-	group_pairs_by_key(Keyed, Groups),
-	maplist(decorate, Groups, Children).
+    ensure_ends_slash(Parent, Parent1),
+    findall(Sub, sub_handler(Parent1, Sub), Subs),
+    map_list_to_pairs(first_component(Parent), Subs, Keyed0),
+    keysort(Keyed0, Keyed),
+    group_pairs_by_key(Keyed, Groups),
+    maplist(decorate, Groups, Children).
 
 ensure_ends_slash(Path, Path) :-
-	sub_atom(Path, _, _, 0, /), !.
+    sub_atom(Path, _, _, 0, /),
+    !.
 ensure_ends_slash(Path, PathSlash) :-
-	atom_concat(Path, /, PathSlash).
+    atom_concat(Path, /, PathSlash).
 
 sub_handler(Parent, Sub) :-
-	http_current_handler(Sub, _:_, _),
-	sub_atom(Sub, 0, _, A, Parent),
-	A > 0.
+    http_current_handler(Sub, _:_, _),
+    sub_atom(Sub, 0, _, A, Parent),
+    A > 0.
 
 first_component(Parent, Path, ParentExt) :-
-	atom_length(Parent, PL),
-	sub_atom(Path, B, _, _, /),
-	B > PL, !,
-	sub_atom(Path, 0, B, _, ParentExt).
+    atom_length(Parent, PL),
+    sub_atom(Path, B, _, _, /),
+    B > PL,
+    !,
+    sub_atom(Path, 0, B, _, ParentExt).
 first_component(_, Path, Path).
 
 
 decorate(Prefix-[Only],
-	 json([label(Label), isLeaf(@(true)), path(Only)])) :-
-	atom_concat(Prefix, Rest, Only),
-	(   Rest == ''
-	;   Rest == /
-	), !,
-	file_base_name(Prefix, Label0),
-	leaf_label(Only, Label0, Label).
+         json([label(Label), isLeaf(@(true)), path(Only)])) :-
+    atom_concat(Prefix, Rest, Only),
+    (   Rest == ''
+    ;   Rest == /
+    ),
+    !,
+    file_base_name(Prefix, Label0),
+    leaf_label(Only, Label0, Label).
 decorate(Prefix-_,
-	 json([label(Label), isLeaf(@(false)), path(Prefix)])) :-
-	file_base_name(Prefix, Label).
+         json([label(Label), isLeaf(@(false)), path(Prefix)])) :-
+    file_base_name(Prefix, Label).
 
 leaf_label(Only, Label0, Label) :-
-	http_current_handler(Only, _:_, Options),
-	(   memberchk(prefix(true), Options)
-	->  atom_concat(Label0, '...', Label)
-	;   Label = Label0
-	).
+    http_current_handler(Only, _:_, Options),
+    (   memberchk(prefix(true), Options)
+    ->  atom_concat(Label0, '...', Label)
+    ;   Label = Label0
+    ).
 
 
 

@@ -28,8 +28,8 @@
 */
 
 :- module(rdf_bnode,
-	  [ bnode_vars/3		% +Graph0, -VarGraph, -BNodeVars
-	  ]).
+          [ bnode_vars/3                % +Graph0, -VarGraph, -BNodeVars
+          ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(assoc)).
 
@@ -41,43 +41,45 @@ variables in (sub-)graph,  which  motivates   replacing  them  by Prolog
 variables.
 */
 
-%%	bnode_vars(+RDF, -RDFWithVars, -Vars) is det.
+%!  bnode_vars(+RDF, -RDFWithVars, -Vars) is det.
 %
-%	Consistently replace bnodes in  RDF   with  Prolog  variable and
-%	unify Vars with a list of the  variables found. Note that, if we
-%	perform matches with such graphs,   multiple variables may unify
-%	to  the  same  concrete  resource.  One  might  consider  adding
-%	constraints such as dif/2.
+%   Consistently replace bnodes in  RDF   with  Prolog  variable and
+%   unify Vars with a list of the  variables found. Note that, if we
+%   perform matches with such graphs,   multiple variables may unify
+%   to  the  same  concrete  resource.  One  might  consider  adding
+%   constraints such as dif/2.
 %
-%	@param  RDF is a list rdf(S,P,O)
-%	@param  Resolved is a list rdf(S,P,O), where resources may be
-%		a variable
-%	@param	NodeIDs is a list of variables representing the bnodes.
+%   @param  RDF is a list rdf(S,P,O)
+%   @param  Resolved is a list rdf(S,P,O), where resources may be
+%           a variable
+%   @param  NodeIDs is a list of variables representing the bnodes.
 
 bnode_vars(Graph0, Graph, NodeIDs) :-
-	empty_assoc(Map0),		% BNodeID --> Var
-	bnode_vars(Graph0, Graph, Map0, Map),
-	assoc_to_values(Map, NodeIDs).
+    empty_assoc(Map0),              % BNodeID --> Var
+    bnode_vars(Graph0, Graph, Map0, Map),
+    assoc_to_values(Map, NodeIDs).
 
 bnode_vars([], [], Map, Map).
 bnode_vars([rdf(S0,P0,O0)|T0], Graph, Map0, Map) :-
-	(   rdf_is_bnode(S0)
-	;   rdf_is_bnode(P0)
-	;   rdf_is_bnode(O0)
-	), !,
-	Graph = [rdf(S,P,O)|T],
-	bnode_var(S0, S, Map0, Map1),
-	bnode_var(P0, P, Map1, Map2),
-	bnode_var(O0, O, Map2, Map3),
-	bnode_vars(T0, T, Map3, Map).
+    (   rdf_is_bnode(S0)
+    ;   rdf_is_bnode(P0)
+    ;   rdf_is_bnode(O0)
+    ),
+    !,
+    Graph = [rdf(S,P,O)|T],
+    bnode_var(S0, S, Map0, Map1),
+    bnode_var(P0, P, Map1, Map2),
+    bnode_var(O0, O, Map2, Map3),
+    bnode_vars(T0, T, Map3, Map).
 bnode_vars([Triple|T0], [Triple|T], Map0, Map) :-
-	bnode_vars(T0, T, Map0, Map).
+    bnode_vars(T0, T, Map0, Map).
 
 
 bnode_var(R0, BNodeID, Map0, Map) :-
-	rdf_is_bnode(R0), !,
-	(   get_assoc(R0, Map0, BNodeID)
-	->  Map = Map0
-	;   put_assoc(R0, Map0, BNodeID, Map)
-	).
+    rdf_is_bnode(R0),
+    !,
+    (   get_assoc(R0, Map0, BNodeID)
+    ->  Map = Map0
+    ;   put_assoc(R0, Map0, BNodeID, Map)
+    ).
 bnode_var(R, R, Map, Map).

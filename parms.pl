@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@cs.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2008-2014, University of Amsterdam
-			      VU University Amsterdam
+                              VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -30,8 +30,8 @@
 
 
 :- module(cp_parms,
-	  [
-	  ]).
+          [
+          ]).
 :- use_module(library(settings)).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(http/html_write)).
@@ -51,174 +51,176 @@ not be necessary to modify this file:
 @see run.pl[.in] contains an example startup script.
 */
 
-		 /*******************************
-		 *	    FILE PATHS		*
-		 *******************************/
+                 /*******************************
+                 *          FILE PATHS          *
+                 *******************************/
 
 :- multifile
-	user:file_search_path/2.
+    user:file_search_path/2.
 
 % ClioPatria specific ones
-user:file_search_path(rdfql,	        cliopatria(rdfql)).
-user:file_search_path(cpack,	        cliopatria(cpack)).
+user:file_search_path(rdfql,            cliopatria(rdfql)).
+user:file_search_path(cpack,            cliopatria(cpack)).
 
 % Allow local file overwrites
-user:file_search_path(web,		web).
+user:file_search_path(web,              web).
 
 % Configuration
-user:file_search_path(config_https,	cp_application('config-enabled/https')).
+user:file_search_path(config_https,     cp_application('config-enabled/https')).
 
 % Package merge
-user:file_search_path(cpacks,	        cliopatria('.')).
+user:file_search_path(cpacks,           cliopatria('.')).
 
-user:file_search_path(library,		cpacks(lib)).
-user:file_search_path(rdf,		cpacks(rdf)).
-user:file_search_path(entailment,	cpacks(entailment)).
-user:file_search_path(components,	cpacks(components)).
-user:file_search_path(applications,	cpacks(applications)).
-user:file_search_path(api,		cpacks(api)).
-user:file_search_path(user,		cpacks(user)).
-user:file_search_path(config_available,	cpacks('config-available')).
-user:file_search_path(skin,		cpacks(skin)).
-user:file_search_path(web,		cpacks(web)).
-user:file_search_path(css,		web(css)).
-user:file_search_path(icons,		web(icons)).
-user:file_search_path(yui,		web('yui/2.7.0')).
-user:file_search_path(js,		web(js)).
-user:file_search_path(html,		web(html)).
-user:file_search_path(help,		web(help)).
-user:file_search_path(tutorial,		web(tutorial)).
-user:file_search_path(flint,		web('FlintSparqlEditor/sparql')).
-user:file_search_path(yasqe,		web('yasqe/dist')).
-user:file_search_path(yasr,		web('yasr/dist')).
+user:file_search_path(library,          cpacks(lib)).
+user:file_search_path(rdf,              cpacks(rdf)).
+user:file_search_path(entailment,       cpacks(entailment)).
+user:file_search_path(components,       cpacks(components)).
+user:file_search_path(applications,     cpacks(applications)).
+user:file_search_path(api,              cpacks(api)).
+user:file_search_path(user,             cpacks(user)).
+user:file_search_path(config_available, cpacks('config-available')).
+user:file_search_path(skin,             cpacks(skin)).
+user:file_search_path(web,              cpacks(web)).
+user:file_search_path(css,              web(css)).
+user:file_search_path(icons,            web(icons)).
+user:file_search_path(yui,              web('yui/2.7.0')).
+user:file_search_path(js,               web(js)).
+user:file_search_path(html,             web(html)).
+user:file_search_path(help,             web(help)).
+user:file_search_path(tutorial,         web(tutorial)).
+user:file_search_path(flint,            web('FlintSparqlEditor/sparql')).
+user:file_search_path(yasqe,            web('yasqe/dist')).
+user:file_search_path(yasr,             web('yasr/dist')).
 
 
-		 /*******************************
-		 *	     HTTP PATHS		*
-		 *******************************/
+                 /*******************************
+                 *           HTTP PATHS         *
+                 *******************************/
 
-http:location(cliopatria,  root(.),	       []).
-http:location(web,	   cliopatria(web),    []).
-http:location(sesame,	   root(servlets),     []).
-http:location(sparql,	   root(sparql),       []).
+http:location(cliopatria,  root(.),            []).
+http:location(web,         cliopatria(web),    []).
+http:location(sesame,      root(servlets),     []).
+http:location(sparql,      root(sparql),       []).
 http:location(rdf_browser, cliopatria(browse), []).
 http:location(flint,       cliopatria(flint),  []).
-http:location(api,	   cliopatria(api),    []).
-http:location(json,	   api(json),	       []).
+http:location(api,         cliopatria(api),    []).
+http:location(json,        api(json),          []).
 http:location(yasgui,      cliopatria(yasgui), []).
-http:location(yasqe,	   cliopatria(yasqe),  []).
-http:location(yasr,	   cliopatria(yasr),   []).
+http:location(yasqe,       cliopatria(yasqe),  []).
+http:location(yasr,        cliopatria(yasr),   []).
 
-		 /*******************************
-		 *	       TYPES		*
-		 *******************************/
+                 /*******************************
+                 *             TYPES            *
+                 *******************************/
 
-%	make the type 'uri' work such  that   we  can  write NS:Local in
-%	settings defaults.
+%       make the type 'uri' work such  that   we  can  write NS:Local in
+%       settings defaults.
 
 :- multifile
-	error:has_type/2,
-	settings:eval_default/3,
-	settings:convert_text/3,
-	http_settings:input_item/5.
+    error:has_type/2,
+    settings:eval_default/3,
+    settings:convert_text/3,
+    http_settings:input_item/5.
 
-error:has_type(uri, X) :-		% URI is an atom.  We do not use atom
-	atom(X).			% to allow for conversion
+error:has_type(uri, X) :-               % URI is an atom.  We do not use atom
+    atom(X).                        % to allow for conversion
 
-					% Convert NS:Local
+                                        % Convert NS:Local
 settings:eval_default(URI, uri, URI) :-
-	atom(URI), !.
+    atom(URI),
+    !.
 settings:eval_default(NS:Local, uri, URI) :-
-	rdf_global_id(NS:Local, URI).
+    rdf_global_id(NS:Local, URI).
 
-settings:convert_text(uri, Text, URI) :- !,
-	(   sub_atom(Text, B, _, A, :),
-	    sub_atom(Text, 0, B, _, NS),
-	    sub_atom(Text, _, A, 0, Local),
-	    identifier(NS),
-	    identifier(Local)
-	->  rdf_global_id(NS:Local, URI)
-	;   URI = Text
-	).
+settings:convert_text(uri, Text, URI) :-
+    !,
+    (   sub_atom(Text, B, _, A, :),
+        sub_atom(Text, 0, B, _, NS),
+        sub_atom(Text, _, A, 0, Local),
+        identifier(NS),
+        identifier(Local)
+    ->  rdf_global_id(NS:Local, URI)
+    ;   URI = Text
+    ).
 
-%%	identifier(+Atom) is semidet.
+%!  identifier(+Atom) is semidet.
 %
-%	True if Atom contains only alphanumerical characters or
-%	undercores.
+%   True if Atom contains only alphanumerical characters or
+%   undercores.
 %
-%	@tbd	Must we support unicode here?  Check with Turtle.
+%   @tbd    Must we support unicode here?  Check with Turtle.
 
 identifier(Text) :-
-	atom_codes(Text, Codes),
-	identifier_codes(Codes).
+    atom_codes(Text, Codes),
+    identifier_codes(Codes).
 
 identifier_codes([]).
 identifier_codes([H|T]) :-
-	identifier_code(H),
-	identifier_codes(T).
+    identifier_code(H),
+    identifier_codes(T).
 
 identifier_code(C) :-
-	code_type(C, csym).
+    code_type(C, csym).
 
-					% Render as plain atom
+                                        % Render as plain atom
 http_settings:input_item(uri, Value, Name) -->
-	html(input([name(Name), size(40), value(Value)])).
+    html(input([name(Name), size(40), value(Value)])).
 
 
-		 /*******************************
-		 *	       HTTP		*
-		 *******************************/
+                 /*******************************
+                 *             HTTP             *
+                 *******************************/
 
 :- setting(http:port, any, env('PORT', 3020),
-	   'Port the http server listens to or interface:port').
+           'Port the http server listens to or interface:port').
 :- setting(http:workers, between(1, 20), env('PROLOG_HTTP_WORKERS', 5),
-	   'Number of server threads').
+           'Number of server threads').
 :- setting(http:worker_options, list(any), [],
-	   'Additional options to pass to the HTTP server').
+           'Additional options to pass to the HTTP server').
 :- setting(http:max_idle_time, nonneg, 3600,
-	   'Session timeout.  If 0, session never times out').
+           'Session timeout.  If 0, session never times out').
 :- setting(http:server_url, atom, 'http://localhost:'+setting(http:port),
-	   'Url of the server itself').
+           'Url of the server itself').
 :- if(\+current_setting(http:prefix)).
 :- setting(http:prefix, atom, '',
-	   'Prefix to rebase the server').
+           'Prefix to rebase the server').
 :- endif.
 
 
-		 /*******************************
-		 *      CLIOPATRIA SETTINGS	*
-		 *******************************/
+                 /*******************************
+                 *      CLIOPATRIA SETTINGS     *
+                 *******************************/
 
 :- setting(cliopatria:user_data, atom, 'users.db',
-	   'File holding account information').
+           'File holding account information').
 :- setting(cliopatria:enable_self_register, boolean, false,
-	   'Set to true to allow users to self register'). % using cpa_admin:add_user/1
+           'Set to true to allow users to self register'). % using cpa_admin:add_user/1
 :- setting(cliopatria:default_entailment, atom, rdfs,
-	   'Default entailment rules applied').
+           'Default entailment rules applied').
 :- setting(cliopatria:optimise_query, boolean, true,
-	   'Optimise queries before execution').
+           'Optimise queries before execution').
 :- setting(cliopatria:rdf_db_namespaces, boolean, true,
-	   'Allow registered namespaces in queries').
+           'Allow registered namespaces in queries').
 :- setting(cliopatria:persistent_store, atom, '',
-	   'Directory for persistent copy of in-memory RDF').
+           'Directory for persistent copy of in-memory RDF').
 :- setting(cliopatria:pre_index_tokens, boolean, false,
-	   'Build the fulltext token index while loading').
+           'Build the fulltext token index while loading').
 :- setting(cliopatria:pre_index_stems, boolean, false,
-	   'Build the fulltext stem index while loading').
+           'Build the fulltext stem index while loading').
 
 
-		 /*******************************
-		 *	  QUERY-SETTINGS	*
-		 *******************************/
+                 /*******************************
+                 *        QUERY-SETTINGS        *
+                 *******************************/
 
 :- setting(sparql:max_clients, nonneg, 100,
-	   'Maximum number of concurrent requests').
+           'Maximum number of concurrent requests').
 :- setting(sparql:stack_size, nonneg, 1000,
-	   'Size of the global stack in mega-bytes').
+           'Size of the global stack in mega-bytes').
 
-		 /*******************************
-		 *	  BROWSE-SETTINGS	*
-		 *******************************/
+                 /*******************************
+                 *        BROWSE-SETTINGS       *
+                 *******************************/
 
 :- setting(cpa_browse:resource_format, atom, nslabel,
-	   'Default resource_format passed to rdf_link//2').
+           'Default resource_format passed to rdf_link//2').

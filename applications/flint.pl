@@ -41,96 +41,97 @@
 :- http_handler(flint(.), http_reply_from_files(flint(.), []), [prefix]).
 
 :- html_resource(flint('config.js'),
-		 [ requires([ flint('flint-editor.js'),
+                 [ requires([ flint('flint-editor.js'),
 
-			      flint('css/sparqlcolors.css'),
-			      flint('css/docs.css')
-			    ])
-		 ]).
+                              flint('css/sparqlcolors.css'),
+                              flint('css/docs.css')
+                            ])
+                 ]).
 
 
 :- html_resource(flint('lib/codemirror.js'),
-		 [ requires([ flint('jquery-1.5.2.min.js'),
-			      flint('lib/codemirror.css')
-			    ])
-		 ]).
+                 [ requires([ flint('jquery-1.5.2.min.js'),
+                              flint('lib/codemirror.css')
+                            ])
+                 ]).
 
 :- html_resource(flint('flint-editor.js'),
-		 [ requires([ flint('lib/codemirror.js'),
-			      flint('sparql10querymode_ll1.js'),
-			      flint('sparql11querymode_ll1.js'),
-			      flint('sparql11updatemode_ll1.js')
-			    ])
-		 ]).
+                 [ requires([ flint('lib/codemirror.js'),
+                              flint('sparql10querymode_ll1.js'),
+                              flint('sparql11querymode_ll1.js'),
+                              flint('sparql11updatemode_ll1.js')
+                            ])
+                 ]).
 
-%%	sparql_editor(+Request)
+%!  sparql_editor(+Request)
 %
-%	HTTP handler that presents the flint SPARQL editor.
+%   HTTP handler that presents the flint SPARQL editor.
 
 sparql_editor(_Request) :-
-	\+ absolute_file_name(flint('flint-editor.js'), _,
-			      [ access(read),
-				file_errors(fail)
-			      ]), !,
-	reply_html_page(cliopatria(default),
-			title('No Flint installed'),
-			\no_flint).
+    \+ absolute_file_name(flint('flint-editor.js'), _,
+                          [ access(read),
+                            file_errors(fail)
+                          ]),
+    !,
+    reply_html_page(cliopatria(default),
+                    title('No Flint installed'),
+                    \no_flint).
 sparql_editor(_Request) :-
-	reply_html_page(
-	    cliopatria(plain),
-	    title('Flint SPARQL Editor'),
-	    \flint_page).
+    reply_html_page(
+        cliopatria(plain),
+        title('Flint SPARQL Editor'),
+        \flint_page).
 
 flint_page -->
-	html_requires(flint('config.js')),
-	html(div(id(flint), [])).
+    html_requires(flint('config.js')),
+    html(div(id(flint), [])).
 
-%%	flint_config(+Request)
+%!  flint_config(+Request)
 %
-%	HTTP handler that serves the   flint SPARQL editor configuration
-%	and initialization.
+%   HTTP handler that serves the   flint SPARQL editor configuration
+%   and initialization.
 
 flint_config(_Request) :-
-	config(Config),
-	format('Content-type: text/javascript~n~n'),
-	format('$(document).ready(function() {~n'),
-	write_config(Config),
-	write_init,
-	format('});~n').
+    config(Config),
+    format('Content-type: text/javascript~n~n'),
+    format('$(document).ready(function() {~n'),
+    write_config(Config),
+    write_init,
+    format('});~n').
 
 write_config(Config) :-
-	format('  var flintConfig = '),
-	json_write(current_output, Config, [width(72)]),
-	format(';').
+    format('  var flintConfig = '),
+    json_write(current_output, Config, [width(72)]),
+    format(';').
 
 write_init :-
-	format('  var fint = new FlintEditor("flint", "images", flintConfig);~n').
+    format('  var fint = new FlintEditor("flint", "images", flintConfig);~n').
 
-%%	config(-Config) is det.
+%!  config(-Config) is det.
 %
-%	Produce a JSON document holding the FlintEditor configuration.
+%   Produce a JSON document holding the FlintEditor configuration.
 
 config(json([ interface = json([ toolbar=true,
-				 menu=true
-			       ]),
-	      namespaces = NameSpaces,
-	      defaultEndpointParameters = EndpointParameters,
-	      endpoints = EndPoints,
-	      defaultModes = Modes
-	    ])) :-
-	namespaces(NameSpaces),
-	endpoint_parameters(EndpointParameters),
-	endpoints(EndPoints),
-	modes(Modes).
+                                 menu=true
+                               ]),
+              namespaces = NameSpaces,
+              defaultEndpointParameters = EndpointParameters,
+              endpoints = EndPoints,
+              defaultModes = Modes
+            ])) :-
+    namespaces(NameSpaces),
+    endpoint_parameters(EndpointParameters),
+    endpoints(EndPoints),
+    modes(Modes).
 
 namespaces(NameSpaces) :-
-	setof(NameSpace, namespace(NameSpace), NameSpaces).
+    setof(NameSpace, namespace(NameSpace), NameSpaces).
 
 namespace(json([ name(Prefix),
-		 prefix(Prefix),
-		 uri(URI)
-	       ])) :-
-	rdf_current_ns(Prefix, URI).
+                 prefix(Prefix),
+                 uri(URI)
+               ])) :-
+    rdf_current_ns(Prefix, URI).
 
 :- if(\+current_predicate(rdf_current_ns/2)).
 rdf_current_ns(Prefix, URI) :- rdf_current_prefix(Prefix, URI).
@@ -138,90 +139,90 @@ rdf_current_ns(Prefix, URI) :- rdf_current_prefix(Prefix, URI).
 
 endpoint_parameters(
     json([ queryParameters =
-	       json([ format(output),
-		      query(query),
-		      update(update)
-		    ]),
-	   selectFormats =
-	     [ json([ name('Plain text'),
-		      format(text),
-		      type('text/plain')
-		    ]),
-	       json([ name('SPARQL-XML'),
-		      format(sparql),
-		      type('application/sparql-results+xml')
-		    ]),
-	       json([ name('JSON'),
-		      format(json),
-		      type('application/sparql-results+json')
-		    ])
-	     ],
-	   constructFormats =
-	     [ json([ name('Plain text'),
-		      format(text),
-		      type('text/plain')
-		    ]),
-	       json([ name('RDF/XML'),
-		      format(rdfxml),
-		      type('application/rdf+xml')
-		    ]),
-	       json([ name('Turtle'),
-		      format(turtle),
-		      type('application/turtle')
-		    ])
-	     ]
-	 ])).
+               json([ format(output),
+                      query(query),
+                      update(update)
+                    ]),
+           selectFormats =
+             [ json([ name('Plain text'),
+                      format(text),
+                      type('text/plain')
+                    ]),
+               json([ name('SPARQL-XML'),
+                      format(sparql),
+                      type('application/sparql-results+xml')
+                    ]),
+               json([ name('JSON'),
+                      format(json),
+                      type('application/sparql-results+json')
+                    ])
+             ],
+           constructFormats =
+             [ json([ name('Plain text'),
+                      format(text),
+                      type('text/plain')
+                    ]),
+               json([ name('RDF/XML'),
+                      format(rdfxml),
+                      type('application/rdf+xml')
+                    ]),
+               json([ name('Turtle'),
+                      format(turtle),
+                      type('application/turtle')
+                    ])
+             ]
+         ])).
 
 
 endpoints([ json([ name('ClioPatria'),
-		   uri(EndPoint),
-		   modes([ sparql11query, sparql10 ])
-		 ]),
-	    json([ name('Update'),
-		   uri(UpdateEndPoint),
-		   modes([ sparql11update ])
-		 ])
-	  ]) :-
-	http_link_to_id(sparql_query,  [], EndPoint),
-	http_link_to_id(sparql_update, [], UpdateEndPoint).
+                   uri(EndPoint),
+                   modes([ sparql11query, sparql10 ])
+                 ]),
+            json([ name('Update'),
+                   uri(UpdateEndPoint),
+                   modes([ sparql11update ])
+                 ])
+          ]) :-
+    http_link_to_id(sparql_query,  [], EndPoint),
+    http_link_to_id(sparql_update, [], UpdateEndPoint).
 
 
 modes([ json([ name('SPARQL 1.1 Query'),
-	       mode(sparql11query)
-	     ]),
-	json([ name('SPARQL 1.1 Update'),
-	       mode(sparql11update)
-	     ]),
-	json([ name('SPARQL 1.0'),
-	       mode(sparql10)
-	     ])
+               mode(sparql11query)
+             ]),
+        json([ name('SPARQL 1.1 Update'),
+               mode(sparql11update)
+             ]),
+        json([ name('SPARQL 1.0'),
+               mode(sparql10)
+             ])
       ]).
 
 
-%%	no_flint//
+%!  no_flint//
 %
-%	Display a message indicating the user how to install Flint
+%   Display a message indicating the user how to install Flint
 
 no_flint -->
-	{ absolute_file_name(cliopatria(.), CD0,
-			     [ file_type(directory),
-			       access(read)
-			     ]),
-	  prolog_to_os_filename(CD0, ClioHome)
-	},
-	html_requires(pldoc),
-	html([ h1('Flint SPARQL Editor is not installed'),
-	       p([ 'Please run the following command in the ClioPatria ',
-		   'installation directory "~w" to install Flint.'-[ClioHome]
-		 ]),
-	       pre(class(code),
-		   [ 'git submodule update --init web/FlintSparqlEditor'
-		   ])
-	     ]).
+    { absolute_file_name(cliopatria(.), CD0,
+                         [ file_type(directory),
+                           access(read)
+                         ]),
+      prolog_to_os_filename(CD0, ClioHome)
+    },
+    html_requires(pldoc),
+    html([ h1('Flint SPARQL Editor is not installed'),
+           p([ 'Please run the following command in the ClioPatria ',
+               'installation directory "~w" to install Flint.'-[ClioHome]
+             ]),
+           pre(class(code),
+               [ 'git submodule update --init web/FlintSparqlEditor'
+               ])
+         ]).
 
 
-		 /*******************************
-		 *	 REGISTER WITH MENU	*
-		 *******************************/
+                 /*******************************
+                 *       REGISTER WITH MENU     *
+                 *******************************/
 
 cliopatria:menu_item(150=query/sparql_editor,  'Flint SPARQL Editor').

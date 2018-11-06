@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2010, University of Amsterdam,
-		   VU University Amsterdam
+                   VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -29,8 +29,8 @@
 */
 
 :- module(api_json,
-	  [
-	  ]).
+          [
+          ]).
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_json)).
 :- use_module(library(semweb/rdf_describe)).
@@ -46,84 +46,85 @@
 
 This module produces a JSON description for a resource.
 
-@see	sparql.pl implements a SPARQL frontend.  The SPARQL DESCRIBE
-	keyword provides similar functionality, but it has no arguments
-	to specify how to describe a resource and it cannot return JSON.
-@see	lod.pl implements Linked Open Data (LOD) descriptions.
+@see    sparql.pl implements a SPARQL frontend.  The SPARQL DESCRIBE
+        keyword provides similar functionality, but it has no arguments
+        to specify how to describe a resource and it cannot return JSON.
+@see    lod.pl implements Linked Open Data (LOD) descriptions.
 */
 
-%%	json_describe(+Request)
+%!  json_describe(+Request)
 %
-%	HTTP  handler  that  describes   a    resource   using   a  JSON
-%	serialization.
+%   HTTP  handler  that  describes   a    resource   using   a  JSON
+%   serialization.
 %
-%	@see	http://n2.talis.com/wiki/RDF_JSON_Specification describes
-%		the used graph-serialization.
-%	@see	http://n2.talis.com/wiki/Bounded_Descriptions_in_RDF for
-%		a description of the various descriptions
-%	@bug	Currently only supports =cbd=.
+%   @see    http://n2.talis.com/wiki/RDF_JSON_Specification describes
+%           the used graph-serialization.
+%   @see    http://n2.talis.com/wiki/Bounded_Descriptions_in_RDF for
+%           a description of the various descriptions
+%   @bug    Currently only supports =cbd=.
 
 json_describe(Request) :-
-	http_parameters(Request,
-			[ r(URI,
-			    [ description('The resource to describe')
-			    ]),
-			  how(_How,
-			      [ %oneof([cbd, scdb, ifcbd, lcbd, hcbd]),
-				oneof([cbd]),
-				default(cbd),
-				description('Algorithm that determines \c
-					     the description')
-			      ])
-			]),
-	resource_CBD(rdf, URI, Graph),
-	graph_json(Graph, JSON),
-	reply_json(JSON).
+    http_parameters(Request,
+                    [ r(URI,
+                        [ description('The resource to describe')
+                        ]),
+                      how(_How,
+                          [ %oneof([cbd, scdb, ifcbd, lcbd, hcbd]),
+                            oneof([cbd]),
+                            default(cbd),
+                            description('Algorithm that determines \c
+                                             the description')
+                          ])
+                    ]),
+    resource_CBD(rdf, URI, Graph),
+    graph_json(Graph, JSON),
+    reply_json(JSON).
 
-%%	json_prefixes(+Request)
+%!  json_prefixes(+Request)
 %
-%	Return a JSON object mapping prefixes to URIs.
+%   Return a JSON object mapping prefixes to URIs.
 
 json_prefixes(_Request) :-
-	findall(Prefix-URI,
-		rdf_current_ns(Prefix, URI),
-		Pairs),
-	dict_pairs(Dict, prefixes, Pairs),
-	reply_json(Dict).
+    findall(Prefix-URI,
+            rdf_current_ns(Prefix, URI),
+            Pairs),
+    dict_pairs(Dict, prefixes, Pairs),
+    reply_json(Dict).
 
-%%	json_resource_representation(+Request)
+%!  json_resource_representation(+Request)
 %
-%	HTTP Handler to represent a resource in a given language
+%   HTTP Handler to represent a resource in a given language
 
 json_resource_representation(Request) :-
-	http_parameters(Request,
-			[ r(URI,
-			    [ description('The resource to format')
-			    ]),
-			  language(Lang,
-			      [ oneof([sparql,turtle,prolog,xml]),
-				default(turtle),
-				description('Target language')
-			      ])
-			]),
-	format_resource(Lang, URI, String),
-	reply_json_dict(String).
+    http_parameters(Request,
+                    [ r(URI,
+                        [ description('The resource to format')
+                        ]),
+                      language(Lang,
+                          [ oneof([sparql,turtle,prolog,xml]),
+                            default(turtle),
+                            description('Target language')
+                          ])
+                    ]),
+    format_resource(Lang, URI, String),
+    reply_json_dict(String).
 
-format_resource(sparql, URI, String) :- !,
-	format_resource(turtle, URI, String).
+format_resource(sparql, URI, String) :-
+    !,
+    format_resource(turtle, URI, String).
 format_resource(turtle, URI, String) :-
-	(   rdf_global_id(Prefix:Local, URI)
-	->  format(string(String), '~w:~w', [Prefix, Local])
-	;   format(string(String), '<~w>', [URI])
-	).
+    (   rdf_global_id(Prefix:Local, URI)
+    ->  format(string(String), '~w:~w', [Prefix, Local])
+    ;   format(string(String), '<~w>', [URI])
+    ).
 format_resource(xml, URI, String) :-
-	(   rdf_global_id(Prefix:Local, URI),
-	    xml_name(URI, utf8)
-	->  format(string(String), '~w:~w', [Prefix, Local])
-	;   format(string(String), '"~w"', [URI])
-	).
+    (   rdf_global_id(Prefix:Local, URI),
+        xml_name(URI, utf8)
+    ->  format(string(String), '~w:~w', [Prefix, Local])
+    ;   format(string(String), '"~w"', [URI])
+    ).
 format_resource(prolog, URI, String) :-
-	(   rdf_global_id(Prefix:Local, URI)
-	->  format(string(String), '~q', [Prefix:Local])
-	;   format(string(String), '~q', [URI])
-	).
+    (   rdf_global_id(Prefix:Local, URI)
+    ->  format(string(String), '~q', [Prefix:Local])
+    ;   format(string(String), '~q', [URI])
+    ).

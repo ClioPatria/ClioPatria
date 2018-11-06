@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2004-2010, University of Amsterdam,
-			      VU University Amsterdam
+                              VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -30,16 +30,16 @@
 
 
 :- module(skosxl_entailment,
-	  [ rdf/3
-	  ]).
-:- use_module(rdfql(rdfql_runtime)).	% runtime tests
+          [ rdf/3
+          ]).
+:- use_module(rdfql(rdfql_runtime)).    % runtime tests
 :- use_module(library(semweb/rdf_db),
-	      [ rdf_global_id/2,
-		rdf_subject/1,
-		rdf_current_predicate/1,
-		(rdf_meta)/1,
-		op(_,_,_)
-	      ]).
+              [ rdf_global_id/2,
+                rdf_subject/1,
+                rdf_current_predicate/1,
+                (rdf_meta)/1,
+                op(_,_,_)
+              ]).
 
 /** <module> SKOSXL entailment
 
@@ -52,10 +52,10 @@ This entailment module does only some SKOS XL inferences, see the numbers of the
 */
 
 :- rdf_meta
-	rdf(r,r,o).
+        rdf(r,r,o).
 
 rdf(S, P, O) :-
-	rdf_db:rdf(S, P, O).
+    rdf_db:rdf(S, P, O).
 
 % S53
 rdf(skosxl:prefLabel,   rdf:type, owl:'ObjectProperty').
@@ -69,24 +69,24 @@ rdf(skosxl:hiddenLabel, rdfs:range,  skosxl:'Label').
 
 % S55
 rdf(S, skos:prefLabel, O) :-
-	rdf_db:rdf(S, skosxl:prefLabel, L),
-	rdf_db:rdf(L, skosxl:literalForm, O).
+    rdf_db:rdf(S, skosxl:prefLabel, L),
+    rdf_db:rdf(L, skosxl:literalForm, O).
 % S56
 rdf(S, skos:altLabel, O) :-
-	rdf_db:rdf(S, skosxl:altLabel, L),
-	rdf_db:rdf(L, skosxl:literalForm, O).
+    rdf_db:rdf(S, skosxl:altLabel, L),
+    rdf_db:rdf(L, skosxl:literalForm, O).
 % S57
 rdf(S, skos:hiddenLabel, O) :-
-	rdf_db:rdf(S, skosxl:hiddenLabel, L),
-	rdf_db:rdf(L, skosxl:literalForm, O).
+    rdf_db:rdf(S, skosxl:hiddenLabel, L),
+    rdf_db:rdf(L, skosxl:literalForm, O).
 
 
 
-		 /*******************************
-		 *	       REGISTER		*
-		 *******************************/
+                 /*******************************
+                 *             REGISTER         *
+                 *******************************/
 
 :- multifile
-	cliopatria:entailment/2.
+    cliopatria:entailment/2.
 
 cliopatria:entailment(skosxl, skosxl_entailment).

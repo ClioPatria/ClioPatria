@@ -27,14 +27,14 @@ _object_.
 
 % Use this if the URIs resolve directly to this server
 %:- http_handler('/rdf',
-%		 lod_api([ bounded_description(cbd)
-%			 ]),
-%		 [ prefix ]).
+%                lod_api([ bounded_description(cbd)
+%                        ]),
+%                [ prefix ]).
 
 % Use this if the URIs are redirected to this server.
 %:- http_handler('/purl/rdf',
-%		 lod_api([ redirected_from('http://www.purl.org/mydata'),
-%			   bounded_description(cbd)
-%			 ]),
-%		 [ prefix ]).
+%                lod_api([ redirected_from('http://www.purl.org/mydata'),
+%                          bounded_description(cbd)
+%                        ]),
+%                [ prefix ]).
 

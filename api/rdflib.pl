@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2010, University of Amsterdam,
-		         VU University Amsterdam
+                         VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -29,8 +29,8 @@
 */
 
 :- module(api_rdflib,
-	  [ library_ontology/1		% -Name
-	  ]).
+          [ library_ontology/1          % -Name
+          ]).
 :- use_module(user(user_db)).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -46,101 +46,101 @@
 */
 
 :- http_handler(sesame('loadLibraryOntology'),   load_library_ontology,
-		[time_limit(infinite)]).
+                [time_limit(infinite)]).
 :- http_handler(sesame('listLibraryOntologies'), list_library_ontologies, []).
 
-%%	load_library_ontology(+Request)
+%!  load_library_ontology(+Request)
 %
-%	Load a named ontology from the ontology library.
+%   Load a named ontology from the ontology library.
 %
-%	@tbd	Cannot use concurrent loading as the load as a whole is
-%		inside an rdf transaction.
+%   @tbd    Cannot use concurrent loading as the load as a whole is
+%           inside an rdf transaction.
 
 load_library_ontology(Request) :-
-	http_parameters(Request,
-			[ repository(Repository),
-			  ontology(Ontology, []),
-			  resultFormat(Format)
-			],
-			[ attribute_declarations(attribute_decl)
-			]),
-	authorized(write(Repository, load(library_ontology(Ontology)))),
-	prepare_ontology_library,
-	api_action(Request,
-		   rdf_load_library(Ontology, []),
-		   Format,
-		   \loaded_library_ontology(Ontology)).
+    http_parameters(Request,
+                    [ repository(Repository),
+                      ontology(Ontology, []),
+                      resultFormat(Format)
+                    ],
+                    [ attribute_declarations(attribute_decl)
+                    ]),
+    authorized(write(Repository, load(library_ontology(Ontology)))),
+    prepare_ontology_library,
+    api_action(Request,
+               rdf_load_library(Ontology, []),
+               Format,
+               \loaded_library_ontology(Ontology)).
 
 loaded_library_ontology(Id) -->
-	html('Loaded RDF library '),
-	(   { rdf_library_index(Id, title(Title)) }
-	->  html([Id, ' -- ', Title])
-	;   html(Id)
-	).
+    html('Loaded RDF library '),
+    (   { rdf_library_index(Id, title(Title)) }
+    ->  html([Id, ' -- ', Title])
+    ;   html(Id)
+    ).
 
 
-%%	list_library_ontologies(+Request)
+%!  list_library_ontologies(+Request)
 %
-%	Reply with a list of available base ontologies
+%   Reply with a list of available base ontologies
 
 list_library_ontologies(Request) :-
-	authorized(read(status, listBaseOntologies)),
-	http_parameters(Request,
-			[ resultFormat(Format),
-			  serialization(Serialization)
-			],
-			[ attribute_declarations(attribute_decl)
-			]),
-	catch(findall(row(O), library_ontology(O), Rows0), _,
-	      Rows0 = []),
-	sort(Rows0, Rows),
-	write_table(Rows,
-		    [ result_format(Format),
-		      serialization(Serialization),
-		      variables(varnames(ontology))
-		    ]).
+    authorized(read(status, listBaseOntologies)),
+    http_parameters(Request,
+                    [ resultFormat(Format),
+                      serialization(Serialization)
+                    ],
+                    [ attribute_declarations(attribute_decl)
+                    ]),
+    catch(findall(row(O), library_ontology(O), Rows0), _,
+          Rows0 = []),
+    sort(Rows0, Rows),
+    write_table(Rows,
+                [ result_format(Format),
+                  serialization(Serialization),
+                  variables(varnames(ontology))
+                ]).
 
 
-%%	library_ontology(-Name) is nondet.
+%!  library_ontology(-Name) is nondet.
 %
-%	True if Name is the name of an ontology from the library.
+%   True if Name is the name of an ontology from the library.
 
 library_ontology(O) :-
-	prepare_ontology_library,
-	rdf_library_index(O, title(_Title)).
+    prepare_ontology_library,
+    rdf_library_index(O, title(_Title)).
 
 
-%%	prepare_ontology_library is det.
+%!  prepare_ontology_library is det.
 %
-%	Load RDF library manifests from   directories  defined using the
-%	file_search_path/2 =ontology= alias.
+%   Load RDF library manifests from   directories  defined using the
+%   file_search_path/2 =ontology= alias.
 
 prepare_ontology_library :-
-	(   absolute_file_name(rdf(.), Dir,
-			       [ file_type(directory),
-				 solutions(all)
-			       ]),
-	    rdf_attach_library(Dir),
-	    fail
-	;   true
-	).
+    (   absolute_file_name(rdf(.), Dir,
+                           [ file_type(directory),
+                             solutions(all)
+                           ]),
+        rdf_attach_library(Dir),
+        fail
+    ;   true
+    ).
 
-%%	attribute_decl(+Name, -Options)
+%!  attribute_decl(+Name, -Options)
 %
-%	Copied from Sesame
+%   Copied from Sesame
 
 attribute_decl(repository,
-	       [ optional(true),
-		 description('Name of the repository (ignored)')
-	       ]).
+               [ optional(true),
+                 description('Name of the repository (ignored)')
+               ]).
 attribute_decl(resultFormat,
-	       [ default(xml),
-		 type(oneof([ xml,
-			      html,
-			      rdf
-			    ])),
-		 description('Serialization format of the result')
-	       ]).
+               [ default(xml),
+                 type(oneof([ xml,
+                              html,
+                              rdf
+                            ])),
+                 description('Serialization format of the result')
+               ]).
 attribute_decl(ontology,
-	       [ description('Name of the ontology to load')
-	       ]).
+               [ description('Name of the ontology to load')
+               ]).

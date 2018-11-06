@@ -4,7 +4,7 @@
     E-mail:        J.Wielemaker@cs.vu.nl
     WWW:           http://www.swi-prolog.org
     Copyright (C): 2010, University of Amsterdam,
-		   VU University Amsterdam
+                   VU University Amsterdam
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License
@@ -29,8 +29,8 @@
 */
 
 :- module(bundle,
-	  [ use_bundle/1
-	  ]).
+          [ use_bundle/1
+          ]).
 
 /** <module> Import bundles
 
@@ -43,30 +43,30 @@ package is already used as a package of software.
 */
 
 :- multifile
-	user:file_search_path/2,
-	system:term_expansion/2,
-	emacs_prolog_colours:goal_colours/2.
+    user:file_search_path/2,
+    system:term_expansion/2,
+    emacs_prolog_colours:goal_colours/2.
 
-user:file_search_path(bundle,	    library(bundles)).
+user:file_search_path(bundle,       library(bundles)).
 
-%%	use_bundle(+Term)
+%!  use_bundle(+Term)
 %
-%	Include a bundle of declarations.  Typically, these declarations
-%	are a set of :- use_module(Library). calls.
+%   Include a bundle of declarations.  Typically, these declarations
+%   are a set of :- use_module(Library). calls.
 
 use_bundle(Package) :-
-	throw(error(context_error(nodirective, use_bundle(Package)), _)).
+    throw(error(context_error(nodirective, use_bundle(Package)), _)).
 
 system:term_expansion((:- use_bundle(Package)),
-		      (:- include(bundle(Package)))).
+                      (:- include(bundle(Package)))).
 
 
 emacs_prolog_colours:goal_colours(use_bundle(Pkg),
-				  built_in - [ Class ]) :-
-	(   absolute_file_name(bundle(Pkg), File,
-			       [ file_type(prolog),
-				 file_errors(fail)
-			       ])
-	->  Class = file(File)
-	;   Class = nofile
-	).
+                                  built_in - [ Class ]) :-
+    (   absolute_file_name(bundle(Pkg), File,
+                           [ file_type(prolog),
+                             file_errors(fail)
+                           ])
+    ->  Class = file(File)
+    ;   Class = nofile
+    ).

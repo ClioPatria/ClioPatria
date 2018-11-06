@@ -44,92 +44,97 @@
 
 */
 
-%%	export_graph(+Request)
+%!  export_graph(+Request)
 %
-%	Export a named graph in a   given  serialization. Whether or not
-%	exporting of a named graph is  defined by authorized/1 using the
-%	term:
+%   Export a named graph in a   given  serialization. Whether or not
+%   exporting of a named graph is  defined by authorized/1 using the
+%   term:
 %
-%		* read(default, download(Graph))
+%           * read(default, download(Graph))
 
 export_graph(Request) :-
-	http_parameters(Request,
-			[ graph(Graph),
-			  format(Format),
-			  mimetype(Mime)
-			],
-			[ attribute_declarations(http_param)
-			]
-		       ),
-	authorized(read(default, download(Graph))),
-	send_graph(Graph, Format, Mime).
+    http_parameters(Request,
+                    [ graph(Graph),
+                      format(Format),
+                      mimetype(Mime)
+                    ],
+                    [ attribute_declarations(http_param)
+                    ]
+                   ),
+    authorized(read(default, download(Graph))),
+    send_graph(Graph, Format, Mime).
 
-send_graph(Graph, Format, default) :- !,
-	default_mime_type(Format, MimeType),
-	send_graph(Graph, Format, MimeType).
-send_graph(Graph, Format, MimeType) :- !,
-	format('Transfer-Encoding: chunked~n'),
-	format('Content-type: ~w; charset=UTF8~n~n', [MimeType]),
-	send_graph(Graph, Format).
+send_graph(Graph, Format, default) :-
+    !,
+    default_mime_type(Format, MimeType),
+    send_graph(Graph, Format, MimeType).
+send_graph(Graph, Format, MimeType) :-
+    !,
+    format('Transfer-Encoding: chunked~n'),
+    format('Content-type: ~w; charset=UTF8~n~n', [MimeType]),
+    send_graph(Graph, Format).
 
-send_graph(Graph, turtle) :- !,
-	rdf_save_turtle(stream(current_output),
-			[ graph(Graph),
-			  base(Graph)
-			]).
-send_graph(Graph, canonical_turtle) :- !,
-	rdf_save_canonical_turtle(stream(current_output), [graph(Graph)]).
-send_graph(Graph, rdfxml) :- !,
-	rdf_save(stream(current_output), [graph(Graph)]).
+send_graph(Graph, turtle) :-
+    !,
+    rdf_save_turtle(stream(current_output),
+                    [ graph(Graph),
+                      base(Graph)
+                    ]).
+send_graph(Graph, canonical_turtle) :-
+    !,
+    rdf_save_canonical_turtle(stream(current_output), [graph(Graph)]).
+send_graph(Graph, rdfxml) :-
+    !,
+    rdf_save(stream(current_output), [graph(Graph)]).
 
 default_mime_type(turtle, text/turtle).
 default_mime_type(canonical_turtle, text/turtle).
 default_mime_type(rdfxml, application/'rdf+xml').
 
-%%	export_graph_schema(+Request)
+%!  export_graph_schema(+Request)
 %
-%	HTTP handler that computes the schema from the actual data in a
-%	graph.
+%   HTTP handler that computes the schema from the actual data in a
+%   graph.
 %
-%	@see The computation is implemented by rdf_graph_schema/2.
+%   @see The computation is implemented by rdf_graph_schema/2.
 
 export_graph_schema(Request) :-
-	http_parameters(Request,
-			[ graph(Graph),
-			  format(Format),
-			  mimetype(Mime)
-			],
-			[ attribute_declarations(http_param)
-			]
-		       ),
-	authorized(read(default, download(Graph))),
-	rdf_graph_schema(Graph, Triples),
-	(   Mime == default
-	->  default_mime_type(Format, MimeType)
-	;   MimeType = Mime
-	),
-	write_graph(Triples,
-		    [ serialization(Format),
-		      mimetype(MimeType)
-		    ]).
+    http_parameters(Request,
+                    [ graph(Graph),
+                      format(Format),
+                      mimetype(Mime)
+                    ],
+                    [ attribute_declarations(http_param)
+                    ]
+                   ),
+    authorized(read(default, download(Graph))),
+    rdf_graph_schema(Graph, Triples),
+    (   Mime == default
+    ->  default_mime_type(Format, MimeType)
+    ;   MimeType = Mime
+    ),
+    write_graph(Triples,
+                [ serialization(Format),
+                  mimetype(MimeType)
+                ]).
 
 
-%%	http_param(?Name, ?Attributes).
+%!  http_param(?Name, ?Attributes).
 
 http_param(graph,
-	   [ description('Name of the graph')]).
+           [ description('Name of the graph')]).
 http_param(format,
-	   [ oneof([turtle,
-		    canonical_turtle,
-		    rdfxml
-		   ]),
-	     default(turtle),
-	     description('Output serialization')
-	   ]).
+           [ oneof([turtle,
+                    canonical_turtle,
+                    rdfxml
+                   ]),
+             default(turtle),
+             description('Output serialization')
+           ]).
 http_param(mimetype,
-	   [ default(default),
-	     description('MIME-type to use. If "default", it depends on format')
-	   ]).
+           [ default(default),
+             description('MIME-type to use. If "default", it depends on format')
+           ]).
 
 
 
