@@ -10,3 +10,6 @@
 [submodule "web/yasr"]
 	path = web/yasr
 	url = https://github.com/YASGUI/YASR.git
+[submodule "test/Tests/sparql"]
+	path = test/Tests/sparql
+	url = ../sparql-1.1-test-cases.git
