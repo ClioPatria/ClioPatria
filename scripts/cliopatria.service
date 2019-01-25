@@ -1,0 +1,17 @@
+# ClioPatria systemd unit
+
+[Unit]
+Description=ClioPatria
+
+[Service]
+UMask=022
+Environment=LANG=en_US.utf8
+Restart=on-failure
+StartLimitInterval=60
+StartLimitBurst=5
+WorkingDirectory=/home/cliopatria/src/ClioPatria/demo
+ExecStart=/usr/bin/swipl daemon.pl --no-fork --port=80 --user=www-data
+
+[Install]
+WantedBy=multi-user.target
+================================================================
