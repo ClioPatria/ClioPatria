@@ -5,6 +5,7 @@
     WWW:           http://cliopatria.swi-prolog.org
     Copyright (c)  2010-2018, University of Amsterdam
                               VU University Amsterdam
+                              CWI, Amsterdam
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -119,6 +120,10 @@ user:file_search_path(library, cliopatria(lib)).
                 library(conf_d),
                 user:library(cpack/cpack)
               ]).
+
+:- if(exists_source(library(http/http_dyn_workers))).
+:- use_module(library(http/http_dyn_workers)).
+:- endif.
 
 :- http_handler(web(.), serve_files_in_directory(web), [prefix]).
 
