@@ -1831,6 +1831,7 @@ update([H|T], M) :-
     update(H, M),
     update(T, M).
 update(insert_data(Quads), _) :-
+    materialize_bnodes(Quads),
     maplist(insert_triple(user), Quads).
 update(delete_data(Quads), _) :-
     maplist(delete_triple(user), Quads).
@@ -1916,6 +1917,15 @@ delete_triples(G0, Triple):-
         rdf(S,P,O),
         delete_triple(G, rdf(S,P,O))
     ).
+
+materialize_bnodes(Term) :-
+    term_variables(Term, Vars),
+    assign_bnodes(Vars, 0).
+
+assign_bnodes([], _).
+assign_bnodes([bnode(Id)|T], Id) :-
+    Id2 is Id + 1,
+    assign_bnodes(T, Id2).
 
 modify_subject(bnode(Id), BNode) :-
     !,
