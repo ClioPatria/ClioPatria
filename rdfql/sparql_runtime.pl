@@ -1862,7 +1862,7 @@ update(modify(With, Modify, _Using, Query), Module) :-
            modify(Modify, Graph)).
 update(load(_Silent, URI, Into), _) :-
     (   Into = graph(Graph)
-    ->  rdf_load(URI, [graph(Graph)])
+    ->  rdf_load(URI, [graph(Graph), multifile(true)])
     ;   rdf_load(URI)
     ).
 update(clear(_Silent, Clear), _) :-
