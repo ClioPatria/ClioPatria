@@ -73,7 +73,7 @@ rdf_io:write_graph(turtle, _Serialization, Triples, Options) :-
 rdf_io:write_graph(canonical_turtle, _Serialization, Triples, Options) :-
     option(mimetype(Type), Options, 'text/turtle'),
     format('Transfer-encoding: chunked~n'),
-    format('Content-type: Type~n~n', [Type]),
+    format('Content-type: ~w~n~n', [Type]),
     (   Triples == []
     ->  format('# Graph contains no data~n', [])
     ;   rdf_save_canonical_turtle(stream(current_output),

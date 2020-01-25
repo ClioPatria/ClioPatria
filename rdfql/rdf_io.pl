@@ -156,7 +156,7 @@ get_triples(rdfxml, Input, Triples, Options) :-
 write_graph(xml, rdfxml, Triples, Options) :-
     option(mimetype(Type), Options, 'application/rdf+xml'),
     format('Transfer-encoding: chunked~n'),
-    format('Content-type: Type; charset=UTF-8~n~n', [Type]),
+    format('Content-type: ~w; charset=UTF-8~n~n', [Type]),
     rdf_write_xml(current_output, Triples).
 
 
