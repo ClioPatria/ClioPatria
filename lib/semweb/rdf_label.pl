@@ -187,6 +187,11 @@ after_char(Atom, Char, Rest) :-
 literal_lang(literal(Lang0, _), Lang) :-
     !,
     Lang = Lang0.
+
+literal_lang(literal(lang(Lang0, _)), Lang) :-
+    !,
+    Lang = Lang0.
+
 literal_lang(_, _).
 
 %!  literal_text(++Object, -Text:text) is semidet.
