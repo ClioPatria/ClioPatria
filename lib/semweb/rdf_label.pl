@@ -101,7 +101,8 @@ rdf_label(R, Label) :-
     ).
 
 
-%!  rdf_display_label(+R, -Label:atom) is det.
+
+%!  rdf_display_label(+R, -Text:text) is det.
 %
 %   Provide a label for R in the   user's  default language. This is
 %   the same as rdf_display_label(R, _, Label).
@@ -111,8 +112,7 @@ rdf_label(R, Label) :-
 rdf_display_label(R, Label) :-
     rdf_display_label(R, _, Label).
 
-
-%!  rdf_display_label(+R, ?Lang, -Label:atom) is det.
+%!  rdf_display_label(+R, ?Lang, -Text:text) is det.
 %
 %   Label is the preferred label to display   the  resource R in the
 %   language Lang. As a last resort, this predicates creates a label
@@ -121,48 +121,49 @@ rdf_display_label(R, Label) :-
 rdf_display_label(R, Lang, Label) :-
     rdf_real_label(R, Lang, Label),
     !.
-rdf_display_label(Resource, url, Label) :-
+rdf_display_label(Resource, url, String) :-
     (   after_char(Resource, '#', Local), Local \= ''
     ->  Label = Local
     ;   after_char(Resource, '/', Local), Local \= ''
     ->  Label = Local
     ;   Label = Resource
-    ).
+    ),
+    atom_string(Label, String).
 
 
 rdf_real_label(R, Lang, Label) :-
+    % first compute label based on user-defined hook
     display_label_hook(R, Lang, Label),
     !.
 rdf_real_label(R, Lang, Label) :-
+    % compute label in given language Lang
+    nonvar(Lang),
     rdf_is_resource(R),
-    (   nonvar(Lang), % try fast option first:
-        rdf_label(R, literal(lang(Lang, Literal)))
-    ->  true
-    ;   nonvar(Lang),
-        % warning: BT over next call is quite expensive when R has labels in many languages:
-        rdf_label(R, Literal),
-        Literal = literal(lang(L, _)),
-        lang_matches(L, Lang)
-    ->  true
-    ;   user_preference(user:lang, literal(Lang)), % try fast option first:
-        rdf_label(R, literal(lang(Lang, Literal)))
-    ->  true
-    ;   user_preference(user:lang, literal(Lang)),
-        % warning: BT over next call is quite expensive when R has labels in many languages:
-        rdf_label(R, Literal),
-        Literal = literal(lang(L, _)),
-        lang_matches(L, Lang)
-    ->  true
-    ;   rdf_label(R, Literal),
-        literal_lang(Literal, Lang),
-        var(Lang)
-    ->  true
-    ;   rdf_label(R, Literal),
-        literal_lang(Literal, Lang)
-    ->  true
+    (   rdf_label(R, literal(lang(Lang, Label))) % Try fast option first
+    ->  Literal = literal(lang(Lang, Label))
+    ;   rdf_label(R, Literal),    % warning: BT over next call is expensive when R has labels in many languages:
+        Literal = literal(lang(Lang0, Label)),
+        lang_matches(Lang0, Lang)
     ),
     !,
     literal_text(Literal, Label).
+
+rdf_real_label(R, Lang, Label) :-
+    % compute label in user prefered language if Lang not given
+    var(Lang),
+    rdf_is_resource(R),
+    user_preference(user:lang, literal(Lang)),
+    rdf_real_label(R, Lang, Label).
+
+
+rdf_real_label(R, Lang, Label) :-
+    % compute label in any language, unify this language with Lang
+    var(Lang),
+    rdf_is_resource(R),
+    rdf_label(R, Literal),
+    literal_lang(Literal, Lang),
+    literal_text(Literal, Label).
+
 rdf_real_label(BNode, Lang, Label) :-
     rdf_has(BNode, rdf:value, Value),
     rdf_real_label(Value, Lang, Label0),
