@@ -367,7 +367,7 @@ ac_object(prefix(other), Query, Filter, Text-Resource) :-
     ;   literal_text(Literal, Text)
     ).
 
-ac_candidate(Query, Filter, R, P, Literal) :-
+ac_candidate(Query, Filter, R, P, literal(Literal)) :-
     (   sub_term(graph(Graph), Filter)
     ->  rdf(R, P, literal(prefix(Query), Literal), Graph)
     ;   rdf(R, P, literal(prefix(Query), Literal))
