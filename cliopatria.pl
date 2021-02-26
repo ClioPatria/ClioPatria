@@ -490,6 +490,7 @@ load_argument(RDF, _File, rdf) :-
     rdf_extension(RDF).
 
 rdf_extension(rdf).
+rdf_extension(rdfs).
 rdf_extension(owl).
 rdf_extension(ttl).
 rdf_extension(nt).
