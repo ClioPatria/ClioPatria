@@ -1392,6 +1392,17 @@ list_resource(Request) :-
 :- multifile
     cliopatria:list_resource//1.
 
+list_resource(URI, _Options) -->
+    { \+ rdf(URI, _, _),
+      \+ rdf(_, URI, _),
+      \+ rdf(_, _, URI),
+      \+ rdf(_, _, _, URI)
+    },
+    !,
+    html([ h1('Unknown URI'),
+           p(['The URI ', URI, ' does not appear in the graph, \c
+              neither as subject, predicate, object or graph.'])
+         ]).
 list_resource(URI, Options) -->
     { \+ option(raw(true), Options) },
     (   cliopatria:list_resource(URI, Options)
