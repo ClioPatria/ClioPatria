@@ -140,13 +140,13 @@ rdf_real_label(R, Lang, Label) :-
     nonvar(Lang),
     rdf_is_resource(R),
     (   rdf_label(R, literal(lang(Lang, Label))) % Try fast option first
-    ->  Literal = literal(lang(Lang, Label))
+    ->  true
     ;   rdf_label(R, Literal),    % warning: BT over next call is expensive when R has labels in many languages:
         Literal = literal(lang(Lang0, Label)),
         lang_matches(Lang0, Lang)
     ),
-    !,
-    literal_text(Literal, Label).
+    !.
+    % literal_text(Literal, Label). % redundant? fails on string/atom mismatch in old and new Labels
 
 rdf_real_label(R, Lang, Label) :-
     % compute label in user prefered language if Lang not given
