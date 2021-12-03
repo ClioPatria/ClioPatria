@@ -54,13 +54,12 @@ can also specify RDF from HTTP servers.
 :- dynamic
     user:file_search_path/2.
 
-/* Assume RDF files are located in a directory
-   called 'rdf' located on the same level as the
-   directory the server is running from.
+/* Assume RDF files are located in one of these directories
+   relative to directory the server is running from.
 */
 
+user:file_search_path(rdf, '.').
+user:file_search_path(rdf, './rdf').
 user:file_search_path(rdf, '../rdf').
-% user:file_search_path(rdf, '../econnect/demo/vocs').
-% user:file_search_path(rdf, '../econnect/demo/metadata').
 
 
