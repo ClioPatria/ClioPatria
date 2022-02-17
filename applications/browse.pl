@@ -1600,10 +1600,11 @@ local_view(URI, Graph, Options) -->
     ;   { sane_uri(URI) }
     ->  { http_link_to_id(lod_crawl, [], FetchURL),
           http_current_request(Request),
-          memberchk(request_uri(Here), Request)
+          memberchk(request_uri(Here), Request),
+          string_concat(URI, '.rdf', RealURL)
         },
         html(form(action(FetchURL),
-                  [ \hidden(r, URI),
+                  [ \hidden(r, RealURL),
                     \hidden(return_to, Here),
                     'No triples for ', \show_link(URI),
                     '.  Would you like to ',
