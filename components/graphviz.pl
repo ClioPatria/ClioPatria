@@ -168,10 +168,8 @@ is_meta(bag_shape_hook).
 
 has_graphviz_renderer(Renderer) :-
     process:exe_options(ExeOptions),
-    absolute_file_name(path(Renderer), _,
-                       [ file_errors(fail)
-                       | ExeOptions
-                       ]).
+    merge_options(file_errors(fail), ExeOptions, FileOptions),
+    absolute_file_name(path(Renderer), _, FileOptions).
 
 no_graph_viz(Renderer) -->
     html(div(id('no-graph-viz'),
