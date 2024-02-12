@@ -1399,8 +1399,11 @@ list_resource(URI, _Options) -->
       \+ rdf(_, _, _, URI)
     },
     !,
+    { http_current_request(Request),
+      http_404([], Request)
+    },
     html([ h1('Unknown URI'),
-           p(['The URI ', URI, ' does not appear in the graph, \c
+           p(['The URI does not appear in the graph, \c
               neither as subject, predicate, object or graph.'])
          ]).
 list_resource(URI, Options) -->
