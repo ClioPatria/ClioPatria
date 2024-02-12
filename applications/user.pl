@@ -53,6 +53,13 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdf_library)).
 :- use_module(library(occurs)).
+:- use_module(library(aggregate)).
+:- use_module(library(apply)).
+:- use_module(library(lists)).
+:- use_module(library(sgml)).
+:- use_module(library(http/http_json)).
+:- use_module(library(http/http_server)).
+:- use_module(library(http/http_stream)).
 
 /** <Module> Basic user (developer) interaction
 
@@ -97,6 +104,7 @@ in:
                 [ id(admin) ]).
 :- http_handler(cliopatria('user/query'),            query_form,
                 [id(sparql_query_form)]).
+:- http_handler(cliopatria('health'),                health,                  []).
 :- http_handler(cliopatria('user/statistics'),       statistics,              []).
 :- http_handler(cliopatria('user/loadFile'),         load_file_form,          []).
 :- http_handler(cliopatria('user/loadURL'),          load_url_form,           []).
@@ -208,6 +216,49 @@ using_core -->
 
 graph_count(Count) :-
     aggregate_all(count, rdf_graph(_), Count).
+
+%!  health(+Request)
+%
+%   Provide basic statistics for health checks
+
+%%	health(+Request)
+%
+%	HTTP handler that replies with the overall health of the server
+
+health(_Request) :-
+	get_server_health(Health),
+	reply_json(Health).
+
+get_server_health(Health) :-
+	findall(Key-Value, health(Key, Value), Pairs),
+	dict_pairs(Health, health, Pairs).
+
+health(up, true).
+health(uptime, Time) :-
+	get_time(Now),
+	(   http_server_property(_, start_time(StartTime))
+	->  Time is round(Now - StartTime)
+	).
+health(requests, RequestCount) :-
+	cgi_statistics(requests(RequestCount)).
+health(bytes_sent, BytesSent) :-
+	cgi_statistics(bytes_sent(BytesSent)).
+health(open_files, Streams) :-
+	aggregate_all(count, N, stream_property(_, file_no(N)), Streams).
+health(loadavg, LoadAVG) :-
+	catch(setup_call_cleanup(
+		  open('/proc/loadavg', read, In),
+		  read_string(In, _, String),
+		  close(In)),
+	      _, fail),
+	split_string(String, " ", " ", [One,Five,Fifteen|_]),
+	maplist(number_string, LoadAVG, [One,Five,Fifteen]).
+:- if(current_predicate(malloc_property/1)).
+health(heap, json{inuse:InUse, size:Size}) :-
+	malloc_property('generic.current_allocated_bytes'(InUse)),
+	malloc_property('generic.heap_size'(Size)).
+:- endif.
+
 
 %!  query_form(+Request)
 %
