@@ -1,10 +1,11 @@
 /*  Part of ClioPatria SeRQL and SPARQL server
 
     Author:        Jan Wielemaker
-    E-mail:        J.Wielemaker@vu.nl
+    E-mail:        jan@swi-prolog.org
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2010-2018, University of Amsterdam,
+    Copyright (c)  2010-2024, University of Amsterdam,
                               VU University Amsterdam
+                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -104,7 +105,6 @@ in:
                 [ id(admin) ]).
 :- http_handler(cliopatria('user/query'),            query_form,
                 [id(sparql_query_form)]).
-:- http_handler(cliopatria('health'),                health,                  []).
 :- http_handler(cliopatria('user/statistics'),       statistics,              []).
 :- http_handler(cliopatria('user/loadFile'),         load_file_form,          []).
 :- http_handler(cliopatria('user/loadURL'),          load_url_form,           []).
@@ -217,6 +217,12 @@ using_core -->
 graph_count(Count) :-
     aggregate_all(count, rdf_graph(_), Count).
 
+:- if(exists_source(library(http/http_server_health))).
+:- use_module(library(http/http_server_health)).
+:- http_handler(cliopatria(health), server_health, []).
+:- else.
+:- http_handler(cliopatria('health'), health, []).
+
 %!  health(+Request)
 %
 %   Provide basic statistics for health checks
@@ -258,6 +264,7 @@ health(heap, json{inuse:InUse, size:Size}) :-
 	malloc_property('generic.current_allocated_bytes'(InUse)),
 	malloc_property('generic.heap_size'(Size)).
 :- endif.
+:- endif. % have library(http/http_server_health).
 
 
 %!  query_form(+Request)
