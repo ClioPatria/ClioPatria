@@ -50,6 +50,9 @@
               except([ file//2,
                        include//3
                      ])).
+:- use_module(library(debug), [debug/3]).
+:- use_module(library(lists), [member/2]).
+:- use_module(library(occurs), [sub_term/2]).
 
 /** <module> ClioPatria wiki-page server
 

@@ -51,8 +51,8 @@
 :- if(exists_source(library(semweb/rdf11))).
 :- use_module(library(semweb/rdf11), [rdf_lexical_form/2]).
 :- endif.
-
 :- use_module(cliopatria(hooks)).
+:- use_module(library(debug), [debug/3]).
 
 /** <module> Support for showing labels
 

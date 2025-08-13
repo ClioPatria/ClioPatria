@@ -48,6 +48,8 @@
 :- use_module(library(lists)).
 :- use_module(library(option)).
 :- use_module(library(http_settings)).
+:- use_module(library(settings)).
+:- use_module(library(uri)).
 
 /** <module> ClioPatria administrative interface
 
@@ -79,7 +81,7 @@ This module provides HTTP services to perform administrative actions.
 :- http_handler(cliopatria('user/login'),                  user_login,              []).
 :- http_handler(cliopatria('user/logout'),                 user_logout,             []).
 :- http_handler(cliopatria('admin/settings'),              settings,                []).
-:- http_handler(cliopatria('admin/save_settings'),         save_settings,           []).
+:- http_handler(cliopatria('admin/save_settings'),         cp_save_settings,           []).
 
 %!  list_users(+Request)
 %
@@ -1049,11 +1051,11 @@ warn_no_edit(_) -->
            [ a(href(location_by_id(login_form)), 'Login'),
              ' as ', code(admin), ' to edit the settings.' ])).
 
-%!  save_settings(+Request)
+%!  cp_save_settings(+Request)
 %
 %   Save modified settings.
 
-save_settings(Request) :-
+cp_save_settings(Request) :-
     authorized(admin(edit_settings)),
     reply_html_page(cliopatria(default),
                     title('Save settings'),

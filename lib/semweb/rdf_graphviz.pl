@@ -49,6 +49,7 @@
 :- use_module(library(lists)).
 :- use_module(library(apply)).
 :- use_module(library(ugraphs)).
+:- use_module(library(debug)).
 :- use_module(library(semweb/rdf_label)).
 
 :- rdf_register_ns(graphviz, 'http://www.graphviz.org/').

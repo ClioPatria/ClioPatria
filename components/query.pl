@@ -43,6 +43,8 @@
 :- use_module(library(http/html_write)).
 :- use_module(library(http/html_head)).
 :- use_module(basics).
+:- use_module(library(option)).
+:- use_module(library(settings)).
 
 /** <module> Forms for entering SPARQL and SeRQL queries.
 
