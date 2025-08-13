@@ -36,6 +36,7 @@
 :- module(conf_pengines, []).
 :- if(exists_source(library(pengines))).
 :- use_module(api(pengines)).
+:- use_module(library(settings)).
 
 /** <module> Configure Pengines access
 
