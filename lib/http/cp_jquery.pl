@@ -38,4 +38,4 @@
 :- use_module(library(http/jquery)).
 :- use_module(library(settings)).
 
-:- set_setting(jquery:version, '2.1.3.min').
+:- set_setting(jquery:version, '3.6.0.min.js').
