@@ -3,8 +3,9 @@
     Author:        Jan Wielemaker
     E-mail:        J.Wielemaker@vu.nl
     WWW:           http://www.swi-prolog.org
-    Copyright (c)  2010-2018, VU University Amsterdam
+    Copyright (c)  2010-2025, VU University Amsterdam
                               CWI, Amsterdam
+                              SWI-Prolog Solutions b.v.
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -38,7 +39,8 @@
             graph_as_resource//2,       % +Graph, +Options
             graph_actions//1,           % +Graph
             list_resource//2,           % +URI, +Options
-            context_graph//2            % +URI, +Options
+            context_graph//2,           % +URI, +Options
+            instance_table//1           % +Options
           ]).
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_parameters)).
@@ -62,6 +64,7 @@
 :- use_module(library(option)).
 :- use_module(library(apply)).
 :- use_module(library(settings)).
+:- use_module(library(xpath)).
 
 :- use_module(components(label)).
 :- use_module(components(simple_search)).
@@ -828,7 +831,7 @@ list_instances(Request) :-
                              description('Any instance or only bnodes?')
                            ]),
                       resource_format(Format,
-                            [ default(DefaultFormat),
+                            [ optional(true),
                               atom,
                               description('Display format as passed to rdf_link//2 ')
                             ]),
@@ -838,54 +841,78 @@ list_instances(Request) :-
                                description('How to sort the result-table')
                              ])
                     ]),
-    setting(resource_format, DefaultFormat),
-    findall(I-PC, instance_in_graph(Graph, Class, Type, I, PC), IPairs),
-    sort_pairs_by_label(IPairs, TableByName),
-    (   Sort == properties
-    ->  reverse(TableByName, RevTableByName),
-        transpose_pairs(RevTableByName, FPairsUp),
-        reverse(FPairsUp, FPairsDown),
-        flip_pairs(FPairsDown, Table)
-    ;   Table = TableByName
-    ),
+    include(ground,
+            [ class(Class),
+              graph(Graph),
+              type(Type),
+              resource_format(Format),
+              sort_by(Sort)
+            ], Options),
 
+    instance_table_title(Options, Title),
     reply_html_page(cliopatria(default),
-                    title(\instance_table_title(Graph, Class, Sort)),
-                    [ h1(\html_instance_table_title(Graph, Class, Sort)),
-                      \instance_table(Table, [resource_format(Format)])
+                    title(Title),
+                    [ h1(\html_instance_table_title(Options)),
+                      \instance_table(Options)
                     ]).
 
-instance_table_title(Graph, Class, Sort) -->
-    { var(Class) },
-    !,
-    html('Instances in ~w sorted by ~w'-
-         [Graph, Sort]).
-instance_table_title(Graph, Class, Sort) -->
-    { rdf_display_label(Class, Label) },
-    html('Instances of ~w in ~w sorted by ~w'-
-         [Label, Graph, Sort]).
+instance_table_title(Options, Title) :-
+    phrase(html_instance_table_title(Options), Tokens),
+    with_output_to(string(HTML), print_html(Tokens)),
+    setup_call_cleanup(
+        open_string(HTML, In),
+        load_html(stream(In), DOM, []),
+        close(In)),
+    xpath(element(title, [], DOM), //title(text(string)), Title).
 
-html_instance_table_title(Graph, Class, Sort) -->
+html_instance_table_title(Options) -->
     html([ 'Instances',
-           \of_class(Class),
-           \in_graph(Graph),
-           \sorted_by(Sort)
+           \of_class(Options),
+           \in_graph(Options),
+           \sorted_by(Options)
          ]).
 
-of_class(Class) -->
-    { var(Class) },
-    !.
-of_class(Class) -->
+of_class(Options) -->
+    { option(class(Class), Options) },
+    !,
     html([' of class ', \rdf_link(Class, [role(class)])]).
+of_class(_) -->
+    [].
 
-in_graph(Graph) -->
-    { var(Graph) },
-    !.
-in_graph(Graph) -->
+in_graph(Options) -->
+    { option(graph(Graph), Options) },
+    !,
     html([' in graph ', \graph_link(Graph)]).
+in_graph(_) -->
+    [].
 
-sorted_by(Sort) -->
+sorted_by(Options) -->
+    { option(sort_by(Sort), Options, label) },
     html(' sorted by ~w'-[Sort]).
+
+%!  instance_table(+Options)// is det.
+%
+%   Show a table with instances according to Options.
+
+instance_table(Options) -->
+    { setting(resource_format, DefaultFormat),
+      option(graph(Graph), Options, _),
+      option(class(Class), Options, _),
+      option(type(Type), Options, any),
+      option(resource_format(Format), Options, DefaultFormat),
+      option(sort_by(Sort), Options, label),
+
+      findall(I-PC, instance_in_graph(Graph, Class, Type, I, PC), IPairs),
+      sort_pairs_by_label(IPairs, TableByName),
+      (   Sort == properties
+      ->  reverse(TableByName, RevTableByName),
+          transpose_pairs(RevTableByName, FPairsUp),
+          reverse(FPairsUp, FPairsDown),
+          flip_pairs(FPairsDown, Table)
+      ;   Table = TableByName
+      )
+    },
+    instance_table(Table, [resource_format(Format)]).
 
 
 instance_table(Pairs, Options) -->
