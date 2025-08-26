@@ -464,8 +464,6 @@ bnode_in_graph(Graph, S) :-
     sort(List, Subjects),
     member(S, Subjects).
 
-
-
 %!  type_in_graph(+Graph, -Class)
 %
 %   Generate the unique types in Graph
@@ -869,24 +867,28 @@ html_instance_table_title(Options) -->
     html([ 'Instances',
            \of_class(Options),
            \in_graph(Options),
-           \sorted_by(Options)
+           \sortBy(Options)
          ]).
 
 of_class(Options) -->
-    { option(class(Class), Options) },
+    { option(class(Class), Options),
+      nonvar(Class)
+    },
     !,
     html([' of class ', \rdf_link(Class, [role(class)])]).
 of_class(_) -->
     [].
 
 in_graph(Options) -->
-    { option(graph(Graph), Options) },
+    { option(graph(Graph), Options),
+      nonvar(Graph)
+    },
     !,
     html([' in graph ', \graph_link(Graph)]).
 in_graph(_) -->
     [].
 
-sorted_by(Options) -->
+sortBy(Options) -->
     { option(sort_by(Sort), Options, label) },
     html(' sorted by ~w'-[Sort]).
 
@@ -1186,8 +1188,8 @@ resource_table_title(Graph, Pred, Which, Sort) -->
 html_resource_table_title(Graph, Pred, Which, Sort, SkosMap) -->
     html([ 'Distinct ~ws'-[Which],
            \for_predicate(Pred),
-           \in_graph(Graph),
-           \sorted_by(Sort),
+           \in_graph([graph(Graph)]),
+           \sortBy([sortBy(Sort)]),
            \showing_skosmap(SkosMap)
          ]).
 
@@ -2134,7 +2136,8 @@ list_triples_with_object(Request) :-
                              ])
                     ]),
     target_object(RObject, LObject, Object),
-    list_triples_with_object(Object, P, Graph, [sortBy(Sort)]).
+    include(ground, [graph(Graph), predicate(P)], Options),
+    list_triples_with_object(Object, [sortBy(Sort)|Options]).
 
 target_object(RObject, _LObject, RObject) :-
     atom(RObject),
@@ -2167,10 +2170,12 @@ list_triples_with_literal(Request) :-
                          description('Object as resource (URI)')
                         ])
                     ]),
-    list_triples_with_object(literal(Text), _, _, [sortBy(subject)]).
+    list_triples_with_object(literal(Text), [sortBy(subject)]).
 
 
-list_triples_with_object(Object, P, Graph, Options) :-
+list_triples_with_object(Object, Options) :-
+    option(graph(Graph), Options, _),
+    option(predicate(P), Options, _),
     findall(S-P, rdf(S,P,Object,Graph), Pairs),
     (   option(sortBy(label), Options)
     ->  sort_pairs_by_label(Pairs, Sorted)
@@ -2183,17 +2188,16 @@ list_triples_with_object(Object, P, Graph, Options) :-
     label_of(Object, OLabel),
     reply_html_page(cliopatria(default),
                     title('Triples with object ~w'-[OLabel]),
-                    [ h1(\otriple_header(Count, Object, P, Graph, Options)),
+                    [ h1(\otriple_header(Count, Object, Options)),
                       \otriple_table(Sorted, Object, [resource_format(nslabel)])
                     ]).
 
-otriple_header(Count, Object, Pred, Graph, Options) -->
-    { option(sortBy(SortBy), Options) },
+otriple_header(Count, Object, Options) -->
     html([ 'Table for the ~D triples'-[Count],
            \with_object(Object),
-           \on_predicate(Pred),
-           \in_graph(Graph),
-           \sorted_by(SortBy)
+           \on_predicate(Options),
+           \in_graph(Options),
+           \sortBy(Options)
          ]).
 
 with_object(Obj) -->
@@ -2202,12 +2206,14 @@ with_object(Obj) -->
 with_object(Obj) -->
     html([' with object ', \rdf_link(Obj, [role(obj)])]).
 
-on_predicate(P) -->
-    { var(P) },
-    !.
-on_predicate(P) -->
+on_predicate(Options) -->
+    { option(predicate(P), Options),
+      nonvar(P)
+    },
+    !,
     html([' on predicate ', \rdf_link(P, [role(pred)])]).
-
+on_predicate(_) -->
+    [].
 
 otriple_table(SPList, Object, Options) -->
     { option(top_max(TopMax), Options, 500),
