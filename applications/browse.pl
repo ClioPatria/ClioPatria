@@ -1419,7 +1419,8 @@ list_resource(Request) :-
 %           component rdf_link//1 creates a link to list_resource/1.
 
 :- multifile
-    cliopatria:list_resource//1.
+    cliopatria:list_resource//1,
+    cliopatria:list_resource//2.
 
 list_resource(URI, _Options) -->
     { \+ rdf(URI, _, _),
