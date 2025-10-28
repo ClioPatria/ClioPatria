@@ -150,6 +150,7 @@ home(Request) :-
 %   reply_html_page/3.
 
 reply_decorated_file(Alias, _Request) :-
+    authorized(read(default, home)),
     absolute_file_name(Alias, Page, [access(read)]),
     load_html_file(Page, DOM),
     contains_term(element(title, _, Title), DOM),
@@ -170,6 +171,7 @@ reply_decorated_file(Alias, _Request) :-
 %   Provide elementary statistics on the server.
 
 statistics(Request) :-
+    authorized(read(default, statistics)),
     http_current_host(Request, Host, _Port, [global(true)]),
     reply_html_page(cliopatria(default),
                     title('RDF statistics'),
@@ -272,6 +274,7 @@ health(heap, json{inuse:InUse, size:Size}) :-
 %   Provide a page for issuing a =SELECT= query.
 
 query_form(_Request) :-
+    authorized(read(default, browse)),
     reply_html_page(cliopatria(default),
                     title('Specify a query'),
                     [ \query_form([]),
@@ -385,6 +388,7 @@ $(function() {
 %   Provide a form for uploading triples from a URL.
 
 load_url_form(_Request) :-
+    authorized(write(default, load(url))),
     reply_html_page(cliopatria(default),
                     title('Load RDF from HTTP server'),
                     [ h1('Load RDF from HTTP server'),
@@ -537,6 +541,7 @@ get_base_ontologies(Request, List) :-
 %   HTTP handle presenting a form to clear the repository.
 
 clear_repository_form(_Request) :-
+    authorized(write(default, clear_repository)),
     reply_html_page(cliopatria(default),
                     title('Clear triple store'),
                     [ h1('Clear entire repository'),
@@ -561,6 +566,7 @@ clear_repository_form(_Request) :-
 %   HTTP handler providing a form to remove RDF statements.
 
 remove_statements_form(_Request) :-
+    authorized(write(default, remove(triples))),
     reply_html_page(cliopatria(default),
                     title('Remove triples from store'),
                     [ h1('Remove statements'),

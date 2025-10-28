@@ -130,6 +130,7 @@ that allow back-office applications to reuse this infrastructure.
 %   are sorted to the number of triples.
 
 list_graphs(_Request) :-
+    authorized_browse(default),
     findall(Count-Graph,
             (   rdf_graph(Graph),
                 graph_triples(Graph, Count)
@@ -341,6 +342,8 @@ multigraph_action(Request) :-
                     [ graph(Graphs, [list(atom)]),
                       action(Action, [oneof(Actions)])
                     ]),
+    forall(member(Graph, Graphs),
+           authorized(write(Graph, Action))),
     clause(graph_action(Action,Format,_), _),
     api_action(Request, multigraph_action(Action, Graphs), html,
                Format-[Action]).
@@ -371,6 +374,7 @@ list_graph(Request) :-
                     [ graph(Graph,
                             [description('Name of the graph to describe')])
                     ]),
+    authorized_browse(Graph),
     (   rdf_graph(Graph)
     ->  true
     ;   http_404([], Request)
@@ -661,6 +665,7 @@ list_classes(Request) :-
     http_parameters(Request,
                     [ graph(Graph, [description('Name of the graph')])
                     ]),
+    authorized_browse(Graph),
     types_in_graph(Graph, Map),
     sort_pairs_by_label(Map, Sorted),
     reply_html_page(cliopatria(default),
@@ -847,6 +852,7 @@ list_instances(Request) :-
               sort_by(Sort)
             ], Options),
 
+    authorized_browse(Graph),
     instance_table_title(Options, Title),
     reply_html_page(cliopatria(default),
                     title(Title),
@@ -951,6 +957,7 @@ list_predicates(Request) :-
     http_parameters(Request,
                     [ graph(Graph, [])
                     ]),
+    authorized_browse(Graph),
     findall(Pred, predicate_in_graph(Graph, Pred), Preds),
     sort_by_label(Preds, Sorted),
     reply_html_page(cliopatria(default),
@@ -1133,6 +1140,7 @@ list_predicate_resources(Request) :-
                                 description('Show SKOS concepts for literals')
                               ])
                     ]),
+    authorized_browse(Graph),
     do_skos(SkosMap, Which, Pred),
     findall(R, predicate_resource(Graph, Pred, Which, R), Set),
     term_frequency_list(Set, FPairs),
@@ -1389,6 +1397,7 @@ list_resource(Request) :-
                             description('If true, omit application hook')
                           ])
                     ]),
+    authorized_browse(Graph),
     setting(resource_format, DefaultFormat),
     rdf_display_label(URI, Label),
     reply_html_page(cliopatria(default),
@@ -2011,6 +2020,7 @@ list_triples(Request) :-
                                      description('Restrict to objects of this class')
                                    ])
                     ]),
+    authorized_browse(Graph),
     (   atom(Dom)
     ->  findall(rdf(S,P,O), rdf_in_domain(S,P,O,Dom,Graph), Triples0)
     ;   atom(Range)
@@ -2055,7 +2065,7 @@ triple_header(Count, Pred, Dom, Range, Graph) -->
            \for_predicate(Pred),
            \with_domain(Dom),
            \with_range(Range),
-           \in_graph(Graph)
+           \in_graph([graph(Graph)])
          ]).
 
 with_domain(Dom) -->
@@ -2136,6 +2146,7 @@ list_triples_with_object(Request) :-
                                description('How to sort the result')
                              ])
                     ]),
+    authorized_browse(Graph),
     target_object(RObject, LObject, Object),
     include(ground, [graph(Graph), predicate(P)], Options),
     list_triples_with_object(Object, [sortBy(Sort)|Options]).
@@ -2165,6 +2176,7 @@ rdf11_rdf_db(literal(Lit),   literal(Lit)).
 %   interface.
 
 list_triples_with_literal(Request) :-
+    authorized_browse(default),
     http_parameters(Request,
                     [ q(Text,
                         [optional(true),
@@ -2335,6 +2347,7 @@ p_label(type_count(G),
 %   @tbd    Produce a sensible search language.
 
 search(Request) :-
+    authorized_browse(default),
     http_parameters(Request,
                     [ q(QueryText,
                         [ description('Query to search for')
@@ -2549,6 +2562,7 @@ delete_list_prefix(N, [_|T], List) :-
 %   List known RDF prefixes in various formats
 
 list_prefixes(Request) :-
+    authorized_browse(default),
     Formats = [html,turtle],
     http_parameters(Request,
                     [ format(Format,
@@ -2648,3 +2662,8 @@ turtle_prefixes([], _) --> [].
 turtle_prefixes([Prefix-URI|T], Col) -->
     html('@prefix ~t~w: ~*|<~w> .~n'-[Prefix, Col, URI]),
     turtle_prefixes(T, Col).
+
+authorized_browse(Graph), var(Graph) =>
+    authorized(read(default, browse)).
+authorized_browse(Graph) =>
+    authorized(read(Graph, browse)).

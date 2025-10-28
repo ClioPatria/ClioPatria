@@ -40,6 +40,7 @@
 :- use_module(library(http/js_write)).
 :- use_module(library(http/http_server_files)).
 :- use_module(library(http/html_head)).
+:- use_module(user(user_db)).
 
 :- use_module(api(json)).               % get /json/prefixes
 
@@ -52,6 +53,7 @@
 %   HTTP handler that presents the YASGUI SPARQL editor.
 
 yasgui_editor(_Request) :-
+    authorized(read(default, browse)),
     has_yasgui,
     !,
     reply_html_page(
