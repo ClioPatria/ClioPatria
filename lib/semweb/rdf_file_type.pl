@@ -38,6 +38,7 @@
             rdf_guess_format_and_load/2 % +Stream, +Options
           ]).
 :- use_module(library(semweb/rdf_db)).
+:- use_module(library(semweb/rdfa)).
 :- use_module(library(memfile)).
 :- use_module(library(sgml)).
 :- use_module(library(lists)).
